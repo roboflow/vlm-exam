@@ -71,9 +71,7 @@ def fetch_logo(url: str, size: int = 64) -> Image.Image:
     Returns:
         RGBA PIL image.
     """
-    png_bytes = cairosvg.svg2png(
-        url=url, output_width=size * 2, output_height=size * 2
-    )
+    png_bytes = cairosvg.svg2png(url=url, output_width=size * 2, output_height=size * 2)
     return Image.open(io.BytesIO(png_bytes)).convert("RGBA")
 
 
@@ -118,12 +116,8 @@ def lighten_color(hex_color: str, factor: float = 0.45) -> str:
     """
     stripped = hex_color.lstrip("#")
     red = int(int(stripped[0:2], 16) + (255 - int(stripped[0:2], 16)) * factor)
-    green = int(
-        int(stripped[2:4], 16) + (255 - int(stripped[2:4], 16)) * factor
-    )
-    blue = int(
-        int(stripped[4:6], 16) + (255 - int(stripped[4:6], 16)) * factor
-    )
+    green = int(int(stripped[2:4], 16) + (255 - int(stripped[2:4], 16)) * factor)
+    blue = int(int(stripped[4:6], 16) + (255 - int(stripped[4:6], 16)) * factor)
     return f"#{red:02x}{green:02x}{blue:02x}"
 
 

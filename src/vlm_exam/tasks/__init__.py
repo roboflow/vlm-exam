@@ -42,9 +42,7 @@ def create_task(task_name: str) -> Task:
     """
     if task_name not in _TASK_REGISTRY:
         available = ", ".join(sorted(_TASK_REGISTRY))
-        raise KeyError(
-            f"Unknown task {task_name!r}. Available tasks: {available}"
-        )
+        raise KeyError(f"Unknown task {task_name!r}. Available tasks: {available}")
 
     qualified_name = _TASK_REGISTRY[task_name]
     module_path, class_name = qualified_name.rsplit(".", 1)

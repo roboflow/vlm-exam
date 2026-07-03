@@ -53,8 +53,7 @@ def create_provider(
     if provider_name not in _PROVIDER_REGISTRY:
         available = ", ".join(sorted(_PROVIDER_REGISTRY))
         raise KeyError(
-            f"Unknown provider {provider_name!r}. "
-            f"Available providers: {available}"
+            f"Unknown provider {provider_name!r}. Available providers: {available}"
         )
 
     qualified_name = _PROVIDER_REGISTRY[provider_name]

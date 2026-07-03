@@ -39,8 +39,7 @@ def _compute_resize_dimensions(
         return (
             math.ceil(candidate_width / 28) * 28 <= max_edge
             and math.ceil(candidate_height / 28) * 28 <= max_edge
-            and _count_image_tokens(candidate_width, candidate_height)
-            <= max_tokens
+            and _count_image_tokens(candidate_width, candidate_height) <= max_tokens
         )
 
     if fits(width, height):

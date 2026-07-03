@@ -158,30 +158,52 @@ def plot_accuracy_chart(
             _add_row_divider(axes, y + row_spacing / 2, bar_max + 16)
 
         draw_rounded_bar(
-            axes, 0, y, bar_max, bar_height, corner_radius,
-            facecolor=BAR_TRACK_COLOR, edgecolor="none", zorder=2,
+            axes,
+            0,
+            y,
+            bar_max,
+            bar_height,
+            corner_radius,
+            facecolor=BAR_TRACK_COLOR,
+            edgecolor="none",
+            zorder=2,
         )
         draw_rounded_bar(
-            axes, 0, y, value, bar_height, corner_radius,
-            facecolor=color, edgecolor="none", zorder=3,
+            axes,
+            0,
+            y,
+            value,
+            bar_height,
+            corner_radius,
+            facecolor=color,
+            edgecolor="none",
+            zorder=3,
         )
 
         axes.text(
-            bar_max + 2.0, y, f"{value:.1f}%",
-            va="center", ha="left", fontsize=19,
-            color=text_color_for_brand(color), font=fonts.display,
+            bar_max + 2.0,
+            y,
+            f"{value:.1f}%",
+            va="center",
+            ha="left",
+            fontsize=19,
+            color=text_color_for_brand(color),
+            font=fonts.display,
         )
 
         _add_model_label(axes, model_id, config, y)
 
-    _configure_clean_axes(
-        axes, -LABEL_AREA_WIDTH - 2, 118, -1.0, total_y_range + 2.2
-    )
+    _configure_clean_axes(axes, -LABEL_AREA_WIDTH - 2, 118, -1.0, total_y_range + 2.2)
 
     axes.text(
-        -LABEL_AREA_WIDTH - 2, total_y_range + 1.8, title,
-        fontsize=28, color=TEXT_PRIMARY, font=fonts.display,
-        va="bottom", ha="left",
+        -LABEL_AREA_WIDTH - 2,
+        total_y_range + 1.8,
+        title,
+        fontsize=28,
+        color=TEXT_PRIMARY,
+        font=fonts.display,
+        va="bottom",
+        ha="left",
     )
 
     plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
@@ -243,30 +265,58 @@ def plot_metric_chart(
             _add_row_divider(axes, y + row_spacing / 2, bar_max + 16)
 
         draw_rounded_bar(
-            axes, 0, y, bar_max, bar_height, corner_radius,
-            facecolor=BAR_TRACK_COLOR, edgecolor="none", zorder=2,
+            axes,
+            0,
+            y,
+            bar_max,
+            bar_height,
+            corner_radius,
+            facecolor=BAR_TRACK_COLOR,
+            edgecolor="none",
+            zorder=2,
         )
         draw_rounded_bar(
-            axes, 0, y, bar_width, bar_height, corner_radius,
-            facecolor=color, edgecolor="none", zorder=3,
+            axes,
+            0,
+            y,
+            bar_width,
+            bar_height,
+            corner_radius,
+            facecolor=color,
+            edgecolor="none",
+            zorder=3,
         )
 
         axes.text(
-            bar_max + 2.0, y, format_value(value),
-            va="center", ha="left", fontsize=19,
-            color=text_color_for_brand(color), font=fonts.display,
+            bar_max + 2.0,
+            y,
+            format_value(value),
+            va="center",
+            ha="left",
+            fontsize=19,
+            color=text_color_for_brand(color),
+            font=fonts.display,
         )
 
         _add_model_label(axes, model_id, config, y)
 
     _configure_clean_axes(
-        axes, -LABEL_AREA_WIDTH - 2, 118, -1.0, total_y_range + 2.2,
+        axes,
+        -LABEL_AREA_WIDTH - 2,
+        118,
+        -1.0,
+        total_y_range + 2.2,
     )
 
     axes.text(
-        -LABEL_AREA_WIDTH - 2, total_y_range + 1.8, title,
-        fontsize=28, color=TEXT_PRIMARY, font=fonts.display,
-        va="bottom", ha="left",
+        -LABEL_AREA_WIDTH - 2,
+        total_y_range + 1.8,
+        title,
+        fontsize=28,
+        color=TEXT_PRIMARY,
+        font=fonts.display,
+        va="bottom",
+        ha="left",
     )
 
     plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
@@ -338,31 +388,69 @@ def plot_dual_effort_chart(
         y_low = y - bar_gap / 2 - bar_height / 2
 
         draw_rounded_bar(
-            axes, 0, y_high, bar_max, bar_height, corner_radius,
-            facecolor=BAR_TRACK_COLOR, edgecolor="none", zorder=2,
+            axes,
+            0,
+            y_high,
+            bar_max,
+            bar_height,
+            corner_radius,
+            facecolor=BAR_TRACK_COLOR,
+            edgecolor="none",
+            zorder=2,
         )
         draw_rounded_bar(
-            axes, 0, y_high, bar_high, bar_height, corner_radius,
-            facecolor=color, edgecolor="none", zorder=3,
+            axes,
+            0,
+            y_high,
+            bar_high,
+            bar_height,
+            corner_radius,
+            facecolor=color,
+            edgecolor="none",
+            zorder=3,
         )
         draw_rounded_bar(
-            axes, 0, y_low, bar_max, bar_height, corner_radius,
-            facecolor=BAR_TRACK_COLOR, edgecolor="none", zorder=2,
+            axes,
+            0,
+            y_low,
+            bar_max,
+            bar_height,
+            corner_radius,
+            facecolor=BAR_TRACK_COLOR,
+            edgecolor="none",
+            zorder=2,
         )
         draw_rounded_bar(
-            axes, 0, y_low, bar_low, bar_height, corner_radius,
-            facecolor=color_light, edgecolor="none", zorder=3,
+            axes,
+            0,
+            y_low,
+            bar_low,
+            bar_height,
+            corner_radius,
+            facecolor=color_light,
+            edgecolor="none",
+            zorder=3,
         )
 
         axes.text(
-            bar_max + 2.0, y_high, format_value(value_high),
-            va="center", ha="left", fontsize=15,
-            color=text_color_for_brand(color), font=fonts.display,
+            bar_max + 2.0,
+            y_high,
+            format_value(value_high),
+            va="center",
+            ha="left",
+            fontsize=15,
+            color=text_color_for_brand(color),
+            font=fonts.display,
         )
         axes.text(
-            bar_max + 2.0, y_low, format_value(value_low),
-            va="center", ha="left", fontsize=15,
-            color=TEXT_SECONDARY, font=fonts.display,
+            bar_max + 2.0,
+            y_low,
+            format_value(value_low),
+            va="center",
+            ha="left",
+            fontsize=15,
+            color=TEXT_SECONDARY,
+            font=fonts.display,
         )
 
         _add_model_label(axes, model_id, config, y)
@@ -370,32 +458,65 @@ def plot_dual_effort_chart(
     pill_y = total_y_range + 2.05
     swatch_width, swatch_height = 6, 0.18
     draw_rounded_bar(
-        axes, 64, pill_y, swatch_width, swatch_height, swatch_height / 2,
-        facecolor=TEXT_PRIMARY, edgecolor="none", zorder=5,
+        axes,
+        64,
+        pill_y,
+        swatch_width,
+        swatch_height,
+        swatch_height / 2,
+        facecolor=TEXT_PRIMARY,
+        edgecolor="none",
+        zorder=5,
     )
     axes.text(
-        64 + swatch_width + 1.2, pill_y, "High",
-        va="center", ha="left", fontsize=11,
-        color=TEXT_PRIMARY, font=fonts.medium,
+        64 + swatch_width + 1.2,
+        pill_y,
+        "High",
+        va="center",
+        ha="left",
+        fontsize=11,
+        color=TEXT_PRIMARY,
+        font=fonts.medium,
     )
     draw_rounded_bar(
-        axes, 84, pill_y, swatch_width, swatch_height, swatch_height / 2,
-        facecolor=DIVIDER_COLOR, edgecolor="none", zorder=5,
+        axes,
+        84,
+        pill_y,
+        swatch_width,
+        swatch_height,
+        swatch_height / 2,
+        facecolor=DIVIDER_COLOR,
+        edgecolor="none",
+        zorder=5,
     )
     axes.text(
-        84 + swatch_width + 1.2, pill_y, "Low",
-        va="center", ha="left", fontsize=11,
-        color=TEXT_SECONDARY, font=fonts.medium,
+        84 + swatch_width + 1.2,
+        pill_y,
+        "Low",
+        va="center",
+        ha="left",
+        fontsize=11,
+        color=TEXT_SECONDARY,
+        font=fonts.medium,
     )
 
     _configure_clean_axes(
-        axes, -LABEL_AREA_WIDTH - 2, 118, -1.2, total_y_range + 2.4,
+        axes,
+        -LABEL_AREA_WIDTH - 2,
+        118,
+        -1.2,
+        total_y_range + 2.4,
     )
 
     axes.text(
-        -LABEL_AREA_WIDTH - 2, total_y_range + 1.8, title,
-        fontsize=28, color=TEXT_PRIMARY, font=fonts.display,
-        va="bottom", ha="left",
+        -LABEL_AREA_WIDTH - 2,
+        total_y_range + 1.8,
+        title,
+        fontsize=28,
+        color=TEXT_PRIMARY,
+        font=fonts.display,
+        va="bottom",
+        ha="left",
     )
 
     plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
@@ -435,21 +556,32 @@ def plot_cost_bar_chart(
         cost = cost_by_model[model_id]
 
         axes.bar(
-            x_positions[index], cost, bar_width,
-            color=color, edgecolor="white", linewidth=0.8, zorder=3,
+            x_positions[index],
+            cost,
+            bar_width,
+            color=color,
+            edgecolor="white",
+            linewidth=0.8,
+            zorder=3,
         )
         axes.text(
             x_positions[index],
             cost + axes.get_ylim()[1] * 0.01,
             f"${cost:.4f}",
-            ha="center", va="bottom", fontsize=11,
-            color=text_color_for_brand(color), font=fonts.bold,
+            ha="center",
+            va="bottom",
+            fontsize=11,
+            color=text_color_for_brand(color),
+            font=fonts.bold,
         )
 
     labels = [config.models[model_id].name for model_id in model_ids]
     axes.set_xticks(x_positions)
     axes.set_xticklabels(
-        labels, fontsize=13, font=fonts.bold, color=TEXT_PRIMARY,
+        labels,
+        fontsize=13,
+        font=fonts.bold,
+        color=TEXT_PRIMARY,
     )
 
     axes.spines["top"].set_visible(False)
@@ -457,15 +589,17 @@ def plot_cost_bar_chart(
     axes.spines["left"].set_color(DIVIDER_COLOR)
     axes.spines["bottom"].set_color(DIVIDER_COLOR)
     axes.tick_params(axis="y", colors=TEXT_SECONDARY, labelsize=10)
-    axes.yaxis.set_major_formatter(
-        plt.FuncFormatter(lambda value, _: f"${value:.4f}")
-    )
+    axes.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"${value:.4f}"))
     axes.set_ylabel("")
     axes.grid(axis="y", color=DIVIDER_COLOR, linewidth=0.6, zorder=0)
 
     axes.set_title(
-        title, fontsize=28, color=TEXT_PRIMARY, font=fonts.display,
-        loc="left", pad=20,
+        title,
+        fontsize=28,
+        color=TEXT_PRIMARY,
+        font=fonts.display,
+        loc="left",
+        pad=20,
     )
 
     plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
@@ -521,27 +655,30 @@ def plot_combined_metrics_chart(
 
     columns = [
         {
-            "high": tokens_high, "low": tokens_low,
-            "format": lambda value: f"{value:,.0f}", "header": "Tokens",
+            "high": tokens_high,
+            "low": tokens_low,
+            "format": lambda value: f"{value:,.0f}",
+            "header": "Tokens",
         },
         {
-            "high": cost_high, "low": cost_low,
+            "high": cost_high,
+            "low": cost_low,
             "format": lambda value: (
                 f"${value:.4f}" if value >= 0.001 else f"${value:.5f}"
             ),
             "header": "Cost",
         },
         {
-            "high": time_high, "low": time_low,
-            "format": lambda value: f"{value:.1f}s", "header": "Time",
+            "high": time_high,
+            "low": time_low,
+            "format": lambda value: f"{value:.1f}s",
+            "header": "Time",
         },
     ]
 
     scales = []
     for column in columns:
-        max_value = max(
-            max(column["high"].values()), max(column["low"].values())
-        )
+        max_value = max(max(column["high"].values()), max(column["low"].values()))
         scales.append(column_width / max_value if max_value > 0 else 1.0)
 
     figure_height = max(5.0, count * row_spacing + 3.5)
@@ -560,14 +697,22 @@ def plot_combined_metrics_chart(
         header_x = x_start + column_width / 2
         header_y = total_y_range + 1.35
         axes.text(
-            header_x, header_y, column["header"],
-            va="bottom", ha="center", fontsize=14,
-            color=TEXT_PRIMARY, font=fonts.bold,
+            header_x,
+            header_y,
+            column["header"],
+            va="bottom",
+            ha="center",
+            fontsize=14,
+            color=TEXT_PRIMARY,
+            font=fonts.bold,
         )
         axes.plot(
             [x_start, x_start + column_width],
             [header_y - 0.15, header_y - 0.15],
-            color=DIVIDER_COLOR, linewidth=1.2, zorder=1, clip_on=False,
+            color=DIVIDER_COLOR,
+            linewidth=1.2,
+            zorder=1,
+            clip_on=False,
         )
 
         if column_index > 0:
@@ -575,8 +720,11 @@ def plot_combined_metrics_chart(
             axes.plot(
                 [separator_x, separator_x],
                 [-0.8, total_y_range + 1.1],
-                color=DIVIDER_COLOR, linewidth=0.6, zorder=1,
-                clip_on=False, linestyle=(0, (8, 6)),
+                color=DIVIDER_COLOR,
+                linewidth=0.6,
+                zorder=1,
+                clip_on=False,
+                linestyle=(0, (8, 6)),
             )
 
     for index, model_id in enumerate(sorted_models):
@@ -594,8 +742,10 @@ def plot_combined_metrics_chart(
             logo_image = fetch_logo(lab_info.logo_url, size=32)
             image_box = OffsetImage(logo_image, zoom=0.35)
             annotation = AnnotationBbox(
-                image_box, (logo_x + 1.0, y + 0.04),
-                frameon=False, xycoords=("data", "data"),
+                image_box,
+                (logo_x + 1.0, y + 0.04),
+                frameon=False,
+                xycoords=("data", "data"),
                 box_alignment=(0.5, 0.5),
             )
             axes.add_artist(annotation)
@@ -604,14 +754,24 @@ def plot_combined_metrics_chart(
 
         text_x = logo_x + 7.0
         axes.text(
-            text_x, y + 0.16, model_info.name,
-            va="bottom", ha="left", fontsize=15,
-            color=TEXT_PRIMARY, font=fonts.bold,
+            text_x,
+            y + 0.16,
+            model_info.name,
+            va="bottom",
+            ha="left",
+            fontsize=15,
+            color=TEXT_PRIMARY,
+            font=fonts.bold,
         )
         axes.text(
-            text_x, y - 0.08, lab_info.name,
-            va="top", ha="left", fontsize=11,
-            color=TEXT_SECONDARY, font=fonts.medium,
+            text_x,
+            y - 0.08,
+            lab_info.name,
+            va="top",
+            ha="left",
+            fontsize=11,
+            color=TEXT_SECONDARY,
+            font=fonts.medium,
         )
 
         for column_index, (column, column_scale, x_start) in enumerate(
@@ -626,75 +786,135 @@ def plot_combined_metrics_chart(
             y_low = y - bar_gap / 2 - bar_height / 2
 
             draw_rounded_bar(
-                axes, x_start, y_high, column_width,
-                bar_height, corner_radius,
-                facecolor=BAR_TRACK_COLOR, edgecolor="none", zorder=2,
+                axes,
+                x_start,
+                y_high,
+                column_width,
+                bar_height,
+                corner_radius,
+                facecolor=BAR_TRACK_COLOR,
+                edgecolor="none",
+                zorder=2,
             )
             draw_rounded_bar(
-                axes, x_start, y_high, bar_high,
-                bar_height, corner_radius,
-                facecolor=color, edgecolor="none", zorder=3,
+                axes,
+                x_start,
+                y_high,
+                bar_high,
+                bar_height,
+                corner_radius,
+                facecolor=color,
+                edgecolor="none",
+                zorder=3,
             )
             draw_rounded_bar(
-                axes, x_start, y_low, column_width,
-                bar_height, corner_radius,
-                facecolor=BAR_TRACK_COLOR, edgecolor="none", zorder=2,
+                axes,
+                x_start,
+                y_low,
+                column_width,
+                bar_height,
+                corner_radius,
+                facecolor=BAR_TRACK_COLOR,
+                edgecolor="none",
+                zorder=2,
             )
             draw_rounded_bar(
-                axes, x_start, y_low, bar_low,
-                bar_height, corner_radius,
-                facecolor=color_light, edgecolor="none", zorder=3,
+                axes,
+                x_start,
+                y_low,
+                bar_low,
+                bar_height,
+                corner_radius,
+                facecolor=color_light,
+                edgecolor="none",
+                zorder=3,
             )
 
             axes.text(
-                x_start + column_width + 0.8, y_high,
+                x_start + column_width + 0.8,
+                y_high,
                 column["format"](value_high),
-                va="center", ha="left", fontsize=11,
-                color=text_color_for_brand(color), font=fonts.display,
+                va="center",
+                ha="left",
+                fontsize=11,
+                color=text_color_for_brand(color),
+                font=fonts.display,
             )
             axes.text(
-                x_start + column_width + 0.8, y_low,
+                x_start + column_width + 0.8,
+                y_low,
                 column["format"](value_low),
-                va="center", ha="left", fontsize=11,
-                color=TEXT_SECONDARY, font=fonts.display,
+                va="center",
+                ha="left",
+                fontsize=11,
+                color=TEXT_SECONDARY,
+                font=fonts.display,
             )
 
     pill_y = total_y_range + 2.05
     swatch_width, swatch_height = 5, 0.16
     pill_x_high = chart_right - 28
     draw_rounded_bar(
-        axes, pill_x_high, pill_y,
-        swatch_width, swatch_height, swatch_height / 2,
-        facecolor=TEXT_PRIMARY, edgecolor="none", zorder=5,
+        axes,
+        pill_x_high,
+        pill_y,
+        swatch_width,
+        swatch_height,
+        swatch_height / 2,
+        facecolor=TEXT_PRIMARY,
+        edgecolor="none",
+        zorder=5,
     )
     axes.text(
-        pill_x_high + swatch_width + 1.0, pill_y, "High",
-        va="center", ha="left", fontsize=10,
-        color=TEXT_PRIMARY, font=fonts.medium,
+        pill_x_high + swatch_width + 1.0,
+        pill_y,
+        "High",
+        va="center",
+        ha="left",
+        fontsize=10,
+        color=TEXT_PRIMARY,
+        font=fonts.medium,
     )
     pill_x_low = chart_right - 12
     draw_rounded_bar(
-        axes, pill_x_low, pill_y,
-        swatch_width, swatch_height, swatch_height / 2,
-        facecolor=DIVIDER_COLOR, edgecolor="none", zorder=5,
+        axes,
+        pill_x_low,
+        pill_y,
+        swatch_width,
+        swatch_height,
+        swatch_height / 2,
+        facecolor=DIVIDER_COLOR,
+        edgecolor="none",
+        zorder=5,
     )
     axes.text(
-        pill_x_low + swatch_width + 1.0, pill_y, "Low",
-        va="center", ha="left", fontsize=10,
-        color=TEXT_SECONDARY, font=fonts.medium,
+        pill_x_low + swatch_width + 1.0,
+        pill_y,
+        "Low",
+        va="center",
+        ha="left",
+        fontsize=10,
+        color=TEXT_SECONDARY,
+        font=fonts.medium,
     )
 
     _configure_clean_axes(
         axes,
-        -LABEL_AREA_WIDTH - 2, chart_right + 14,
-        -1.2, total_y_range + 2.6,
+        -LABEL_AREA_WIDTH - 2,
+        chart_right + 14,
+        -1.2,
+        total_y_range + 2.6,
     )
 
     axes.text(
-        -LABEL_AREA_WIDTH - 2, total_y_range + 1.8,
+        -LABEL_AREA_WIDTH - 2,
+        total_y_range + 1.8,
         "Model Efficiency Overview",
-        fontsize=26, color=TEXT_PRIMARY, font=fonts.display,
-        va="bottom", ha="left",
+        fontsize=26,
+        color=TEXT_PRIMARY,
+        font=fonts.display,
+        va="bottom",
+        ha="left",
     )
 
     plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
