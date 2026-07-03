@@ -12,15 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import time
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from PIL import Image
 
 from vlm_exam.providers.base import Provider, Usage
 from vlm_exam.results import RunResult, SampleResult
 from vlm_exam.tasks.base import Sample, Task
+
+if TYPE_CHECKING:
+    from vlm_exam.judge import Judge
 
 
 def run_benchmark(
@@ -30,6 +36,8 @@ def run_benchmark(
     effort: str,
     task_name: str = "vqa",
     verbose: bool = True,
+    match_mode: str = "strict",
+    judge: Judge | None = None,
 ) -> RunResult:
     """Run a benchmark across all samples with a single provider.
 
@@ -40,6 +48,8 @@ def run_benchmark(
         effort: Effort level (e.g. ``"low"``, ``"high"``).
         task_name: Name of the task for result metadata.
         verbose: Whether to print progress to stdout.
+        match_mode: ``"strict"`` or ``"judge"``.
+        judge: Optional LLM judge instance for ``"judge"`` mode.
 
     Returns:
         A complete run result with per-sample outcomes.
@@ -68,7 +78,9 @@ def run_benchmark(
         except Exception as error:
             prediction = f"ERROR: {error}"
 
-        evaluation = task.evaluate(sample, prediction)
+        evaluation = task.evaluate(
+            sample, prediction, match_mode=match_mode, judge=judge
+        )
         image_name = os.path.basename(sample.image_path)
 
         metadata: dict[str, str] = {}
@@ -93,9 +105,7 @@ def run_benchmark(
         if verbose:
             status = "\u2705" if evaluation.correct else "\u274c"
             time_string = (
-                f"{elapsed_seconds:.1f}s"
-                if elapsed_seconds is not None
-                else "N/A"
+                f"{elapsed_seconds:.1f}s" if elapsed_seconds is not None else "N/A"
             )
             print(
                 f"[{index + 1}/{total}] {status}  {time_string}"

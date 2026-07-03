@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from vlm_exam.judge import Judge
 
 
 @dataclass(frozen=True)
@@ -61,12 +66,21 @@ class Task(ABC):
         ...
 
     @abstractmethod
-    def evaluate(self, sample: Sample, prediction: str) -> EvaluationResult:
+    def evaluate(
+        self,
+        sample: Sample,
+        prediction: str,
+        *,
+        match_mode: str = "strict",
+        judge: Judge | None = None,
+    ) -> EvaluationResult:
         """Evaluate a model prediction against the sample's ground truth.
 
         Args:
             sample: The original sample with expected answer.
             prediction: Raw text output from the model.
+            match_mode: ``"strict"`` or ``"judge"``.
+            judge: Optional LLM judge instance for non-strict matching.
 
         Returns:
             Evaluation result indicating correctness.

@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest.mock import MagicMock
+
 import pytest
 
-from vlm_exam.tasks.vqa import answers_match, normalize_answer
+from vlm_exam.tasks.vqa import answers_match, normalize_answer, strict_match
 
 
 class TestNormalizeAnswer:
@@ -49,36 +51,39 @@ class TestNormalizeAnswer:
         assert normalize_answer("  **The**  answer  ") == "answer"
 
 
-class TestAnswersMatch:
+class TestStrictMatch:
     def test_exact_match(self) -> None:
-        assert answers_match("red", "red") is True
+        assert strict_match("red", "red") is True
 
     def test_case_insensitive_match(self) -> None:
-        assert answers_match("Red", "red") is True
+        assert strict_match("Red", "red") is True
 
     def test_article_insensitive_match(self) -> None:
-        assert answers_match("the car", "car") is True
+        assert strict_match("the car", "car") is True
 
     def test_space_insensitive_match(self) -> None:
-        assert answers_match("new york", "newyork") is True
-
-    def test_expected_contains_predicted(self) -> None:
-        assert answers_match("red car", "red") is True
-
-    def test_predicted_contains_expected(self) -> None:
-        assert answers_match("red", "bright red") is True
+        assert strict_match("new york", "newyork") is True
 
     def test_markdown_in_prediction(self) -> None:
-        assert answers_match("hello", "**hello**") is True
+        assert strict_match("hello", "**hello**") is True
 
     def test_no_match(self) -> None:
-        assert answers_match("red", "blue") is False
+        assert strict_match("red", "blue") is False
 
     def test_partial_overlap_no_match(self) -> None:
-        assert answers_match("cat", "caterpillar") is True
+        assert strict_match("cat", "caterpillar") is False
+
+    def test_substring_digit_no_match(self) -> None:
+        assert strict_match("18", "8") is False
+
+    def test_substring_prefix_no_match(self) -> None:
+        assert strict_match("G230", "230") is False
+
+    def test_truncated_no_match(self) -> None:
+        assert strict_match("2 000111 111112", "2 0001") is False
 
     def test_empty_strings_match(self) -> None:
-        assert answers_match("", "") is True
+        assert strict_match("", "") is True
 
     @pytest.mark.parametrize(
         ("expected", "predicted"),
@@ -88,9 +93,75 @@ class TestAnswersMatch:
             ("yes", "Yes"),
             ("no", "No"),
             ("Toyota", "**Toyota**"),
+            ("205/60 R 16", "205/60 R16"),
+            ("2 000111 111112", "2000111111112"),
         ],
     )
-    def test_common_vqa_answers(
-        self, expected: str, predicted: str
-    ) -> None:
-        assert answers_match(expected, predicted) is True
+    def test_common_vqa_answers(self, expected: str, predicted: str) -> None:
+        assert strict_match(expected, predicted) is True
+
+
+class TestAnswersMatchWithJudge:
+    def test_strict_mode_no_substring(self) -> None:
+        assert answers_match("18", "8", match_mode="strict") is False
+
+    def test_strict_mode_exact(self) -> None:
+        assert answers_match("red", "red", match_mode="strict") is True
+
+    def test_judge_mode_calls_judge_on_mismatch(self) -> None:
+        mock_judge = MagicMock()
+        mock_judge.evaluate.return_value = True
+
+        result = answers_match(
+            "checkered flag",
+            "A checkered racing flag",
+            question="What is the logo?",
+            match_mode="judge",
+            judge=mock_judge,
+        )
+
+        assert result is True
+        mock_judge.evaluate.assert_called_once_with(
+            question="What is the logo?",
+            expected="checkered flag",
+            predicted="A checkered racing flag",
+        )
+
+    def test_judge_mode_skips_judge_on_exact_match(self) -> None:
+        mock_judge = MagicMock()
+
+        result = answers_match(
+            "red",
+            "RED",
+            question="What color?",
+            match_mode="judge",
+            judge=mock_judge,
+        )
+
+        assert result is True
+        mock_judge.evaluate.assert_not_called()
+
+    def test_judge_mode_returns_false_when_judge_rejects(self) -> None:
+        mock_judge = MagicMock()
+        mock_judge.evaluate.return_value = False
+
+        result = answers_match(
+            "18",
+            "8",
+            question="How many items?",
+            match_mode="judge",
+            judge=mock_judge,
+        )
+
+        assert result is False
+
+    def test_judge_mode_without_judge_falls_back_to_strict(self) -> None:
+        result = answers_match(
+            "phone",
+            "smartphone",
+            question="What device?",
+            match_mode="judge",
+            judge=None,
+        )
+
+        assert result is False

@@ -17,6 +17,7 @@ from pathlib import Path
 import click
 
 from vlm_exam.config import load_config
+from vlm_exam.judge import Judge
 from vlm_exam.providers import create_provider
 from vlm_exam.results import RunResult, load_results, save_results
 from vlm_exam.runner import run_benchmark
@@ -64,6 +65,19 @@ def main() -> None:
     type=click.Path(exists=True),
     help="Path to custom models.yaml config.",
 )
+@click.option(
+    "--match-mode",
+    "match_mode",
+    default="strict",
+    type=click.Choice(["strict", "judge"]),
+    help="Answer matching mode: strict (exact) or judge (LLM fallback).",
+)
+@click.option(
+    "--judge-model",
+    "judge_model",
+    default="gemini-3.5-flash",
+    help="Model to use as LLM judge (only used with --match-mode=judge).",
+)
 def run(
     task_name: str,
     models: str,
@@ -71,6 +85,8 @@ def run(
     dataset_directory: str,
     output_directory: str,
     config_path: str | None,
+    match_mode: str,
+    judge_model: str,
 ) -> None:
     """Run a benchmark for one or more models."""
     config = load_config(Path(config_path) if config_path else None)
@@ -79,7 +95,15 @@ def run(
     model_ids = [model_id.strip() for model_id in models.split(",")]
     output_path = Path(output_directory)
 
+    judge: Judge | None = None
+    if match_mode == "judge":
+        judge = Judge(model=judge_model)
+
     click.echo(f"Loaded {len(samples)} samples from {dataset_directory}")
+    if judge:
+        click.echo(f"Match mode: {match_mode} (judge: {judge_model})")
+    else:
+        click.echo(f"Match mode: {match_mode}")
 
     for model_id in model_ids:
         if model_id not in config.models:
@@ -87,9 +111,7 @@ def run(
             continue
 
         model_config = config.models[model_id]
-        provider = create_provider(
-            model_config.provider, model=model_id
-        )
+        provider = create_provider(model_config.provider, model=model_id)
 
         result = run_benchmark(
             task=task,
@@ -97,6 +119,8 @@ def run(
             samples=samples,
             effort=effort,
             task_name=task_name,
+            match_mode=match_mode,
+            judge=judge,
         )
 
         filename = f"{task_name}_{model_id}_{effort}_{result.timestamp}.jsonl"
@@ -140,15 +164,12 @@ def report(
             click.echo(f"Skipping empty file: {file_path}")
 
     click.echo(
-        f"\n{'Model':<25} {'Effort':>6} {'Correct':>8} "
-        f"{'Total':>6} {'Accuracy':>9}"
+        f"\n{'Model':<25} {'Effort':>6} {'Correct':>8} {'Total':>6} {'Accuracy':>9}"
     )
     click.echo("-" * 60)
 
     for run_result in runs:
-        correct = sum(
-            sample.correct for sample in run_result.samples
-        )
+        correct = sum(sample.correct for sample in run_result.samples)
         total = len(run_result.samples)
         accuracy = correct / total * 100 if total > 0 else 0.0
 
@@ -160,28 +181,22 @@ def report(
     click.echo()
 
     click.echo(
-        f"{'Model':<25} {'Effort':>6} {'Input Tok':>10} "
-        f"{'Output Tok':>11} {'Cost':>9}"
+        f"{'Model':<25} {'Effort':>6} {'Input Tok':>10} {'Output Tok':>11} {'Cost':>9}"
     )
     click.echo("-" * 67)
 
     grand_cost = 0.0
     for run_result in runs:
-        total_input = sum(
-            sample.input_tokens for sample in run_result.samples
-        )
-        total_output = sum(
-            sample.output_tokens for sample in run_result.samples
-        )
+        total_input = sum(sample.input_tokens for sample in run_result.samples)
+        total_output = sum(sample.output_tokens for sample in run_result.samples)
 
         pricing = config.models.get(run_result.model)
         if pricing:
             cost = (
-                (total_input / 1_000_000)
-                * pricing.pricing.input_per_million_tokens
-                + (total_output / 1_000_000)
-                * pricing.pricing.output_per_million_tokens
-            )
+                total_input / 1_000_000
+            ) * pricing.pricing.input_per_million_tokens + (
+                total_output / 1_000_000
+            ) * pricing.pricing.output_per_million_tokens
         else:
             cost = 0.0
         grand_cost += cost

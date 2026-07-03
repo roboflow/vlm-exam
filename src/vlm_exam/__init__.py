@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from vlm_exam.config import BenchmarkConfig, LabConfig, ModelConfig, load_config
+from vlm_exam.judge import Judge
 from vlm_exam.providers import create_provider
 from vlm_exam.providers.base import Provider, Usage
 from vlm_exam.results import RunResult, SampleResult, load_results, save_results
@@ -25,6 +26,7 @@ __version__ = "0.1.0"
 __all__ = [
     "BenchmarkConfig",
     "EvaluationResult",
+    "Judge",
     "LabConfig",
     "ModelConfig",
     "Provider",
