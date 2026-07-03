@@ -16,10 +16,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from pathlib import Path
 
 from google import genai
 from google.genai import types
+
+_logger = logging.getLogger(__name__)
 
 _JUDGE_PROMPT = (
     "You are an evaluation judge. Given a visual question, an expected answer, "
@@ -111,15 +114,41 @@ class Judge:
             question=question, expected=expected, predicted=predicted
         )
 
-        response = self._client.models.generate_content(
-            model=self._model,
-            contents=[prompt],
-            config=types.GenerateContentConfig(
-                temperature=0.0,
-            ),
-        )
+        try:
+            response = self._client.models.generate_content(
+                model=self._model,
+                contents=[prompt],
+                config=types.GenerateContentConfig(
+                    temperature=0.0,
+                ),
+            )
+            text = response.text
+        except Exception:
+            _logger.warning(
+                "Judge API call failed for question=%r; defaulting to incorrect.",
+                question,
+            )
+            return False
 
-        verdict = response.text.strip().upper().startswith("YES")
+        if text is None:
+            _logger.warning(
+                "Judge returned empty response for question=%r; "
+                "defaulting to incorrect.",
+                question,
+            )
+            return False
+
+        cleaned = text.strip().upper()
+        if cleaned not in ("YES", "NO"):
+            _logger.warning(
+                "Judge returned unexpected response %r for question=%r; "
+                "defaulting to incorrect.",
+                text.strip(),
+                question,
+            )
+            return False
+
+        verdict = cleaned == "YES"
         self._cache[key] = verdict
         self._save_cache()
         return verdict

@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from dataclasses import dataclass
@@ -24,6 +25,8 @@ from vlm_exam.tasks.base import EvaluationResult, Sample, Task
 
 if TYPE_CHECKING:
     from vlm_exam.judge import Judge
+
+_logger = logging.getLogger(__name__)
 
 _ARTICLES_PATTERN = re.compile(r"^(a|an|the)\s+", re.IGNORECASE)
 _MARKDOWN_PATTERN = re.compile(r"(\*{1,2}|`{1,3}|_{1,2})")
@@ -94,7 +97,7 @@ def answers_match(
     question: str = "",
     match_mode: str = "strict",
     judge: Judge | None = None,
-) -> bool:
+) -> tuple[bool, str]:
     """Check whether two answers are equivalent.
 
     In ``"strict"`` mode only deterministic normalization rules are used.
@@ -109,15 +112,24 @@ def answers_match(
             *match_mode* is ``"judge"``).
 
     Returns:
-        ``True`` if the answers are considered equivalent.
+        A tuple of (correct, match_method) where match_method is
+        ``"strict"`` or ``"judge"``.
     """
     if strict_match(expected, predicted):
-        return True
+        return True, "strict"
 
     if match_mode == "judge" and judge is not None:
-        return judge.evaluate(question=question, expected=expected, predicted=predicted)
+        return judge.evaluate(
+            question=question, expected=expected, predicted=predicted
+        ), "judge"
 
-    return False
+    if match_mode == "judge" and judge is None:
+        _logger.warning(
+            "Judge mode requested but no judge instance provided; "
+            "falling back to strict."
+        )
+
+    return False, "strict"
 
 
 class VQATask(Task):
@@ -184,11 +196,11 @@ class VQATask(Task):
             Evaluation result with correctness flag.
         """
         assert isinstance(sample, VQASample)
-        correct = answers_match(
+        correct, match_method = answers_match(
             sample.expected_answer,
             prediction,
             question=sample.question,
             match_mode=match_mode,
             judge=judge,
         )
-        return EvaluationResult(correct=correct)
+        return EvaluationResult(correct=correct, match_method=match_method)

@@ -34,6 +34,7 @@ class EvaluationResult:
     """Outcome of evaluating a model prediction against ground truth."""
 
     correct: bool
+    match_method: str | None = None
     details: dict[str, Any] | None = None
 
 

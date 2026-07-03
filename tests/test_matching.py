@@ -103,16 +103,20 @@ class TestStrictMatch:
 
 class TestAnswersMatchWithJudge:
     def test_strict_mode_no_substring(self) -> None:
-        assert answers_match("18", "8", match_mode="strict") is False
+        correct, method = answers_match("18", "8", match_mode="strict")
+        assert correct is False
+        assert method == "strict"
 
     def test_strict_mode_exact(self) -> None:
-        assert answers_match("red", "red", match_mode="strict") is True
+        correct, method = answers_match("red", "red", match_mode="strict")
+        assert correct is True
+        assert method == "strict"
 
     def test_judge_mode_calls_judge_on_mismatch(self) -> None:
         mock_judge = MagicMock()
         mock_judge.evaluate.return_value = True
 
-        result = answers_match(
+        correct, method = answers_match(
             "checkered flag",
             "A checkered racing flag",
             question="What is the logo?",
@@ -120,7 +124,8 @@ class TestAnswersMatchWithJudge:
             judge=mock_judge,
         )
 
-        assert result is True
+        assert correct is True
+        assert method == "judge"
         mock_judge.evaluate.assert_called_once_with(
             question="What is the logo?",
             expected="checkered flag",
@@ -130,7 +135,7 @@ class TestAnswersMatchWithJudge:
     def test_judge_mode_skips_judge_on_exact_match(self) -> None:
         mock_judge = MagicMock()
 
-        result = answers_match(
+        correct, method = answers_match(
             "red",
             "RED",
             question="What color?",
@@ -138,14 +143,15 @@ class TestAnswersMatchWithJudge:
             judge=mock_judge,
         )
 
-        assert result is True
+        assert correct is True
+        assert method == "strict"
         mock_judge.evaluate.assert_not_called()
 
     def test_judge_mode_returns_false_when_judge_rejects(self) -> None:
         mock_judge = MagicMock()
         mock_judge.evaluate.return_value = False
 
-        result = answers_match(
+        correct, method = answers_match(
             "18",
             "8",
             question="How many items?",
@@ -153,10 +159,11 @@ class TestAnswersMatchWithJudge:
             judge=mock_judge,
         )
 
-        assert result is False
+        assert correct is False
+        assert method == "judge"
 
     def test_judge_mode_without_judge_falls_back_to_strict(self) -> None:
-        result = answers_match(
+        correct, method = answers_match(
             "phone",
             "smartphone",
             question="What device?",
@@ -164,4 +171,5 @@ class TestAnswersMatchWithJudge:
             judge=None,
         )
 
-        assert result is False
+        assert correct is False
+        assert method == "strict"

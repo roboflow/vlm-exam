@@ -86,6 +86,8 @@ def run_benchmark(
         metadata: dict[str, str] = {}
         if hasattr(sample, "question"):
             metadata["question"] = sample.question
+        if evaluation.match_method is not None:
+            metadata["match_method"] = evaluation.match_method
         expected = getattr(sample, "expected_answer", "")
 
         sample_results.append(
