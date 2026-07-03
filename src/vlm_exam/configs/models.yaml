@@ -1,0 +1,58 @@
+labs:
+  anthropic:
+    name: Anthropic
+    color: "#D97757"
+    logo_url: https://svgl.app/library/anthropic_black.svg
+  google:
+    name: Google
+    color: "#4285F4"
+    logo_url: https://svgl.app/library/google.svg
+  meta:
+    name: Meta
+    color: "#0668E1"
+    logo_url: https://svgl.app/library/meta.svg
+  openai:
+    name: OpenAI
+    color: "#10A37F"
+    logo_url: https://svgl.app/library/openai.svg
+  mistral:
+    name: Mistral
+    color: "#F7D046"
+    logo_url: https://svgl.app/library/mistral-ai_logo.svg
+
+models:
+  claude-fable-5:
+    name: Claude Fable 5
+    lab: anthropic
+    provider: anthropic
+    pricing:
+      input_per_million_tokens: 10.00
+      output_per_million_tokens: 50.00
+  claude-sonnet-5:
+    name: Claude Sonnet 5
+    lab: anthropic
+    provider: anthropic
+    pricing:
+      input_per_million_tokens: 2.00
+      output_per_million_tokens: 10.00
+  gemini-3.5-flash:
+    name: Gemini 3.5 Flash
+    lab: google
+    provider: google
+    pricing:
+      input_per_million_tokens: 1.50
+      output_per_million_tokens: 9.00
+  gemini-2.5-pro:
+    name: Gemini 2.5 Pro
+    lab: google
+    provider: google
+    pricing:
+      input_per_million_tokens: 1.25
+      output_per_million_tokens: 10.00
+  gpt-5.5:
+    name: GPT-5.5
+    lab: openai
+    provider: openai
+    pricing:
+      input_per_million_tokens: 5.00
+      output_per_million_tokens: 30.00

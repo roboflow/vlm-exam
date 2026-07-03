@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vlm-exam"
+version = "0.1.0"
+description = "Benchmark suite for Vision Language Models"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic",
+    "cairosvg",
+    "click",
+    "google-genai",
+    "matplotlib",
+    "openai",
+    "pillow",
+    "pyfonts",
+    "pyyaml",
+    "roboflow",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+[project.scripts]
+vlm-exam = "vlm_exam.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vlm_exam"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
