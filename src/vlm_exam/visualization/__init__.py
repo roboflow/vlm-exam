@@ -20,11 +20,13 @@ from vlm_exam.visualization.charts import (
     plot_dual_effort_chart,
     plot_metric_chart,
 )
+from vlm_exam.visualization.detection import plot_detection_card
 
 __all__ = [
     "plot_accuracy_chart",
     "plot_combined_metrics_chart",
     "plot_cost_bar_chart",
+    "plot_detection_card",
     "plot_dual_effort_chart",
     "plot_failure_card",
     "plot_metric_chart",

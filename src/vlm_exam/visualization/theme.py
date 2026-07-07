@@ -13,11 +13,12 @@
 # limitations under the License.
 
 import io
+import os
+import sys
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any
 
-import cairosvg
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -60,6 +61,24 @@ def load_fonts() -> FontSet:
     )
 
 
+def _ensure_cairo_on_path() -> None:
+    # cairocffi cannot find Homebrew's libcairo on macOS because dyld does
+    # not search Homebrew lib dirs by default; ctypes.util.find_library
+    # reads DYLD_FALLBACK_LIBRARY_PATH at call time, so extending it here
+    # (before cairosvg is first imported) makes the lookup succeed.
+    if sys.platform != "darwin":
+        return
+    homebrew_libs = [
+        path for path in ("/opt/homebrew/lib", "/usr/local/lib") if os.path.isdir(path)
+    ]
+    current = os.environ.get("DYLD_FALLBACK_LIBRARY_PATH", "")
+    entries = [entry for entry in current.split(":") if entry]
+    for path in homebrew_libs:
+        if path not in entries:
+            entries.append(path)
+    os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = ":".join(entries)
+
+
 @lru_cache(maxsize=32)
 def fetch_logo(url: str, size: int = 64) -> Image.Image:
     """Download an SVG logo and convert it to a PIL image.
@@ -71,6 +90,9 @@ def fetch_logo(url: str, size: int = 64) -> Image.Image:
     Returns:
         RGBA PIL image.
     """
+    _ensure_cairo_on_path()
+    import cairosvg
+
     png_bytes = cairosvg.svg2png(url=url, output_width=size * 2, output_height=size * 2)
     return Image.open(io.BytesIO(png_bytes)).convert("RGBA")
 

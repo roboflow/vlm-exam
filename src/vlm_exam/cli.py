@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from pathlib import Path
 
 import click
+from dotenv import load_dotenv
 
 from vlm_exam.config import load_config
 from vlm_exam.judge import Judge
@@ -22,6 +25,8 @@ from vlm_exam.providers import create_provider
 from vlm_exam.results import RunResult, load_results, save_results
 from vlm_exam.runner import run_benchmark
 from vlm_exam.tasks import create_task
+
+load_dotenv()
 
 
 @click.group()
@@ -78,6 +83,23 @@ def main() -> None:
     default="gemini-3.5-flash",
     help="Model to use as LLM judge (only used with --match-mode=judge).",
 )
+@click.option(
+    "--max-samples",
+    "max_samples",
+    default=None,
+    type=int,
+    help="Limit the number of samples to evaluate (default: all).",
+)
+@click.option(
+    "--prompt-classes",
+    "prompt_classes",
+    default="image",
+    type=click.Choice(["image", "all"]),
+    help=(
+        "Detection only: list classes present in the image ground truth "
+        "or all dataset classes in the prompt."
+    ),
+)
 def run(
     task_name: str,
     models: str,
@@ -87,11 +109,18 @@ def run(
     config_path: str | None,
     match_mode: str,
     judge_model: str,
+    max_samples: int | None,
+    prompt_classes: str,
 ) -> None:
     """Run a benchmark for one or more models."""
     config = load_config(Path(config_path) if config_path else None)
-    task = create_task(task_name)
+    task_args: dict[str, str] = {}
+    if task_name == "detection":
+        task_args["prompt_classes"] = prompt_classes
+    task = create_task(task_name, **task_args)
     samples = task.load_samples(dataset_directory)
+    if max_samples is not None:
+        samples = samples[:max_samples]
     model_ids = [model_id.strip() for model_id in models.split(",")]
     output_path = Path(output_directory)
 
@@ -208,3 +237,201 @@ def report(
         )
 
     click.echo(f"\nTotal benchmark cost: ${grand_cost:.4f}")
+
+
+@main.command("detection-report")
+@click.option(
+    "--results-directory",
+    default="results",
+    type=click.Path(exists=True),
+    help="Directory containing detection result JSONL files.",
+)
+@click.option(
+    "--dataset-directory",
+    required=True,
+    type=click.Path(exists=True),
+    help="Path to the detection dataset directory (for ground truth).",
+)
+def detection_report(
+    results_directory: str,
+    dataset_directory: str,
+) -> None:
+    """Compute dataset-level mAP for detection runs."""
+    import supervision as sv
+    from supervision.metrics import MeanAveragePrecision
+
+    from vlm_exam.tasks.detection import (
+        DetectionTask,
+        build_sample_index,
+        parse_prediction,
+    )
+
+    task = DetectionTask()
+    samples = task.load_samples(dataset_directory)
+    sample_by_image = build_sample_index(samples)
+
+    results_path = Path(results_directory)
+    result_files = sorted(results_path.glob("detection_*.jsonl"))
+
+    if not result_files:
+        click.echo(f"No detection result files found in {results_directory}")
+        return
+
+    for file_path in result_files:
+        try:
+            run_result = load_results(file_path)
+        except ValueError:
+            click.echo(f"Skipping empty file: {file_path}")
+            continue
+
+        click.echo(f"\n{'=' * 60}")
+        click.echo(f"  {run_result.model}  effort={run_result.effort}")
+        click.echo(f"{'=' * 60}")
+
+        all_predictions: list[sv.Detections] = []
+        all_targets: list[sv.Detections] = []
+
+        for sample_result in run_result.samples:
+            sample = sample_by_image.get(sample_result.image)
+            if sample is None:
+                continue
+
+            resolution_wh = (sample.image_width, sample.image_height)
+            predicted = parse_prediction(
+                sample_result.predicted, resolution_wh, list(sample.classes)
+            )
+            all_predictions.append(predicted)
+            all_targets.append(sample.ground_truth)
+
+        if not all_predictions:
+            click.echo("  No valid predictions found.")
+            continue
+
+        map_metric = MeanAveragePrecision()
+        map_metric.update(all_predictions, all_targets)
+        result = map_metric.compute()
+
+        click.echo(f"\n  mAP@50:    {result.map50:.4f}")
+        click.echo(f"  mAP@75:    {result.map75:.4f}")
+        click.echo(f"  mAP@50:95: {result.map50_95:.4f}")
+        click.echo(f"  Images:    {len(all_predictions)}")
+        click.echo()
+
+
+@main.command("detection-visualize")
+@click.option(
+    "--results-file",
+    required=True,
+    type=click.Path(exists=True),
+    help="Path to a detection result JSONL file.",
+)
+@click.option(
+    "--dataset-directory",
+    required=True,
+    type=click.Path(exists=True),
+    help="Path to the detection dataset directory.",
+)
+@click.option(
+    "--output-directory",
+    default="visualizations",
+    type=click.Path(),
+    help="Directory to save annotated images.",
+)
+@click.option(
+    "--max-images",
+    default=20,
+    type=int,
+    help="Maximum number of images to visualize.",
+)
+@click.option(
+    "--config",
+    "config_path",
+    default=None,
+    type=click.Path(exists=True),
+    help="Path to custom models.yaml config.",
+)
+def detection_visualize(
+    results_file: str,
+    dataset_directory: str,
+    output_directory: str,
+    max_images: int,
+    config_path: str | None,
+) -> None:
+    """Visualize detection predictions vs ground truth."""
+    import cv2
+    import matplotlib
+
+    matplotlib.use("Agg")
+
+    import matplotlib.pyplot as plt
+
+    from vlm_exam.tasks.detection import (
+        DetectionTask,
+        build_sample_index,
+        parse_prediction,
+    )
+    from vlm_exam.visualization.detection import plot_detection_card
+
+    task = DetectionTask()
+    samples = task.load_samples(dataset_directory)
+    sample_by_image = build_sample_index(samples)
+
+    run_result = load_results(Path(results_file))
+    output_path = Path(output_directory)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    config = load_config(Path(config_path) if config_path else None)
+    if run_result.model not in config.models:
+        click.echo(f"Model {run_result.model!r} not found in config.")
+        return
+
+    count = 0
+    for sample_result in run_result.samples:
+        if count >= max_images:
+            break
+
+        sample = sample_by_image.get(sample_result.image)
+        if sample is None:
+            continue
+
+        image = cv2.imread(sample.image_path)
+        if image is None:
+            continue
+
+        resolution_wh = (sample.image_width, sample.image_height)
+        predicted = parse_prediction(
+            sample_result.predicted, resolution_wh, list(sample.classes)
+        )
+
+        gt_labels = (
+            [sample.classes[cid] for cid in sample.ground_truth.class_id]
+            if sample.ground_truth.class_id is not None
+            else []
+        )
+
+        pred_labels = []
+        if "class_name" in predicted.data:
+            pred_labels = list(predicted.data["class_name"])
+        elif predicted.class_id is not None:
+            pred_labels = [sample.classes[cid] for cid in predicted.class_id]
+
+        map_score = sample_result.metadata.get("map50")
+
+        figure = plot_detection_card(
+            image=image,
+            ground_truth=sample.ground_truth,
+            predictions=predicted,
+            gt_labels=gt_labels,
+            pred_labels=pred_labels,
+            model_id=run_result.model,
+            config=config,
+            map_score=map_score,
+        )
+
+        output_file = output_path / f"{count:03d}_{sample_result.image}"
+        output_file = output_file.with_suffix(".png")
+        figure.savefig(str(output_file), dpi=150)
+        plt.close(figure)
+        count += 1
+
+    click.echo(f"Saved {count} visualizations to {output_path}")

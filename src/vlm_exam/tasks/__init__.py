@@ -13,11 +13,13 @@
 # limitations under the License.
 
 import importlib
+from typing import Any
 
 from vlm_exam.tasks.base import EvaluationResult, Sample, Task
 
 _TASK_REGISTRY: dict[str, str] = {
     "vqa": "vlm_exam.tasks.vqa.VQATask",
+    "detection": "vlm_exam.tasks.detection.DetectionTask",
 }
 
 __all__ = [
@@ -28,11 +30,12 @@ __all__ = [
 ]
 
 
-def create_task(task_name: str) -> Task:
+def create_task(task_name: str, **task_args: Any) -> Task:
     """Create a task instance by name.
 
     Args:
         task_name: Key in the task registry (e.g. ``"vqa"``).
+        **task_args: Keyword arguments forwarded to the task constructor.
 
     Returns:
         A ready-to-use task instance.
@@ -48,4 +51,4 @@ def create_task(task_name: str) -> Task:
     module_path, class_name = qualified_name.rsplit(".", 1)
     module = importlib.import_module(module_path)
     task_class = getattr(module, class_name)
-    return task_class()
+    return task_class(**task_args)

@@ -15,11 +15,14 @@ dependencies = [
     "click",
     "google-genai",
     "matplotlib",
+    "numpy",
     "openai",
     "pillow",
     "pyfonts",
+    "python-dotenv",
     "pyyaml",
     "roboflow",
+    "supervision",
 ]
 
 [project.optional-dependencies]
