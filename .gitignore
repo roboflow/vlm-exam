@@ -9,8 +9,8 @@ build/
 .env
 *.egg
 
-results/
 data/
+visualizations/detection/
 
 .idea/
 .vscode/

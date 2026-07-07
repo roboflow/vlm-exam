@@ -12,13 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import textwrap
-
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from matplotlib.colors import to_rgb
-from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 from PIL import Image
 
 from vlm_exam.config import BenchmarkConfig
@@ -28,72 +25,10 @@ from vlm_exam.visualization.theme import (
     FAILURE_COLOR,
     ROBOFLOW_PURPLE,
     SUCCESS_COLOR,
-    TEXT_PRIMARY,
     TEXT_SECONDARY,
-    fetch_logo,
+    draw_card_header,
     load_fonts,
 )
-
-
-def _draw_question_header(
-    axes: plt.Axes,
-    question: str,
-    model_name: str,
-    lab_name: str,
-    lab_logo_url: str,
-) -> None:
-    fonts = load_fonts()
-    axes.set_axis_off()
-    axes.set_xlim(0, 1)
-    axes.set_ylim(0, 1)
-
-    wrapped_question = textwrap.fill(question, width=65)
-    axes.text(
-        0.04,
-        0.50,
-        wrapped_question,
-        fontsize=12,
-        va="center",
-        ha="left",
-        color=TEXT_PRIMARY,
-        font=fonts.medium,
-        linespacing=1.6,
-    )
-    axes.text(
-        0.96,
-        0.58,
-        model_name,
-        fontsize=11.5,
-        va="bottom",
-        ha="right",
-        color=TEXT_PRIMARY,
-        font=fonts.bold,
-    )
-    axes.text(
-        0.96,
-        0.38,
-        lab_name,
-        fontsize=9.5,
-        va="top",
-        ha="right",
-        color=TEXT_SECONDARY,
-        font=fonts.medium,
-    )
-
-    try:
-        logo_image = fetch_logo(lab_logo_url, size=28)
-        image_box = OffsetImage(logo_image, zoom=0.30)
-        annotation = AnnotationBbox(
-            image_box,
-            (0.79, 0.48),
-            frameon=False,
-            xycoords="axes fraction",
-            box_alignment=(0.5, 0.5),
-            zorder=5,
-        )
-        axes.add_artist(annotation)
-    except Exception:
-        pass
 
 
 def _draw_divider_line(axes: plt.Axes) -> None:
@@ -158,7 +93,7 @@ def plot_success_card(
     )
 
     question_axes = figure.add_subplot(grid[0])
-    _draw_question_header(
+    draw_card_header(
         question_axes,
         question,
         model_info.name,
@@ -284,7 +219,7 @@ def plot_failure_card(
     )
 
     question_axes = figure.add_subplot(grid[0])
-    _draw_question_header(
+    draw_card_header(
         question_axes,
         question,
         model_info.name,

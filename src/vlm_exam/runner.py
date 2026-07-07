@@ -17,7 +17,7 @@ from __future__ import annotations
 import os
 import time
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from PIL import Image
 
@@ -83,11 +83,13 @@ def run_benchmark(
         )
         image_name = os.path.basename(sample.image_path)
 
-        metadata: dict[str, str] = {}
+        metadata: dict[str, Any] = {}
         if hasattr(sample, "question"):
             metadata["question"] = sample.question
         if evaluation.match_method is not None:
             metadata["match_method"] = evaluation.match_method
+        if evaluation.details:
+            metadata.update(evaluation.details)
         expected = getattr(sample, "expected_answer", "")
 
         sample_results.append(
@@ -109,11 +111,21 @@ def run_benchmark(
             time_string = (
                 f"{elapsed_seconds:.1f}s" if elapsed_seconds is not None else "N/A"
             )
-            print(
-                f"[{index + 1}/{total}] {status}  {time_string}"
-                f"  expected: {expected!r}"
-                f"  model: {prediction!r}"
-            )
+            if evaluation.details and "map50" in evaluation.details:
+                map50 = evaluation.details["map50"]
+                n_pred = evaluation.details.get("num_predictions", 0)
+                n_gt = evaluation.details.get("num_ground_truth", 0)
+                print(
+                    f"[{index + 1}/{total}] {status}  {time_string}"
+                    f"  mAP@50={map50:.3f}"
+                    f"  pred={n_pred} gt={n_gt}"
+                )
+            else:
+                print(
+                    f"[{index + 1}/{total}] {status}  {time_string}"
+                    f"  expected: {expected!r}"
+                    f"  model: {prediction!r}"
+                )
 
     return RunResult(
         model=provider.model,

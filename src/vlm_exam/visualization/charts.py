@@ -62,7 +62,7 @@ def _add_model_label(
     text_x = logo_x + 7.0
     axes.text(
         text_x,
-        y + 0.16,
+        y + 0.10,
         model_info.name,
         va="bottom",
         ha="left",
@@ -72,7 +72,7 @@ def _add_model_label(
     )
     axes.text(
         text_x,
-        y - 0.08,
+        y - 0.03,
         lab_info.name,
         va="top",
         ha="left",
@@ -216,6 +216,7 @@ def plot_metric_chart(
     title: str,
     format_value: Callable[[float], str],
     sort_ascending: bool = True,
+    full_scale: float | None = None,
 ) -> plt.Figure:
     """Single-bar horizontal chart for one metric across models.
 
@@ -225,6 +226,8 @@ def plot_metric_chart(
         title: Chart title.
         format_value: Callable to format the metric value as a string.
         sort_ascending: Whether to sort models from lowest to highest.
+        full_scale: Value that corresponds to a full-length bar. When
+            ``None``, bars are scaled relative to the highest value.
 
     Returns:
         Matplotlib figure.
@@ -241,8 +244,8 @@ def plot_metric_chart(
     bar_height = 0.50
     corner_radius = bar_height / 2
 
-    max_value = max(metric.values())
-    scale = 100.0 / max_value if max_value > 0 else 1.0
+    reference = full_scale if full_scale is not None else max(metric.values())
+    scale = 100.0 / reference if reference > 0 else 1.0
     bar_max = 100
 
     figure_height = max(4.0, count * row_spacing + 2.8)
@@ -755,7 +758,7 @@ def plot_combined_metrics_chart(
         text_x = logo_x + 7.0
         axes.text(
             text_x,
-            y + 0.16,
+            y + 0.10,
             model_info.name,
             va="bottom",
             ha="left",
@@ -765,7 +768,7 @@ def plot_combined_metrics_chart(
         )
         axes.text(
             text_x,
-            y - 0.08,
+            y - 0.03,
             lab_info.name,
             va="top",
             ha="left",
