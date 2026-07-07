@@ -19,6 +19,7 @@ import numpy as np
 import pytest
 import supervision as sv
 
+from vlm_exam.providers.anthropic import compute_resize_dimensions
 from vlm_exam.results import RunResult, SampleResult
 from vlm_exam.tasks.detection import (
     MAP_PASS_THRESHOLD,
@@ -138,6 +139,32 @@ class TestBuildPrompt:
         assert "[y_min, x_min, y_max, x_max]" in prompt
         assert "0 and 1000" in prompt
 
+    def test_pixel_format_prompt_states_dimensions(self) -> None:
+        task = DetectionTask(coordinate_format="pixel")
+        sample = _make_sample(_detections([[0, 0, 10, 10]], [0]))
+        prompt = task.build_prompt(sample)
+        assert "[x_min, y_min, x_max, y_max]" in prompt
+        assert "pixel coordinates" in prompt
+        assert "100x100 pixel image" in prompt
+
+    def test_pixel_format_prompt_uses_resized_dimensions(self) -> None:
+        task = DetectionTask(coordinate_format="pixel")
+        sample = DetectionSample(
+            image_path="/data/large.jpg",
+            image_width=4000,
+            image_height=3000,
+            ground_truth=_detections([[0, 0, 10, 10]], [0]),
+            classes=("cat", "dog"),
+        )
+        prompt = task.build_prompt(sample)
+        uploaded_width, uploaded_height = compute_resize_dimensions(4000, 3000)
+        assert uploaded_width < 4000
+        assert f"{uploaded_width}x{uploaded_height} pixel image" in prompt
+
+    def test_invalid_coordinate_format_raises(self) -> None:
+        with pytest.raises(ValueError):
+            DetectionTask(coordinate_format="bogus")
+
 
 class TestParsePrediction:
     def test_parses_fenced_json(self) -> None:
@@ -174,6 +201,80 @@ class TestParsePrediction:
         assert len(detections) == 1
         assert detections.class_id is not None
         assert detections.class_id[0] == 1
+
+
+class TestParsePixelPrediction:
+    def test_parses_pixel_coordinates_directly(self) -> None:
+        prediction = '[{"box_2d": [10, 20, 30, 40], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction, (100, 100), ["cat", "dog"], coordinate_format="pixel"
+        )
+        assert len(detections) == 1
+        assert detections.class_id is not None
+        assert detections.class_id[0] == 0
+        # box_2d is [x_min, y_min, x_max, y_max] in pixels; no resize at 100x100
+        np.testing.assert_allclose(detections.xyxy[0], [10, 20, 30, 40])
+
+    def test_scales_from_uploaded_to_original_resolution(self) -> None:
+        original_width, original_height = 4000, 3000
+        uploaded_width, uploaded_height = compute_resize_dimensions(
+            original_width, original_height
+        )
+        assert uploaded_width < original_width
+        prediction = json.dumps(
+            [
+                {
+                    "box_2d": [0, 0, uploaded_width, uploaded_height],
+                    "label": "cat",
+                }
+            ]
+        )
+        detections = parse_prediction(
+            prediction,
+            (original_width, original_height),
+            ["cat"],
+            coordinate_format="pixel",
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(
+            detections.xyxy[0],
+            [0, 0, original_width, original_height],
+            rtol=1e-5,
+        )
+
+    def test_parses_fenced_pixel_json(self) -> None:
+        prediction = '```json\n[{"box_2d": [10, 20, 30, 40], "label": "cat"}]\n```'
+        detections = parse_prediction(
+            prediction, (100, 100), ["cat"], coordinate_format="pixel"
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [10, 20, 30, 40])
+
+    def test_unknown_labels_are_filtered(self) -> None:
+        prediction = '[{"box_2d": [10, 20, 30, 40], "label": "unicorn"}]'
+        detections = parse_prediction(
+            prediction, (100, 100), ["cat"], coordinate_format="pixel"
+        )
+        assert len(detections) == 0
+
+    def test_malformed_entries_are_skipped(self) -> None:
+        prediction = (
+            '[{"box_2d": [10, 20, 30], "label": "cat"},'
+            ' {"box_2d": [10, "a", 30, 40], "label": "cat"},'
+            ' "not a dict",'
+            ' {"box_2d": [10, 20, 30, 40], "label": "cat"}]'
+        )
+        detections = parse_prediction(
+            prediction, (100, 100), ["cat"], coordinate_format="pixel"
+        )
+        assert len(detections) == 1
+
+    def test_sets_class_name_data(self) -> None:
+        prediction = '[{"box_2d": [10, 20, 30, 40], "label": "dog"}]'
+        detections = parse_prediction(
+            prediction, (100, 100), ["cat", "dog"], coordinate_format="pixel"
+        )
+        assert list(detections.data["class_name"]) == ["dog"]
 
 
 class TestEvaluate:
@@ -227,6 +328,22 @@ class TestEvaluate:
         assert result.details is not None
         assert result.details["prompt_classes"] == "all"
 
+    def test_details_include_coordinate_format(self) -> None:
+        task = DetectionTask(coordinate_format="pixel")
+        sample = _make_sample(sv.Detections.empty())
+        result = task.evaluate(sample, "[]")
+        assert result.details is not None
+        assert result.details["coordinate_format"] == "pixel"
+
+    def test_pixel_format_perfect_prediction_scores_high(self) -> None:
+        task = DetectionTask(coordinate_format="pixel")
+        sample = _make_sample(_detections([[10, 10, 50, 50]], [0]))
+        prediction = '[{"box_2d": [10, 10, 50, 50], "label": "cat"}]'
+        result = task.evaluate(sample, prediction)
+        assert result.correct is True
+        assert result.details is not None
+        assert result.details["map50"] > 0.99
+
 
 class TestBuildSampleIndex:
     def test_indexes_by_basename(self) -> None:
@@ -235,7 +352,7 @@ class TestBuildSampleIndex:
         assert index["image.jpg"] is sample
 
 
-def _make_run(image: str, predicted: str) -> RunResult:
+def _make_run(image: str, predicted: str, metadata: dict | None = None) -> RunResult:
     return RunResult(
         model="test-model",
         effort="low",
@@ -250,6 +367,7 @@ def _make_run(image: str, predicted: str) -> RunResult:
                 correct=True,
                 input_tokens=0,
                 output_tokens=0,
+                metadata=metadata or {},
             )
         ],
     )
@@ -272,6 +390,18 @@ class TestComputeDatasetMap:
         index = build_sample_index([sample])
         run = _make_run("unknown.jpg", "[]")
         assert compute_dataset_map(run, index) is None
+
+    def test_respects_pixel_coordinate_format_metadata(self) -> None:
+        sample = _make_sample(_detections([[10, 10, 50, 50]], [0]))
+        index = build_sample_index([sample])
+        run = _make_run(
+            "image.jpg",
+            '[{"box_2d": [10, 10, 50, 50], "label": "cat"}]',
+            metadata={"coordinate_format": "pixel"},
+        )
+        result = compute_dataset_map(run, index)
+        assert result is not None
+        assert result.map50 > 0.99
 
 
 class TestLabelCollision:

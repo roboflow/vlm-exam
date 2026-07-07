@@ -13,9 +13,25 @@
 # limitations under the License.
 
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
+
+ERROR_PREDICTION_PREFIX = "ERROR:"
+"""Prefix marking a sample whose provider call failed."""
+
+
+def is_failed_sample(sample: "SampleResult") -> bool:
+    """Report whether a sample's prediction is a recorded provider error.
+
+    Args:
+        sample: A sample result loaded from a run file.
+
+    Returns:
+        True when the prediction holds an error marker instead of
+        model output.
+    """
+    return sample.predicted.startswith(ERROR_PREDICTION_PREFIX)
 
 
 @dataclass
@@ -42,6 +58,42 @@ class RunResult:
     task: str
     timestamp: str
     samples: list[SampleResult] = field(default_factory=list)
+
+
+def merge_resumed_runs(previous: RunResult, resumed: RunResult) -> RunResult:
+    """Merge a resumed run into a partial previous run.
+
+    Failed samples from the previous run are replaced by the resumed
+    run's sample for the same image; successful samples are kept as-is.
+    Sample order follows the previous run and indexes are rewritten to
+    be contiguous.
+
+    Args:
+        previous: The partial run containing failed samples.
+        resumed: A run covering (at least) the previously failed images.
+
+    Returns:
+        A complete run result carrying the resumed run's timestamp.
+    """
+    resumed_by_image = {sample.image: sample for sample in resumed.samples}
+
+    merged: list[SampleResult] = []
+    for sample in previous.samples:
+        replacement = resumed_by_image.get(sample.image)
+        if is_failed_sample(sample) and replacement is not None:
+            merged.append(replacement)
+        else:
+            merged.append(sample)
+
+    merged = [replace(sample, index=position) for position, sample in enumerate(merged)]
+
+    return RunResult(
+        model=resumed.model,
+        effort=resumed.effort,
+        task=resumed.task,
+        timestamp=resumed.timestamp,
+        samples=merged,
+    )
 
 
 def save_results(run: RunResult, path: Path) -> None:

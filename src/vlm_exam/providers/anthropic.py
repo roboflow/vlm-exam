@@ -29,12 +29,28 @@ def _count_image_tokens(width: int, height: int) -> int:
     return math.ceil(width / 28) * math.ceil(height / 28)
 
 
-def _compute_resize_dimensions(
+def compute_resize_dimensions(
     width: int,
     height: int,
     max_edge: int = _MAX_EDGE,
     max_tokens: int = _MAX_TOKENS,
 ) -> tuple[int, int]:
+    """Compute the dimensions Claude resizes an image to before upload.
+
+    Mirrors the reference implementation from the Anthropic vision
+    coordinates documentation, so pixel coordinates returned by Claude
+    map one-to-one onto an image pre-resized to these dimensions.
+
+    Args:
+        width: Original image width in pixels.
+        height: Original image height in pixels.
+        max_edge: Maximum padded edge length in pixels.
+        max_tokens: Maximum visual token budget.
+
+    Returns:
+        The ``(width, height)`` Claude scales the image to.
+    """
+
     def fits(candidate_width: int, candidate_height: int) -> bool:
         return (
             math.ceil(candidate_width / 28) * 28 <= max_edge
@@ -46,7 +62,7 @@ def _compute_resize_dimensions(
         return (width, height)
 
     if height > width:
-        resized_height, resized_width = _compute_resize_dimensions(
+        resized_height, resized_width = compute_resize_dimensions(
             height, width, max_edge, max_tokens
         )
         return (resized_width, resized_height)
@@ -63,7 +79,7 @@ def _compute_resize_dimensions(
 
 
 def _prepare_image(image: Image.Image) -> str:
-    target_width, target_height = _compute_resize_dimensions(*image.size)
+    target_width, target_height = compute_resize_dimensions(*image.size)
     if (target_width, target_height) != image.size:
         image = image.resize((target_width, target_height), Image.LANCZOS)
 
