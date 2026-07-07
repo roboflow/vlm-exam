@@ -62,7 +62,7 @@ def _add_model_label(
     text_x = logo_x + 7.0
     axes.text(
         text_x,
-        y + 0.16,
+        y + 0.10,
         model_info.name,
         va="bottom",
         ha="left",
@@ -72,7 +72,7 @@ def _add_model_label(
     )
     axes.text(
         text_x,
-        y - 0.08,
+        y - 0.03,
         lab_info.name,
         va="top",
         ha="left",
@@ -755,7 +755,7 @@ def plot_combined_metrics_chart(
         text_x = logo_x + 7.0
         axes.text(
             text_x,
-            y + 0.16,
+            y + 0.10,
             model_info.name,
             va="bottom",
             ha="left",
@@ -765,7 +765,7 @@ def plot_combined_metrics_chart(
         )
         axes.text(
             text_x,
-            y - 0.08,
+            y - 0.03,
             lab_info.name,
             va="top",
             ha="left",

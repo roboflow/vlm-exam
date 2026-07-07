@@ -19,10 +19,13 @@ import numpy as np
 import pytest
 import supervision as sv
 
+from vlm_exam.results import RunResult, SampleResult
 from vlm_exam.tasks.detection import (
+    MAP_PASS_THRESHOLD,
     DetectionSample,
     DetectionTask,
     build_sample_index,
+    compute_dataset_map,
     parse_prediction,
 )
 
@@ -128,6 +131,13 @@ class TestBuildPrompt:
         with pytest.raises(ValueError):
             DetectionTask(prompt_classes="bogus")
 
+    def test_prompt_defines_coordinate_convention(self) -> None:
+        task = DetectionTask()
+        sample = _make_sample(_detections([[0, 0, 10, 10]], [0]))
+        prompt = task.build_prompt(sample)
+        assert "[y_min, x_min, y_max, x_max]" in prompt
+        assert "0 and 1000" in prompt
+
 
 class TestParsePrediction:
     def test_parses_fenced_json(self) -> None:
@@ -147,6 +157,23 @@ class TestParsePrediction:
         prediction = '```json\n[{"box_2d": [0, 0, 100, 100], "label": "unicorn"}]\n```'
         detections = parse_prediction(prediction, (100, 100), ["cat", "dog"])
         assert len(detections) == 0
+
+    def test_parses_prose_wrapped_json(self) -> None:
+        prediction = (
+            "Here are the detected objects:\n"
+            '[{"box_2d": [100, 200, 300, 400], "label": "cat"}]\n'
+            "Let me know if you need anything else."
+        )
+        detections = parse_prediction(prediction, (1000, 1000), ["cat", "dog"])
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [200, 100, 400, 300])
+
+    def test_parses_bare_json_without_fences(self) -> None:
+        prediction = '[{"box_2d": [0, 0, 500, 500], "label": "dog"}]'
+        detections = parse_prediction(prediction, (100, 100), ["cat", "dog"])
+        assert len(detections) == 1
+        assert detections.class_id is not None
+        assert detections.class_id[0] == 1
 
 
 class TestEvaluate:
@@ -183,6 +210,16 @@ class TestEvaluate:
         assert result.details is not None
         assert result.details["map50"] > 0.99
 
+    def test_partial_match_below_threshold_is_incorrect(self) -> None:
+        task = DetectionTask()
+        sample = _make_sample(_detections([[10, 10, 50, 50], [60, 60, 90, 90]], [0, 0]))
+        # only the first ground truth box is matched
+        prediction = '[{"box_2d": [100, 100, 500, 500], "label": "cat"}]'
+        result = task.evaluate(sample, prediction)
+        assert result.details is not None
+        assert 0.4 < result.details["map50"] < MAP_PASS_THRESHOLD
+        assert result.correct is False
+
     def test_details_include_prompt_classes_mode(self) -> None:
         task = DetectionTask(prompt_classes="all")
         sample = _make_sample(sv.Detections.empty())
@@ -196,3 +233,123 @@ class TestBuildSampleIndex:
         sample = _make_sample(sv.Detections.empty())
         index = build_sample_index([sample])
         assert index["image.jpg"] is sample
+
+
+def _make_run(image: str, predicted: str) -> RunResult:
+    return RunResult(
+        model="test-model",
+        effort="low",
+        task="detection",
+        timestamp="20260707_000000",
+        samples=[
+            SampleResult(
+                index=0,
+                image=image,
+                expected="",
+                predicted=predicted,
+                correct=True,
+                input_tokens=0,
+                output_tokens=0,
+            )
+        ],
+    )
+
+
+class TestComputeDatasetMap:
+    def test_perfect_run(self) -> None:
+        sample = _make_sample(_detections([[10, 10, 50, 50]], [0]))
+        index = build_sample_index([sample])
+        run = _make_run(
+            "image.jpg", '[{"box_2d": [100, 100, 500, 500], "label": "cat"}]'
+        )
+        result = compute_dataset_map(run, index)
+        assert result is not None
+        assert result.image_count == 1
+        assert result.map50 > 0.99
+
+    def test_no_matching_images_returns_none(self) -> None:
+        sample = _make_sample(_detections([[10, 10, 50, 50]], [0]))
+        index = build_sample_index([sample])
+        run = _make_run("unknown.jpg", "[]")
+        assert compute_dataset_map(run, index) is None
+
+
+class TestLabelCollision:
+    def test_sparse_boxes_do_not_collide(self) -> None:
+        from vlm_exam.visualization.detection import _labels_collide
+
+        detections = _detections([[0, 100, 50, 200], [500, 600, 600, 700]], [0, 1])
+        assert _labels_collide(detections, ["cat", "dog"], (1000, 1000)) is False
+
+    def test_stacked_boxes_collide(self) -> None:
+        from vlm_exam.visualization.detection import _labels_collide
+
+        boxes = [[100.0 + i, 100.0 + i, 200.0 + i, 200.0 + i] for i in range(10)]
+        detections = _detections(boxes, [0] * 10)
+        labels = ["cat"] * 10
+        assert _labels_collide(detections, labels, (1000, 1000)) is True
+
+    def test_few_stacked_boxes_stay_readable(self) -> None:
+        from vlm_exam.visualization.detection import _labels_collide
+
+        detections = _detections(
+            [[100, 100, 200, 200], [105, 105, 205, 205], [110, 110, 210, 210]],
+            [0, 1, 0],
+        )
+        labels = ["cat", "dog", "cat"]
+        assert _labels_collide(detections, labels, (1000, 1000)) is False
+
+    def test_many_boxes_always_collide(self) -> None:
+        from vlm_exam.visualization.detection import _labels_collide
+
+        boxes = [[i * 25.0, 0.0, i * 25.0 + 20, 20.0] for i in range(35)]
+        detections = _detections(boxes, [0] * 35)
+        labels = ["x"] * 35
+        assert _labels_collide(detections, labels, (1000, 1000)) is True
+
+    def test_single_box_never_collides(self) -> None:
+        from vlm_exam.visualization.detection import _labels_collide
+
+        detections = _detections([[0, 0, 100, 100]], [0])
+        assert _labels_collide(detections, ["cat"], (1000, 1000)) is False
+
+
+class TestLegend:
+    def test_collects_unique_classes_across_panels(self) -> None:
+        from vlm_exam.visualization.detection import _collect_legend_entries
+
+        ground_truth = _detections([[0, 0, 10, 10], [20, 20, 30, 30]], [0, 1])
+        predictions = _detections([[0, 0, 10, 10], [40, 40, 50, 50]], [1, 2])
+        entries = _collect_legend_entries(
+            ground_truth,
+            ["cat", "dog"],
+            predictions,
+            ["dog", "bird"],
+        )
+        assert entries == [(0, "cat"), (1, "dog"), (2, "bird")]
+
+    def test_layout_wraps_rows(self) -> None:
+        from vlm_exam.visualization.detection import _layout_legend_rows
+
+        entries = [(i, "very long class name") for i in range(10)]
+        rows = _layout_legend_rows(entries, usable_width=5.0)
+        assert len(rows) > 1
+        assert sum(len(row) for row in rows) == len(entries)
+
+    def test_invalid_label_mode_raises(self) -> None:
+        import numpy as np
+
+        from vlm_exam.config import BenchmarkConfig
+        from vlm_exam.visualization.detection import plot_detection_card
+
+        with pytest.raises(ValueError):
+            plot_detection_card(
+                image=np.zeros((10, 10, 3), dtype=np.uint8),
+                ground_truth=sv.Detections.empty(),
+                predictions=sv.Detections.empty(),
+                gt_labels=[],
+                pred_labels=[],
+                model_id="test-model",
+                config=BenchmarkConfig(labs={}, models={}),
+                label_mode="bogus",
+            )

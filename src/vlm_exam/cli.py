@@ -257,13 +257,10 @@ def detection_report(
     dataset_directory: str,
 ) -> None:
     """Compute dataset-level mAP for detection runs."""
-    import supervision as sv
-    from supervision.metrics import MeanAveragePrecision
-
     from vlm_exam.tasks.detection import (
         DetectionTask,
         build_sample_index,
-        parse_prediction,
+        compute_dataset_map,
     )
 
     task = DetectionTask()
@@ -288,34 +285,180 @@ def detection_report(
         click.echo(f"  {run_result.model}  effort={run_result.effort}")
         click.echo(f"{'=' * 60}")
 
-        all_predictions: list[sv.Detections] = []
-        all_targets: list[sv.Detections] = []
-
-        for sample_result in run_result.samples:
-            sample = sample_by_image.get(sample_result.image)
-            if sample is None:
-                continue
-
-            resolution_wh = (sample.image_width, sample.image_height)
-            predicted = parse_prediction(
-                sample_result.predicted, resolution_wh, list(sample.classes)
-            )
-            all_predictions.append(predicted)
-            all_targets.append(sample.ground_truth)
-
-        if not all_predictions:
+        map_result = compute_dataset_map(run_result, sample_by_image)
+        if map_result is None:
             click.echo("  No valid predictions found.")
             continue
 
-        map_metric = MeanAveragePrecision()
-        map_metric.update(all_predictions, all_targets)
-        result = map_metric.compute()
-
-        click.echo(f"\n  mAP@50:    {result.map50:.4f}")
-        click.echo(f"  mAP@75:    {result.map75:.4f}")
-        click.echo(f"  mAP@50:95: {result.map50_95:.4f}")
-        click.echo(f"  Images:    {len(all_predictions)}")
+        click.echo(f"\n  mAP@50:    {map_result.map50:.4f}")
+        click.echo(f"  mAP@75:    {map_result.map75:.4f}")
+        click.echo(f"  mAP@50:95: {map_result.map50_95:.4f}")
+        click.echo(f"  Images:    {map_result.image_count}")
         click.echo()
+
+
+@main.command()
+@click.option(
+    "--results-directory",
+    default="results",
+    type=click.Path(exists=True),
+    help="Directory containing result JSONL files.",
+)
+@click.option(
+    "--dataset-directory",
+    "dataset_directory",
+    default=None,
+    type=click.Path(exists=True),
+    help="Detection dataset directory (required for detection leaderboards).",
+)
+@click.option(
+    "--output-directory",
+    default="visualizations/leaderboards",
+    type=click.Path(),
+    help="Directory to save leaderboard charts.",
+)
+@click.option(
+    "--config",
+    "config_path",
+    default=None,
+    type=click.Path(exists=True),
+    help="Path to custom models.yaml config.",
+)
+def leaderboard(
+    results_directory: str,
+    dataset_directory: str | None,
+    output_directory: str,
+    config_path: str | None,
+) -> None:
+    """Generate leaderboard charts for all locally saved runs."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+
+    import matplotlib.pyplot as plt
+
+    from vlm_exam.visualization import plot_accuracy_chart, plot_metric_chart
+
+    config = load_config(Path(config_path) if config_path else None)
+    results_path = Path(results_directory)
+    result_files = sorted(results_path.glob("*.jsonl"))
+
+    if not result_files:
+        click.echo(f"No .jsonl files found in {results_directory}")
+        return
+
+    latest_runs: dict[tuple[str, str, str], RunResult] = {}
+    for file_path in result_files:
+        try:
+            run_result = load_results(file_path)
+        except ValueError:
+            click.echo(f"Skipping empty file: {file_path}")
+            continue
+        if run_result.model not in config.models:
+            click.echo(
+                f"Skipping run with unknown model {run_result.model!r}: {file_path}"
+            )
+            continue
+        key = (run_result.task, run_result.effort, run_result.model)
+        existing = latest_runs.get(key)
+        if existing is None or run_result.timestamp > existing.timestamp:
+            latest_runs[key] = run_result
+
+    if not latest_runs:
+        click.echo("No usable runs found.")
+        return
+
+    runs_by_task_effort: dict[tuple[str, str], list[RunResult]] = {}
+    for (task_name, effort, _), run_result in latest_runs.items():
+        runs_by_task_effort.setdefault((task_name, effort), []).append(run_result)
+
+    output_path = Path(output_directory)
+    output_path.mkdir(parents=True, exist_ok=True)
+    saved: list[Path] = []
+
+    def save_figure(figure: plt.Figure, filename: str) -> None:
+        file_path = output_path / filename
+        figure.savefig(str(file_path), dpi=150)
+        plt.close(figure)
+        saved.append(file_path)
+
+    detection_index = None
+    if any(task_name == "detection" for task_name, _ in runs_by_task_effort):
+        if dataset_directory is None:
+            click.echo(
+                "Detection runs found but --dataset-directory not given; "
+                "skipping detection leaderboards."
+            )
+        else:
+            from vlm_exam.tasks.detection import DetectionTask, build_sample_index
+
+            detection_task = DetectionTask()
+            detection_samples = detection_task.load_samples(dataset_directory)
+            detection_index = build_sample_index(detection_samples)
+
+    for (task_name, effort), runs in sorted(runs_by_task_effort.items()):
+        if task_name == "vqa":
+            accuracy = {
+                run.model: sum(s.correct for s in run.samples) / len(run.samples) * 100
+                for run in runs
+            }
+            figure = plot_accuracy_chart(
+                accuracy,
+                config,
+                f"VQA / OCR Benchmark \u2014 {effort.title()} Effort",
+            )
+            save_figure(figure, f"vqa_accuracy_{effort}.png")
+
+        elif task_name == "detection":
+            if detection_index is None:
+                continue
+
+            from vlm_exam.tasks.detection import compute_dataset_map
+
+            metrics: dict[str, dict[str, float]] = {
+                "map50": {},
+                "map75": {},
+                "map50_95": {},
+            }
+            for run in runs:
+                map_result = compute_dataset_map(run, detection_index)
+                if map_result is None:
+                    click.echo(
+                        f"No valid predictions for {run.model} ({effort}); skipping."
+                    )
+                    continue
+                metrics["map50"][run.model] = map_result.map50
+                metrics["map75"][run.model] = map_result.map75
+                metrics["map50_95"][run.model] = map_result.map50_95
+
+            metric_titles = {
+                "map50": "mAP@50",
+                "map75": "mAP@75",
+                "map50_95": "mAP@50:95",
+            }
+            for metric_key, values in metrics.items():
+                if not values:
+                    continue
+                figure = plot_metric_chart(
+                    values,
+                    config,
+                    f"Object Detection \u2014 {metric_titles[metric_key]} "
+                    f"({effort.title()} Effort)",
+                    format_value=lambda value: f"{value:.3f}",
+                    sort_ascending=False,
+                )
+                save_figure(figure, f"detection_{metric_key}_{effort}.png")
+
+        else:
+            click.echo(f"No leaderboard renderer for task {task_name!r}; skipping.")
+
+    if not saved:
+        click.echo("No leaderboard charts generated.")
+        return
+
+    click.echo(f"Saved {len(saved)} leaderboard charts to {output_path}:")
+    for file_path in saved:
+        click.echo(f"  {file_path.name}")
 
 
 @main.command("detection-visualize")
@@ -350,12 +493,20 @@ def detection_report(
     type=click.Path(exists=True),
     help="Path to custom models.yaml config.",
 )
+@click.option(
+    "--label-mode",
+    "label_mode",
+    default="auto",
+    type=click.Choice(["auto", "labels", "legend"]),
+    help="Draw class labels on boxes, use a color legend, or pick automatically.",
+)
 def detection_visualize(
     results_file: str,
     dataset_directory: str,
     output_directory: str,
     max_images: int,
     config_path: str | None,
+    label_mode: str,
 ) -> None:
     """Visualize detection predictions vs ground truth."""
     import cv2
@@ -426,6 +577,7 @@ def detection_visualize(
             model_id=run_result.model,
             config=config,
             map_score=map_score,
+            label_mode=label_mode,
         )
 
         output_file = output_path / f"{count:03d}_{sample_result.image}"

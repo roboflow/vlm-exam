@@ -21,9 +21,9 @@ import numpy as np
 import supervision as sv
 from matplotlib import gridspec
 from matplotlib.colors import to_rgb
-from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
 from vlm_exam.config import BenchmarkConfig
+from vlm_exam.tasks.detection import MAP_PASS_THRESHOLD
 from vlm_exam.visualization.theme import (
     BACKGROUND_COLOR,
     DIVIDER_COLOR,
@@ -32,9 +32,12 @@ from vlm_exam.visualization.theme import (
     TEXT_PRIMARY,
     TEXT_SECONDARY,
     add_top_accent,
-    fetch_logo,
+    draw_card_header,
     load_fonts,
 )
+
+LABEL_MODES = ("auto", "labels", "legend")
+"""Valid values for the detection card label rendering mode."""
 
 _COLOR_PALETTE = sv.ColorPalette(
     colors=[
@@ -71,6 +74,13 @@ _TEXT_COLOR_PALETTE = sv.ColorPalette(
 )
 
 _TARGET_LONG_EDGE = 1024
+_LABEL_FONT_SIZE = 16
+_LABEL_PADDING = 8
+_LABEL_CHAR_WIDTH_FACTOR = 0.62
+_COLLISION_FRACTION = 0.5
+_MIN_COLLIDING_LABELS = 8
+_MAX_LABELED_BOXES = 30
+
 _FIGURE_WIDTH = 14.0
 _MARGIN_LEFT = 0.04
 _MARGIN_RIGHT = 0.96
@@ -79,46 +89,24 @@ _MARGIN_BOTTOM = 0.03
 _PANEL_GAP = 0.04
 _HEADER_HEIGHT = 0.9
 _DIVIDER_HEIGHT = 0.04
-_COLUMN_HEADER_HEIGHT = 0.35
+_COLUMN_HEADER_HEIGHT = 0.5
 _FOOTER_HEIGHT = 0.85
 _MIN_IMAGE_HEIGHT = 3.0
 _MAX_IMAGE_HEIGHT = 9.0
 
+_LEGEND_ROW_HEIGHT = 0.32
+_LEGEND_SWATCH_WIDTH = 0.28
+_LEGEND_SWATCH_HEIGHT = 0.16
+_LEGEND_TEXT_GAP = 0.08
+_LEGEND_ITEM_GAP = 0.45
+_LEGEND_CHAR_WIDTH = 0.075
 
-def _annotate_image(
-    image: np.ndarray,
-    detections: sv.Detections,
-    labels: list[str],
-) -> np.ndarray:
-    """Annotate with consistent visual size regardless of source resolution.
 
-    Resizes the image to a fixed long-edge before annotation so that font
-    size and line thickness appear identical across different resolutions.
-    """
-    height, width = image.shape[:2]
+def _display_scale(width: int, height: int) -> float:
     long_edge = max(width, height)
-    if long_edge > _TARGET_LONG_EDGE:
-        scale = _TARGET_LONG_EDGE / long_edge
-        new_width = int(width * scale)
-        new_height = int(height * scale)
-        image = cv2.resize(image, (new_width, new_height))
-        if len(detections) > 0:
-            detections = _scale_detections(detections, scale)
-
-    fonts = load_fonts()
-    box_annotator = sv.BoxAnnotator(color=_COLOR_PALETTE, thickness=2)
-    label_annotator = sv.RichLabelAnnotator(
-        color=_COLOR_PALETTE,
-        text_color=_TEXT_COLOR_PALETTE,
-        font_path=fonts.medium.get_file(),
-        font_size=16,
-        text_padding=8,
-        text_position=sv.Position.TOP_LEFT,
-    )
-    scene = image.copy()
-    scene = box_annotator.annotate(scene=scene, detections=detections)
-    scene = label_annotator.annotate(scene=scene, detections=detections, labels=labels)
-    return scene
+    if long_edge <= _TARGET_LONG_EDGE:
+        return 1.0
+    return _TARGET_LONG_EDGE / long_edge
 
 
 def _scale_detections(detections: sv.Detections, scale: float) -> sv.Detections:
@@ -127,66 +115,200 @@ def _scale_detections(detections: sv.Detections, scale: float) -> sv.Detections:
     return scaled
 
 
-def _pluralize(count: int, noun: str) -> str:
-    return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
+def _label_rectangles(
+    detections: sv.Detections,
+    labels: list[str],
+) -> list[tuple[float, float, float, float]]:
+    rectangles = []
+    for (x1, y1, _, _), label in zip(detections.xyxy, labels):
+        width = (
+            len(label) * _LABEL_CHAR_WIDTH_FACTOR * _LABEL_FONT_SIZE
+            + 2 * _LABEL_PADDING
+        )
+        height = _LABEL_FONT_SIZE + 2 * _LABEL_PADDING
+        rectangles.append((x1, y1 - height, x1 + width, y1))
+    return rectangles
 
 
-def _draw_header(
+def _rectangles_intersect(
+    first: tuple[float, float, float, float],
+    second: tuple[float, float, float, float],
+) -> bool:
+    return (
+        first[0] < second[2]
+        and second[0] < first[2]
+        and first[1] < second[3]
+        and second[1] < first[3]
+    )
+
+
+def _labels_collide(
+    detections: sv.Detections,
+    labels: list[str],
+    image_wh: tuple[int, int],
+) -> bool:
+    """Estimate whether drawn label pills would overlap each other.
+
+    Legend mode is reserved for genuinely dense images: many boxes, or
+    a large number of label pills that mostly intersect each other.
+
+    Args:
+        detections: Detections in original image coordinates.
+        labels: Class labels, one per detection.
+        image_wh: Original image (width, height).
+
+    Returns:
+        ``True`` when labels are too crowded to remain readable.
+    """
+    if len(detections) > _MAX_LABELED_BOXES:
+        return True
+    if len(detections) < 2:
+        return False
+
+    scale = _display_scale(*image_wh)
+    scaled = _scale_detections(detections, scale)
+    rectangles = _label_rectangles(scaled, labels)
+
+    colliding: set[int] = set()
+    for i in range(len(rectangles)):
+        for j in range(i + 1, len(rectangles)):
+            if _rectangles_intersect(rectangles[i], rectangles[j]):
+                colliding.add(i)
+                colliding.add(j)
+
+    return (
+        len(colliding) >= _MIN_COLLIDING_LABELS
+        and len(colliding) / len(rectangles) > _COLLISION_FRACTION
+    )
+
+
+def _collect_legend_entries(
+    ground_truth: sv.Detections,
+    gt_labels: list[str],
+    predictions: sv.Detections,
+    pred_labels: list[str],
+) -> list[tuple[int, str]]:
+    """Collect unique (class_id, name) pairs across both panels."""
+    entries: dict[int, str] = {}
+    for detections, labels in ((ground_truth, gt_labels), (predictions, pred_labels)):
+        if detections.class_id is None:
+            continue
+        for class_id, label in zip(detections.class_id, labels):
+            entries.setdefault(int(class_id), label)
+    return sorted(entries.items())
+
+
+def _layout_legend_rows(
+    entries: list[tuple[int, str]],
+    usable_width: float,
+) -> list[list[tuple[int, str]]]:
+    rows: list[list[tuple[int, str]]] = [[]]
+    x = 0.0
+    for class_id, name in entries:
+        item_width = (
+            _LEGEND_SWATCH_WIDTH
+            + _LEGEND_TEXT_GAP
+            + len(name) * _LEGEND_CHAR_WIDTH
+            + _LEGEND_ITEM_GAP
+        )
+        if rows[-1] and x + item_width > usable_width:
+            rows.append([])
+            x = 0.0
+        rows[-1].append((class_id, name))
+        x += item_width
+    return rows
+
+
+def _draw_legend(
     axes: plt.Axes,
-    model_name: str,
-    lab_name: str,
-    lab_logo_url: str,
+    rows: list[list[tuple[int, str]]],
+    usable_width: float,
 ) -> None:
+    # Axes data units are set to physical inches (the axes spans
+    # usable_width inches horizontally), so layout math stays in inches.
     fonts = load_fonts()
     axes.set_axis_off()
-    axes.set_xlim(0, 1)
-    axes.set_ylim(0, 1)
+    height = len(rows) * _LEGEND_ROW_HEIGHT
+    axes.set_xlim(0, usable_width)
+    axes.set_ylim(0, height)
 
-    axes.text(
-        0.0,
-        0.50,
-        "Object Detection",
-        fontsize=12,
-        va="center",
-        ha="left",
-        color=TEXT_PRIMARY,
-        font=fonts.medium,
-    )
-    axes.text(
-        1.0,
-        0.58,
-        model_name,
-        fontsize=11.5,
-        va="bottom",
-        ha="right",
-        color=TEXT_PRIMARY,
-        font=fonts.bold,
-    )
-    axes.text(
-        1.0,
-        0.38,
-        lab_name,
-        fontsize=9.5,
-        va="top",
-        ha="right",
-        color=TEXT_SECONDARY,
-        font=fonts.medium,
-    )
+    for row_index, row in enumerate(rows):
+        y_center = height - (row_index + 0.5) * _LEGEND_ROW_HEIGHT
+        x = 0.0
+        for class_id, name in row:
+            color = _COLOR_PALETTE.by_idx(class_id).as_hex()
+            axes.add_patch(
+                mpatches.FancyBboxPatch(
+                    (x, y_center - _LEGEND_SWATCH_HEIGHT / 2),
+                    _LEGEND_SWATCH_WIDTH,
+                    _LEGEND_SWATCH_HEIGHT,
+                    boxstyle=mpatches.BoxStyle.Round(
+                        pad=0, rounding_size=_LEGEND_SWATCH_HEIGHT / 2
+                    ),
+                    facecolor=color,
+                    edgecolor="none",
+                )
+            )
+            axes.text(
+                x + _LEGEND_SWATCH_WIDTH + _LEGEND_TEXT_GAP,
+                y_center,
+                name,
+                fontsize=9.5,
+                va="center",
+                ha="left",
+                color=TEXT_PRIMARY,
+                font=fonts.medium,
+            )
+            x += (
+                _LEGEND_SWATCH_WIDTH
+                + _LEGEND_TEXT_GAP
+                + len(name) * _LEGEND_CHAR_WIDTH
+                + _LEGEND_ITEM_GAP
+            )
 
-    try:
-        logo_image = fetch_logo(lab_logo_url, size=28)
-        image_box = OffsetImage(logo_image, zoom=0.30)
-        annotation = AnnotationBbox(
-            image_box,
-            (0.85, 0.48),
-            frameon=False,
-            xycoords="axes fraction",
-            box_alignment=(0.5, 0.5),
-            zorder=5,
+
+def _annotate_image(
+    image: np.ndarray,
+    detections: sv.Detections,
+    labels: list[str],
+    draw_labels: bool,
+) -> np.ndarray:
+    """Annotate with consistent visual size regardless of source resolution.
+
+    Resizes the image to a fixed long-edge before annotation so that font
+    size and line thickness appear identical across different resolutions.
+    """
+    height, width = image.shape[:2]
+    scale = _display_scale(width, height)
+    if scale < 1.0:
+        new_width = int(width * scale)
+        new_height = int(height * scale)
+        image = cv2.resize(image, (new_width, new_height))
+        if len(detections) > 0:
+            detections = _scale_detections(detections, scale)
+
+    box_annotator = sv.BoxAnnotator(color=_COLOR_PALETTE, thickness=2)
+    scene = image.copy()
+    scene = box_annotator.annotate(scene=scene, detections=detections)
+
+    if draw_labels:
+        fonts = load_fonts()
+        label_annotator = sv.RichLabelAnnotator(
+            color=_COLOR_PALETTE,
+            text_color=_TEXT_COLOR_PALETTE,
+            font_path=fonts.medium.get_file(),
+            font_size=_LABEL_FONT_SIZE,
+            text_padding=_LABEL_PADDING,
+            text_position=sv.Position.TOP_LEFT,
         )
-        axes.add_artist(annotation)
-    except Exception:
-        pass
+        scene = label_annotator.annotate(
+            scene=scene, detections=detections, labels=labels
+        )
+    return scene
+
+
+def _pluralize(count: int, noun: str) -> str:
+    return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
 
 
 def _draw_divider_line(axes: plt.Axes) -> None:
@@ -202,18 +324,6 @@ def _draw_divider_line(axes: plt.Axes) -> None:
     )
 
 
-def _figure_height(image_row_height: float) -> float:
-    content = (
-        _HEADER_HEIGHT
-        + _DIVIDER_HEIGHT
-        + _COLUMN_HEADER_HEIGHT
-        + image_row_height
-        + _DIVIDER_HEIGHT
-        + _FOOTER_HEIGHT
-    )
-    return content / (_MARGIN_TOP - _MARGIN_BOTTOM)
-
-
 def plot_detection_card(
     image: np.ndarray,
     ground_truth: sv.Detections,
@@ -223,6 +333,7 @@ def plot_detection_card(
     model_id: str,
     config: BenchmarkConfig,
     map_score: float | None = None,
+    label_mode: str = "auto",
 ) -> plt.Figure:
     """Render a detection comparison card with ground truth vs predictions.
 
@@ -235,40 +346,72 @@ def plot_detection_card(
         model_id: Identifier of the model that produced the predictions.
         config: Benchmark config for display info.
         map_score: Per-image mAP@50 score if available.
+        label_mode: ``"labels"`` draws class labels on boxes, ``"legend"``
+            draws boxes only with a color legend below the images, and
+            ``"auto"`` picks based on estimated label overlap.
 
     Returns:
         Matplotlib figure with the detection card.
     """
+    if label_mode not in LABEL_MODES:
+        modes = ", ".join(LABEL_MODES)
+        raise ValueError(f"Unknown label_mode {label_mode!r}. Valid modes: {modes}")
+
     fonts = load_fonts()
     model_info = config.models[model_id]
     lab_info = config.labs[model_info.lab]
 
-    gt_annotated = _annotate_image(image, ground_truth, gt_labels)[:, :, ::-1]
-    pred_annotated = _annotate_image(image, predictions, pred_labels)[:, :, ::-1]
+    height, width = image.shape[:2]
+    if label_mode == "auto":
+        crowded = _labels_collide(
+            ground_truth, gt_labels, (width, height)
+        ) or _labels_collide(predictions, pred_labels, (width, height))
+        label_mode = "legend" if crowded else "labels"
+
+    draw_labels = label_mode == "labels"
+    gt_annotated = _annotate_image(image, ground_truth, gt_labels, draw_labels)
+    pred_annotated = _annotate_image(image, predictions, pred_labels, draw_labels)
+    gt_annotated = gt_annotated[:, :, ::-1]
+    pred_annotated = pred_annotated[:, :, ::-1]
+
+    usable_width = _FIGURE_WIDTH * (_MARGIN_RIGHT - _MARGIN_LEFT)
+
+    legend_rows: list[list[tuple[int, str]]] = []
+    legend_height = 0.0
+    if label_mode == "legend":
+        entries = _collect_legend_entries(
+            ground_truth, gt_labels, predictions, pred_labels
+        )
+        if entries:
+            legend_rows = _layout_legend_rows(entries, usable_width)
+            legend_height = len(legend_rows) * _LEGEND_ROW_HEIGHT + 0.1
 
     image_height, image_width = gt_annotated.shape[:2]
-    usable_width = _FIGURE_WIDTH * (_MARGIN_RIGHT - _MARGIN_LEFT)
     panel_width = usable_width / (2 + _PANEL_GAP)
     image_row_height = panel_width * image_height / image_width
     image_row_height = min(max(image_row_height, _MIN_IMAGE_HEIGHT), _MAX_IMAGE_HEIGHT)
 
-    figure_height = _figure_height(image_row_height)
+    height_ratios = [
+        _HEADER_HEIGHT,
+        _DIVIDER_HEIGHT,
+        _COLUMN_HEADER_HEIGHT,
+        image_row_height,
+    ]
+    if legend_rows:
+        height_ratios.append(legend_height)
+    height_ratios.extend([_DIVIDER_HEIGHT, _FOOTER_HEIGHT])
+
+    content_height = sum(height_ratios)
+    figure_height = content_height / (_MARGIN_TOP - _MARGIN_BOTTOM)
     figure = plt.figure(
         figsize=(_FIGURE_WIDTH, figure_height), facecolor=BACKGROUND_COLOR
     )
     add_top_accent(figure)
 
     grid = gridspec.GridSpec(
-        6,
+        len(height_ratios),
         2,
-        height_ratios=[
-            _HEADER_HEIGHT,
-            _DIVIDER_HEIGHT,
-            _COLUMN_HEADER_HEIGHT,
-            image_row_height,
-            _DIVIDER_HEIGHT,
-            _FOOTER_HEIGHT,
-        ],
+        height_ratios=height_ratios,
         hspace=0.03,
         wspace=_PANEL_GAP,
         left=_MARGIN_LEFT,
@@ -278,7 +421,13 @@ def plot_detection_card(
     )
 
     header_axes = figure.add_subplot(grid[0, :])
-    _draw_header(header_axes, model_info.name, lab_info.name, lab_info.logo_url)
+    draw_card_header(
+        header_axes,
+        "Object Detection",
+        model_info.name,
+        lab_info.name,
+        lab_info.logo_url,
+    )
 
     divider_top = figure.add_subplot(grid[1, :])
     _draw_divider_line(divider_top)
@@ -292,21 +441,21 @@ def plot_detection_card(
         0.25,
         0.5,
         f"Ground Truth  \u00b7  {_pluralize(len(ground_truth), 'object')}",
-        fontsize=9.5,
+        fontsize=13,
         va="center",
         ha="center",
-        color=TEXT_SECONDARY,
-        font=fonts.medium,
+        color=TEXT_PRIMARY,
+        font=fonts.bold,
     )
     col_header_axes.text(
         0.75,
         0.5,
         f"Prediction  \u00b7  {_pluralize(len(predictions), 'object')}",
-        fontsize=9.5,
+        fontsize=13,
         va="center",
         ha="center",
-        color=TEXT_SECONDARY,
-        font=fonts.medium,
+        color=TEXT_PRIMARY,
+        font=fonts.bold,
     )
 
     gt_axes = figure.add_subplot(grid[3, 0])
@@ -317,16 +466,24 @@ def plot_detection_card(
     pred_axes.imshow(pred_annotated)
     pred_axes.set_axis_off()
 
-    divider_bottom = figure.add_subplot(grid[4, :])
+    next_row = 4
+    if legend_rows:
+        legend_axes = figure.add_subplot(grid[next_row, :])
+        _draw_legend(legend_axes, legend_rows, usable_width)
+        next_row += 1
+
+    divider_bottom = figure.add_subplot(grid[next_row, :])
     _draw_divider_line(divider_bottom)
 
-    footer_axes = figure.add_subplot(grid[5, :])
+    footer_axes = figure.add_subplot(grid[next_row + 1, :])
     footer_axes.set_axis_off()
     footer_axes.set_xlim(0, 1)
     footer_axes.set_ylim(0, 1)
 
     if map_score is not None:
-        score_color = SUCCESS_COLOR if map_score >= 0.5 else FAILURE_COLOR
+        score_color = (
+            SUCCESS_COLOR if map_score >= MAP_PASS_THRESHOLD else FAILURE_COLOR
+        )
         red, green, blue = to_rgb(score_color)
 
         position = footer_axes.get_position()

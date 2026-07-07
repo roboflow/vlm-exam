@@ -26,6 +26,7 @@ import numpy as np
 import supervision as sv
 from supervision.metrics import MeanAveragePrecision
 
+from vlm_exam.results import RunResult
 from vlm_exam.tasks.base import EvaluationResult, Sample, Task
 
 if TYPE_CHECKING:
@@ -37,11 +38,17 @@ _PROMPT_TEMPLATE = (
     "Detect all objects in this image. "
     "Output a JSON list where each entry contains the 2D bounding box "
     'in the key "box_2d" and the text label in the key "label". '
+    'The "box_2d" value must be [y_min, x_min, y_max, x_max]: integers '
+    "between 0 and 1000, normalized to the image height and width. "
+    "Return only the JSON list, with no extra text. "
     "Only use these labels: {class_list}"
 )
 
 PROMPT_CLASS_MODES = ("image", "all")
 """Valid values for the detection prompt class listing mode."""
+
+MAP_PASS_THRESHOLD = 0.8
+"""Minimum per-image mAP@50 for a sample to count as correct."""
 
 
 @dataclass(frozen=True)
@@ -230,7 +237,7 @@ class DetectionTask(Task):
         map50 = float(result.map50)
         details["map50"] = map50
 
-        correct = map50 >= 0.5
+        correct = map50 >= MAP_PASS_THRESHOLD
         return EvaluationResult(correct=correct, match_method="map", details=details)
 
 
@@ -241,6 +248,9 @@ def parse_prediction(
 ) -> sv.Detections:
     """Parse model JSON output into supervision Detections.
 
+    Falls back to the outermost JSON array substring when the model
+    wraps the JSON in prose or unexpected formatting.
+
     Args:
         prediction: Raw JSON string from the model.
         resolution_wh: Image (width, height) for coordinate scaling.
@@ -249,6 +259,23 @@ def parse_prediction(
     Returns:
         Parsed detections, or empty detections on failure.
     """
+    detections = _parse_with_supervision(prediction, resolution_wh, classes)
+    if len(detections) > 0:
+        return detections
+
+    start = prediction.find("[")
+    stop = prediction.rfind("]")
+    if start == -1 or stop <= start:
+        return detections
+
+    return _parse_with_supervision(prediction[start : stop + 1], resolution_wh, classes)
+
+
+def _parse_with_supervision(
+    prediction: str,
+    resolution_wh: tuple[int, int],
+    classes: list[str],
+) -> sv.Detections:
     try:
         return sv.Detections.from_vlm(
             vlm=sv.VLM.GOOGLE_GEMINI_2_5,
@@ -259,6 +286,64 @@ def parse_prediction(
     except Exception:
         _logger.warning("Failed to parse detection response; returning empty.")
         return sv.Detections.empty()
+
+
+@dataclass(frozen=True)
+class DatasetMapResult:
+    """Dataset-level mean average precision over a benchmark run."""
+
+    map50: float
+    map75: float
+    map50_95: float
+    image_count: int
+
+
+def compute_dataset_map(
+    run_result: RunResult,
+    sample_index: dict[str, DetectionSample],
+) -> DatasetMapResult | None:
+    """Compute dataset-level mAP for a detection run.
+
+    Re-parses the stored raw predictions against the dataset ground
+    truth and aggregates them into a single mAP computation.
+
+    Args:
+        run_result: A detection benchmark run loaded from disk.
+        sample_index: Mapping of image basename to detection sample,
+            as produced by :func:`build_sample_index`.
+
+    Returns:
+        Dataset-level mAP result, or ``None`` when no run sample could
+        be matched to the dataset.
+    """
+    all_predictions: list[sv.Detections] = []
+    all_targets: list[sv.Detections] = []
+
+    for sample_result in run_result.samples:
+        sample = sample_index.get(sample_result.image)
+        if sample is None:
+            continue
+
+        resolution_wh = (sample.image_width, sample.image_height)
+        predicted = parse_prediction(
+            sample_result.predicted, resolution_wh, list(sample.classes)
+        )
+        all_predictions.append(predicted)
+        all_targets.append(sample.ground_truth)
+
+    if not all_predictions:
+        return None
+
+    map_metric = MeanAveragePrecision()
+    map_metric.update(all_predictions, all_targets)
+    result = map_metric.compute()
+
+    return DatasetMapResult(
+        map50=float(result.map50),
+        map75=float(result.map75),
+        map50_95=float(result.map50_95),
+        image_count=len(all_predictions),
+    )
 
 
 def build_sample_index(samples: Iterable[Sample]) -> dict[str, DetectionSample]:
