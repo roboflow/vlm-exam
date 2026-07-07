@@ -405,7 +405,7 @@ def leaderboard(
             figure = plot_accuracy_chart(
                 accuracy,
                 config,
-                f"VQA / OCR Benchmark \u2014 {effort.title()} Effort",
+                "VQA / OCR Benchmark",
             )
             save_figure(figure, f"vqa_accuracy_{effort}.png")
 
@@ -442,10 +442,10 @@ def leaderboard(
                 figure = plot_metric_chart(
                     values,
                     config,
-                    f"Object Detection \u2014 {metric_titles[metric_key]} "
-                    f"({effort.title()} Effort)",
-                    format_value=lambda value: f"{value:.3f}",
+                    f"Object Detection \u2014 {metric_titles[metric_key]}",
+                    format_value=lambda value: f"{value * 100:.1f}%",
                     sort_ascending=False,
+                    full_scale=1.0,
                 )
                 save_figure(figure, f"detection_{metric_key}_{effort}.png")
 

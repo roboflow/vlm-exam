@@ -22,10 +22,6 @@ Stricter IoU thresholds:
 [mAP@75](visualizations/leaderboards/detection_map75_low.png) |
 [mAP@50:95](visualizations/leaderboards/detection_map50_95_low.png)
 
-### VQA / OCR
-
-![VQA accuracy leaderboard](visualizations/leaderboards/vqa_accuracy_low.png)
-
 ## Supported providers
 
 - Anthropic (Claude)
