@@ -20,11 +20,22 @@ from PIL import Image
 
 from vlm_exam.providers.base import Provider, Usage
 
+_LEGACY_THINKING_BUDGETS = {"low": 128, "medium": 2048, "high": 8192}
+
 
 def _image_to_png_bytes(image: Image.Image) -> bytes:
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     return buffer.getvalue()
+
+
+def _thinking_config(model: str, effort: str) -> types.ThinkingConfig:
+    # Gemini 2.x models reject thinking_level and require the legacy
+    # thinking_budget parameter; mixing the two returns a 400 error.
+    if model.startswith("gemini-2."):
+        budget = _LEGACY_THINKING_BUDGETS.get(effort, -1)
+        return types.ThinkingConfig(thinking_budget=budget)
+    return types.ThinkingConfig(thinking_level=effort)
 
 
 class GoogleProvider(Provider):
@@ -53,7 +64,7 @@ class GoogleProvider(Provider):
                 prompt,
             ],
             config=types.GenerateContentConfig(
-                thinking_config=types.ThinkingConfig(thinking_level=effort),
+                thinking_config=_thinking_config(self._model, effort),
             ),
         )
 

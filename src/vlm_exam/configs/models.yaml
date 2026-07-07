@@ -42,6 +42,13 @@ models:
     pricing:
       input_per_million_tokens: 1.50
       output_per_million_tokens: 9.00
+  gemini-3-flash-preview:
+    name: Gemini 3 Flash
+    lab: google
+    provider: google
+    pricing:
+      input_per_million_tokens: 0.50
+      output_per_million_tokens: 3.00
   gemini-2.5-pro:
     name: Gemini 2.5 Pro
     lab: google

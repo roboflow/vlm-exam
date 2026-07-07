@@ -22,7 +22,13 @@ from dotenv import load_dotenv
 from vlm_exam.config import load_config
 from vlm_exam.judge import Judge
 from vlm_exam.providers import create_provider
-from vlm_exam.results import RunResult, load_results, save_results
+from vlm_exam.results import (
+    RunResult,
+    is_failed_sample,
+    load_results,
+    merge_resumed_runs,
+    save_results,
+)
 from vlm_exam.runner import run_benchmark
 from vlm_exam.tasks import create_task
 
@@ -100,6 +106,16 @@ def main() -> None:
         "or all dataset classes in the prompt."
     ),
 )
+@click.option(
+    "--resume-file",
+    "resume_file",
+    default=None,
+    type=click.Path(exists=True),
+    help=(
+        "Prior result JSONL to resume: only its failed samples are "
+        "re-run and merged into a new complete result file."
+    ),
+)
 def run(
     task_name: str,
     models: str,
@@ -111,6 +127,7 @@ def run(
     judge_model: str,
     max_samples: int | None,
     prompt_classes: str,
+    resume_file: str | None,
 ) -> None:
     """Run a benchmark for one or more models."""
     config = load_config(Path(config_path) if config_path else None)
@@ -123,6 +140,35 @@ def run(
         samples = samples[:max_samples]
     model_ids = [model_id.strip() for model_id in models.split(",")]
     output_path = Path(output_directory)
+
+    previous_run: RunResult | None = None
+    if resume_file is not None:
+        if len(model_ids) != 1:
+            raise click.UsageError("--resume-file requires exactly one model.")
+        previous_run = load_results(Path(resume_file))
+        if previous_run.model != model_ids[0]:
+            raise click.UsageError(
+                f"--resume-file holds results for {previous_run.model!r}, "
+                f"but --models is {model_ids[0]!r}."
+            )
+        if previous_run.task != task_name or previous_run.effort != effort:
+            raise click.UsageError(
+                f"--resume-file is a {previous_run.task!r} run at effort "
+                f"{previous_run.effort!r}; pass matching --task and --effort."
+            )
+        failed_images = {
+            sample.image for sample in previous_run.samples if is_failed_sample(sample)
+        }
+        samples = [
+            sample
+            for sample in samples
+            if Path(sample.image_path).name in failed_images
+        ]
+        kept_count = len(previous_run.samples) - len(failed_images)
+        click.echo(
+            f"Resuming {previous_run.model}: keeping {kept_count} samples, "
+            f"re-running {len(samples)} failed samples."
+        )
 
     judge: Judge | None = None
     if match_mode == "judge":
@@ -142,8 +188,12 @@ def run(
         model_config = config.models[model_id]
         provider = create_provider(model_config.provider, model=model_id)
 
+        model_task = task
+        if task_name == "detection" and model_config.provider == "anthropic":
+            model_task = create_task(task_name, coordinate_format="pixel", **task_args)
+
         result = run_benchmark(
-            task=task,
+            task=model_task,
             provider=provider,
             samples=samples,
             effort=effort,
@@ -151,6 +201,9 @@ def run(
             match_mode=match_mode,
             judge=judge,
         )
+
+        if previous_run is not None:
+            result = merge_resumed_runs(previous_run, result)
 
         filename = f"{task_name}_{model_id}_{effort}_{result.timestamp}.jsonl"
         result_path = output_path / filename
@@ -551,7 +604,12 @@ def detection_visualize(
 
         resolution_wh = (sample.image_width, sample.image_height)
         predicted = parse_prediction(
-            sample_result.predicted, resolution_wh, list(sample.classes)
+            sample_result.predicted,
+            resolution_wh,
+            list(sample.classes),
+            coordinate_format=sample_result.metadata.get(
+                "coordinate_format", "normalized_1000"
+            ),
         )
 
         gt_labels = (

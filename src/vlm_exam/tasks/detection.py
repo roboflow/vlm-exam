@@ -26,6 +26,7 @@ import numpy as np
 import supervision as sv
 from supervision.metrics import MeanAveragePrecision
 
+from vlm_exam.providers.anthropic import compute_resize_dimensions
 from vlm_exam.results import RunResult
 from vlm_exam.tasks.base import EvaluationResult, Sample, Task
 
@@ -44,8 +45,22 @@ _PROMPT_TEMPLATE = (
     "Only use these labels: {class_list}"
 )
 
+_PIXEL_PROMPT_TEMPLATE = (
+    "Detect all objects in this image. "
+    "Output a JSON list where each entry contains the 2D bounding box "
+    'in the key "box_2d" and the text label in the key "label". '
+    'The "box_2d" value must be [x_min, y_min, x_max, y_max]: the '
+    "top-left and bottom-right corners in absolute pixel coordinates "
+    "of the {width}x{height} pixel image. "
+    "Return only the JSON list, with no extra text. "
+    "Only use these labels: {class_list}"
+)
+
 PROMPT_CLASS_MODES = ("image", "all")
 """Valid values for the detection prompt class listing mode."""
+
+COORDINATE_FORMATS = ("normalized_1000", "pixel")
+"""Valid values for the detection coordinate format."""
 
 MAP_PASS_THRESHOLD = 0.8
 """Minimum per-image mAP@50 for a sample to count as correct."""
@@ -64,20 +79,37 @@ class DetectionSample(Sample):
 class DetectionTask(Task):
     """Object detection benchmark task using COCO-format annotations."""
 
-    def __init__(self, prompt_classes: str = "image") -> None:
+    def __init__(
+        self,
+        prompt_classes: str = "image",
+        coordinate_format: str = "normalized_1000",
+    ) -> None:
         """Initialize the detection task.
 
         Args:
             prompt_classes: Which classes to list in the prompt. ``"image"``
                 lists only the classes present in the image's ground truth;
                 ``"all"`` lists every dataset class.
+            coordinate_format: Coordinate convention requested from the
+                model. ``"normalized_1000"`` asks for Gemini-style
+                ``[y_min, x_min, y_max, x_max]`` boxes normalized to
+                0-1000; ``"pixel"`` asks for absolute pixel
+                ``[x_min, y_min, x_max, y_max]`` boxes, which Anthropic
+                recommends for Claude models.
         """
         if prompt_classes not in PROMPT_CLASS_MODES:
             modes = ", ".join(PROMPT_CLASS_MODES)
             raise ValueError(
                 f"Unknown prompt_classes mode {prompt_classes!r}. Valid modes: {modes}"
             )
+        if coordinate_format not in COORDINATE_FORMATS:
+            formats = ", ".join(COORDINATE_FORMATS)
+            raise ValueError(
+                f"Unknown coordinate_format {coordinate_format!r}. "
+                f"Valid formats: {formats}"
+            )
         self._prompt_classes = prompt_classes
+        self._coordinate_format = coordinate_format
         self._classes: list[str] = []
 
     @property
@@ -166,7 +198,9 @@ class DetectionTask(Task):
 
         In ``"image"`` mode only the classes present in the sample's
         ground truth are listed; in ``"all"`` mode every dataset class
-        is listed.
+        is listed. In ``"pixel"`` coordinate format the prompt states
+        the dimensions of the image as uploaded to Claude (after the
+        provider's pre-resize), per Anthropic's coordinates guidance.
 
         Args:
             sample: A ``DetectionSample`` instance.
@@ -185,6 +219,16 @@ class DetectionTask(Task):
         else:
             image_classes = list(sample.classes)
         class_list = ", ".join(image_classes)
+
+        if self._coordinate_format == "pixel":
+            uploaded_width, uploaded_height = compute_resize_dimensions(
+                sample.image_width, sample.image_height
+            )
+            return _PIXEL_PROMPT_TEMPLATE.format(
+                width=uploaded_width,
+                height=uploaded_height,
+                class_list=class_list,
+            )
         return _PROMPT_TEMPLATE.format(class_list=class_list)
 
     def evaluate(
@@ -213,13 +257,17 @@ class DetectionTask(Task):
 
         resolution_wh = (sample.image_width, sample.image_height)
         predicted_detections = parse_prediction(
-            prediction, resolution_wh, list(sample.classes)
+            prediction,
+            resolution_wh,
+            list(sample.classes),
+            coordinate_format=self._coordinate_format,
         )
 
         details: dict[str, Any] = {
             "num_predictions": len(predicted_detections),
             "num_ground_truth": len(sample.ground_truth),
             "prompt_classes": self._prompt_classes,
+            "coordinate_format": self._coordinate_format,
         }
 
         if len(sample.ground_truth) == 0 and len(predicted_detections) == 0:
@@ -245,6 +293,7 @@ def parse_prediction(
     prediction: str,
     resolution_wh: tuple[int, int],
     classes: list[str],
+    coordinate_format: str = "normalized_1000",
 ) -> sv.Detections:
     """Parse model JSON output into supervision Detections.
 
@@ -253,13 +302,21 @@ def parse_prediction(
 
     Args:
         prediction: Raw JSON string from the model.
-        resolution_wh: Image (width, height) for coordinate scaling.
+        resolution_wh: Original image (width, height) for coordinate
+            scaling.
         classes: List of class names for class_id assignment.
+        coordinate_format: Coordinate convention of the prediction,
+            ``"normalized_1000"`` or ``"pixel"``.
 
     Returns:
         Parsed detections, or empty detections on failure.
     """
-    detections = _parse_with_supervision(prediction, resolution_wh, classes)
+    if coordinate_format == "pixel":
+        parser = _parse_pixel_json
+    else:
+        parser = _parse_with_supervision
+
+    detections = parser(prediction, resolution_wh, classes)
     if len(detections) > 0:
         return detections
 
@@ -268,7 +325,7 @@ def parse_prediction(
     if start == -1 or stop <= start:
         return detections
 
-    return _parse_with_supervision(prediction[start : stop + 1], resolution_wh, classes)
+    return parser(prediction[start : stop + 1], resolution_wh, classes)
 
 
 def _parse_with_supervision(
@@ -288,6 +345,60 @@ def _parse_with_supervision(
         return sv.Detections.empty()
 
 
+def _parse_pixel_json(
+    prediction: str,
+    resolution_wh: tuple[int, int],
+    classes: list[str],
+) -> sv.Detections:
+    try:
+        entries = json.loads(prediction)
+    except json.JSONDecodeError:
+        return sv.Detections.empty()
+    if not isinstance(entries, list):
+        return sv.Detections.empty()
+
+    original_width, original_height = resolution_wh
+    uploaded_width, uploaded_height = compute_resize_dimensions(
+        original_width, original_height
+    )
+    scale_x = original_width / uploaded_width
+    scale_y = original_height / uploaded_height
+    class_index = {name: index for index, name in enumerate(classes)}
+
+    xyxy_list: list[list[float]] = []
+    class_ids: list[int] = []
+    class_names: list[str] = []
+
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        box = entry.get("box_2d")
+        label = entry.get("label")
+        if (
+            not isinstance(box, list)
+            or len(box) != 4
+            or not all(isinstance(value, (int, float)) for value in box)
+            or label not in class_index
+        ):
+            continue
+        x_min, y_min, x_max, y_max = (float(value) for value in box)
+        xyxy_list.append(
+            [x_min * scale_x, y_min * scale_y, x_max * scale_x, y_max * scale_y]
+        )
+        class_ids.append(class_index[label])
+        class_names.append(label)
+
+    if not xyxy_list:
+        return sv.Detections.empty()
+
+    detections = sv.Detections(
+        xyxy=np.array(xyxy_list, dtype=np.float32),
+        class_id=np.array(class_ids, dtype=int),
+    )
+    detections.data["class_name"] = np.array(class_names)
+    return detections
+
+
 @dataclass(frozen=True)
 class DatasetMapResult:
     """Dataset-level mean average precision over a benchmark run."""
@@ -305,7 +416,10 @@ def compute_dataset_map(
     """Compute dataset-level mAP for a detection run.
 
     Re-parses the stored raw predictions against the dataset ground
-    truth and aggregates them into a single mAP computation.
+    truth and aggregates them into a single mAP computation. Each
+    sample's ``coordinate_format`` metadata determines how its stored
+    prediction is parsed, defaulting to ``"normalized_1000"`` for runs
+    saved before the format was recorded.
 
     Args:
         run_result: A detection benchmark run loaded from disk.
@@ -326,7 +440,12 @@ def compute_dataset_map(
 
         resolution_wh = (sample.image_width, sample.image_height)
         predicted = parse_prediction(
-            sample_result.predicted, resolution_wh, list(sample.classes)
+            sample_result.predicted,
+            resolution_wh,
+            list(sample.classes),
+            coordinate_format=sample_result.metadata.get(
+                "coordinate_format", "normalized_1000"
+            ),
         )
         all_predictions.append(predicted)
         all_targets.append(sample.ground_truth)
