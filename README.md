@@ -27,6 +27,8 @@ Stricter IoU thresholds:
 - Anthropic (Claude)
 - Google (Gemini)
 - OpenAI (GPT)
+- OpenRouter (any OpenAI-compatible vision model, e.g. Qwen 3.7 Plus,
+  GLM 5V Turbo)
 
 ## Installation
 
@@ -50,6 +52,7 @@ Set your API keys (or place them in a `.env` file):
 export ANTHROPIC_API_KEY=...
 export GOOGLE_API_KEY=...
 export OPENAI_API_KEY=...
+export OPENROUTER_API_KEY=...
 ```
 
 ### Run a VQA benchmark
@@ -158,6 +161,13 @@ results = run_benchmark(task=task, provider=provider, samples=samples, effort="h
 Model definitions, pricing, and lab branding live in
 `src/vlm_exam/configs/models.yaml`. Add a new model by editing this file --
 no code changes required.
+
+For OpenRouter models, set `provider: openrouter` and add a
+`provider_model_id` with the OpenRouter slug (e.g. `qwen/qwen3.7-plus`);
+the short YAML key is what appears in result filenames and leaderboards.
+Detection prompts for OpenRouter models request `[x_min, y_min, x_max,
+y_max]` boxes normalized to 0-1000, matching the native grounding format
+of Qwen-VL and GLM-V.
 
 ## License
 

@@ -261,11 +261,19 @@ def run(
             continue
 
         model_config = config.models[model_id]
-        provider = create_provider(model_config.provider, model=model_id)
+        provider = create_provider(
+            model_config.provider,
+            model=model_id,
+            provider_model_id=model_config.provider_model_id,
+        )
 
         model_task = task
         if task_name == "detection" and model_config.provider == "anthropic":
             model_task = create_task(task_name, coordinate_format="pixel", **task_args)
+        elif task_name == "detection" and model_config.provider == "openrouter":
+            model_task = create_task(
+                task_name, coordinate_format="normalized_1000_xyxy", **task_args
+            )
 
         result = run_benchmark(
             task=model_task,

@@ -20,6 +20,7 @@ _PROVIDER_REGISTRY: dict[str, str] = {
     "anthropic": "vlm_exam.providers.anthropic.AnthropicProvider",
     "google": "vlm_exam.providers.google.GoogleProvider",
     "openai": "vlm_exam.providers.openai.OpenAIProvider",
+    "openrouter": "vlm_exam.providers.openrouter.OpenRouterProvider",
 }
 
 __all__ = [
@@ -33,16 +34,21 @@ def create_provider(
     provider_name: str,
     model: str,
     api_key: str | None = None,
+    provider_model_id: str | None = None,
 ) -> Provider:
     """Create a provider instance by name.
 
     Args:
         provider_name: Key in the provider registry
-            (e.g. ``"anthropic"``, ``"google"``, ``"openai"``).
+            (e.g. ``"anthropic"``, ``"google"``, ``"openai"``,
+            ``"openrouter"``).
         model: Model identifier to pass to the provider
             (e.g. ``"claude-fable-5"``).
         api_key: Optional API key. When ``None``, the provider falls
             back to its default environment variable.
+        provider_model_id: Optional upstream model identifier for
+            providers that decouple the vlm-exam key from the API model
+            slug (currently only ``"openrouter"``).
 
     Returns:
         A ready-to-use provider instance.
@@ -60,4 +66,8 @@ def create_provider(
     module_path, class_name = qualified_name.rsplit(".", 1)
     module = importlib.import_module(module_path)
     provider_class = getattr(module, class_name)
+    if provider_model_id is not None:
+        return provider_class(
+            model=model, api_key=api_key, provider_model_id=provider_model_id
+        )
     return provider_class(model=model, api_key=api_key)
