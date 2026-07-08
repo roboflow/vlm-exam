@@ -56,3 +56,12 @@ avoid a loop"). Never narrate what the code does.
 - No emoji in code or documentation.
 - Run `ruff check` and `ruff format` before committing.
 - Keep imports sorted (enforced by ruff `I` rules).
+
+## Benchmark results
+
+- Only commit full-dataset benchmark runs to `results/`. It is the single
+  source of truth aggregated by `report`, `leaderboard`, and
+  `detection-report`, which glob every file in the directory.
+- Never commit partial or smoke runs (e.g. any run produced with
+  `--max-samples`). Their noisy, non-comparable numbers would corrupt the
+  leaderboards. Keep such runs local or write them elsewhere.
