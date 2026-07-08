@@ -444,27 +444,24 @@ class TestLabelCollision:
         assert _labels_collide(detections, ["cat"], (1000, 1000)) is False
 
 
-class TestLegend:
-    def test_collects_unique_classes_across_panels(self) -> None:
-        from vlm_exam.visualization.detection import _collect_legend_entries
+class TestDetectionCard:
+    def test_region_diff_tints_disjoint_and_overlapping_areas(self) -> None:
+        import numpy as np
 
-        ground_truth = _detections([[0, 0, 10, 10], [20, 20, 30, 30]], [0, 1])
-        predictions = _detections([[0, 0, 10, 10], [40, 40, 50, 50]], [1, 2])
-        entries = _collect_legend_entries(
-            ground_truth,
-            ["cat", "dog"],
-            predictions,
-            ["dog", "bird"],
-        )
-        assert entries == [(0, "cat"), (1, "dog"), (2, "bird")]
+        from vlm_exam.visualization.detection import _region_diff_image
 
-    def test_layout_wraps_rows(self) -> None:
-        from vlm_exam.visualization.detection import _layout_legend_rows
-
-        entries = [(i, "very long class name") for i in range(10)]
-        rows = _layout_legend_rows(entries, usable_width=5.0)
-        assert len(rows) > 1
-        assert sum(len(row) for row in rows) == len(entries)
+        image = np.full((100, 100, 3), 255, dtype=np.uint8)
+        ground_truth = _detections([[0, 0, 40, 40], [60, 60, 90, 90]], [0, 0])
+        predictions = _detections([[20, 20, 40, 40], [0, 60, 30, 90]], [0, 0])
+        diff = _region_diff_image(image, ground_truth, predictions)
+        only_expected = diff[10, 10]
+        only_model = diff[70, 10]
+        both = diff[30, 30]
+        untouched = diff[50, 50]
+        assert only_expected[1] > only_expected[0]
+        assert only_model[0] > only_model[1]
+        assert both[0] > both[1] and both[2] > both[1]
+        assert (untouched == untouched[0]).all()
 
     def test_invalid_label_mode_raises(self) -> None:
         import numpy as np

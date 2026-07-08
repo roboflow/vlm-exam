@@ -36,10 +36,34 @@ class EvaluationResult:
     correct: bool
     match_method: str | None = None
     details: dict[str, Any] | None = None
+    score: float | None = None
 
 
 class Task(ABC):
-    """Abstract base for benchmark tasks (VQA, detection, etc.)."""
+    """Abstract base for benchmark tasks (OCR, counting, detection, etc.)."""
+
+    def expected_text(self, sample: Sample) -> str:
+        """Return the ground-truth text recorded in results.
+
+        Args:
+            sample: The sample being evaluated.
+
+        Returns:
+            The expected answer text, or an empty string for tasks
+            whose ground truth is not textual.
+        """
+        return ""
+
+    def sample_metadata(self, sample: Sample) -> dict[str, Any]:
+        """Return task-specific metadata recorded per sample result.
+
+        Args:
+            sample: The sample being evaluated.
+
+        Returns:
+            Metadata entries to merge into the sample result.
+        """
+        return {}
 
     @abstractmethod
     def load_samples(self, data_directory: str) -> list[Sample]:

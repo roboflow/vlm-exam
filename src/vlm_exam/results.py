@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import json
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
@@ -21,7 +23,7 @@ ERROR_PREDICTION_PREFIX = "ERROR:"
 """Prefix marking a sample whose provider call failed."""
 
 
-def is_failed_sample(sample: "SampleResult") -> bool:
+def is_failed_sample(sample: SampleResult) -> bool:
     """Report whether a sample's prediction is a recorded provider error.
 
     Args:
@@ -60,13 +62,19 @@ class RunResult:
     samples: list[SampleResult] = field(default_factory=list)
 
 
+def _sample_key(sample: SampleResult) -> tuple[str, str]:
+    # Several QA samples can share one image file, so the image name
+    # alone is not a unique key; the question disambiguates them.
+    return (sample.image, str(sample.metadata.get("question", "")))
+
+
 def merge_resumed_runs(previous: RunResult, resumed: RunResult) -> RunResult:
     """Merge a resumed run into a partial previous run.
 
     Failed samples from the previous run are replaced by the resumed
-    run's sample for the same image; successful samples are kept as-is.
-    Sample order follows the previous run and indexes are rewritten to
-    be contiguous.
+    run's sample for the same image and question; successful samples
+    are kept as-is. Sample order follows the previous run and indexes
+    are rewritten to be contiguous.
 
     Args:
         previous: The partial run containing failed samples.
@@ -75,11 +83,11 @@ def merge_resumed_runs(previous: RunResult, resumed: RunResult) -> RunResult:
     Returns:
         A complete run result carrying the resumed run's timestamp.
     """
-    resumed_by_image = {sample.image: sample for sample in resumed.samples}
+    resumed_by_key = {_sample_key(sample): sample for sample in resumed.samples}
 
     merged: list[SampleResult] = []
     for sample in previous.samples:
-        replacement = resumed_by_image.get(sample.image)
+        replacement = resumed_by_key.get(_sample_key(sample))
         if is_failed_sample(sample) and replacement is not None:
             merged.append(replacement)
         else:
@@ -169,3 +177,25 @@ def load_results(path: Path) -> RunResult:
         timestamp=timestamp,
         samples=samples,
     )
+
+
+def load_results_directory(path: Path, pattern: str = "*.jsonl") -> list[RunResult]:
+    """Load every non-empty JSONL results file in a directory.
+
+    Empty files are skipped with a message rather than failing the
+    whole load.
+
+    Args:
+        path: Directory containing result files.
+        pattern: Glob pattern selecting the files to load.
+
+    Returns:
+        Run results sorted by file name.
+    """
+    runs: list[RunResult] = []
+    for file_path in sorted(path.glob(pattern)):
+        try:
+            runs.append(load_results(file_path))
+        except ValueError:
+            print(f"Skipping empty file: {file_path}")
+    return runs

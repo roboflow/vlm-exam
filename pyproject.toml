@@ -21,6 +21,7 @@ dependencies = [
     "pyfonts",
     "python-dotenv",
     "pyyaml",
+    "rapidfuzz",
     "roboflow",
     "supervision",
 ]

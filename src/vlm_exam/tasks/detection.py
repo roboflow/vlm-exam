@@ -465,6 +465,28 @@ def compute_dataset_map(
     )
 
 
+def detection_labels(detections: sv.Detections, classes: list[str]) -> list[str]:
+    """Resolve display labels for detections.
+
+    Prefers class names embedded by the parser (which survive classes
+    absent from the dataset taxonomy) and falls back to indexing the
+    class list with ``class_id``.
+
+    Args:
+        detections: Detections to label.
+        classes: Dataset class names indexed by ``class_id``.
+
+    Returns:
+        One label per detection; empty when detections carry no class
+        information.
+    """
+    if "class_name" in detections.data:
+        return list(detections.data["class_name"])
+    if detections.class_id is not None:
+        return [classes[class_id] for class_id in detections.class_id]
+    return []
+
+
 def build_sample_index(samples: Iterable[Sample]) -> dict[str, DetectionSample]:
     """Index detection samples by image file basename.
 
