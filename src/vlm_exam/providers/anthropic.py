@@ -21,6 +21,8 @@ from PIL import Image
 
 from vlm_exam.providers.base import Provider, Usage
 
+_REFUSAL_TEXT = "[model refused to answer]"
+
 _MAX_EDGE = 2576
 _MAX_TOKENS = 4784
 
@@ -133,9 +135,11 @@ class AnthropicProvider(Provider):
             ],
         )
 
-        answer = next(
-            block.text for block in message.content if block.type == "text"
-        ).strip()
+        text_blocks = [block.text for block in message.content if block.type == "text"]
+        # Claude answers refusals with stop_reason "refusal" and no content
+        # blocks; record that as a wrong answer instead of a run error so
+        # resume logic does not retry it forever.
+        answer = text_blocks[0].strip() if text_blocks else _REFUSAL_TEXT
 
         return answer, Usage(
             input_tokens=message.usage.input_tokens,

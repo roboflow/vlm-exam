@@ -28,13 +28,22 @@ from vlm_exam.tasks.base import Sample, Task
 if TYPE_CHECKING:
     from vlm_exam.judge import Judge
 
+_VERBOSE_TEXT_LIMIT = 60
+
+
+def _truncate(text: str, limit: int = _VERBOSE_TEXT_LIMIT) -> str:
+    flattened = " ".join(text.split())
+    if len(flattened) <= limit:
+        return flattened
+    return flattened[: limit - 3] + "..."
+
 
 def run_benchmark(
     task: Task,
     provider: Provider,
     samples: list[Sample],
     effort: str,
-    task_name: str = "vqa",
+    task_name: str,
     verbose: bool = True,
     match_mode: str = "strict",
     judge: Judge | None = None,
@@ -83,14 +92,14 @@ def run_benchmark(
         )
         image_name = os.path.basename(sample.image_path)
 
-        metadata: dict[str, Any] = {}
-        if hasattr(sample, "question"):
-            metadata["question"] = sample.question
+        metadata: dict[str, Any] = task.sample_metadata(sample)
         if evaluation.match_method is not None:
             metadata["match_method"] = evaluation.match_method
+        if evaluation.score is not None:
+            metadata["score"] = round(evaluation.score, 4)
         if evaluation.details:
             metadata.update(evaluation.details)
-        expected = getattr(sample, "expected_answer", "")
+        expected = task.expected_text(sample)
 
         sample_results.append(
             SampleResult(
@@ -120,11 +129,18 @@ def run_benchmark(
                     f"  mAP@50={map50:.3f}"
                     f"  pred={n_pred} gt={n_gt}"
                 )
+            elif evaluation.score is not None:
+                print(
+                    f"[{index + 1}/{total}] {status}  {time_string}"
+                    f"  similarity={evaluation.score:.3f}"
+                    f"  expected: {_truncate(expected)!r}"
+                    f"  model: {_truncate(prediction)!r}"
+                )
             else:
                 print(
                     f"[{index + 1}/{total}] {status}  {time_string}"
-                    f"  expected: {expected!r}"
-                    f"  model: {prediction!r}"
+                    f"  expected: {_truncate(expected)!r}"
+                    f"  model: {_truncate(prediction)!r}"
                 )
 
     return RunResult(

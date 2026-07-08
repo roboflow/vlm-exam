@@ -14,7 +14,9 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
 from dotenv import load_dotenv
@@ -26,13 +28,25 @@ from vlm_exam.results import (
     RunResult,
     is_failed_sample,
     load_results,
+    load_results_directory,
     merge_resumed_runs,
     save_results,
 )
 from vlm_exam.runner import run_benchmark
-from vlm_exam.tasks import create_task
+from vlm_exam.tasks import QA_TASK_NAMES, create_task
+
+if TYPE_CHECKING:
+    import matplotlib.pyplot as plt
 
 load_dotenv()
+
+_QA_DATASET_PROJECTS = {
+    "ocr": "vlm-exam-ocr",
+    "extraction": "vlm-exam-data-extraction",
+    "counting": "vlm-exam-counting",
+    "identification": "vlm-exam-identification",
+    "reasoning": "vlm-exam-reasoning",
+}
 
 
 @click.group()
@@ -40,12 +54,73 @@ def main() -> None:
     """vlm-exam: Benchmark suite for Vision Language Models."""
 
 
+def _save_card(
+    figure: plt.Figure, output_path: Path, index: int, image_name: str
+) -> None:
+    import matplotlib.pyplot as plt
+
+    output_file = (output_path / f"{index:03d}_{image_name}").with_suffix(".png")
+    figure.savefig(str(output_file), dpi=150)
+    plt.close(figure)
+
+
+@main.command()
+@click.option(
+    "--data-directory",
+    default="data",
+    type=click.Path(),
+    help="Root directory to download datasets into.",
+)
+@click.option(
+    "--workspace",
+    default="roboflow-jvuqo",
+    help="Roboflow workspace containing the benchmark projects.",
+)
+@click.option(
+    "--dataset-version",
+    default=1,
+    type=int,
+    help="Dataset version to download for every project.",
+)
+@click.option(
+    "--tasks",
+    "task_names",
+    default=",".join(QA_TASK_NAMES),
+    help="Comma-separated QA task names to download.",
+)
+def download(
+    data_directory: str,
+    workspace: str,
+    dataset_version: int,
+    task_names: str,
+) -> None:
+    """Download the QA benchmark datasets from Roboflow."""
+    from roboflow import Roboflow
+
+    roboflow_client = Roboflow(api_key=os.environ.get("ROBOFLOW_API_KEY"))
+    workspace_client = roboflow_client.workspace(workspace)
+
+    for task_name in [name.strip() for name in task_names.split(",")]:
+        if task_name not in _QA_DATASET_PROJECTS:
+            available = ", ".join(sorted(_QA_DATASET_PROJECTS))
+            raise click.UsageError(
+                f"Unknown task {task_name!r}. Available tasks: {available}"
+            )
+        project_slug = _QA_DATASET_PROJECTS[task_name]
+        target = Path(data_directory) / task_name
+        click.echo(f"Downloading {workspace}/{project_slug} v{dataset_version} ...")
+        project = workspace_client.project(project_slug)
+        version = project.version(dataset_version)
+        version.download("jsonl", location=str(target), overwrite=True)
+        click.echo(f"  saved to {target}")
+
+
 @main.command()
 @click.option(
     "--task",
     "task_name",
     required=True,
-    help="Task to run (e.g. vqa).",
+    help="Task to run (e.g. ocr, counting, detection).",
 )
 @click.option(
     "--models",
@@ -231,33 +306,38 @@ def report(
 ) -> None:
     """Generate summary tables from saved results."""
     config = load_config(Path(config_path) if config_path else None)
-    results_path = Path(results_directory)
-    result_files = sorted(results_path.glob("*.jsonl"))
+    runs = load_results_directory(Path(results_directory))
 
-    if not result_files:
-        click.echo(f"No .jsonl files found in {results_directory}")
+    if not runs:
+        click.echo(f"No usable .jsonl files found in {results_directory}")
         return
 
-    runs: list[RunResult] = []
-    for file_path in result_files:
-        try:
-            runs.append(load_results(file_path))
-        except ValueError:
-            click.echo(f"Skipping empty file: {file_path}")
-
     click.echo(
-        f"\n{'Model':<25} {'Effort':>6} {'Correct':>8} {'Total':>6} {'Accuracy':>9}"
+        f"\n{'Task':<15} {'Model':<25} {'Effort':>6} "
+        f"{'Correct':>8} {'Total':>6} {'Metric':>10}"
     )
-    click.echo("-" * 60)
+    click.echo("-" * 76)
 
-    for run_result in runs:
+    for run_result in sorted(runs, key=lambda run: (run.task, run.model)):
         correct = sum(sample.correct for sample in run_result.samples)
         total = len(run_result.samples)
-        accuracy = correct / total * 100 if total > 0 else 0.0
+
+        if run_result.task == "ocr":
+            mean_similarity = (
+                sum(sample.metadata.get("score", 0.0) for sample in run_result.samples)
+                / total
+                * 100
+                if total > 0
+                else 0.0
+            )
+            metric = f"{mean_similarity:.1f}% sim"
+        else:
+            accuracy = correct / total * 100 if total > 0 else 0.0
+            metric = f"{accuracy:.1f}%"
 
         click.echo(
-            f"{run_result.model:<25} {run_result.effort:>6} "
-            f"{correct:>8} {total:>6} {accuracy:>8.1f}%"
+            f"{run_result.task:<15} {run_result.model:<25} {run_result.effort:>6} "
+            f"{correct:>8} {total:>6} {metric:>10}"
         )
 
     click.echo()
@@ -320,20 +400,13 @@ def detection_report(
     samples = task.load_samples(dataset_directory)
     sample_by_image = build_sample_index(samples)
 
-    results_path = Path(results_directory)
-    result_files = sorted(results_path.glob("detection_*.jsonl"))
+    runs = load_results_directory(Path(results_directory), pattern="detection_*.jsonl")
 
-    if not result_files:
+    if not runs:
         click.echo(f"No detection result files found in {results_directory}")
         return
 
-    for file_path in result_files:
-        try:
-            run_result = load_results(file_path)
-        except ValueError:
-            click.echo(f"Skipping empty file: {file_path}")
-            continue
-
+    for run_result in runs:
         click.echo(f"\n{'=' * 60}")
         click.echo(f"  {run_result.model}  effort={run_result.effort}")
         click.echo(f"{'=' * 60}")
@@ -394,23 +467,16 @@ def leaderboard(
 
     config = load_config(Path(config_path) if config_path else None)
     results_path = Path(results_directory)
-    result_files = sorted(results_path.glob("*.jsonl"))
+    runs = load_results_directory(results_path)
 
-    if not result_files:
-        click.echo(f"No .jsonl files found in {results_directory}")
+    if not runs:
+        click.echo(f"No usable .jsonl files found in {results_directory}")
         return
 
     latest_runs: dict[tuple[str, str, str], RunResult] = {}
-    for file_path in result_files:
-        try:
-            run_result = load_results(file_path)
-        except ValueError:
-            click.echo(f"Skipping empty file: {file_path}")
-            continue
+    for run_result in runs:
         if run_result.model not in config.models:
-            click.echo(
-                f"Skipping run with unknown model {run_result.model!r}: {file_path}"
-            )
+            click.echo(f"Skipping run with unknown model {run_result.model!r}")
             continue
         key = (run_result.task, run_result.effort, run_result.model)
         existing = latest_runs.get(key)
@@ -450,7 +516,7 @@ def leaderboard(
             detection_index = build_sample_index(detection_samples)
 
     for (task_name, effort), runs in sorted(runs_by_task_effort.items()):
-        if task_name == "vqa":
+        if task_name in QA_TASK_NAMES:
             accuracy = {
                 run.model: sum(s.correct for s in run.samples) / len(run.samples) * 100
                 for run in runs
@@ -458,9 +524,9 @@ def leaderboard(
             figure = plot_accuracy_chart(
                 accuracy,
                 config,
-                "VQA / OCR Benchmark",
+                f"{task_name.title()} Benchmark",
             )
-            save_figure(figure, f"vqa_accuracy_{effort}.png")
+            save_figure(figure, f"{task_name}_accuracy_{effort}.png")
 
         elif task_name == "detection":
             if detection_index is None:
@@ -514,6 +580,101 @@ def leaderboard(
         click.echo(f"  {file_path.name}")
 
 
+@main.command()
+@click.option(
+    "--results-file",
+    required=True,
+    type=click.Path(exists=True),
+    help="Path to a QA result JSONL file.",
+)
+@click.option(
+    "--dataset-directory",
+    required=True,
+    type=click.Path(exists=True),
+    help="Path to the dataset directory containing the images.",
+)
+@click.option(
+    "--output-directory",
+    default="visualizations",
+    type=click.Path(),
+    help="Directory to save case cards.",
+)
+@click.option(
+    "--max-images",
+    default=20,
+    type=int,
+    help="Maximum number of cards to render.",
+)
+@click.option(
+    "--only",
+    "only_filter",
+    default="all",
+    type=click.Choice(["all", "correct", "incorrect"]),
+    help="Render all cases, only correct ones, or only incorrect ones.",
+)
+@click.option(
+    "--config",
+    "config_path",
+    default=None,
+    type=click.Path(exists=True),
+    help="Path to custom models.yaml config.",
+)
+def visualize(
+    results_file: str,
+    dataset_directory: str,
+    output_directory: str,
+    max_images: int,
+    only_filter: str,
+    config_path: str | None,
+) -> None:
+    """Render case cards for a QA benchmark run."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+
+    from PIL import Image
+
+    from vlm_exam.visualization import render_case_card
+
+    run_result = load_results(Path(results_file))
+    if run_result.task not in QA_TASK_NAMES:
+        raise click.UsageError(
+            f"--results-file holds a {run_result.task!r} run; "
+            f"expected one of: {', '.join(QA_TASK_NAMES)}."
+        )
+
+    config = load_config(Path(config_path) if config_path else None)
+    if run_result.model not in config.models:
+        click.echo(f"Model {run_result.model!r} not found in config.")
+        return
+
+    output_path = Path(output_directory)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    count = 0
+    for sample_result in run_result.samples:
+        if count >= max_images:
+            break
+        if only_filter == "correct" and not sample_result.correct:
+            continue
+        if only_filter == "incorrect" and sample_result.correct:
+            continue
+        if is_failed_sample(sample_result):
+            continue
+
+        image_path = Path(dataset_directory) / sample_result.image
+        if not image_path.exists():
+            click.echo(f"Skipping missing image: {image_path}")
+            continue
+
+        image = Image.open(image_path).convert("RGB")
+        figure = render_case_card(run_result, sample_result, image, config)
+        _save_card(figure, output_path, count, sample_result.image)
+        count += 1
+
+    click.echo(f"Saved {count} case cards to {output_path}")
+
+
 @main.command("detection-visualize")
 @click.option(
     "--results-file",
@@ -550,8 +711,8 @@ def leaderboard(
     "--label-mode",
     "label_mode",
     default="auto",
-    type=click.Choice(["auto", "labels", "legend"]),
-    help="Draw class labels on boxes, use a color legend, or pick automatically.",
+    type=click.Choice(["auto", "labels", "boxes"]),
+    help="Draw class labels on boxes, boxes only, or pick automatically.",
 )
 def detection_visualize(
     results_file: str,
@@ -567,11 +728,10 @@ def detection_visualize(
 
     matplotlib.use("Agg")
 
-    import matplotlib.pyplot as plt
-
     from vlm_exam.tasks.detection import (
         DetectionTask,
         build_sample_index,
+        detection_labels,
         parse_prediction,
     )
     from vlm_exam.visualization.detection import plot_detection_card
@@ -612,18 +772,8 @@ def detection_visualize(
             ),
         )
 
-        gt_labels = (
-            [sample.classes[cid] for cid in sample.ground_truth.class_id]
-            if sample.ground_truth.class_id is not None
-            else []
-        )
-
-        pred_labels = []
-        if "class_name" in predicted.data:
-            pred_labels = list(predicted.data["class_name"])
-        elif predicted.class_id is not None:
-            pred_labels = [sample.classes[cid] for cid in predicted.class_id]
-
+        gt_labels = detection_labels(sample.ground_truth, list(sample.classes))
+        pred_labels = detection_labels(predicted, list(sample.classes))
         map_score = sample_result.metadata.get("map50")
 
         figure = plot_detection_card(
@@ -637,11 +787,7 @@ def detection_visualize(
             map_score=map_score,
             label_mode=label_mode,
         )
-
-        output_file = output_path / f"{count:03d}_{sample_result.image}"
-        output_file = output_file.with_suffix(".png")
-        figure.savefig(str(output_file), dpi=150)
-        plt.close(figure)
+        _save_card(figure, output_path, count, sample_result.image)
         count += 1
 
     click.echo(f"Saved {count} visualizations to {output_path}")

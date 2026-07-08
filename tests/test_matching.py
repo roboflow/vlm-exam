@@ -16,7 +16,13 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from vlm_exam.tasks.vqa import answers_match, normalize_answer, strict_match
+from vlm_exam.tasks.qa import (
+    answers_match,
+    normalize_answer,
+    parse_count,
+    strict_match,
+    transcription_similarity,
+)
 
 
 class TestNormalizeAnswer:
@@ -130,6 +136,7 @@ class TestAnswersMatchWithJudge:
             question="What is the logo?",
             expected="checkered flag",
             predicted="A checkered racing flag",
+            guidance="",
         )
 
     def test_judge_mode_skips_judge_on_exact_match(self) -> None:
@@ -173,3 +180,71 @@ class TestAnswersMatchWithJudge:
 
         assert correct is False
         assert method == "strict"
+
+
+class TestParseCount:
+    def test_plain_digit(self) -> None:
+        assert parse_count("4") == 4
+
+    def test_digit_with_markdown(self) -> None:
+        assert parse_count("**12**") == 12
+
+    def test_spelled_out_unit(self) -> None:
+        assert parse_count("six") == 6
+
+    def test_spelled_out_teen(self) -> None:
+        assert parse_count("fifteen") == 15
+
+    def test_spelled_out_tens(self) -> None:
+        assert parse_count("forty") == 40
+
+    def test_spelled_out_compound(self) -> None:
+        assert parse_count("twenty-one") == 21
+
+    def test_uppercase_word(self) -> None:
+        assert parse_count("Six") == 6
+
+    def test_single_embedded_integer(self) -> None:
+        assert parse_count("There are 4 bars") == 4
+
+    def test_single_embedded_word(self) -> None:
+        assert parse_count("I count six icons") == 6
+
+    def test_multiple_integers_ambiguous(self) -> None:
+        assert parse_count("between 4 and 5") is None
+
+    def test_no_number(self) -> None:
+        assert parse_count("many") is None
+
+    def test_empty_string(self) -> None:
+        assert parse_count("") is None
+
+
+class TestTranscriptionSimilarity:
+    def test_identical_text(self) -> None:
+        assert transcription_similarity("hello world", "hello world") == 1.0
+
+    def test_code_fence_stripped(self) -> None:
+        assert (
+            transcription_similarity("hello world", "```markdown\nhello world\n```")
+            == 1.0
+        )
+
+    def test_trailing_whitespace_ignored(self) -> None:
+        assert (
+            transcription_similarity("line one\nline two", "line one  \nline two ")
+            == 1.0
+        )
+
+    def test_case_matters(self) -> None:
+        assert transcription_similarity("ABC", "abc") < 1.0
+
+    def test_completely_different(self) -> None:
+        assert transcription_similarity("aaaa", "zzzz") == 0.0
+
+    def test_partial_match_between_zero_and_one(self) -> None:
+        score = transcription_similarity("2COOL4U", "2COOL4V")
+        assert 0.5 < score < 1.0
+
+    def test_both_empty(self) -> None:
+        assert transcription_similarity("", "") == 1.0

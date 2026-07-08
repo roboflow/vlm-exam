@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from vlm_exam.visualization.cases import plot_failure_card, plot_success_card
+from vlm_exam.visualization.cases import (
+    plot_qa_card,
+    plot_transcription_card,
+    render_case_card,
+)
 from vlm_exam.visualization.charts import (
     plot_accuracy_chart,
     plot_combined_metrics_chart,
@@ -28,7 +32,8 @@ __all__ = [
     "plot_cost_bar_chart",
     "plot_detection_card",
     "plot_dual_effort_chart",
-    "plot_failure_card",
     "plot_metric_chart",
-    "plot_success_card",
+    "plot_qa_card",
+    "plot_transcription_card",
+    "render_case_card",
 ]

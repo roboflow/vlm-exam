@@ -34,7 +34,8 @@ _JUDGE_PROMPT = (
     "Consider these as NOT equivalent:\n"
     "- Different numerical values (e.g., '8' vs '18', '230' vs 'G230')\n"
     "- Truncated or partial answers (e.g., '2 0001' vs '2 000111 111112')\n"
-    "- Semantically different answers (e.g., 'phone' vs 'laptop')\n\n"
+    "- Semantically different answers (e.g., 'phone' vs 'laptop')\n"
+    "{guidance}\n"
     "Question: {question}\n"
     "Expected answer: {expected}\n"
     "Predicted answer: {predicted}\n\n"
@@ -44,13 +45,16 @@ _JUDGE_PROMPT = (
 _DEFAULT_CACHE_PATH = Path(".vlm_exam_judge_cache.json")
 
 
-def _cache_key(question: str, expected: str, predicted: str, model: str) -> str:
+def _cache_key(
+    question: str, expected: str, predicted: str, model: str, guidance: str
+) -> str:
     payload = json.dumps(
         {
             "question": question,
             "expected": expected,
             "predicted": predicted,
             "model": model,
+            "guidance": guidance,
         },
         sort_keys=True,
     )
@@ -85,33 +89,41 @@ class Judge:
 
     def _load_cache(self) -> dict[str, bool]:
         if self._cache_path.exists():
-            with open(self._cache_path) as f:
-                return json.load(f)
+            with open(self._cache_path) as file:
+                return json.load(file)
         return {}
 
     def _save_cache(self) -> None:
         self._cache_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self._cache_path, "w") as f:
-            json.dump(self._cache, f, indent=2)
+        with open(self._cache_path, "w") as file:
+            json.dump(self._cache, file, indent=2)
 
-    def evaluate(self, *, question: str, expected: str, predicted: str) -> bool:
+    def evaluate(
+        self, *, question: str, expected: str, predicted: str, guidance: str = ""
+    ) -> bool:
         """Judge whether a predicted answer is equivalent to the expected one.
 
         Args:
             question: The original question for context.
             expected: Ground-truth answer.
             predicted: Model-produced answer.
+            guidance: Optional task-specific instructions appended to the
+                judge prompt.
 
         Returns:
             ``True`` if the judge deems the answers equivalent.
         """
-        key = _cache_key(question, expected, predicted, self._model)
+        key = _cache_key(question, expected, predicted, self._model, guidance)
 
         if key in self._cache:
             return self._cache[key]
 
+        guidance_block = f"\nTask-specific guidance:\n{guidance}\n" if guidance else ""
         prompt = _JUDGE_PROMPT.format(
-            question=question, expected=expected, predicted=predicted
+            question=question,
+            expected=expected,
+            predicted=predicted,
+            guidance=guidance_block,
         )
 
         try:
