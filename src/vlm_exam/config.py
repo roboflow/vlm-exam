@@ -47,6 +47,7 @@ class ModelConfig:
     lab: str
     provider: str
     pricing: PricingConfig
+    provider_model_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -75,6 +76,7 @@ def _parse_model(raw: dict[str, Any]) -> ModelConfig:
             input_per_million_tokens=pricing_raw["input_per_million_tokens"],
             output_per_million_tokens=pricing_raw["output_per_million_tokens"],
         ),
+        provider_model_id=raw.get("provider_model_id"),
     )
 
 

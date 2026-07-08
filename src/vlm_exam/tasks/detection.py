@@ -56,10 +56,21 @@ _PIXEL_PROMPT_TEMPLATE = (
     "Only use these labels: {class_list}"
 )
 
+_NORMALIZED_XYXY_PROMPT_TEMPLATE = (
+    "Detect all objects in this image. "
+    "Output a JSON list where each entry contains the 2D bounding box "
+    'in the key "box_2d" and the text label in the key "label". '
+    'The "box_2d" value must be [x_min, y_min, x_max, y_max]: the '
+    "top-left and bottom-right corners as integers between 0 and 1000, "
+    "normalized to the image width (x) and height (y). "
+    "Return only the JSON list, with no extra text. "
+    "Only use these labels: {class_list}"
+)
+
 PROMPT_CLASS_MODES = ("image", "all")
 """Valid values for the detection prompt class listing mode."""
 
-COORDINATE_FORMATS = ("normalized_1000", "pixel")
+COORDINATE_FORMATS = ("normalized_1000", "pixel", "normalized_1000_xyxy")
 """Valid values for the detection coordinate format."""
 
 MAP_PASS_THRESHOLD = 0.8
@@ -95,7 +106,10 @@ class DetectionTask(Task):
                 ``[y_min, x_min, y_max, x_max]`` boxes normalized to
                 0-1000; ``"pixel"`` asks for absolute pixel
                 ``[x_min, y_min, x_max, y_max]`` boxes, which Anthropic
-                recommends for Claude models.
+                recommends for Claude models; ``"normalized_1000_xyxy"``
+                asks for ``[x_min, y_min, x_max, y_max]`` boxes
+                normalized to 0-1000, matching the native grounding
+                format of Qwen-VL and GLM-V models served via OpenRouter.
         """
         if prompt_classes not in PROMPT_CLASS_MODES:
             modes = ", ".join(PROMPT_CLASS_MODES)
@@ -229,6 +243,8 @@ class DetectionTask(Task):
                 height=uploaded_height,
                 class_list=class_list,
             )
+        if self._coordinate_format == "normalized_1000_xyxy":
+            return _NORMALIZED_XYXY_PROMPT_TEMPLATE.format(class_list=class_list)
         return _PROMPT_TEMPLATE.format(class_list=class_list)
 
     def evaluate(
@@ -313,6 +329,8 @@ def parse_prediction(
     """
     if coordinate_format == "pixel":
         parser = _parse_pixel_json
+    elif coordinate_format == "normalized_1000_xyxy":
+        parser = _parse_normalized_xyxy_json
     else:
         parser = _parse_with_supervision
 
@@ -373,6 +391,57 @@ def _parse_pixel_json(
         if not isinstance(entry, dict):
             continue
         box = entry.get("box_2d")
+        label = entry.get("label")
+        if (
+            not isinstance(box, list)
+            or len(box) != 4
+            or not all(isinstance(value, (int, float)) for value in box)
+            or label not in class_index
+        ):
+            continue
+        x_min, y_min, x_max, y_max = (float(value) for value in box)
+        xyxy_list.append(
+            [x_min * scale_x, y_min * scale_y, x_max * scale_x, y_max * scale_y]
+        )
+        class_ids.append(class_index[label])
+        class_names.append(label)
+
+    if not xyxy_list:
+        return sv.Detections.empty()
+
+    detections = sv.Detections(
+        xyxy=np.array(xyxy_list, dtype=np.float32),
+        class_id=np.array(class_ids, dtype=int),
+    )
+    detections.data["class_name"] = np.array(class_names)
+    return detections
+
+
+def _parse_normalized_xyxy_json(
+    prediction: str,
+    resolution_wh: tuple[int, int],
+    classes: list[str],
+) -> sv.Detections:
+    try:
+        entries = json.loads(prediction)
+    except json.JSONDecodeError:
+        return sv.Detections.empty()
+    if not isinstance(entries, list):
+        return sv.Detections.empty()
+
+    width, height = resolution_wh
+    scale_x = width / 1000.0
+    scale_y = height / 1000.0
+    class_index = {name: index for index, name in enumerate(classes)}
+
+    xyxy_list: list[list[float]] = []
+    class_ids: list[int] = []
+    class_names: list[str] = []
+
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        box = entry.get("box_2d", entry.get("bbox_2d"))
         label = entry.get("label")
         if (
             not isinstance(box, list)

@@ -19,6 +19,14 @@ labs:
     name: Mistral
     color: "#F7D046"
     logo_url: https://svgl.app/library/mistral-ai_logo.svg
+  qwen:
+    name: Qwen
+    color: "#8A3FFC"
+    logo_url: https://svgl.app/library/qwen_dark.svg
+  zai:
+    name: Z.AI
+    color: "#3859FF"
+    logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/zhipu.svg
 
 models:
   claude-fable-5:
@@ -63,3 +71,19 @@ models:
     pricing:
       input_per_million_tokens: 5.00
       output_per_million_tokens: 30.00
+  qwen-3.7-plus:
+    name: Qwen 3.7 Plus
+    lab: qwen
+    provider: openrouter
+    provider_model_id: qwen/qwen3.7-plus
+    pricing:
+      input_per_million_tokens: 0.32
+      output_per_million_tokens: 1.28
+  glm-5v-turbo:
+    name: GLM 5V Turbo
+    lab: zai
+    provider: openrouter
+    provider_model_id: z-ai/glm-5v-turbo
+    pricing:
+      input_per_million_tokens: 1.20
+      output_per_million_tokens: 4.00
