@@ -25,6 +25,8 @@ from vlm_exam.providers.base import Provider, Usage
 _BASE_URL = "https://openrouter.ai/api/v1"
 _MAX_OUTPUT_TOKENS = 8192
 _EMPTY_RESPONSE_TEXT = "[model returned no content]"
+_REQUEST_TIMEOUT_SECONDS = 120.0
+_MAX_RETRIES = 3
 
 
 def _image_to_base64_url(image: Image.Image) -> str:
@@ -73,6 +75,8 @@ class OpenRouterProvider(Provider):
         self._client = openai.OpenAI(
             base_url=_BASE_URL,
             api_key=api_key or os.environ.get("OPENROUTER_API_KEY"),
+            timeout=_REQUEST_TIMEOUT_SECONDS,
+            max_retries=_MAX_RETRIES,
         )
 
     @property

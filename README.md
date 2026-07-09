@@ -14,6 +14,22 @@ The `results/` directory holds the raw benchmark outputs (one JSONL file per
 run) and is the single source of truth for the numbers below. Regenerate the
 charts at any time with `vlm-exam leaderboard`.
 
+### Counting
+
+![Counting accuracy leaderboard](visualizations/leaderboards/counting_accuracy_low.png)
+
+### Extraction
+
+![Extraction accuracy leaderboard](visualizations/leaderboards/extraction_accuracy_low.png)
+
+### Identification
+
+![Identification accuracy leaderboard](visualizations/leaderboards/identification_accuracy_low.png)
+
+### Reasoning
+
+![Reasoning accuracy leaderboard](visualizations/leaderboards/reasoning_accuracy_low.png)
+
 ### Object Detection
 
 ![Object Detection mAP@50 leaderboard](visualizations/leaderboards/detection_map50_low.png)
