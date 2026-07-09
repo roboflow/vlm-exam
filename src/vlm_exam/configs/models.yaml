@@ -22,11 +22,11 @@ labs:
   qwen:
     name: Qwen
     color: "#8A3FFC"
-    logo_url: https://svgl.app/library/qwen_dark.svg
+    logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/qwen-color.svg
   zai:
     name: Z.AI
     color: "#3859FF"
-    logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/zhipu.svg
+    logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/zai.svg
 
 models:
   claude-fable-5:
