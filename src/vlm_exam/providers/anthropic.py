@@ -97,8 +97,14 @@ class AnthropicProvider(Provider):
     for optimal visual token usage.
     """
 
-    def __init__(self, model: str, api_key: str | None = None) -> None:
+    def __init__(
+        self,
+        model: str,
+        api_key: str | None = None,
+        provider_model_id: str | None = None,
+    ) -> None:
         self._model = model
+        self._wire_model_id = provider_model_id or model
         self._client = anthropic.Anthropic(api_key=api_key)
 
     @property
@@ -114,7 +120,7 @@ class AnthropicProvider(Provider):
         base64_data = _prepare_image(image)
 
         message = self._client.messages.create(
-            model=self._model,
+            model=self._wire_model_id,
             max_tokens=4096,
             output_config={"effort": effort},
             messages=[

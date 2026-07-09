@@ -41,8 +41,14 @@ def _thinking_config(model: str, effort: str) -> types.ThinkingConfig:
 class GoogleProvider(Provider):
     """Google Gemini provider."""
 
-    def __init__(self, model: str, api_key: str | None = None) -> None:
+    def __init__(
+        self,
+        model: str,
+        api_key: str | None = None,
+        provider_model_id: str | None = None,
+    ) -> None:
         self._model = model
+        self._wire_model_id = provider_model_id or model
         self._client = genai.Client(api_key=api_key)
 
     @property
@@ -58,13 +64,13 @@ class GoogleProvider(Provider):
         png_bytes = _image_to_png_bytes(image)
 
         response = self._client.models.generate_content(
-            model=self._model,
+            model=self._wire_model_id,
             contents=[
                 types.Part.from_bytes(data=png_bytes, mime_type="image/png"),
                 prompt,
             ],
             config=types.GenerateContentConfig(
-                thinking_config=_thinking_config(self._model, effort),
+                thinking_config=_thinking_config(self._wire_model_id, effort),
             ),
         )
 
