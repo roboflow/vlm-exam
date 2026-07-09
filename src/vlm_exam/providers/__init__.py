@@ -14,7 +14,9 @@
 
 import importlib
 
+from vlm_exam.config import ModelConfig
 from vlm_exam.providers.base import Provider, Usage
+from vlm_exam.providers.fallback import FallbackProvider
 
 _PROVIDER_REGISTRY: dict[str, str] = {
     "anthropic": "vlm_exam.providers.anthropic.AnthropicProvider",
@@ -24,8 +26,10 @@ _PROVIDER_REGISTRY: dict[str, str] = {
 }
 
 __all__ = [
+    "FallbackProvider",
     "Provider",
     "Usage",
+    "build_model_provider",
     "create_provider",
 ]
 
@@ -42,13 +46,12 @@ def create_provider(
         provider_name: Key in the provider registry
             (e.g. ``"anthropic"``, ``"google"``, ``"openai"``,
             ``"openrouter"``).
-        model: Model identifier to pass to the provider
-            (e.g. ``"claude-fable-5"``).
+        model: vlm-exam model key used in result filenames and config
+            lookups.
         api_key: Optional API key. When ``None``, the provider falls
             back to its default environment variable.
-        provider_model_id: Optional upstream model identifier for
-            providers that decouple the vlm-exam key from the API model
-            slug (currently only ``"openrouter"``).
+        provider_model_id: Optional upstream model identifier sent to the
+            provider API. Defaults to ``model`` when omitted.
 
     Returns:
         A ready-to-use provider instance.
@@ -66,8 +69,38 @@ def create_provider(
     module_path, class_name = qualified_name.rsplit(".", 1)
     module = importlib.import_module(module_path)
     provider_class = getattr(module, class_name)
-    if provider_model_id is not None:
-        return provider_class(
-            model=model, api_key=api_key, provider_model_id=provider_model_id
+    return provider_class(
+        model=model,
+        api_key=api_key,
+        provider_model_id=provider_model_id,
+    )
+
+
+def build_model_provider(
+    model_id: str,
+    model_config: ModelConfig,
+    api_key: str | None = None,
+) -> Provider:
+    """Build a provider for a configured model, with route failover when set.
+
+    Args:
+        model_id: vlm-exam model key.
+        model_config: Parsed model configuration.
+        api_key: Optional API key override for all routes.
+
+    Returns:
+        A single-route provider, or a :class:`FallbackProvider` when
+        multiple routes are configured.
+    """
+    route_providers = [
+        create_provider(
+            route.provider,
+            model=model_id,
+            api_key=api_key,
+            provider_model_id=route.provider_model_id,
         )
-    return provider_class(model=model, api_key=api_key)
+        for route in model_config.routes
+    ]
+    if len(route_providers) == 1:
+        return route_providers[0]
+    return FallbackProvider(model=model_id, providers=route_providers)

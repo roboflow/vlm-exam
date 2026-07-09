@@ -21,9 +21,9 @@ from typing import TYPE_CHECKING
 import click
 from dotenv import load_dotenv
 
-from vlm_exam.config import load_config
+from vlm_exam.config import detection_coordinate_format, load_config
 from vlm_exam.judge import Judge
-from vlm_exam.providers import create_provider
+from vlm_exam.providers import build_model_provider
 from vlm_exam.results import (
     RunResult,
     is_failed_sample,
@@ -261,18 +261,14 @@ def run(
             continue
 
         model_config = config.models[model_id]
-        provider = create_provider(
-            model_config.provider,
-            model=model_id,
-            provider_model_id=model_config.provider_model_id,
-        )
+        provider = build_model_provider(model_id, model_config)
 
         model_task = task
-        if task_name == "detection" and model_config.provider == "anthropic":
-            model_task = create_task(task_name, coordinate_format="pixel", **task_args)
-        elif task_name == "detection" and model_config.provider == "openrouter":
+        if task_name == "detection":
             model_task = create_task(
-                task_name, coordinate_format="normalized_1000_xyxy", **task_args
+                task_name,
+                coordinate_format=detection_coordinate_format(model_config),
+                **task_args,
             )
 
         result = run_benchmark(

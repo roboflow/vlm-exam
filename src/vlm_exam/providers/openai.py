@@ -31,8 +31,14 @@ def _image_to_base64_url(image: Image.Image) -> str:
 class OpenAIProvider(Provider):
     """OpenAI GPT provider."""
 
-    def __init__(self, model: str, api_key: str | None = None) -> None:
+    def __init__(
+        self,
+        model: str,
+        api_key: str | None = None,
+        provider_model_id: str | None = None,
+    ) -> None:
         self._model = model
+        self._wire_model_id = provider_model_id or model
         self._client = openai.OpenAI(api_key=api_key)
 
     @property
@@ -48,7 +54,7 @@ class OpenAIProvider(Provider):
         data_url = _image_to_base64_url(image)
 
         response = self._client.responses.create(
-            model=self._model,
+            model=self._wire_model_id,
             reasoning={"effort": effort},
             input=[
                 {

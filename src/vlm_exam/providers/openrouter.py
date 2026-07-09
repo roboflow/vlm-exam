@@ -36,10 +36,13 @@ def _image_to_base64_url(image: Image.Image) -> str:
     return f"data:image/png;base64,{base64_data}"
 
 
-def _reasoning_config(effort: str) -> dict[str, Any]:
+def _reasoning_config(effort: str, provider_model_id: str) -> dict[str, Any]:
     # Qwen and GLM default to extended reasoning, which at "low" effort
     # bloats latency and truncates the answer inside the reasoning trace;
     # disabling it keeps low-effort runs fast and well-formed.
+    # Gemini on OpenRouter requires reasoning and rejects enabled=False.
+    if provider_model_id.startswith("google/"):
+        return {"effort": effort}
     if effort == "low":
         return {"enabled": False}
     return {"effort": effort}
@@ -103,7 +106,9 @@ class OpenRouterProvider(Provider):
                     ],
                 }
             ],
-            extra_body={"reasoning": _reasoning_config(effort)},
+            extra_body={
+                "reasoning": _reasoning_config(effort, self._provider_model_id)
+            },
         )
 
         message = response.choices[0].message

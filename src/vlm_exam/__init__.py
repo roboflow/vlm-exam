@@ -12,9 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from vlm_exam.config import BenchmarkConfig, LabConfig, ModelConfig, load_config
+from vlm_exam.config import (
+    BenchmarkConfig,
+    LabConfig,
+    ModelConfig,
+    RouteConfig,
+    detection_coordinate_format,
+    load_config,
+)
 from vlm_exam.judge import Judge
-from vlm_exam.providers import create_provider
+from vlm_exam.providers import build_model_provider, create_provider
 from vlm_exam.providers.base import Provider, Usage
 from vlm_exam.results import RunResult, SampleResult, load_results, save_results
 from vlm_exam.runner import run_benchmark
@@ -30,13 +37,16 @@ __all__ = [
     "LabConfig",
     "ModelConfig",
     "Provider",
+    "RouteConfig",
     "RunResult",
     "Sample",
     "SampleResult",
     "Task",
     "Usage",
+    "build_model_provider",
     "create_provider",
     "create_task",
+    "detection_coordinate_format",
     "load_config",
     "load_results",
     "run_benchmark",

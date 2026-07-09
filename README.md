@@ -174,16 +174,32 @@ results = run_benchmark(task=task, provider=provider, samples=samples, effort="h
 
 ## Configuration
 
-Model definitions, pricing, and lab branding live in
-`src/vlm_exam/configs/models.yaml`. Add a new model by editing this file --
-no code changes required.
+Model definitions, pricing, lab branding, detection coordinate formats,
+and optional fallback routes live in `src/vlm_exam/configs/models.yaml`.
+Add a new model by editing this file -- no code changes required for
+single-route models.
 
-For OpenRouter models, set `provider: openrouter` and add a
-`provider_model_id` with the OpenRouter slug (e.g. `qwen/qwen3.7-plus`);
-the short YAML key is what appears in result filenames and leaderboards.
-Detection prompts for OpenRouter models request `[x_min, y_min, x_max,
-y_max]` boxes normalized to 0-1000, matching the native grounding format
-of Qwen-VL and GLM-V.
+Each model may declare `detection_coordinate_format` (`normalized_1000`,
+`pixel`, or `normalized_1000_xyxy`) for its native grounding convention.
+When omitted, the primary route's provider supplies a default.
+
+For rate-limit resilience, list multiple `routes` in priority order.
+`FallbackProvider` fails over on 429/quota errors and sticks to the next
+route for the rest of the run. Example:
+
+```yaml
+  gemini-3.1-pro-preview:
+    detection_coordinate_format: normalized_1000
+    routes:
+      - provider: google
+      - provider: openrouter
+        provider_model_id: google/gemini-3.1-pro-preview
+```
+
+For OpenRouter-only models, set `provider: openrouter` (legacy syntax) or
+a single `routes` entry, plus `provider_model_id` with the OpenRouter slug
+(e.g. `qwen/qwen3-vl-235b-a22b-instruct`). The short YAML key appears in
+result filenames and leaderboards.
 
 ## License
 
