@@ -39,7 +39,49 @@ class ModelEfficiency:
     total_time_seconds: float
 
 
-def _sample_cost(sample: SampleResult, pricing: ModelConfig) -> float:
+def run_accuracy(run: RunResult) -> float:
+    """Compute the percentage of correct samples in a run.
+
+    Args:
+        run: A benchmark run loaded from disk.
+
+    Returns:
+        Accuracy in percent (0-100), or 0.0 for an empty run.
+    """
+    if not run.samples:
+        return 0.0
+    return sum(sample.correct for sample in run.samples) / len(run.samples) * 100
+
+
+def run_mean_similarity(run: RunResult) -> float:
+    """Compute the mean OCR similarity score across a run's samples.
+
+    Args:
+        run: An OCR benchmark run whose samples carry a ``score`` in
+            metadata.
+
+    Returns:
+        Mean similarity in percent (0-100), or 0.0 for an empty run.
+    """
+    if not run.samples:
+        return 0.0
+    return (
+        sum(sample.metadata.get("score", 0.0) for sample in run.samples)
+        / len(run.samples)
+        * 100
+    )
+
+
+def sample_cost(sample: SampleResult, pricing: ModelConfig) -> float:
+    """Estimate the USD cost of a single sample from token usage.
+
+    Args:
+        sample: A sample result carrying input and output token counts.
+        pricing: Model config supplying per-million-token pricing.
+
+    Returns:
+        Estimated cost in USD for the sample.
+    """
     return (
         sample.input_tokens / 1_000_000
     ) * pricing.pricing.input_per_million_tokens + (
@@ -210,7 +252,7 @@ def aggregate_efficiency_by_model(
 
         total_input = sum(sample.input_tokens for sample in samples)
         total_output = sum(sample.output_tokens for sample in samples)
-        total_cost = sum(_sample_cost(sample, pricing) for sample in samples)
+        total_cost = sum(sample_cost(sample, pricing) for sample in samples)
         timed = [
             sample.elapsed_seconds
             for sample in samples

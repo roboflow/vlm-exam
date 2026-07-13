@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -342,22 +343,16 @@ def report(
     )
     click.echo("-" * 76)
 
+    from vlm_exam.metrics import run_accuracy, run_mean_similarity
+
     for run_result in sorted(runs, key=lambda run: (run.task, run.model)):
         correct = sum(sample.correct for sample in run_result.samples)
         total = len(run_result.samples)
 
         if run_result.task == "ocr":
-            mean_similarity = (
-                sum(sample.metadata.get("score", 0.0) for sample in run_result.samples)
-                / total
-                * 100
-                if total > 0
-                else 0.0
-            )
-            metric = f"{mean_similarity:.1f}% sim"
+            metric = f"{run_mean_similarity(run_result):.1f}% sim"
         else:
-            accuracy = correct / total * 100 if total > 0 else 0.0
-            metric = f"{accuracy:.1f}%"
+            metric = f"{run_accuracy(run_result):.1f}%"
 
         click.echo(
             f"{run_result.task:<15} {run_result.model:<25} {run_result.effort:>6} "
@@ -371,6 +366,8 @@ def report(
     )
     click.echo("-" * 67)
 
+    from vlm_exam.metrics import sample_cost
+
     grand_cost = 0.0
     for run_result in runs:
         total_input = sum(sample.input_tokens for sample in run_result.samples)
@@ -378,11 +375,7 @@ def report(
 
         pricing = config.models.get(run_result.model)
         if pricing:
-            cost = (
-                total_input / 1_000_000
-            ) * pricing.pricing.input_per_million_tokens + (
-                total_output / 1_000_000
-            ) * pricing.pricing.output_per_million_tokens
+            cost = sum(sample_cost(sample, pricing) for sample in run_result.samples)
         else:
             cost = 0.0
         grand_cost += cost
@@ -394,6 +387,96 @@ def report(
         )
 
     click.echo(f"\nTotal benchmark cost: ${grand_cost:.4f}")
+
+
+@main.command()
+@click.option(
+    "--results-directory",
+    default="results",
+    type=click.Path(exists=True),
+    help="Directory containing result JSONL files.",
+)
+@click.option(
+    "--dataset-directory",
+    "dataset_directory",
+    default=None,
+    type=click.Path(exists=True),
+    help="Detection dataset directory (required to include detection mAP).",
+)
+@click.option(
+    "--effort",
+    default=None,
+    help="Effort level to include (default: all efforts).",
+)
+@click.option(
+    "--output-file",
+    default="web/benchmark_summary.json",
+    type=click.Path(),
+    help="Path to write the compiled summary JSON.",
+)
+@click.option(
+    "--config",
+    "config_path",
+    default=None,
+    type=click.Path(exists=True),
+    help="Path to custom models.yaml config.",
+)
+@click.option(
+    "--models",
+    default=None,
+    help="Comma-separated model identifiers to include.",
+)
+@click.option(
+    "--group",
+    default=None,
+    help="Named leaderboard model group (e.g. alternative). Overrides --models.",
+)
+def summary(
+    results_directory: str,
+    dataset_directory: str | None,
+    effort: str | None,
+    output_file: str,
+    config_path: str | None,
+    models: str | None,
+    group: str | None,
+) -> None:
+    """Compile all result files into a single frontend-facing JSON."""
+    from vlm_exam.summary import build_summary, summary_to_dict
+
+    config = load_config(Path(config_path) if config_path else None)
+    model_filter = _resolve_model_filter(config, models, group)
+
+    results_path = Path(results_directory)
+    detection_dataset = Path(dataset_directory) if dataset_directory else None
+    has_detection_runs = any(results_path.glob("detection_*.jsonl"))
+    if detection_dataset is None and has_detection_runs:
+        click.echo(
+            "No --dataset-directory given; detection quality metrics "
+            "(mAP) will be omitted."
+        )
+
+    benchmark_summary = build_summary(
+        results_path,
+        config,
+        effort,
+        models=model_filter,
+        detection_dataset_directory=detection_dataset,
+    )
+
+    output_path = Path(output_file)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w") as file:
+        json.dump(summary_to_dict(benchmark_summary), file, indent=2)
+        file.write("\n")
+
+    if not benchmark_summary.models:
+        click.echo(f"No benchmark runs found; wrote empty summary to {output_path}")
+        return
+
+    click.echo(
+        f"Compiled {len(benchmark_summary.models)} model runs across "
+        f"{len(benchmark_summary.tasks)} tasks to {output_path}"
+    )
 
 
 @main.command("efficiency-report")
@@ -702,20 +785,12 @@ def leaderboard(
             detection_samples = detection_task.load_samples(dataset_directory)
             detection_index = build_sample_index(detection_samples)
 
+    from vlm_exam.metrics import run_accuracy, run_mean_similarity
+
     for (task_name, effort), runs in sorted(runs_by_task_effort.items()):
         if task_name == "ocr":
-            accuracy = {
-                run.model: sum(s.correct for s in run.samples) / len(run.samples) * 100
-                for run in runs
-            }
-            similarity = {
-                run.model: (
-                    sum(s.metadata.get("score", 0.0) for s in run.samples)
-                    / len(run.samples)
-                    * 100
-                )
-                for run in runs
-            }
+            accuracy = {run.model: run_accuracy(run) for run in runs}
+            similarity = {run.model: run_mean_similarity(run) for run in runs}
             figure = plot_accuracy_chart(
                 accuracy,
                 config,
@@ -730,10 +805,7 @@ def leaderboard(
             save_figure(figure, f"ocr_similarity_{effort}.png")
 
         elif task_name in QA_TASK_NAMES:
-            accuracy = {
-                run.model: sum(s.correct for s in run.samples) / len(run.samples) * 100
-                for run in runs
-            }
+            accuracy = {run.model: run_accuracy(run) for run in runs}
             figure = plot_accuracy_chart(
                 accuracy,
                 config,
