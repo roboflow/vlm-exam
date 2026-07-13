@@ -70,6 +70,23 @@ avoid a loop"). Never narrate what the code does.
   runs currently use `--effort low`; do not mix effort levels within a
   task's leaderboard unless the run is explicitly an effort comparison.
 
+## Web summary
+
+- Regenerate `web/benchmark_summary.json` and commit it in every PR so the
+  website payload never drifts from `results/` and `configs/models.yaml`.
+- Rebuild it with the detection dataset so detection mAP is included:
+
+```bash
+vlm-exam summary --dataset-directory data/detection/train
+```
+
+- The command compiles all efforts by default, emitting one entry per
+  `(model, effort)` pair; pass `--effort` only to restrict to one level.
+- The output is deterministic given `results/`: `generated_at` derives
+  from the newest included run, so an unchanged diff after regeneration
+  means the results did not change.
+- The file is a generated artifact; never hand-edit it.
+
 ## Adding and benchmarking models
 
 - In `configs/models.yaml`, each model has an ordered `routes` list (or

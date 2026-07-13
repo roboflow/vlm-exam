@@ -160,6 +160,109 @@ vlm-exam leaderboard \
     --output-directory visualizations/leaderboards
 ```
 
+### Compile a summary for the web
+
+Compiles the newest run per `(task, effort, model)` in `results/` (older
+runs are ignored) into a single JSON payload for the benchmark website. It
+carries per-task metadata and, for each model, its per-task quality plus
+token spend, cost, and inference speed. Each entry is one `(model, effort)`
+pair with a unique `id`, so the same model appears once per effort; the
+top-level `efforts` array lists every effort present. Pass
+`--dataset-directory` to include detection mAP (otherwise detection quality
+metrics are omitted while its efficiency metrics are kept). Filter with
+`--group <name>` or `--models`, and restrict to a single effort with
+`--effort` (defaults to all efforts). The frontend supplies its own lab
+logos and live pricing, so those are intentionally left out. The output is
+deterministic: `generated_at` is derived from the newest included run, so
+regenerating without new results produces a byte-identical file.
+
+```bash
+vlm-exam summary \
+    --results-directory results \
+    --dataset-directory data/detection/train \
+    --output-file web/benchmark_summary.json
+```
+
+The output has this shape (abbreviated):
+
+```json
+{
+  "generated_at": "2026-07-10T08:11:31Z",
+  "efforts": ["low"],
+  "tasks": [
+    {
+      "key": "ocr",
+      "name": "OCR",
+      "primary_metric": "similarity",
+      "metrics": [
+        { "key": "similarity", "label": "Mean Similarity", "unit": "percent" }
+      ]
+    },
+    {
+      "key": "detection",
+      "name": "Detection",
+      "primary_metric": "map50",
+      "metrics": [
+        { "key": "map50", "label": "mAP@50", "unit": "percent" },
+        { "key": "map75", "label": "mAP@75", "unit": "percent" },
+        { "key": "map50_95", "label": "mAP@50:95", "unit": "percent" }
+      ]
+    }
+  ],
+  "models": [
+    {
+      "id": "gpt-5.6-sol:low",
+      "key": "gpt-5.6-sol",
+      "name": "GPT-5.6 Sol",
+      "lab": "openai",
+      "effort": "low",
+      "tasks": {
+        "ocr": {
+          "primary_metric": { "name": "similarity", "value": 90.73 },
+          "metrics": { "similarity": 90.73 },
+          "sample_count": 37,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": { "input": 46626, "output": 31917, "total": 78543, "average_per_sample": 2122.8 },
+          "cost": { "total_usd": 1.19064, "average_per_sample_usd": 0.032179 },
+          "speed": { "total_seconds": 496.636, "average_seconds_per_sample": 13.423 },
+          "timestamp": "2026-07-10T07:33:33Z"
+        },
+        "detection": {
+          "primary_metric": { "name": "map50", "value": 46.23 },
+          "metrics": { "map50": 46.23, "map75": 20.85, "map50_95": 23.26 },
+          "sample_count": 250,
+          "evaluated_sample_count": 250,
+          "failed_sample_count": 0,
+          "tokens": { "input": 629173, "output": 180400, "total": 809573, "average_per_sample": 3238.3 },
+          "cost": { "total_usd": 8.557865, "average_per_sample_usd": 0.034231 },
+          "speed": { "total_seconds": 3632.994, "average_seconds_per_sample": 14.532 },
+          "timestamp": "2026-07-09T21:50:44Z"
+        }
+      },
+      "overall": {
+        "task_count": 6,
+        "sample_count": 513,
+        "tokens": { "input": 976102, "output": 237183, "total": 1213285, "average_per_sample": 2365.1 },
+        "cost": { "total_usd": 11.996, "average_per_sample_usd": 0.023384 },
+        "speed": { "total_seconds": 5094.531, "average_seconds_per_sample": 9.931 }
+      }
+    }
+  ]
+}
+```
+
+All quality metrics are percentages (0-100). QA tasks report `accuracy`,
+OCR reports `similarity`, and detection reports `map50` (primary), `map75`,
+and `map50_95`. No-data contract: a task absent from a model's `tasks`
+means the model was not benchmarked on it; `primary_metric: null` with
+empty `metrics` means quality could not be computed (e.g. detection without
+`--dataset-directory`) while efficiency numbers remain valid.
+`evaluated_sample_count` is detection-only (null elsewhere): the number of
+images the mAP was actually computed on, which should equal `sample_count`.
+The `cost` numbers are estimates from token usage and the config's static
+pricing; the site should recompute cost from its own live pricing feed.
+
 ### Python
 
 ```python
