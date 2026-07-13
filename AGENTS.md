@@ -76,11 +76,14 @@ avoid a loop"). Never narrate what the code does.
   legacy single `provider` field). The vlm-exam model **key** is used in
   result filenames and leaderboards. Each route's `provider_model_id` is
   the upstream API id; when omitted, the model key is used.
-- Set `detection_coordinate_format` per model after researching its native
-  grounding convention (GitHub, forums, papers, official docs). Valid values:
-  `normalized_1000`, `pixel`, `normalized_1000_xyxy`. The format follows the
-  model, not the route -- the same weights use the same box convention on
-  Google direct and OpenRouter.
+- Set the required `detection_coordinate_format` per model after researching
+  its native grounding convention (GitHub, forums, papers, official docs).
+  Valid values are the `DetectionCoordinateFormat` enum strings in
+  `src/vlm_exam/tasks/detection.py`: `yxyx_normalized_0_to_1000`,
+  `xyxy_normalized_0_to_1000`, `xyxy_absolute_provider_upload`,
+  `xyxy_absolute_original_image`, and `yxyx_absolute_original_image`. The
+  format follows the model, not the route -- the same weights use the same
+  box convention on Google direct and OpenRouter.
 - Add fallback routes when a provider has tight rate limits. Example:
   `gemini-3.1-pro-preview` uses Google first, then OpenRouter on 429.
 

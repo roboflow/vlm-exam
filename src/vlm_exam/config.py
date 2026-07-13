@@ -12,22 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import yaml
+
+if TYPE_CHECKING:
+    from vlm_exam.tasks.detection import DetectionCoordinateFormat
 
 _PACKAGE_DIRECTORY = Path(__file__).resolve().parent
 _DEFAULT_CONFIG_PATH = _PACKAGE_DIRECTORY / "configs" / "models.yaml"
 _DEFAULT_LEADERBOARD_GROUPS_PATH = (
     _PACKAGE_DIRECTORY / "configs" / "leaderboard_groups.yaml"
 )
-
-_DEFAULT_DETECTION_FORMATS: dict[str, str] = {
-    "anthropic": "pixel",
-    "openrouter": "normalized_1000_xyxy",
-}
 
 
 @dataclass(frozen=True)
@@ -63,7 +63,7 @@ class ModelConfig:
     lab: str
     routes: tuple[RouteConfig, ...]
     pricing: PricingConfig
-    detection_coordinate_format: str | None = None
+    detection_coordinate_format: DetectionCoordinateFormat
 
     @property
     def provider(self) -> str:
@@ -82,23 +82,6 @@ class BenchmarkConfig:
 
     labs: dict[str, LabConfig]
     models: dict[str, ModelConfig]
-
-
-def detection_coordinate_format(model_config: ModelConfig) -> str:
-    """Resolve the detection coordinate format for a model.
-
-    Uses the model's declared ``detection_coordinate_format`` when set.
-    Otherwise falls back to the primary route's provider default.
-
-    Args:
-        model_config: Parsed model configuration.
-
-    Returns:
-        A ``coordinate_format`` value accepted by :class:`DetectionTask`.
-    """
-    if model_config.detection_coordinate_format is not None:
-        return model_config.detection_coordinate_format
-    return _DEFAULT_DETECTION_FORMATS.get(model_config.provider, "normalized_1000")
 
 
 def _parse_lab(raw: dict[str, Any]) -> LabConfig:
@@ -127,6 +110,8 @@ def _parse_routes(raw: dict[str, Any]) -> tuple[RouteConfig, ...]:
 
 
 def _parse_model(raw: dict[str, Any]) -> ModelConfig:
+    from vlm_exam.tasks.detection import DetectionCoordinateFormat
+
     pricing_raw = raw["pricing"]
     return ModelConfig(
         name=raw["name"],
@@ -136,7 +121,9 @@ def _parse_model(raw: dict[str, Any]) -> ModelConfig:
             input_per_million_tokens=pricing_raw["input_per_million_tokens"],
             output_per_million_tokens=pricing_raw["output_per_million_tokens"],
         ),
-        detection_coordinate_format=raw.get("detection_coordinate_format"),
+        detection_coordinate_format=DetectionCoordinateFormat(
+            raw["detection_coordinate_format"]
+        ),
     )
 
 

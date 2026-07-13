@@ -20,6 +20,7 @@ import os
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -81,14 +82,16 @@ _NORMALIZED_XYXY_PROMPT_TEMPLATE = (
 PROMPT_CLASS_MODES = ("image", "all")
 """Valid values for the detection prompt class listing mode."""
 
-COORDINATE_FORMATS = (
-    "normalized_1000",
-    "pixel",
-    "normalized_1000_xyxy",
-    "pixel_native",
-    "pixel_yxyx_native",
-)
-"""Valid values for the detection coordinate format."""
+
+class DetectionCoordinateFormat(str, Enum):
+    """Detection bounding-box coordinate conventions."""
+
+    YXYX_NORMALIZED_0_TO_1000 = "yxyx_normalized_0_to_1000"
+    XYXY_NORMALIZED_0_TO_1000 = "xyxy_normalized_0_to_1000"
+    XYXY_ABSOLUTE_PROVIDER_UPLOAD = "xyxy_absolute_provider_upload"
+    XYXY_ABSOLUTE_ORIGINAL_IMAGE = "xyxy_absolute_original_image"
+    YXYX_ABSOLUTE_ORIGINAL_IMAGE = "yxyx_absolute_original_image"
+
 
 MAP_PASS_THRESHOLD = 0.8
 """Minimum per-image mAP@50 for a sample to count as correct."""
@@ -110,7 +113,9 @@ class DetectionTask(Task):
     def __init__(
         self,
         prompt_classes: str = "image",
-        coordinate_format: str = "normalized_1000",
+        coordinate_format: str | DetectionCoordinateFormat = (
+            DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000
+        ),
     ) -> None:
         """Initialize the detection task.
 
@@ -119,32 +124,16 @@ class DetectionTask(Task):
                 lists only the classes present in the image's ground truth;
                 ``"all"`` lists every dataset class.
             coordinate_format: Coordinate convention requested from the
-                model. ``"normalized_1000"`` asks for Gemini-style
-                ``[y_min, x_min, y_max, x_max]`` boxes normalized to
-                0-1000; ``"pixel"`` asks for absolute pixel
-                ``[x_min, y_min, x_max, y_max]`` boxes, which Anthropic
-                recommends for Claude models; ``"normalized_1000_xyxy"``
-                asks for ``[x_min, y_min, x_max, y_max]`` boxes
-                normalized to 0-1000, matching the native grounding
-                format of Qwen-VL and GLM-V models served via OpenRouter;
-                ``"pixel_native"`` asks for ``[x_min, y_min, x_max, y_max]``
-                in the original image pixel space (no provider resize);
-                ``"pixel_yxyx_native"`` asks for ``[y_min, x_min, y_max, x_max]``
-                in the original image pixel space.
+                model. See :class:`DetectionCoordinateFormat` for valid
+                values and box-order semantics.
         """
         if prompt_classes not in PROMPT_CLASS_MODES:
             modes = ", ".join(PROMPT_CLASS_MODES)
             raise ValueError(
                 f"Unknown prompt_classes mode {prompt_classes!r}. Valid modes: {modes}"
             )
-        if coordinate_format not in COORDINATE_FORMATS:
-            formats = ", ".join(COORDINATE_FORMATS)
-            raise ValueError(
-                f"Unknown coordinate_format {coordinate_format!r}. "
-                f"Valid formats: {formats}"
-            )
         self._prompt_classes = prompt_classes
-        self._coordinate_format = coordinate_format
+        self._coordinate_format = DetectionCoordinateFormat(coordinate_format)
         self._classes: list[str] = []
 
     @property
@@ -255,30 +244,32 @@ class DetectionTask(Task):
             image_classes = list(sample.classes)
         class_list = ", ".join(image_classes)
 
-        if self._coordinate_format == "pixel":
-            uploaded_width, uploaded_height = compute_resize_dimensions(
-                sample.image_width, sample.image_height
-            )
-            return _PIXEL_PROMPT_TEMPLATE.format(
-                width=uploaded_width,
-                height=uploaded_height,
-                class_list=class_list,
-            )
-        if self._coordinate_format == "pixel_native":
-            return _PIXEL_PROMPT_TEMPLATE.format(
-                width=sample.image_width,
-                height=sample.image_height,
-                class_list=class_list,
-            )
-        if self._coordinate_format == "pixel_yxyx_native":
-            return _PIXEL_YXYX_PROMPT_TEMPLATE.format(
-                width=sample.image_width,
-                height=sample.image_height,
-                class_list=class_list,
-            )
-        if self._coordinate_format == "normalized_1000_xyxy":
-            return _NORMALIZED_XYXY_PROMPT_TEMPLATE.format(class_list=class_list)
-        return _PROMPT_TEMPLATE.format(class_list=class_list)
+        match self._coordinate_format:
+            case DetectionCoordinateFormat.XYXY_ABSOLUTE_PROVIDER_UPLOAD:
+                uploaded_width, uploaded_height = compute_resize_dimensions(
+                    sample.image_width, sample.image_height
+                )
+                return _PIXEL_PROMPT_TEMPLATE.format(
+                    width=uploaded_width,
+                    height=uploaded_height,
+                    class_list=class_list,
+                )
+            case DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE:
+                return _PIXEL_PROMPT_TEMPLATE.format(
+                    width=sample.image_width,
+                    height=sample.image_height,
+                    class_list=class_list,
+                )
+            case DetectionCoordinateFormat.YXYX_ABSOLUTE_ORIGINAL_IMAGE:
+                return _PIXEL_YXYX_PROMPT_TEMPLATE.format(
+                    width=sample.image_width,
+                    height=sample.image_height,
+                    class_list=class_list,
+                )
+            case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000:
+                return _NORMALIZED_XYXY_PROMPT_TEMPLATE.format(class_list=class_list)
+            case _:
+                return _PROMPT_TEMPLATE.format(class_list=class_list)
 
     def evaluate(
         self,
@@ -316,7 +307,7 @@ class DetectionTask(Task):
             "num_predictions": len(predicted_detections),
             "num_ground_truth": len(sample.ground_truth),
             "prompt_classes": self._prompt_classes,
-            "coordinate_format": self._coordinate_format,
+            "coordinate_format": self._coordinate_format.value,
         }
 
         if len(sample.ground_truth) == 0 and len(predicted_detections) == 0:
@@ -342,7 +333,9 @@ def parse_prediction(
     prediction: str,
     resolution_wh: tuple[int, int],
     classes: list[str],
-    coordinate_format: str = "normalized_1000",
+    coordinate_format: str | DetectionCoordinateFormat = (
+        DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000
+    ),
 ) -> sv.Detections:
     """Parse model JSON output into supervision Detections.
 
@@ -354,22 +347,23 @@ def parse_prediction(
         resolution_wh: Original image (width, height) for coordinate
             scaling.
         classes: List of class names for class_id assignment.
-        coordinate_format: Coordinate convention of the prediction,
-            ``"normalized_1000"`` or ``"pixel"``.
+        coordinate_format: Coordinate convention of the prediction.
 
     Returns:
         Parsed detections, or empty detections on failure.
     """
-    if coordinate_format == "pixel":
-        parser = _parse_pixel_json
-    elif coordinate_format == "pixel_native":
-        parser = _parse_pixel_native_json
-    elif coordinate_format == "pixel_yxyx_native":
-        parser = _parse_pixel_yxyx_native_json
-    elif coordinate_format == "normalized_1000_xyxy":
-        parser = _parse_normalized_xyxy_json
-    else:
-        parser = _parse_with_supervision
+    format_enum = DetectionCoordinateFormat(coordinate_format)
+    match format_enum:
+        case DetectionCoordinateFormat.XYXY_ABSOLUTE_PROVIDER_UPLOAD:
+            parser = _parse_pixel_json
+        case DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE:
+            parser = _parse_pixel_native_json
+        case DetectionCoordinateFormat.YXYX_ABSOLUTE_ORIGINAL_IMAGE:
+            parser = _parse_pixel_yxyx_native_json
+        case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000:
+            parser = _parse_normalized_xyxy_json
+        case _:
+            parser = _parse_with_supervision
 
     detections = parser(prediction, resolution_wh, classes)
     if len(detections) > 0:
@@ -614,8 +608,8 @@ def compute_dataset_map(
     Re-parses the stored raw predictions against the dataset ground
     truth and aggregates them into a single mAP computation. Each
     sample's ``coordinate_format`` metadata determines how its stored
-    prediction is parsed, defaulting to ``"normalized_1000"`` for runs
-    saved before the format was recorded.
+    prediction is parsed, defaulting to ``yxyx_normalized_0_to_1000`` for
+    runs saved before the format was recorded.
 
     Args:
         run_result: A detection benchmark run loaded from disk.
@@ -640,7 +634,8 @@ def compute_dataset_map(
             resolution_wh,
             list(sample.classes),
             coordinate_format=sample_result.metadata.get(
-                "coordinate_format", "normalized_1000"
+                "coordinate_format",
+                DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000.value,
             ),
         )
         all_predictions.append(predicted)

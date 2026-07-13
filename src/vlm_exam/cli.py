@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 import click
 from dotenv import load_dotenv
 
-from vlm_exam.config import BenchmarkConfig, detection_coordinate_format, load_config
+from vlm_exam.config import BenchmarkConfig, load_config
 from vlm_exam.judge import Judge
 from vlm_exam.providers import build_model_provider
 from vlm_exam.results import (
@@ -287,7 +287,7 @@ def run(
         if task_name == "detection":
             model_task = create_task(
                 task_name,
-                coordinate_format=detection_coordinate_format(model_config),
+                coordinate_format=model_config.detection_coordinate_format,
                 **task_args,
             )
 
@@ -1013,7 +1013,8 @@ def detection_visualize(
             resolution_wh,
             list(sample.classes),
             coordinate_format=sample_result.metadata.get(
-                "coordinate_format", "normalized_1000"
+                "coordinate_format",
+                "yxyx_normalized_0_to_1000",
             ),
         )
 

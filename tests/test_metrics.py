@@ -32,6 +32,7 @@ from vlm_exam.metrics import (
     resolve_leaderboard_model_list,
 )
 from vlm_exam.results import RunResult, SampleResult, save_results
+from vlm_exam.tasks.detection import DetectionCoordinateFormat
 
 
 def _model(model_id: str) -> ModelConfig:
@@ -40,6 +41,7 @@ def _model(model_id: str) -> ModelConfig:
         lab="openai",
         routes=(RouteConfig("openai"),),
         pricing=PricingConfig(1.0, 2.0),
+        detection_coordinate_format=DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE,
     )
 
 
