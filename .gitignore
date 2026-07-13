@@ -11,6 +11,21 @@ build/
 
 data/
 visualizations/detection/
+visualizations/leaderboards/alternative/
+
+logs/
+results-smoke/
+experiments/
+.vlm_exam_judge_cache.json
+visualizations/cases/
+visualizations/review/
+visualizations/smoke-*/
+visualizations/gpt-5.6-*/
+visualizations/counting/
+visualizations/extraction/
+visualizations/identification/
+visualizations/ocr/
+visualizations/reasoning/
 
 .idea/
 .vscode/

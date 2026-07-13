@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from collections.abc import Callable
+from typing import Literal
 
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
@@ -618,8 +619,11 @@ def plot_combined_metrics_chart(
     time_low: dict[str, float],
     config: BenchmarkConfig,
     sort_by: str = "tokens",
+    effort: Literal["low", "high", "both"] = "both",
+    column_order: tuple[str, ...] = ("tokens", "cost", "time"),
+    sort_ascending: bool = True,
 ) -> plt.Figure:
-    """Three-column chart showing tokens, cost, and time per model.
+    """Multi-column chart showing tokens, cost, and time per model.
 
     Args:
         tokens_high: Average tokens per image at high effort.
@@ -629,17 +633,66 @@ def plot_combined_metrics_chart(
         time_high: Average inference time at high effort.
         time_low: Average inference time at low effort.
         config: Benchmark config for model/lab display info.
-        sort_by: Column to sort by (``"tokens"``, ``"cost"``,
+        sort_by: Metric key to sort rows by (``"tokens"``, ``"cost"``,
             or ``"time"``).
+        effort: ``"both"`` draws paired high/low bars with a legend;
+            ``"low"`` or ``"high"`` draws a single bar per cell.
+        column_order: Left-to-right column keys from ``"tokens"``,
+            ``"cost"``, and ``"time"``.
+        sort_ascending: When ``True``, lowest values appear at the top.
 
     Returns:
         Matplotlib figure.
     """
     fonts = load_fonts()
-    sort_map = {"tokens": tokens_high, "cost": cost_high, "time": time_high}
+    dual_effort = effort == "both"
+
+    metric_registry: dict[str, dict[str, object]] = {
+        "tokens": {
+            "high": tokens_high,
+            "low": tokens_low,
+            "header": "Tokens",
+            "format": lambda value: f"{value:,.0f}",
+        },
+        "cost": {
+            "high": cost_high,
+            "low": cost_low,
+            "header": "Cost",
+            "format": lambda value: (
+                f"${value:.4f}" if value >= 0.001 else f"${value:.5f}"
+            ),
+        },
+        "time": {
+            "high": time_high,
+            "low": time_low,
+            "header": "Time",
+            "format": lambda value: f"{value:.1f}s",
+        },
+    }
+
+    columns = []
+    for key in column_order:
+        entry = metric_registry[key]
+        columns.append(
+            {
+                "high": entry["high"],
+                "low": entry["low"],
+                "header": entry["header"],
+                "format": entry["format"],
+            }
+        )
+
+    reference_models = tokens_high if effort != "low" else tokens_low
+    sort_source = metric_registry.get(sort_by, metric_registry["tokens"])
+    if effort == "low":
+        sort_values = sort_source["low"]
+    else:
+        sort_values = sort_source["high"]
+
     sorted_models = sorted(
-        tokens_high.keys(),
-        key=lambda model: sort_map.get(sort_by, tokens_high)[model],
+        reference_models.keys(),
+        key=lambda model: sort_values[model],
+        reverse=not sort_ascending,
     )
 
     count = len(sorted_models)
@@ -651,37 +704,17 @@ def plot_combined_metrics_chart(
     column_width = 22
     column_gap = 14
     column_starts = [
-        0,
-        column_width + column_gap,
-        2 * (column_width + column_gap),
-    ]
-
-    columns = [
-        {
-            "high": tokens_high,
-            "low": tokens_low,
-            "format": lambda value: f"{value:,.0f}",
-            "header": "Tokens",
-        },
-        {
-            "high": cost_high,
-            "low": cost_low,
-            "format": lambda value: (
-                f"${value:.4f}" if value >= 0.001 else f"${value:.5f}"
-            ),
-            "header": "Cost",
-        },
-        {
-            "high": time_high,
-            "low": time_low,
-            "format": lambda value: f"{value:.1f}s",
-            "header": "Time",
-        },
+        index * (column_width + column_gap) for index in range(len(columns))
     ]
 
     scales = []
     for column in columns:
-        max_value = max(max(column["high"].values()), max(column["low"].values()))
+        if dual_effort:
+            max_value = max(max(column["high"].values()), max(column["low"].values()))
+        elif effort == "low":
+            max_value = max(column["low"].values())
+        else:
+            max_value = max(column["high"].values())
         scales.append(column_width / max_value if max_value > 0 else 1.0)
 
     figure_height = max(5.0, count * row_spacing + 3.5)
@@ -692,7 +725,7 @@ def plot_combined_metrics_chart(
 
     y_positions = [i * row_spacing for i in range(count - 1, -1, -1)]
     total_y_range = (count - 1) * row_spacing
-    chart_right = column_starts[2] + column_width
+    chart_right = column_starts[-1] + column_width
 
     for column_index, (column, column_scale, x_start) in enumerate(
         zip(columns, scales, column_starts)
@@ -777,136 +810,179 @@ def plot_combined_metrics_chart(
             font=fonts.medium,
         )
 
-        for column_index, (column, column_scale, x_start) in enumerate(
-            zip(columns, scales, column_starts)
-        ):
+        for column, column_scale, x_start in zip(columns, scales, column_starts):
             value_high = column["high"][model_id]
             value_low = column["low"][model_id]
-            bar_high = value_high * column_scale
-            bar_low = value_low * column_scale
+            format_value = column["format"]
 
-            y_high = y + bar_gap / 2 + bar_height / 2
-            y_low = y - bar_gap / 2 - bar_height / 2
+            if dual_effort:
+                bar_high = value_high * column_scale
+                bar_low = value_low * column_scale
+                y_high = y + bar_gap / 2 + bar_height / 2
+                y_low = y - bar_gap / 2 - bar_height / 2
 
-            draw_rounded_bar(
-                axes,
-                x_start,
-                y_high,
-                column_width,
-                bar_height,
-                corner_radius,
-                facecolor=BAR_TRACK_COLOR,
-                edgecolor="none",
-                zorder=2,
-            )
-            draw_rounded_bar(
-                axes,
-                x_start,
-                y_high,
-                bar_high,
-                bar_height,
-                corner_radius,
-                facecolor=color,
-                edgecolor="none",
-                zorder=3,
-            )
-            draw_rounded_bar(
-                axes,
-                x_start,
-                y_low,
-                column_width,
-                bar_height,
-                corner_radius,
-                facecolor=BAR_TRACK_COLOR,
-                edgecolor="none",
-                zorder=2,
-            )
-            draw_rounded_bar(
-                axes,
-                x_start,
-                y_low,
-                bar_low,
-                bar_height,
-                corner_radius,
-                facecolor=color_light,
-                edgecolor="none",
-                zorder=3,
-            )
+                draw_rounded_bar(
+                    axes,
+                    x_start,
+                    y_high,
+                    column_width,
+                    bar_height,
+                    corner_radius,
+                    facecolor=BAR_TRACK_COLOR,
+                    edgecolor="none",
+                    zorder=2,
+                )
+                draw_rounded_bar(
+                    axes,
+                    x_start,
+                    y_high,
+                    bar_high,
+                    bar_height,
+                    corner_radius,
+                    facecolor=color_light,
+                    edgecolor="none",
+                    zorder=3,
+                )
+                draw_rounded_bar(
+                    axes,
+                    x_start,
+                    y_low,
+                    column_width,
+                    bar_height,
+                    corner_radius,
+                    facecolor=BAR_TRACK_COLOR,
+                    edgecolor="none",
+                    zorder=2,
+                )
+                draw_rounded_bar(
+                    axes,
+                    x_start,
+                    y_low,
+                    bar_low,
+                    bar_height,
+                    corner_radius,
+                    facecolor=color,
+                    edgecolor="none",
+                    zorder=3,
+                )
 
-            axes.text(
-                x_start + column_width + 0.8,
-                y_high,
-                column["format"](value_high),
-                va="center",
-                ha="left",
-                fontsize=11,
-                color=text_color_for_brand(color),
-                font=fonts.display,
-            )
-            axes.text(
-                x_start + column_width + 0.8,
-                y_low,
-                column["format"](value_low),
-                va="center",
-                ha="left",
-                fontsize=11,
-                color=TEXT_SECONDARY,
-                font=fonts.display,
-            )
+                axes.text(
+                    x_start + column_width + 0.8,
+                    y_high,
+                    format_value(value_high),
+                    va="center",
+                    ha="left",
+                    fontsize=11,
+                    color=TEXT_SECONDARY,
+                    font=fonts.display,
+                )
+                axes.text(
+                    x_start + column_width + 0.8,
+                    y_low,
+                    format_value(value_low),
+                    va="center",
+                    ha="left",
+                    fontsize=11,
+                    color=text_color_for_brand(color),
+                    font=fonts.display,
+                )
+            else:
+                value = value_low if effort == "low" else value_high
+                bar_width = value * column_scale
+                bar_color = color if effort == "low" else color_light
 
-    pill_y = total_y_range + 2.05
-    swatch_width, swatch_height = 5, 0.16
-    pill_x_high = chart_right - 28
-    draw_rounded_bar(
-        axes,
-        pill_x_high,
-        pill_y,
-        swatch_width,
-        swatch_height,
-        swatch_height / 2,
-        facecolor=TEXT_PRIMARY,
-        edgecolor="none",
-        zorder=5,
-    )
-    axes.text(
-        pill_x_high + swatch_width + 1.0,
-        pill_y,
-        "High",
-        va="center",
-        ha="left",
-        fontsize=10,
-        color=TEXT_PRIMARY,
-        font=fonts.medium,
-    )
-    pill_x_low = chart_right - 12
-    draw_rounded_bar(
-        axes,
-        pill_x_low,
-        pill_y,
-        swatch_width,
-        swatch_height,
-        swatch_height / 2,
-        facecolor=DIVIDER_COLOR,
-        edgecolor="none",
-        zorder=5,
-    )
-    axes.text(
-        pill_x_low + swatch_width + 1.0,
-        pill_y,
-        "Low",
-        va="center",
-        ha="left",
-        fontsize=10,
-        color=TEXT_SECONDARY,
-        font=fonts.medium,
-    )
+                draw_rounded_bar(
+                    axes,
+                    x_start,
+                    y,
+                    column_width,
+                    bar_height,
+                    corner_radius,
+                    facecolor=BAR_TRACK_COLOR,
+                    edgecolor="none",
+                    zorder=2,
+                )
+                draw_rounded_bar(
+                    axes,
+                    x_start,
+                    y,
+                    bar_width,
+                    bar_height,
+                    corner_radius,
+                    facecolor=bar_color,
+                    edgecolor="none",
+                    zorder=3,
+                )
+                axes.text(
+                    x_start + column_width + 0.8,
+                    y,
+                    format_value(value),
+                    va="center",
+                    ha="left",
+                    fontsize=11,
+                    color=(
+                        text_color_for_brand(color)
+                        if effort == "low"
+                        else TEXT_SECONDARY
+                    ),
+                    font=fonts.display,
+                )
 
+    if dual_effort:
+        pill_y = total_y_range + 2.05
+        swatch_width, swatch_height = 5, 0.16
+        pill_x_high = chart_right - 28
+        draw_rounded_bar(
+            axes,
+            pill_x_high,
+            pill_y,
+            swatch_width,
+            swatch_height,
+            swatch_height / 2,
+            facecolor=TEXT_PRIMARY,
+            edgecolor="none",
+            zorder=5,
+        )
+        axes.text(
+            pill_x_high + swatch_width + 1.0,
+            pill_y,
+            "High",
+            va="center",
+            ha="left",
+            fontsize=10,
+            color=TEXT_PRIMARY,
+            font=fonts.medium,
+        )
+        pill_x_low = chart_right - 12
+        draw_rounded_bar(
+            axes,
+            pill_x_low,
+            pill_y,
+            swatch_width,
+            swatch_height,
+            swatch_height / 2,
+            facecolor=DIVIDER_COLOR,
+            edgecolor="none",
+            zorder=5,
+        )
+        axes.text(
+            pill_x_low + swatch_width + 1.0,
+            pill_y,
+            "Low",
+            va="center",
+            ha="left",
+            fontsize=10,
+            color=TEXT_SECONDARY,
+            font=fonts.medium,
+        )
+
+    title_top = total_y_range + 2.6 if dual_effort else total_y_range + 1.8
     _configure_clean_axes(
         axes,
         -LABEL_AREA_WIDTH - 2,
         chart_right + 14,
         -1.2,
-        total_y_range + 2.6,
+        title_top,
     )
 
     axes.text(

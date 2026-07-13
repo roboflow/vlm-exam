@@ -17,7 +17,6 @@ from vlm_exam.config import (
     LabConfig,
     ModelConfig,
     RouteConfig,
-    detection_coordinate_format,
     load_config,
 )
 from vlm_exam.judge import Judge
@@ -27,11 +26,13 @@ from vlm_exam.results import RunResult, SampleResult, load_results, save_results
 from vlm_exam.runner import run_benchmark
 from vlm_exam.tasks import create_task
 from vlm_exam.tasks.base import EvaluationResult, Sample, Task
+from vlm_exam.tasks.detection import DetectionCoordinateFormat
 
 __version__ = "0.1.0"
 
 __all__ = [
     "BenchmarkConfig",
+    "DetectionCoordinateFormat",
     "EvaluationResult",
     "Judge",
     "LabConfig",
@@ -46,7 +47,6 @@ __all__ = [
     "build_model_provider",
     "create_provider",
     "create_task",
-    "detection_coordinate_format",
     "load_config",
     "load_results",
     "run_benchmark",

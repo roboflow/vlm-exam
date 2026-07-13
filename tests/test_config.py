@@ -14,16 +14,15 @@
 
 from pathlib import Path
 
+import pytest
 import yaml
 
 from vlm_exam.config import (
-    ModelConfig,
-    PricingConfig,
     RouteConfig,
     _parse_model,
-    detection_coordinate_format,
     load_config,
 )
+from vlm_exam.tasks.detection import DetectionCoordinateFormat
 
 
 class TestParseModel:
@@ -34,7 +33,7 @@ class TestParseModel:
                 "lab": "openai",
                 "provider": "openai",
                 "provider_model_id": "gpt-5.5",
-                "detection_coordinate_format": "normalized_1000",
+                "detection_coordinate_format": "yxyx_normalized_0_to_1000",
                 "pricing": {
                     "input_per_million_tokens": 5.0,
                     "output_per_million_tokens": 30.0,
@@ -44,14 +43,14 @@ class TestParseModel:
         assert model.routes == (RouteConfig("openai", "gpt-5.5"),)
         assert model.provider == "openai"
         assert model.provider_model_id == "gpt-5.5"
-        assert model.detection_coordinate_format == "normalized_1000"
+        assert model.detection_coordinate_format == "yxyx_normalized_0_to_1000"
 
     def test_routes_shape(self) -> None:
         model = _parse_model(
             {
                 "name": "Gemini 3.1 Pro",
                 "lab": "google",
-                "detection_coordinate_format": "normalized_1000",
+                "detection_coordinate_format": "yxyx_normalized_0_to_1000",
                 "routes": [
                     {"provider": "google"},
                     {
@@ -74,52 +73,60 @@ class TestParseModel:
 
 
 class TestDetectionCoordinateFormat:
-    def test_explicit_format_wins_over_provider_default(self) -> None:
-        model = ModelConfig(
-            name="Gemini 3.1 Pro",
-            lab="google",
-            routes=(
-                RouteConfig("google"),
-                RouteConfig("openrouter", "google/gemini-3.1-pro-preview"),
-            ),
-            pricing=PricingConfig(2.0, 12.0),
-            detection_coordinate_format="normalized_1000",
+    def test_parse_model_coerces_string_to_enum(self) -> None:
+        model = _parse_model(
+            {
+                "name": "Qwen3-VL",
+                "lab": "qwen",
+                "provider": "openrouter",
+                "provider_model_id": "qwen/qwen3-vl-235b-a22b-instruct",
+                "detection_coordinate_format": "xyxy_normalized_0_to_1000",
+                "pricing": {
+                    "input_per_million_tokens": 0.2,
+                    "output_per_million_tokens": 0.88,
+                },
+            }
         )
-        assert detection_coordinate_format(model) == "normalized_1000"
+        assert (
+            model.detection_coordinate_format
+            == DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000
+        )
 
-    def test_openrouter_default_when_unset(self) -> None:
-        model = ModelConfig(
-            name="Qwen3-VL",
-            lab="qwen",
-            routes=(RouteConfig("openrouter", "qwen/qwen3-vl-235b-a22b-instruct"),),
-            pricing=PricingConfig(0.2, 0.88),
-        )
-        assert detection_coordinate_format(model) == "normalized_1000_xyxy"
+    def test_parse_model_requires_format(self) -> None:
+        with pytest.raises(KeyError):
+            _parse_model(
+                {
+                    "name": "Qwen3-VL",
+                    "lab": "qwen",
+                    "provider": "openrouter",
+                    "pricing": {
+                        "input_per_million_tokens": 0.2,
+                        "output_per_million_tokens": 0.88,
+                    },
+                }
+            )
 
-    def test_anthropic_default_when_unset(self) -> None:
-        model = ModelConfig(
-            name="Claude Opus",
-            lab="anthropic",
-            routes=(RouteConfig("anthropic"),),
-            pricing=PricingConfig(5.0, 25.0),
-        )
-        assert detection_coordinate_format(model) == "pixel"
-
-    def test_google_default_when_unset(self) -> None:
-        model = ModelConfig(
-            name="Gemini Flash",
-            lab="google",
-            routes=(RouteConfig("google"),),
-            pricing=PricingConfig(0.5, 3.0),
-        )
-        assert detection_coordinate_format(model) == "normalized_1000"
+    def test_parse_model_rejects_unknown_format(self) -> None:
+        with pytest.raises(ValueError):
+            _parse_model(
+                {
+                    "name": "Qwen3-VL",
+                    "lab": "qwen",
+                    "provider": "openrouter",
+                    "detection_coordinate_format": "bogus",
+                    "pricing": {
+                        "input_per_million_tokens": 0.2,
+                        "output_per_million_tokens": 0.88,
+                    },
+                }
+            )
 
 
 class TestLoadBundledConfig:
     def test_gemini_has_fallback_route_and_format(self) -> None:
         config = load_config()
         model = config.models["gemini-3.1-pro-preview"]
-        assert model.detection_coordinate_format == "normalized_1000"
+        assert model.detection_coordinate_format == "yxyx_normalized_0_to_1000"
         assert len(model.routes) == 2
         assert model.routes[1].provider == "openrouter"
 
@@ -145,7 +152,7 @@ def test_write_and_reload_round_trip(tmp_path: Path) -> None:
                 "name": "Gemini Test",
                 "lab": "google",
                 "routes": [{"provider": "google"}],
-                "detection_coordinate_format": "normalized_1000",
+                "detection_coordinate_format": "yxyx_normalized_0_to_1000",
                 "pricing": {
                     "input_per_million_tokens": 1.0,
                     "output_per_million_tokens": 2.0,

@@ -23,6 +23,7 @@ from vlm_exam.providers.anthropic import compute_resize_dimensions
 from vlm_exam.results import RunResult, SampleResult
 from vlm_exam.tasks.detection import (
     MAP_PASS_THRESHOLD,
+    DetectionCoordinateFormat,
     DetectionSample,
     DetectionTask,
     build_sample_index,
@@ -140,7 +141,7 @@ class TestBuildPrompt:
         assert "0 and 1000" in prompt
 
     def test_pixel_format_prompt_states_dimensions(self) -> None:
-        task = DetectionTask(coordinate_format="pixel")
+        task = DetectionTask(coordinate_format="xyxy_absolute_provider_upload")
         sample = _make_sample(_detections([[0, 0, 10, 10]], [0]))
         prompt = task.build_prompt(sample)
         assert "[x_min, y_min, x_max, y_max]" in prompt
@@ -148,7 +149,7 @@ class TestBuildPrompt:
         assert "100x100 pixel image" in prompt
 
     def test_pixel_format_prompt_uses_resized_dimensions(self) -> None:
-        task = DetectionTask(coordinate_format="pixel")
+        task = DetectionTask(coordinate_format="xyxy_absolute_provider_upload")
         sample = DetectionSample(
             image_path="/data/large.jpg",
             image_width=4000,
@@ -207,7 +208,10 @@ class TestParsePixelPrediction:
     def test_parses_pixel_coordinates_directly(self) -> None:
         prediction = '[{"box_2d": [10, 20, 30, 40], "label": "cat"}]'
         detections = parse_prediction(
-            prediction, (100, 100), ["cat", "dog"], coordinate_format="pixel"
+            prediction,
+            (100, 100),
+            ["cat", "dog"],
+            coordinate_format="xyxy_absolute_provider_upload",
         )
         assert len(detections) == 1
         assert detections.class_id is not None
@@ -233,7 +237,7 @@ class TestParsePixelPrediction:
             prediction,
             (original_width, original_height),
             ["cat"],
-            coordinate_format="pixel",
+            coordinate_format="xyxy_absolute_provider_upload",
         )
         assert len(detections) == 1
         np.testing.assert_allclose(
@@ -245,7 +249,10 @@ class TestParsePixelPrediction:
     def test_parses_fenced_pixel_json(self) -> None:
         prediction = '```json\n[{"box_2d": [10, 20, 30, 40], "label": "cat"}]\n```'
         detections = parse_prediction(
-            prediction, (100, 100), ["cat"], coordinate_format="pixel"
+            prediction,
+            (100, 100),
+            ["cat"],
+            coordinate_format="xyxy_absolute_provider_upload",
         )
         assert len(detections) == 1
         np.testing.assert_allclose(detections.xyxy[0], [10, 20, 30, 40])
@@ -253,7 +260,10 @@ class TestParsePixelPrediction:
     def test_unknown_labels_are_filtered(self) -> None:
         prediction = '[{"box_2d": [10, 20, 30, 40], "label": "unicorn"}]'
         detections = parse_prediction(
-            prediction, (100, 100), ["cat"], coordinate_format="pixel"
+            prediction,
+            (100, 100),
+            ["cat"],
+            coordinate_format="xyxy_absolute_provider_upload",
         )
         assert len(detections) == 0
 
@@ -265,16 +275,76 @@ class TestParsePixelPrediction:
             ' {"box_2d": [10, 20, 30, 40], "label": "cat"}]'
         )
         detections = parse_prediction(
-            prediction, (100, 100), ["cat"], coordinate_format="pixel"
+            prediction,
+            (100, 100),
+            ["cat"],
+            coordinate_format="xyxy_absolute_provider_upload",
         )
         assert len(detections) == 1
 
     def test_sets_class_name_data(self) -> None:
         prediction = '[{"box_2d": [10, 20, 30, 40], "label": "dog"}]'
         detections = parse_prediction(
-            prediction, (100, 100), ["cat", "dog"], coordinate_format="pixel"
+            prediction,
+            (100, 100),
+            ["cat", "dog"],
+            coordinate_format="xyxy_absolute_provider_upload",
         )
         assert list(detections.data["class_name"]) == ["dog"]
+
+
+class TestParseNativePixelPrediction:
+    def test_parses_pixel_native_coordinates_directly(self) -> None:
+        prediction = '[{"box_2d": [10, 20, 30, 40], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction,
+            (100, 100),
+            ["cat", "dog"],
+            coordinate_format="xyxy_absolute_original_image",
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [10, 20, 30, 40])
+
+    def test_pixel_native_does_not_apply_resize_scaling(self) -> None:
+        prediction = '[{"box_2d": [100, 200, 300, 400], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction,
+            (4000, 3000),
+            ["cat"],
+            coordinate_format="xyxy_absolute_original_image",
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [100, 200, 300, 400])
+
+    def test_parses_pixel_yxyx_native_coordinates(self) -> None:
+        prediction = '[{"box_2d": [20, 10, 40, 30], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction,
+            (100, 100),
+            ["cat"],
+            coordinate_format="yxyx_absolute_original_image",
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [10, 20, 30, 40])
+
+    def test_pixel_native_prompt_uses_original_dimensions(self) -> None:
+        task = DetectionTask(coordinate_format="xyxy_absolute_original_image")
+        sample = DetectionSample(
+            image_path="/data/large.jpg",
+            image_width=4000,
+            image_height=3000,
+            ground_truth=_detections([[0, 0, 10, 10]], [0]),
+            classes=("cat", "dog"),
+        )
+        prompt = task.build_prompt(sample)
+        assert "4000x3000 pixel image" in prompt
+
+    def test_pixel_yxyx_native_prompt_uses_yxyx_order(self) -> None:
+        task = DetectionTask(coordinate_format="yxyx_absolute_original_image")
+        sample = _make_sample(_detections([[0, 0, 10, 10]], [0]))
+        prompt = task.build_prompt(sample)
+        assert "[y_min, x_min, y_max, x_max]" in prompt
+        assert "100x100 pixel image" in prompt
 
 
 class TestEvaluate:
@@ -329,14 +399,29 @@ class TestEvaluate:
         assert result.details["prompt_classes"] == "all"
 
     def test_details_include_coordinate_format(self) -> None:
-        task = DetectionTask(coordinate_format="pixel")
+        task = DetectionTask(
+            coordinate_format=DetectionCoordinateFormat.XYXY_ABSOLUTE_PROVIDER_UPLOAD
+        )
         sample = _make_sample(sv.Detections.empty())
         result = task.evaluate(sample, "[]")
         assert result.details is not None
-        assert result.details["coordinate_format"] == "pixel"
+        assert result.details["coordinate_format"] == "xyxy_absolute_provider_upload"
+
+    def test_enum_member_and_canonical_string_are_equivalent(self) -> None:
+        from_string = DetectionTask(coordinate_format="xyxy_absolute_original_image")
+        from_member = DetectionTask(
+            coordinate_format=DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE
+        )
+        sample = _make_sample(sv.Detections.empty())
+        assert (
+            from_string.evaluate(sample, "[]").details["coordinate_format"]
+            == from_member.evaluate(sample, "[]").details["coordinate_format"]
+        )
 
     def test_pixel_format_perfect_prediction_scores_high(self) -> None:
-        task = DetectionTask(coordinate_format="pixel")
+        task = DetectionTask(
+            coordinate_format=DetectionCoordinateFormat.XYXY_ABSOLUTE_PROVIDER_UPLOAD
+        )
         sample = _make_sample(_detections([[10, 10, 50, 50]], [0]))
         prediction = '[{"box_2d": [10, 10, 50, 50], "label": "cat"}]'
         result = task.evaluate(sample, prediction)
@@ -397,7 +482,7 @@ class TestComputeDatasetMap:
         run = _make_run(
             "image.jpg",
             '[{"box_2d": [10, 10, 50, 50], "label": "cat"}]',
-            metadata={"coordinate_format": "pixel"},
+            metadata={"coordinate_format": "xyxy_absolute_provider_upload"},
         )
         result = compute_dataset_map(run, index)
         assert result is not None
@@ -480,3 +565,21 @@ class TestDetectionCard:
                 config=BenchmarkConfig(labs={}, models={}),
                 label_mode="bogus",
             )
+
+    def test_save_annotated_detection_writes_png(self, tmp_path: Path) -> None:
+        import numpy as np
+
+        from vlm_exam.visualization.detection import save_annotated_detection
+
+        image = np.full((64, 64, 3), 200, dtype=np.uint8)
+        detections = _detections([[10, 10, 40, 40]], [0])
+        output_file = tmp_path / "annotated.png"
+        save_annotated_detection(
+            image,
+            detections,
+            ["pill"],
+            output_file,
+            label_mode="labels",
+        )
+        assert output_file.is_file()
+        assert output_file.stat().st_size > 0

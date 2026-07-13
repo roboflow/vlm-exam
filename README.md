@@ -150,7 +150,8 @@ vlm-exam detection-visualize \
 ### Generate leaderboards
 
 Regenerates leaderboard charts for all locally saved runs (VQA accuracy plus
-detection mAP@50 / mAP@75 / mAP@50:95 per effort level):
+detection mAP@50 / mAP@75 / mAP@50:95 per effort level). Use
+`--group <name>` or `--models` to filter to a subset.
 
 ```bash
 vlm-exam leaderboard \
@@ -179,9 +180,12 @@ and optional fallback routes live in `src/vlm_exam/configs/models.yaml`.
 Add a new model by editing this file -- no code changes required for
 single-route models.
 
-Each model may declare `detection_coordinate_format` (`normalized_1000`,
-`pixel`, or `normalized_1000_xyxy`) for its native grounding convention.
-When omitted, the primary route's provider supplies a default.
+Each model must declare `detection_coordinate_format` for its native
+grounding convention. Valid values are defined by
+`DetectionCoordinateFormat` in `src/vlm_exam/tasks/detection.py`:
+`yxyx_normalized_0_to_1000`, `xyxy_normalized_0_to_1000`,
+`xyxy_absolute_provider_upload`, `xyxy_absolute_original_image`, and
+`yxyx_absolute_original_image`.
 
 For rate-limit resilience, list multiple `routes` in priority order.
 `FallbackProvider` fails over on 429/quota errors and sticks to the next
@@ -189,7 +193,7 @@ route for the rest of the run. Example:
 
 ```yaml
   gemini-3.1-pro-preview:
-    detection_coordinate_format: normalized_1000
+    detection_coordinate_format: yxyx_normalized_0_to_1000
     routes:
       - provider: google
       - provider: openrouter

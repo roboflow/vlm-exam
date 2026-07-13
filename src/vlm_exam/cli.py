@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 import click
 from dotenv import load_dotenv
 
-from vlm_exam.config import detection_coordinate_format, load_config
+from vlm_exam.config import BenchmarkConfig, load_config
 from vlm_exam.judge import Judge
 from vlm_exam.providers import build_model_provider
 from vlm_exam.results import (
@@ -47,6 +47,26 @@ _QA_DATASET_PROJECTS = {
     "identification": "vlm-exam-identification",
     "reasoning": "vlm-exam-reasoning",
 }
+
+
+def _resolve_model_filter(
+    config: BenchmarkConfig,
+    models: str | None,
+    group: str | None,
+) -> set[str] | None:
+    from vlm_exam.metrics import resolve_leaderboard_model_list
+
+    try:
+        model_list = resolve_leaderboard_model_list(
+            config,
+            models=models,
+            group=group,
+        )
+    except ValueError as error:
+        raise click.UsageError(str(error)) from error
+    if model_list is None:
+        return None
+    return set(model_list)
 
 
 @click.group()
@@ -267,7 +287,7 @@ def run(
         if task_name == "detection":
             model_task = create_task(
                 task_name,
-                coordinate_format=detection_coordinate_format(model_config),
+                coordinate_format=model_config.detection_coordinate_format,
                 **task_args,
             )
 
@@ -376,6 +396,163 @@ def report(
     click.echo(f"\nTotal benchmark cost: ${grand_cost:.4f}")
 
 
+@main.command("efficiency-report")
+@click.option(
+    "--results-directory",
+    default="results",
+    type=click.Path(exists=True),
+    help="Directory containing result JSONL files.",
+)
+@click.option(
+    "--effort",
+    default="low",
+    help="Effort level to aggregate (default: low).",
+)
+@click.option(
+    "--output-directory",
+    default="visualizations/leaderboards",
+    type=click.Path(),
+    help="Directory to save efficiency charts.",
+)
+@click.option(
+    "--config",
+    "config_path",
+    default=None,
+    type=click.Path(exists=True),
+    help="Path to custom models.yaml config.",
+)
+@click.option(
+    "--models",
+    default=None,
+    help="Comma-separated model identifiers to include.",
+)
+@click.option(
+    "--group",
+    default=None,
+    help="Named leaderboard model group (e.g. alternative). Overrides --models.",
+)
+def efficiency_report(
+    results_directory: str,
+    effort: str,
+    output_directory: str,
+    config_path: str | None,
+    models: str | None,
+    group: str | None,
+) -> None:
+    """Print pooled per-model efficiency metrics and save chart PNGs."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+
+    import matplotlib.pyplot as plt
+
+    from vlm_exam.metrics import aggregate_efficiency_by_model
+    from vlm_exam.visualization import plot_combined_metrics_chart, plot_metric_chart
+
+    config = load_config(Path(config_path) if config_path else None)
+    model_filter = _resolve_model_filter(config, models, group)
+    rows = aggregate_efficiency_by_model(
+        Path(results_directory),
+        config,
+        effort,
+        models=model_filter,
+    )
+
+    if not rows:
+        click.echo("No benchmark runs found for efficiency aggregation.")
+        return
+
+    click.echo(
+        f"\n{'Model':<28} {'Tasks':>5} {'Samples':>7} "
+        f"{'AvgTok':>8} {'AvgCost':>10} {'AvgTime':>8} {'TotCost':>9}"
+    )
+    click.echo("-" * 80)
+
+    grand_cost = 0.0
+    for row in sorted(rows, key=lambda entry: entry.total_cost):
+        grand_cost += row.total_cost
+        click.echo(
+            f"{row.model:<28} {row.task_count:>5} {row.sample_count:>7} "
+            f"{row.average_tokens:>8.0f} "
+            f"{row.average_cost:>10.5f} "
+            f"{row.average_time_seconds:>7.1f}s "
+            f"{row.total_cost:>9.2f}"
+        )
+
+    click.echo(f"\nTotal estimated benchmark cost: ${grand_cost:.2f}")
+
+    average_tokens = {row.model: row.average_tokens for row in rows}
+    average_cost = {row.model: row.average_cost for row in rows}
+    average_time = {row.model: row.average_time_seconds for row in rows}
+    zero = {model: 0.0 for model in average_tokens}
+
+    def format_cost(value: float) -> str:
+        if value >= 0.001:
+            return f"${value:.4f}"
+        return f"${value:.5f}"
+
+    output_path = Path(output_directory)
+    output_path.mkdir(parents=True, exist_ok=True)
+    saved: list[Path] = []
+
+    def save_figure(figure: plt.Figure, filename: str) -> None:
+        file_path = output_path / filename
+        figure.savefig(str(file_path), dpi=150)
+        plt.close(figure)
+        saved.append(file_path)
+
+    save_figure(
+        plot_metric_chart(
+            average_tokens,
+            config,
+            "Benchmark Efficiency \u2014 Avg Tokens per Image",
+            format_value=lambda value: f"{value:,.0f}",
+            sort_ascending=False,
+        ),
+        f"efficiency_tokens_{effort}.png",
+    )
+    save_figure(
+        plot_metric_chart(
+            average_cost,
+            config,
+            "Benchmark Efficiency \u2014 Avg Cost per Image",
+            format_value=format_cost,
+            sort_ascending=False,
+        ),
+        f"efficiency_cost_{effort}.png",
+    )
+    save_figure(
+        plot_metric_chart(
+            average_time,
+            config,
+            "Benchmark Efficiency \u2014 Avg Time per Image",
+            format_value=lambda value: f"{value:.1f}s",
+            sort_ascending=False,
+        ),
+        f"efficiency_time_{effort}.png",
+    )
+    save_figure(
+        plot_combined_metrics_chart(
+            tokens_high=zero,
+            tokens_low=average_tokens,
+            cost_high=zero,
+            cost_low=average_cost,
+            time_high=zero,
+            time_low=average_time,
+            config=config,
+            effort="low",
+            column_order=("cost", "time", "tokens"),
+            sort_by="cost",
+            sort_ascending=True,
+        ),
+        f"efficiency_combined_{effort}.png",
+    )
+
+    click.echo(f"\nSaved {len(saved)} efficiency charts to {output_path}:")
+    for file_path in saved:
+        click.echo(f"  {file_path.name}")
+
+
 @main.command("detection-report")
 @click.option(
     "--results-directory",
@@ -454,11 +631,23 @@ def detection_report(
     type=click.Path(exists=True),
     help="Path to custom models.yaml config.",
 )
+@click.option(
+    "--models",
+    default=None,
+    help="Comma-separated model identifiers to include.",
+)
+@click.option(
+    "--group",
+    default=None,
+    help="Named leaderboard model group (e.g. alternative). Overrides --models.",
+)
 def leaderboard(
     results_directory: str,
     dataset_directory: str | None,
     output_directory: str,
     config_path: str | None,
+    models: str | None,
+    group: str | None,
 ) -> None:
     """Generate leaderboard charts for all locally saved runs."""
     import matplotlib
@@ -467,9 +656,11 @@ def leaderboard(
 
     import matplotlib.pyplot as plt
 
+    from vlm_exam.metrics import build_latest_runs_index
     from vlm_exam.visualization import plot_accuracy_chart, plot_metric_chart
 
     config = load_config(Path(config_path) if config_path else None)
+    model_filter = _resolve_model_filter(config, models, group)
     results_path = Path(results_directory)
     runs = load_results_directory(results_path)
 
@@ -477,15 +668,7 @@ def leaderboard(
         click.echo(f"No usable .jsonl files found in {results_directory}")
         return
 
-    latest_runs: dict[tuple[str, str, str], RunResult] = {}
-    for run_result in runs:
-        if run_result.model not in config.models:
-            click.echo(f"Skipping run with unknown model {run_result.model!r}")
-            continue
-        key = (run_result.task, run_result.effort, run_result.model)
-        existing = latest_runs.get(key)
-        if existing is None or run_result.timestamp > existing.timestamp:
-            latest_runs[key] = run_result
+    latest_runs = build_latest_runs_index(runs, config, models=model_filter)
 
     if not latest_runs:
         click.echo("No usable runs found.")
@@ -520,7 +703,33 @@ def leaderboard(
             detection_index = build_sample_index(detection_samples)
 
     for (task_name, effort), runs in sorted(runs_by_task_effort.items()):
-        if task_name in QA_TASK_NAMES:
+        if task_name == "ocr":
+            accuracy = {
+                run.model: sum(s.correct for s in run.samples) / len(run.samples) * 100
+                for run in runs
+            }
+            similarity = {
+                run.model: (
+                    sum(s.metadata.get("score", 0.0) for s in run.samples)
+                    / len(run.samples)
+                    * 100
+                )
+                for run in runs
+            }
+            figure = plot_accuracy_chart(
+                accuracy,
+                config,
+                "OCR Benchmark \u2014 Accuracy",
+            )
+            save_figure(figure, f"ocr_accuracy_{effort}.png")
+            figure = plot_accuracy_chart(
+                similarity,
+                config,
+                "OCR Benchmark \u2014 Mean Similarity",
+            )
+            save_figure(figure, f"ocr_similarity_{effort}.png")
+
+        elif task_name in QA_TASK_NAMES:
             accuracy = {
                 run.model: sum(s.correct for s in run.samples) / len(run.samples) * 100
                 for run in runs
@@ -718,6 +927,25 @@ def visualize(
     type=click.Choice(["auto", "labels", "boxes"]),
     help="Draw class labels on boxes, boxes only, or pick automatically.",
 )
+@click.option(
+    "--format",
+    "output_format",
+    default="card",
+    type=click.Choice(["card", "plain"]),
+    help="Save hero cards or plain annotated PNGs.",
+)
+@click.option(
+    "--image",
+    default=None,
+    help="Only visualize this image basename from the results file.",
+)
+@click.option(
+    "--index",
+    "sample_index",
+    default=None,
+    type=int,
+    help="Only visualize this sample index from the results file.",
+)
 def detection_visualize(
     results_file: str,
     dataset_directory: str,
@@ -725,12 +953,12 @@ def detection_visualize(
     max_images: int,
     config_path: str | None,
     label_mode: str,
+    output_format: str,
+    image: str | None,
+    sample_index: int | None,
 ) -> None:
     """Visualize detection predictions vs ground truth."""
     import cv2
-    import matplotlib
-
-    matplotlib.use("Agg")
 
     from vlm_exam.tasks.detection import (
         DetectionTask,
@@ -738,7 +966,10 @@ def detection_visualize(
         detection_labels,
         parse_prediction,
     )
-    from vlm_exam.visualization.detection import plot_detection_card
+    from vlm_exam.visualization.detection import (
+        plot_detection_card,
+        save_annotated_detection,
+    )
 
     task = DetectionTask()
     samples = task.load_samples(dataset_directory)
@@ -753,17 +984,27 @@ def detection_visualize(
         click.echo(f"Model {run_result.model!r} not found in config.")
         return
 
+    use_card = output_format == "card"
+    if use_card:
+        import matplotlib
+
+        matplotlib.use("Agg")
+
     count = 0
     for sample_result in run_result.samples:
         if count >= max_images:
             break
+        if sample_index is not None and sample_result.index != sample_index:
+            continue
+        if image is not None and sample_result.image != image:
+            continue
 
         sample = sample_by_image.get(sample_result.image)
         if sample is None:
             continue
 
-        image = cv2.imread(sample.image_path)
-        if image is None:
+        image_bgr = cv2.imread(sample.image_path)
+        if image_bgr is None:
             continue
 
         resolution_wh = (sample.image_width, sample.image_height)
@@ -772,26 +1013,38 @@ def detection_visualize(
             resolution_wh,
             list(sample.classes),
             coordinate_format=sample_result.metadata.get(
-                "coordinate_format", "normalized_1000"
+                "coordinate_format",
+                "yxyx_normalized_0_to_1000",
             ),
         )
 
-        gt_labels = detection_labels(sample.ground_truth, list(sample.classes))
         pred_labels = detection_labels(predicted, list(sample.classes))
-        map_score = sample_result.metadata.get("map50")
+        stem = f"{sample_result.index:03d}_{sample_result.image}"
+        output_file = (output_path / stem).with_suffix(".png")
 
-        figure = plot_detection_card(
-            image=image,
-            ground_truth=sample.ground_truth,
-            predictions=predicted,
-            gt_labels=gt_labels,
-            pred_labels=pred_labels,
-            model_id=run_result.model,
-            config=config,
-            map_score=map_score,
-            label_mode=label_mode,
-        )
-        _save_card(figure, output_path, count, sample_result.image)
+        if use_card:
+            gt_labels = detection_labels(sample.ground_truth, list(sample.classes))
+            map_score = sample_result.metadata.get("map50")
+            figure = plot_detection_card(
+                image=image_bgr,
+                ground_truth=sample.ground_truth,
+                predictions=predicted,
+                gt_labels=gt_labels,
+                pred_labels=pred_labels,
+                model_id=run_result.model,
+                config=config,
+                map_score=map_score,
+                label_mode=label_mode,
+            )
+            _save_card(figure, output_path, sample_result.index, sample_result.image)
+        else:
+            save_annotated_detection(
+                image_bgr,
+                predicted,
+                pred_labels,
+                output_file,
+                label_mode=label_mode,
+            )
         count += 1
 
     click.echo(f"Saved {count} visualizations to {output_path}")

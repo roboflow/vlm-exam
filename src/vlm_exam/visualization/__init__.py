@@ -24,7 +24,10 @@ from vlm_exam.visualization.charts import (
     plot_dual_effort_chart,
     plot_metric_chart,
 )
-from vlm_exam.visualization.detection import plot_detection_card
+from vlm_exam.visualization.detection import (
+    plot_detection_card,
+    save_annotated_detection,
+)
 
 __all__ = [
     "plot_accuracy_chart",
@@ -36,4 +39,5 @@ __all__ = [
     "plot_qa_card",
     "plot_transcription_card",
     "render_case_card",
+    "save_annotated_detection",
 ]

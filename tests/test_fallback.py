@@ -23,6 +23,7 @@ from vlm_exam.config import ModelConfig, PricingConfig, RouteConfig
 from vlm_exam.providers import build_model_provider
 from vlm_exam.providers.base import Provider, Usage
 from vlm_exam.providers.fallback import FallbackProvider, is_rate_limit_error
+from vlm_exam.tasks.detection import DetectionCoordinateFormat
 
 
 class _StubProvider(Provider):
@@ -143,6 +144,9 @@ class TestBuildModelProvider:
             lab="openai",
             routes=(RouteConfig("openai"),),
             pricing=PricingConfig(1.0, 2.0),
+            detection_coordinate_format=(
+                DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE
+            ),
         )
         stub = _StubProvider("gpt-5.5", responses=[("ok", Usage(1, 1))])
         with patch(
@@ -167,6 +171,9 @@ class TestBuildModelProvider:
                 RouteConfig("openrouter", "google/gemini-3.1-pro-preview"),
             ),
             pricing=PricingConfig(2.0, 12.0),
+            detection_coordinate_format=(
+                DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000
+            ),
         )
         primary = _StubProvider("gemini-3.1-pro-preview", responses=[])
         fallback = _StubProvider("gemini-3.1-pro-preview", responses=[])
