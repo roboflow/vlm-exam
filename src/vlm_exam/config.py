@@ -20,6 +20,9 @@ import yaml
 
 _PACKAGE_DIRECTORY = Path(__file__).resolve().parent
 _DEFAULT_CONFIG_PATH = _PACKAGE_DIRECTORY / "configs" / "models.yaml"
+_DEFAULT_LEADERBOARD_GROUPS_PATH = (
+    _PACKAGE_DIRECTORY / "configs" / "leaderboard_groups.yaml"
+)
 
 _DEFAULT_DETECTION_FORMATS: dict[str, str] = {
     "anthropic": "pixel",
@@ -155,3 +158,22 @@ def load_config(config_path: Path | None = None) -> BenchmarkConfig:
     models = {key: _parse_model(value) for key, value in raw["models"].items()}
 
     return BenchmarkConfig(labs=labs, models=models)
+
+
+def load_leaderboard_groups(
+    groups_path: Path | None = None,
+) -> dict[str, tuple[str, ...]]:
+    """Load named leaderboard model groups from a YAML file.
+
+    Args:
+        groups_path: Path to the YAML groups file. When ``None``, the
+            default config bundled with the package is used.
+
+    Returns:
+        Mapping from group name to an ordered tuple of model keys.
+    """
+    path = groups_path or _DEFAULT_LEADERBOARD_GROUPS_PATH
+    with open(path) as file:
+        raw = yaml.safe_load(file)
+
+    return {key: tuple(value) for key, value in raw.items()}

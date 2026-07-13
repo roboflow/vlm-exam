@@ -277,6 +277,57 @@ class TestParsePixelPrediction:
         assert list(detections.data["class_name"]) == ["dog"]
 
 
+class TestParseNativePixelPrediction:
+    def test_parses_pixel_native_coordinates_directly(self) -> None:
+        prediction = '[{"box_2d": [10, 20, 30, 40], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction, (100, 100), ["cat", "dog"], coordinate_format="pixel_native"
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [10, 20, 30, 40])
+
+    def test_pixel_native_does_not_apply_resize_scaling(self) -> None:
+        prediction = '[{"box_2d": [100, 200, 300, 400], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction,
+            (4000, 3000),
+            ["cat"],
+            coordinate_format="pixel_native",
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [100, 200, 300, 400])
+
+    def test_parses_pixel_yxyx_native_coordinates(self) -> None:
+        prediction = '[{"box_2d": [20, 10, 40, 30], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction,
+            (100, 100),
+            ["cat"],
+            coordinate_format="pixel_yxyx_native",
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [10, 20, 30, 40])
+
+    def test_pixel_native_prompt_uses_original_dimensions(self) -> None:
+        task = DetectionTask(coordinate_format="pixel_native")
+        sample = DetectionSample(
+            image_path="/data/large.jpg",
+            image_width=4000,
+            image_height=3000,
+            ground_truth=_detections([[0, 0, 10, 10]], [0]),
+            classes=("cat", "dog"),
+        )
+        prompt = task.build_prompt(sample)
+        assert "4000x3000 pixel image" in prompt
+
+    def test_pixel_yxyx_native_prompt_uses_yxyx_order(self) -> None:
+        task = DetectionTask(coordinate_format="pixel_yxyx_native")
+        sample = _make_sample(_detections([[0, 0, 10, 10]], [0]))
+        prompt = task.build_prompt(sample)
+        assert "[y_min, x_min, y_max, x_max]" in prompt
+        assert "100x100 pixel image" in prompt
+
+
 class TestEvaluate:
     def test_empty_ground_truth_and_empty_prediction_is_correct(self) -> None:
         task = DetectionTask()
@@ -480,3 +531,21 @@ class TestDetectionCard:
                 config=BenchmarkConfig(labs={}, models={}),
                 label_mode="bogus",
             )
+
+    def test_save_annotated_detection_writes_png(self, tmp_path: Path) -> None:
+        import numpy as np
+
+        from vlm_exam.visualization.detection import save_annotated_detection
+
+        image = np.full((64, 64, 3), 200, dtype=np.uint8)
+        detections = _detections([[10, 10, 40, 40]], [0])
+        output_file = tmp_path / "annotated.png"
+        save_annotated_detection(
+            image,
+            detections,
+            ["pill"],
+            output_file,
+            label_mode="labels",
+        )
+        assert output_file.is_file()
+        assert output_file.stat().st_size > 0

@@ -19,6 +19,10 @@ labs:
     name: Mistral
     color: "#F7D046"
     logo_url: https://svgl.app/library/mistral-ai_logo.svg
+  moonshot:
+    name: Moonshot AI
+    color: "#16191E"
+    logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/moonshot.svg
   qwen:
     name: Qwen
     color: "#8A3FFC"
@@ -92,10 +96,45 @@ models:
     name: GPT-5.5
     lab: openai
     provider: openai
-    detection_coordinate_format: normalized_1000
+    detection_coordinate_format: pixel_native
     pricing:
       input_per_million_tokens: 5.00
       output_per_million_tokens: 30.00
+  gpt-5.4-mini:
+    name: GPT-5.4 mini
+    lab: openai
+    provider: openai
+    detection_coordinate_format: pixel_native
+    pricing:
+      input_per_million_tokens: 0.75
+      output_per_million_tokens: 4.50
+  gpt-5.6-sol:
+    name: GPT-5.6 Sol
+    lab: openai
+    provider: openai
+    provider_model_id: gpt-5.6-sol
+    detection_coordinate_format: pixel_native
+    pricing:
+      input_per_million_tokens: 5.00
+      output_per_million_tokens: 30.00
+  gpt-5.6-terra:
+    name: GPT-5.6 Terra
+    lab: openai
+    provider: openai
+    provider_model_id: gpt-5.6-terra
+    detection_coordinate_format: pixel_native
+    pricing:
+      input_per_million_tokens: 2.50
+      output_per_million_tokens: 15.00
+  gpt-5.6-luna:
+    name: GPT-5.6 Luna
+    lab: openai
+    provider: openai
+    provider_model_id: gpt-5.6-luna
+    detection_coordinate_format: pixel_native
+    pricing:
+      input_per_million_tokens: 1.00
+      output_per_million_tokens: 6.00
   qwen-3.7-plus:
     name: Qwen 3.7 Plus
     lab: qwen
@@ -123,3 +162,12 @@ models:
     pricing:
       input_per_million_tokens: 1.20
       output_per_million_tokens: 4.00
+  kimi-k2.6:
+    name: Kimi K2.6
+    lab: moonshot
+    provider: openrouter
+    provider_model_id: moonshotai/kimi-k2.6
+    detection_coordinate_format: normalized_1000
+    pricing:
+      input_per_million_tokens: 0.73
+      output_per_million_tokens: 3.49

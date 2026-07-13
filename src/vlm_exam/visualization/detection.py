@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import copy
+from pathlib import Path
 
 import cv2
 import matplotlib.pyplot as plt
@@ -204,6 +205,47 @@ def _annotate_image(
             scene=scene, detections=detections, labels=labels
         )
     return scene
+
+
+def save_annotated_detection(
+    image: np.ndarray,
+    detections: sv.Detections,
+    labels: list[str],
+    output_path: Path,
+    label_mode: str = "auto",
+) -> Path:
+    """Save a plain PNG with detection boxes and optional class labels.
+
+    Args:
+        image: Original BGR image as numpy array.
+        detections: Detections to draw.
+        labels: Class labels, one per detection.
+        output_path: Destination PNG path.
+        label_mode: ``"labels"`` draws class labels on boxes, ``"boxes"``
+            draws boxes only, and ``"auto"`` picks based on estimated
+            label overlap.
+
+    Returns:
+        The path written.
+    """
+    if label_mode not in LABEL_MODES:
+        modes = ", ".join(LABEL_MODES)
+        raise ValueError(f"Unknown label_mode {label_mode!r}. Valid modes: {modes}")
+
+    height, width = image.shape[:2]
+    if label_mode == "auto":
+        crowded = _labels_collide(detections, labels, (width, height))
+        label_mode = "boxes" if crowded else "labels"
+
+    annotated = _annotate_image(
+        image,
+        detections,
+        labels,
+        label_mode == "labels",
+    )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(output_path), annotated)
+    return output_path
 
 
 def _pluralize(count: int, noun: str) -> str:

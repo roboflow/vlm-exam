@@ -150,7 +150,8 @@ vlm-exam detection-visualize \
 ### Generate leaderboards
 
 Regenerates leaderboard charts for all locally saved runs (VQA accuracy plus
-detection mAP@50 / mAP@75 / mAP@50:95 per effort level):
+detection mAP@50 / mAP@75 / mAP@50:95 per effort level). Use
+`--group <name>` or `--models` to filter to a subset.
 
 ```bash
 vlm-exam leaderboard \

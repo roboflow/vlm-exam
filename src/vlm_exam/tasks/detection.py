@@ -56,6 +56,17 @@ _PIXEL_PROMPT_TEMPLATE = (
     "Only use these labels: {class_list}"
 )
 
+_PIXEL_YXYX_PROMPT_TEMPLATE = (
+    "Detect all objects in this image. "
+    "Output a JSON list where each entry contains the 2D bounding box "
+    'in the key "box_2d" and the text label in the key "label". '
+    'The "box_2d" value must be [y_min, x_min, y_max, x_max]: the '
+    "top-left and bottom-right corners in absolute pixel coordinates "
+    "of the {width}x{height} pixel image. "
+    "Return only the JSON list, with no extra text. "
+    "Only use these labels: {class_list}"
+)
+
 _NORMALIZED_XYXY_PROMPT_TEMPLATE = (
     "Detect all objects in this image. "
     "Output a JSON list where each entry contains the 2D bounding box "
@@ -70,7 +81,13 @@ _NORMALIZED_XYXY_PROMPT_TEMPLATE = (
 PROMPT_CLASS_MODES = ("image", "all")
 """Valid values for the detection prompt class listing mode."""
 
-COORDINATE_FORMATS = ("normalized_1000", "pixel", "normalized_1000_xyxy")
+COORDINATE_FORMATS = (
+    "normalized_1000",
+    "pixel",
+    "normalized_1000_xyxy",
+    "pixel_native",
+    "pixel_yxyx_native",
+)
 """Valid values for the detection coordinate format."""
 
 MAP_PASS_THRESHOLD = 0.8
@@ -109,7 +126,11 @@ class DetectionTask(Task):
                 recommends for Claude models; ``"normalized_1000_xyxy"``
                 asks for ``[x_min, y_min, x_max, y_max]`` boxes
                 normalized to 0-1000, matching the native grounding
-                format of Qwen-VL and GLM-V models served via OpenRouter.
+                format of Qwen-VL and GLM-V models served via OpenRouter;
+                ``"pixel_native"`` asks for ``[x_min, y_min, x_max, y_max]``
+                in the original image pixel space (no provider resize);
+                ``"pixel_yxyx_native"`` asks for ``[y_min, x_min, y_max, x_max]``
+                in the original image pixel space.
         """
         if prompt_classes not in PROMPT_CLASS_MODES:
             modes = ", ".join(PROMPT_CLASS_MODES)
@@ -243,6 +264,18 @@ class DetectionTask(Task):
                 height=uploaded_height,
                 class_list=class_list,
             )
+        if self._coordinate_format == "pixel_native":
+            return _PIXEL_PROMPT_TEMPLATE.format(
+                width=sample.image_width,
+                height=sample.image_height,
+                class_list=class_list,
+            )
+        if self._coordinate_format == "pixel_yxyx_native":
+            return _PIXEL_YXYX_PROMPT_TEMPLATE.format(
+                width=sample.image_width,
+                height=sample.image_height,
+                class_list=class_list,
+            )
         if self._coordinate_format == "normalized_1000_xyxy":
             return _NORMALIZED_XYXY_PROMPT_TEMPLATE.format(class_list=class_list)
         return _PROMPT_TEMPLATE.format(class_list=class_list)
@@ -329,6 +362,10 @@ def parse_prediction(
     """
     if coordinate_format == "pixel":
         parser = _parse_pixel_json
+    elif coordinate_format == "pixel_native":
+        parser = _parse_pixel_native_json
+    elif coordinate_format == "pixel_yxyx_native":
+        parser = _parse_pixel_yxyx_native_json
     elif coordinate_format == "normalized_1000_xyxy":
         parser = _parse_normalized_xyxy_json
     else:
@@ -402,6 +439,96 @@ def _parse_pixel_json(
         x_min, y_min, x_max, y_max = (float(value) for value in box)
         xyxy_list.append(
             [x_min * scale_x, y_min * scale_y, x_max * scale_x, y_max * scale_y]
+        )
+        class_ids.append(class_index[label])
+        class_names.append(label)
+
+    if not xyxy_list:
+        return sv.Detections.empty()
+
+    detections = sv.Detections(
+        xyxy=np.array(xyxy_list, dtype=np.float32),
+        class_id=np.array(class_ids, dtype=int),
+    )
+    detections.data["class_name"] = np.array(class_names)
+    return detections
+
+
+def _parse_pixel_native_json(
+    prediction: str,
+    resolution_wh: tuple[int, int],
+    classes: list[str],
+) -> sv.Detections:
+    return _parse_absolute_pixel_json(
+        prediction,
+        resolution_wh,
+        classes,
+        box_order="xyxy",
+        scale_x=1.0,
+        scale_y=1.0,
+    )
+
+
+def _parse_pixel_yxyx_native_json(
+    prediction: str,
+    resolution_wh: tuple[int, int],
+    classes: list[str],
+) -> sv.Detections:
+    return _parse_absolute_pixel_json(
+        prediction,
+        resolution_wh,
+        classes,
+        box_order="yxyx",
+        scale_x=1.0,
+        scale_y=1.0,
+    )
+
+
+def _parse_absolute_pixel_json(
+    prediction: str,
+    resolution_wh: tuple[int, int],
+    classes: list[str],
+    *,
+    box_order: str,
+    scale_x: float,
+    scale_y: float,
+) -> sv.Detections:
+    try:
+        entries = json.loads(prediction)
+    except json.JSONDecodeError:
+        return sv.Detections.empty()
+    if not isinstance(entries, list):
+        return sv.Detections.empty()
+
+    class_index = {name: index for index, name in enumerate(classes)}
+    xyxy_list: list[list[float]] = []
+    class_ids: list[int] = []
+    class_names: list[str] = []
+
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        box = entry.get("box_2d")
+        label = entry.get("label")
+        if (
+            not isinstance(box, list)
+            or len(box) != 4
+            or not all(isinstance(value, (int, float)) for value in box)
+            or label not in class_index
+        ):
+            continue
+        first, second, third, fourth = (float(value) for value in box)
+        if box_order == "yxyx":
+            y_min, x_min, y_max, x_max = first, second, third, fourth
+        else:
+            x_min, y_min, x_max, y_max = first, second, third, fourth
+        xyxy_list.append(
+            [
+                x_min * scale_x,
+                y_min * scale_y,
+                x_max * scale_x,
+                y_max * scale_y,
+            ]
         )
         class_ids.append(class_index[label])
         class_names.append(label)
