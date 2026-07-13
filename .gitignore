@@ -11,6 +11,7 @@ build/
 
 data/
 visualizations/detection/
+visualizations/leaderboards/alternative/
 
 logs/
 results-smoke/
