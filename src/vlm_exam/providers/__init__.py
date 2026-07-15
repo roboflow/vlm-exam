@@ -14,7 +14,7 @@
 
 import importlib
 
-from vlm_exam.config import ModelConfig
+from vlm_exam.config import ModelConfig, RouteConfig
 from vlm_exam.providers.base import Provider, Usage
 from vlm_exam.providers.fallback import FallbackProvider
 
@@ -25,7 +25,16 @@ _PROVIDER_REGISTRY: dict[str, str] = {
     "openrouter": "vlm_exam.providers.openrouter.OpenRouterProvider",
 }
 
+PRE_RESIZING_PROVIDERS = frozenset({"anthropic"})
+"""Providers that pre-resize uploads to match the model's native resolution.
+
+These are the only providers for which the
+``xyxy_absolute_provider_upload`` detection coordinate format is valid,
+and the only ones that accept a ``resolution_tier``.
+"""
+
 __all__ = [
+    "PRE_RESIZING_PROVIDERS",
     "FallbackProvider",
     "Provider",
     "Usage",
@@ -39,6 +48,7 @@ def create_provider(
     model: str,
     api_key: str | None = None,
     provider_model_id: str | None = None,
+    resolution_tier: str = "high",
 ) -> Provider:
     """Create a provider instance by name.
 
@@ -52,6 +62,8 @@ def create_provider(
             back to its default environment variable.
         provider_model_id: Optional upstream model identifier sent to the
             provider API. Defaults to ``model`` when omitted.
+        resolution_tier: Image resolution tier, forwarded only to
+            providers that pre-resize uploads (currently Anthropic).
 
     Returns:
         A ready-to-use provider instance.
@@ -69,11 +81,14 @@ def create_provider(
     module_path, class_name = qualified_name.rsplit(".", 1)
     module = importlib.import_module(module_path)
     provider_class = getattr(module, class_name)
-    return provider_class(
-        model=model,
-        api_key=api_key,
-        provider_model_id=provider_model_id,
-    )
+    kwargs = {
+        "model": model,
+        "api_key": api_key,
+        "provider_model_id": provider_model_id,
+    }
+    if provider_name in PRE_RESIZING_PROVIDERS:
+        kwargs["resolution_tier"] = resolution_tier
+    return provider_class(**kwargs)
 
 
 def build_model_provider(
@@ -91,16 +106,41 @@ def build_model_provider(
     Returns:
         A single-route provider, or a :class:`FallbackProvider` when
         multiple routes are configured.
+
+    Raises:
+        ValueError: If routes mix providers that pre-resize uploads with
+            providers that do not, since a mid-run failover would then
+            change the uploaded dimensions that prompts and coordinate
+            parsing depend on.
     """
+    _validate_route_resize_agreement(model_id, model_config.routes)
     route_providers = [
         create_provider(
             route.provider,
             model=model_id,
             api_key=api_key,
             provider_model_id=route.provider_model_id,
+            resolution_tier=model_config.resolution_tier,
         )
         for route in model_config.routes
     ]
     if len(route_providers) == 1:
         return route_providers[0]
     return FallbackProvider(model=model_id, providers=route_providers)
+
+
+def _validate_route_resize_agreement(
+    model_id: str,
+    routes: tuple[RouteConfig, ...],
+) -> None:
+    resizing = {r.provider for r in routes if r.provider in PRE_RESIZING_PROVIDERS}
+    non_resizing = {
+        r.provider for r in routes if r.provider not in PRE_RESIZING_PROVIDERS
+    }
+    if resizing and non_resizing:
+        raise ValueError(
+            f"Model {model_id!r} mixes providers that pre-resize uploads "
+            f"({', '.join(sorted(resizing))}) with providers that do not "
+            f"({', '.join(sorted(non_resizing))}); a failover would change "
+            "the uploaded image dimensions mid-run."
+        )

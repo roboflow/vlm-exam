@@ -23,8 +23,34 @@ from vlm_exam.providers.base import Provider, Usage
 
 _REFUSAL_TEXT = "[model refused to answer]"
 
-_MAX_EDGE = 2576
-_MAX_TOKENS = 4784
+RESOLUTION_TIERS: dict[str, tuple[int, int]] = {
+    "standard": (1568, 1568),
+    "high": (2576, 4784),
+}
+"""Per-tier ``(max_edge, max_tokens)`` image limits from Anthropic's docs."""
+
+DEFAULT_RESOLUTION_TIER = "high"
+"""Tier assumed when a model does not declare one."""
+
+_MAX_EDGE, _MAX_TOKENS = RESOLUTION_TIERS[DEFAULT_RESOLUTION_TIER]
+
+
+def resolution_tier_limits(tier: str) -> tuple[int, int]:
+    """Return the ``(max_edge, max_tokens)`` limits for a resolution tier.
+
+    Args:
+        tier: Tier name, one of the keys in :data:`RESOLUTION_TIERS`.
+
+    Returns:
+        The maximum padded edge length and visual-token budget.
+
+    Raises:
+        ValueError: If ``tier`` is not a known resolution tier.
+    """
+    if tier not in RESOLUTION_TIERS:
+        valid = ", ".join(sorted(RESOLUTION_TIERS))
+        raise ValueError(f"Unknown resolution tier {tier!r}. Valid tiers: {valid}")
+    return RESOLUTION_TIERS[tier]
 
 
 def _count_image_tokens(width: int, height: int) -> int:
@@ -80,21 +106,13 @@ def compute_resize_dimensions(
     return (low, max(round(low / aspect_ratio), 1))
 
 
-def _prepare_image(image: Image.Image) -> str:
-    target_width, target_height = compute_resize_dimensions(*image.size)
-    if (target_width, target_height) != image.size:
-        image = image.resize((target_width, target_height), Image.LANCZOS)
-
-    buffer = io.BytesIO()
-    image.save(buffer, format="PNG")
-    return base64.standard_b64encode(buffer.getvalue()).decode("utf-8")
-
-
 class AnthropicProvider(Provider):
     """Anthropic Claude provider.
 
-    Pre-resizes images to match Claude's internal tile dimensions
-    for optimal visual token usage.
+    Pre-resizes images to the dimensions Claude sees after its internal
+    resize, so pixel coordinates the model returns map one-to-one onto
+    the uploaded image. The resize target depends on the model's
+    resolution tier (see :data:`RESOLUTION_TIERS`).
     """
 
     def __init__(
@@ -102,14 +120,28 @@ class AnthropicProvider(Provider):
         model: str,
         api_key: str | None = None,
         provider_model_id: str | None = None,
+        resolution_tier: str = DEFAULT_RESOLUTION_TIER,
     ) -> None:
         self._model = model
         self._wire_model_id = provider_model_id or model
+        self._max_edge, self._max_tokens = resolution_tier_limits(resolution_tier)
         self._client = anthropic.Anthropic(api_key=api_key)
 
     @property
     def model(self) -> str:
         return self._model
+
+    def uploaded_image_size(self, image: Image.Image) -> tuple[int, int]:
+        return compute_resize_dimensions(*image.size, self._max_edge, self._max_tokens)
+
+    def _prepare_image(self, image: Image.Image) -> str:
+        target_size = self.uploaded_image_size(image)
+        if target_size != image.size:
+            image = image.resize(target_size, Image.LANCZOS)
+
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        return base64.standard_b64encode(buffer.getvalue()).decode("utf-8")
 
     def predict(
         self,
@@ -117,7 +149,7 @@ class AnthropicProvider(Provider):
         prompt: str,
         effort: str,
     ) -> tuple[str, Usage]:
-        base64_data = _prepare_image(image)
+        base64_data = self._prepare_image(image)
 
         message = self._client.messages.create(
             model=self._wire_model_id,

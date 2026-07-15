@@ -143,12 +143,12 @@ class TestBuildPrompt:
     def test_pixel_format_prompt_states_dimensions(self) -> None:
         task = DetectionTask(coordinate_format="xyxy_absolute_provider_upload")
         sample = _make_sample(_detections([[0, 0, 10, 10]], [0]))
-        prompt = task.build_prompt(sample)
+        prompt = task.build_prompt(sample, uploaded_size=(100, 100))
         assert "[x_min, y_min, x_max, y_max]" in prompt
         assert "pixel coordinates" in prompt
         assert "100x100 pixel image" in prompt
 
-    def test_pixel_format_prompt_uses_resized_dimensions(self) -> None:
+    def test_pixel_format_prompt_states_uploaded_dimensions(self) -> None:
         task = DetectionTask(coordinate_format="xyxy_absolute_provider_upload")
         sample = DetectionSample(
             image_path="/data/large.jpg",
@@ -157,10 +157,15 @@ class TestBuildPrompt:
             ground_truth=_detections([[0, 0, 10, 10]], [0]),
             classes=("cat", "dog"),
         )
-        prompt = task.build_prompt(sample)
-        uploaded_width, uploaded_height = compute_resize_dimensions(4000, 3000)
-        assert uploaded_width < 4000
-        assert f"{uploaded_width}x{uploaded_height} pixel image" in prompt
+        uploaded = compute_resize_dimensions(4000, 3000)
+        prompt = task.build_prompt(sample, uploaded_size=uploaded)
+        assert f"{uploaded[0]}x{uploaded[1]} pixel image" in prompt
+
+    def test_pixel_format_prompt_requires_uploaded_size(self) -> None:
+        task = DetectionTask(coordinate_format="xyxy_absolute_provider_upload")
+        sample = _make_sample(_detections([[0, 0, 10, 10]], [0]))
+        with pytest.raises(ValueError, match="uploaded_size"):
+            task.build_prompt(sample)
 
     def test_invalid_coordinate_format_raises(self) -> None:
         with pytest.raises(ValueError):
@@ -291,6 +296,68 @@ class TestParsePixelPrediction:
             coordinate_format="xyxy_absolute_provider_upload",
         )
         assert list(detections.data["class_name"]) == ["dog"]
+
+    def test_clamps_out_of_bounds_coordinates_to_original(self) -> None:
+        original_width, original_height = 4000, 3000
+        uploaded_width, uploaded_height = compute_resize_dimensions(
+            original_width, original_height
+        )
+        prediction = json.dumps(
+            [
+                {
+                    "box_2d": [-50, -20, uploaded_width + 100, uploaded_height + 100],
+                    "label": "cat",
+                }
+            ]
+        )
+        detections = parse_prediction(
+            prediction,
+            (original_width, original_height),
+            ["cat"],
+            coordinate_format="xyxy_absolute_provider_upload",
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(
+            detections.xyxy[0],
+            [0, 0, original_width, original_height],
+            rtol=1e-5,
+        )
+
+    def test_prefers_recorded_uploaded_dimensions(self) -> None:
+        prediction = '[{"box_2d": [0, 0, 100, 100], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction,
+            (400, 400),
+            ["cat"],
+            coordinate_format="xyxy_absolute_provider_upload",
+            uploaded_wh=(100, 100),
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [0, 0, 400, 400])
+
+    def test_standard_tier_scales_with_smaller_upload(self) -> None:
+        original_width, original_height = 4000, 3000
+        standard = compute_resize_dimensions(
+            original_width, original_height, 1568, 1568
+        )
+        high = compute_resize_dimensions(original_width, original_height)
+        assert standard != high
+        prediction = json.dumps(
+            [{"box_2d": [0, 0, standard[0], standard[1]], "label": "cat"}]
+        )
+        detections = parse_prediction(
+            prediction,
+            (original_width, original_height),
+            ["cat"],
+            coordinate_format="xyxy_absolute_provider_upload",
+            resolution_tier="standard",
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(
+            detections.xyxy[0],
+            [0, 0, original_width, original_height],
+            rtol=1e-5,
+        )
 
 
 class TestParseNativePixelPrediction:
@@ -487,6 +554,65 @@ class TestComputeDatasetMap:
         result = compute_dataset_map(run, index)
         assert result is not None
         assert result.map50 > 0.99
+
+    def test_uses_recorded_uploaded_dimensions_metadata(self) -> None:
+        sample = _make_sample(_detections([[0, 0, 100, 100]], [0]))
+        index = build_sample_index([sample])
+        run = _make_run(
+            "image.jpg",
+            '[{"box_2d": [0, 0, 50, 50], "label": "cat"}]',
+            metadata={
+                "coordinate_format": "xyxy_absolute_provider_upload",
+                "uploaded_width": 50,
+                "uploaded_height": 50,
+            },
+        )
+        result = compute_dataset_map(run, index)
+        assert result is not None
+        assert result.map50 > 0.99
+
+    def test_non_positive_recorded_dimensions_fall_back(self) -> None:
+        sample = _make_sample(_detections([[10, 10, 50, 50]], [0]))
+        index = build_sample_index([sample])
+        run = _make_run(
+            "image.jpg",
+            '[{"box_2d": [10, 10, 50, 50], "label": "cat"}]',
+            metadata={
+                "coordinate_format": "xyxy_absolute_provider_upload",
+                "uploaded_width": 0,
+                "uploaded_height": 0,
+            },
+        )
+        result = compute_dataset_map(run, index)
+        assert result is not None
+        assert result.map50 > 0.99
+
+
+class TestEvaluateUploadedSize:
+    def test_evaluate_uses_provided_uploaded_size(self) -> None:
+        task = DetectionTask(
+            coordinate_format=DetectionCoordinateFormat.XYXY_ABSOLUTE_PROVIDER_UPLOAD
+        )
+        sample = _make_sample(_detections([[10, 10, 50, 50]], [0]))
+        prediction = '[{"box_2d": [5, 5, 25, 25], "label": "cat"}]'
+        result = task.evaluate(sample, prediction, uploaded_size=(50, 50))
+        assert result.details is not None
+        assert result.details["map50"] > 0.99
+
+    def test_build_prompt_uses_provided_uploaded_size(self) -> None:
+        task = DetectionTask(coordinate_format="xyxy_absolute_provider_upload")
+        sample = _make_sample(_detections([[0, 0, 10, 10]], [0]))
+        prompt = task.build_prompt(sample, uploaded_size=(321, 123))
+        assert "321x123 pixel image" in prompt
+
+
+class TestResolutionTierMath:
+    def test_matches_documented_standard_tier_example(self) -> None:
+        assert compute_resize_dimensions(1920, 1080, 1568, 1568) == (1456, 819)
+        assert compute_resize_dimensions(1075, 1520, 1568, 1568) == (924, 1307)
+
+    def test_high_tier_leaves_documented_scan_unresized(self) -> None:
+        assert compute_resize_dimensions(1075, 1520) == (1075, 1520)
 
 
 class TestLabelCollision:
