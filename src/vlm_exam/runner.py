@@ -14,12 +14,13 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import time
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 from vlm_exam.providers.base import Provider, Usage
 from vlm_exam.results import RunResult, SampleResult
@@ -27,6 +28,8 @@ from vlm_exam.tasks.base import Sample, Task
 
 if TYPE_CHECKING:
     from vlm_exam.judge import Judge
+
+_logger = logging.getLogger(__name__)
 
 _VERBOSE_TEXT_LIMIT = 60
 
@@ -36,6 +39,23 @@ def _truncate(text: str, limit: int = _VERBOSE_TEXT_LIMIT) -> str:
     if len(flattened) <= limit:
         return flattened
     return flattened[: limit - 3] + "..."
+
+
+def _warn_on_dimension_mismatch(sample: Sample, image: Image.Image) -> None:
+    annotated_width = getattr(sample, "image_width", None)
+    annotated_height = getattr(sample, "image_height", None)
+    if annotated_width is None or annotated_height is None:
+        return
+    if (annotated_width, annotated_height) != image.size:
+        _logger.warning(
+            "Image %s is %dx%d on disk but annotated as %dx%d; pixel "
+            "coordinate scaling may be off.",
+            os.path.basename(sample.image_path),
+            image.size[0],
+            image.size[1],
+            annotated_width,
+            annotated_height,
+        )
 
 
 def run_benchmark(
@@ -73,22 +93,30 @@ def run_benchmark(
         print(f"{'=' * 60}\n")
 
     for index, sample in enumerate(samples):
-        image = Image.open(sample.image_path).convert("RGB")
-        prompt = task.build_prompt(sample)
+        image = ImageOps.exif_transpose(Image.open(sample.image_path)).convert("RGB")
+        _warn_on_dimension_mismatch(sample, image)
+        uploaded_size = provider.uploaded_image_size(image)
+        prompt = task.build_prompt(sample, uploaded_size=uploaded_size)
 
         usage = Usage(input_tokens=0, output_tokens=0)
         elapsed_seconds: float | None = None
         prediction: str
+        predict_succeeded = False
 
         try:
             start_time = time.perf_counter()
             prediction, usage = provider.predict(image, prompt, effort)
             elapsed_seconds = time.perf_counter() - start_time
+            predict_succeeded = True
         except Exception as error:
             prediction = f"ERROR: {error}"
 
         evaluation = task.evaluate(
-            sample, prediction, match_mode=match_mode, judge=judge
+            sample,
+            prediction,
+            match_mode=match_mode,
+            judge=judge,
+            uploaded_size=uploaded_size,
         )
         image_name = os.path.basename(sample.image_path)
 
@@ -99,6 +127,9 @@ def run_benchmark(
             metadata["score"] = round(evaluation.score, 4)
         if evaluation.details:
             metadata.update(evaluation.details)
+        if predict_succeeded and uploaded_size is not None:
+            metadata["uploaded_width"] = uploaded_size[0]
+            metadata["uploaded_height"] = uploaded_size[1]
         expected = task.expected_text(sample)
 
         sample_results.append(

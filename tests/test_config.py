@@ -122,6 +122,105 @@ class TestDetectionCoordinateFormat:
             )
 
 
+class TestResolutionTier:
+    def test_defaults_to_high(self) -> None:
+        model = _parse_model(
+            {
+                "name": "Claude Sonnet 5",
+                "lab": "anthropic",
+                "provider": "anthropic",
+                "detection_coordinate_format": "xyxy_absolute_provider_upload",
+                "pricing": {
+                    "input_per_million_tokens": 2.0,
+                    "output_per_million_tokens": 10.0,
+                },
+            }
+        )
+        assert model.resolution_tier == "high"
+
+    def test_reads_explicit_tier(self) -> None:
+        model = _parse_model(
+            {
+                "name": "Claude Haiku",
+                "lab": "anthropic",
+                "provider": "anthropic",
+                "detection_coordinate_format": "xyxy_absolute_provider_upload",
+                "resolution_tier": "standard",
+                "pricing": {
+                    "input_per_million_tokens": 1.0,
+                    "output_per_million_tokens": 5.0,
+                },
+            }
+        )
+        assert model.resolution_tier == "standard"
+
+    def test_rejects_unknown_tier_at_parse_time(self) -> None:
+        with pytest.raises(ValueError, match="resolution_tier"):
+            _parse_model(
+                {
+                    "name": "Claude Typo",
+                    "lab": "anthropic",
+                    "provider": "anthropic",
+                    "detection_coordinate_format": "xyxy_absolute_provider_upload",
+                    "resolution_tier": "standrad",
+                    "pricing": {
+                        "input_per_million_tokens": 1.0,
+                        "output_per_million_tokens": 5.0,
+                    },
+                }
+            )
+
+
+class TestProviderUploadRouteGuard:
+    def test_rejects_provider_upload_on_non_anthropic_route(self) -> None:
+        with pytest.raises(ValueError, match="pre-resize"):
+            _parse_model(
+                {
+                    "name": "Bad Model",
+                    "lab": "openai",
+                    "provider": "openai",
+                    "detection_coordinate_format": "xyxy_absolute_provider_upload",
+                    "pricing": {
+                        "input_per_million_tokens": 1.0,
+                        "output_per_million_tokens": 2.0,
+                    },
+                }
+            )
+
+    def test_rejects_provider_upload_with_openrouter_fallback(self) -> None:
+        with pytest.raises(ValueError, match="incompatible routes"):
+            _parse_model(
+                {
+                    "name": "Claude With Fallback",
+                    "lab": "anthropic",
+                    "detection_coordinate_format": "xyxy_absolute_provider_upload",
+                    "routes": [
+                        {"provider": "anthropic"},
+                        {"provider": "openrouter", "provider_model_id": "x/y"},
+                    ],
+                    "pricing": {
+                        "input_per_million_tokens": 1.0,
+                        "output_per_million_tokens": 2.0,
+                    },
+                }
+            )
+
+    def test_allows_provider_upload_on_anthropic(self) -> None:
+        model = _parse_model(
+            {
+                "name": "Claude Opus",
+                "lab": "anthropic",
+                "provider": "anthropic",
+                "detection_coordinate_format": "xyxy_absolute_provider_upload",
+                "pricing": {
+                    "input_per_million_tokens": 5.0,
+                    "output_per_million_tokens": 25.0,
+                },
+            }
+        )
+        assert model.provider == "anthropic"
+
+
 class TestLoadBundledConfig:
     def test_gemini_has_fallback_route_and_format(self) -> None:
         config = load_config()

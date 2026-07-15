@@ -53,3 +53,18 @@ class Provider(ABC):
             A tuple of ``(answer_text, usage)``.
         """
         ...
+
+    def uploaded_image_size(self, image: Image.Image) -> tuple[int, int] | None:
+        """Return the pixel dimensions the provider uploads for an image.
+
+        Providers that resize an image before sending it override this so
+        callers can map returned pixel coordinates back onto the original.
+
+        Args:
+            image: Input image in RGB mode.
+
+        Returns:
+            The ``(width, height)`` actually sent to the provider, or
+            ``None`` when the provider sends the image unchanged.
+        """
+        return None

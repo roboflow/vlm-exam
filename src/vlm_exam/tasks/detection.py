@@ -21,13 +21,18 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from enum import Enum
+from functools import partial
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import supervision as sv
 from supervision.metrics import MeanAveragePrecision
 
-from vlm_exam.providers.anthropic import compute_resize_dimensions
+from vlm_exam.providers.anthropic import (
+    DEFAULT_RESOLUTION_TIER,
+    compute_resize_dimensions,
+    resolution_tier_limits,
+)
 from vlm_exam.results import RunResult
 from vlm_exam.tasks.base import EvaluationResult, Sample, Task
 
@@ -217,7 +222,12 @@ class DetectionTask(Task):
 
         return samples
 
-    def build_prompt(self, sample: Sample) -> str:
+    def build_prompt(
+        self,
+        sample: Sample,
+        *,
+        uploaded_size: tuple[int, int] | None = None,
+    ) -> str:
         """Build a detection prompt with a class list.
 
         In ``"image"`` mode only the classes present in the sample's
@@ -228,9 +238,16 @@ class DetectionTask(Task):
 
         Args:
             sample: A ``DetectionSample`` instance.
+            uploaded_size: The ``(width, height)`` the provider will
+                upload. Required for the provider-upload coordinate
+                format, whose prompt states these exact dimensions.
 
         Returns:
             Formatted prompt string.
+
+        Raises:
+            ValueError: If the coordinate format is provider-upload but
+                ``uploaded_size`` is not supplied.
         """
         assert isinstance(sample, DetectionSample)
         if (
@@ -246,9 +263,13 @@ class DetectionTask(Task):
 
         match self._coordinate_format:
             case DetectionCoordinateFormat.XYXY_ABSOLUTE_PROVIDER_UPLOAD:
-                uploaded_width, uploaded_height = compute_resize_dimensions(
-                    sample.image_width, sample.image_height
-                )
+                if uploaded_size is None:
+                    fmt = DetectionCoordinateFormat.XYXY_ABSOLUTE_PROVIDER_UPLOAD
+                    raise ValueError(
+                        f"coordinate format {fmt.value!r} requires uploaded_size; "
+                        "it must come from a provider that pre-resizes uploads."
+                    )
+                uploaded_width, uploaded_height = uploaded_size
                 return _PIXEL_PROMPT_TEMPLATE.format(
                     width=uploaded_width,
                     height=uploaded_height,
@@ -278,6 +299,7 @@ class DetectionTask(Task):
         *,
         match_mode: str = "strict",
         judge: Judge | None = None,
+        uploaded_size: tuple[int, int] | None = None,
     ) -> EvaluationResult:
         """Evaluate a detection prediction against the ground truth.
 
@@ -289,6 +311,10 @@ class DetectionTask(Task):
             prediction: Raw JSON output from the model.
             match_mode: Unused for detection (kept for interface compat).
             judge: Unused for detection.
+            uploaded_size: The ``(width, height)`` the provider uploaded,
+                used to rescale provider-upload pixel coordinates. When
+                omitted it is recomputed from the sample's annotated size
+                and resolution tier.
 
         Returns:
             Evaluation result with mAP details.
@@ -301,6 +327,7 @@ class DetectionTask(Task):
             resolution_wh,
             list(sample.classes),
             coordinate_format=self._coordinate_format,
+            uploaded_wh=uploaded_size,
         )
 
         details: dict[str, Any] = {
@@ -336,6 +363,9 @@ def parse_prediction(
     coordinate_format: str | DetectionCoordinateFormat = (
         DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000
     ),
+    *,
+    uploaded_wh: tuple[int, int] | None = None,
+    resolution_tier: str = DEFAULT_RESOLUTION_TIER,
 ) -> sv.Detections:
     """Parse model JSON output into supervision Detections.
 
@@ -348,6 +378,11 @@ def parse_prediction(
             scaling.
         classes: List of class names for class_id assignment.
         coordinate_format: Coordinate convention of the prediction.
+        uploaded_wh: For provider-upload coordinates, the dimensions the
+            provider actually uploaded. When ``None`` they are recomputed
+            from ``resolution_wh`` and ``resolution_tier``.
+        resolution_tier: Resolution tier used to recompute the uploaded
+            dimensions when ``uploaded_wh`` is not supplied.
 
     Returns:
         Parsed detections, or empty detections on failure.
@@ -355,7 +390,12 @@ def parse_prediction(
     format_enum = DetectionCoordinateFormat(coordinate_format)
     match format_enum:
         case DetectionCoordinateFormat.XYXY_ABSOLUTE_PROVIDER_UPLOAD:
-            parser = _parse_pixel_json
+            if uploaded_wh is None:
+                max_edge, max_tokens = resolution_tier_limits(resolution_tier)
+                uploaded_wh = compute_resize_dimensions(
+                    *resolution_wh, max_edge, max_tokens
+                )
+            parser = partial(_parse_pixel_json, uploaded_wh=uploaded_wh)
         case DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE:
             parser = _parse_pixel_native_json
         case DetectionCoordinateFormat.YXYX_ABSOLUTE_ORIGINAL_IMAGE:
@@ -398,6 +438,8 @@ def _parse_pixel_json(
     prediction: str,
     resolution_wh: tuple[int, int],
     classes: list[str],
+    *,
+    uploaded_wh: tuple[int, int],
 ) -> sv.Detections:
     try:
         entries = json.loads(prediction)
@@ -407,9 +449,7 @@ def _parse_pixel_json(
         return sv.Detections.empty()
 
     original_width, original_height = resolution_wh
-    uploaded_width, uploaded_height = compute_resize_dimensions(
-        original_width, original_height
-    )
+    uploaded_width, uploaded_height = uploaded_wh
     scale_x = original_width / uploaded_width
     scale_y = original_height / uploaded_height
     class_index = {name: index for index, name in enumerate(classes)}
@@ -431,6 +471,12 @@ def _parse_pixel_json(
         ):
             continue
         x_min, y_min, x_max, y_max = (float(value) for value in box)
+        # Claude may return points slightly outside the image; clamping to the
+        # uploaded dimensions before rescaling keeps boxes inside the original.
+        x_min = min(max(x_min, 0.0), uploaded_width)
+        x_max = min(max(x_max, 0.0), uploaded_width)
+        y_min = min(max(y_min, 0.0), uploaded_height)
+        y_max = min(max(y_max, 0.0), uploaded_height)
         xyxy_list.append(
             [x_min * scale_x, y_min * scale_y, x_max * scale_x, y_max * scale_y]
         )
@@ -637,6 +683,7 @@ def compute_dataset_map(
                 "coordinate_format",
                 DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000.value,
             ),
+            uploaded_wh=recorded_uploaded_wh(sample_result.metadata),
         )
         all_predictions.append(predicted)
         all_targets.append(sample.ground_truth)
@@ -654,6 +701,25 @@ def compute_dataset_map(
         map50_95=float(result.map50_95),
         image_count=len(all_predictions),
     )
+
+
+def recorded_uploaded_wh(metadata: dict[str, Any]) -> tuple[int, int] | None:
+    """Read provider-upload dimensions recorded in sample result metadata.
+
+    Args:
+        metadata: A sample result's metadata mapping.
+
+    Returns:
+        The recorded ``(width, height)``, or ``None`` when either value
+        is absent or non-positive (which would make rescaling undefined).
+    """
+    width = metadata.get("uploaded_width")
+    height = metadata.get("uploaded_height")
+    if width is None or height is None:
+        return None
+    if width <= 0 or height <= 0:
+        return None
+    return (int(width), int(height))
 
 
 def detection_labels(detections: sv.Detections, classes: list[str]) -> list[str]:

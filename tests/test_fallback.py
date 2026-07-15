@@ -159,6 +159,7 @@ class TestBuildModelProvider:
             model="gpt-5.5",
             api_key=None,
             provider_model_id=None,
+            resolution_tier="high",
         )
         assert provider is stub
 
@@ -183,3 +184,25 @@ class TestBuildModelProvider:
         ):
             provider = build_model_provider("gemini-3.1-pro-preview", model_config)
         assert isinstance(provider, FallbackProvider)
+
+    def test_mixed_resize_routes_raise(self) -> None:
+        model_config = ModelConfig(
+            name="Claude Mixed",
+            lab="anthropic",
+            routes=(
+                RouteConfig("anthropic"),
+                RouteConfig("openrouter", "anthropic/claude"),
+            ),
+            pricing=PricingConfig(2.0, 12.0),
+            detection_coordinate_format=(
+                DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000
+            ),
+        )
+        with pytest.raises(ValueError, match="pre-resize"):
+            build_model_provider("claude-mixed", model_config)
+
+
+class TestUploadedImageSize:
+    def test_default_provider_returns_none(self) -> None:
+        stub = _StubProvider("gpt-5.5", responses=[])
+        assert stub.uploaded_image_size(Image.new("RGB", (640, 480))) is None

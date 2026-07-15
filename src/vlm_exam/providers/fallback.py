@@ -73,6 +73,9 @@ class FallbackProvider(Provider):
         """Index of the provider route currently handling requests."""
         return self._active_index
 
+    def uploaded_image_size(self, image: Image.Image) -> tuple[int, int] | None:
+        return self._providers[self._active_index].uploaded_image_size(image)
+
     def predict(
         self,
         image: Image.Image,

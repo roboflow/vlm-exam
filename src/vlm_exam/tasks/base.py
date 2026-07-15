@@ -79,11 +79,20 @@ class Task(ABC):
         ...
 
     @abstractmethod
-    def build_prompt(self, sample: Sample) -> str:
+    def build_prompt(
+        self,
+        sample: Sample,
+        *,
+        uploaded_size: tuple[int, int] | None = None,
+    ) -> str:
         """Build the text prompt for a given sample.
 
         Args:
             sample: The sample to build a prompt for.
+            uploaded_size: The ``(width, height)`` the provider will
+                actually upload for this sample, when the provider
+                resizes images. Tasks that state image dimensions in the
+                prompt use this to match what the model sees.
 
         Returns:
             Formatted prompt string.
@@ -98,6 +107,7 @@ class Task(ABC):
         *,
         match_mode: str = "strict",
         judge: Judge | None = None,
+        uploaded_size: tuple[int, int] | None = None,
     ) -> EvaluationResult:
         """Evaluate a model prediction against the sample's ground truth.
 
@@ -106,6 +116,9 @@ class Task(ABC):
             prediction: Raw text output from the model.
             match_mode: ``"strict"`` or ``"judge"``.
             judge: Optional LLM judge instance for non-strict matching.
+            uploaded_size: The ``(width, height)`` the provider uploaded
+                for this sample, used to rescale pixel coordinates that
+                the model returns in the uploaded image's space.
 
         Returns:
             Evaluation result indicating correctness.

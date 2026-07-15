@@ -69,6 +69,10 @@ avoid a loop"). Never narrate what the code does.
   task, so results stay comparable on shared leaderboards. All committed
   runs currently use `--effort low`; do not mix effort levels within a
   task's leaderboard unless the run is explicitly an effort comparison.
+- Images are EXIF-transposed on load before being sent to any provider.
+  Datasets whose images carry EXIF orientation tags will therefore produce
+  runs that are not comparable to runs made before this behavior existed;
+  re-run all models on such a dataset rather than mixing old and new runs.
 
 ## Web summary
 

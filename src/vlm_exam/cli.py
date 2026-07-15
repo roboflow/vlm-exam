@@ -1037,6 +1037,7 @@ def detection_visualize(
         build_sample_index,
         detection_labels,
         parse_prediction,
+        recorded_uploaded_wh,
     )
     from vlm_exam.visualization.detection import (
         plot_detection_card,
@@ -1088,6 +1089,7 @@ def detection_visualize(
                 "coordinate_format",
                 "yxyx_normalized_0_to_1000",
             ),
+            uploaded_wh=recorded_uploaded_wh(sample_result.metadata),
         )
 
         pred_labels = detection_labels(predicted, list(sample.classes))

@@ -64,6 +64,7 @@ class ModelConfig:
     routes: tuple[RouteConfig, ...]
     pricing: PricingConfig
     detection_coordinate_format: DetectionCoordinateFormat
+    resolution_tier: str = "high"
 
     @property
     def provider(self) -> str:
@@ -113,18 +114,61 @@ def _parse_model(raw: dict[str, Any]) -> ModelConfig:
     from vlm_exam.tasks.detection import DetectionCoordinateFormat
 
     pricing_raw = raw["pricing"]
+    routes = _parse_routes(raw)
+    coordinate_format = DetectionCoordinateFormat(raw["detection_coordinate_format"])
+    resolution_tier = raw.get("resolution_tier", "high")
+    _validate_resolution_tier(raw["name"], resolution_tier)
+    _validate_provider_upload_routes(raw["name"], coordinate_format, routes)
     return ModelConfig(
         name=raw["name"],
         lab=raw["lab"],
-        routes=_parse_routes(raw),
+        routes=routes,
         pricing=PricingConfig(
             input_per_million_tokens=pricing_raw["input_per_million_tokens"],
             output_per_million_tokens=pricing_raw["output_per_million_tokens"],
         ),
-        detection_coordinate_format=DetectionCoordinateFormat(
-            raw["detection_coordinate_format"]
-        ),
+        detection_coordinate_format=coordinate_format,
+        resolution_tier=resolution_tier,
     )
+
+
+def _validate_resolution_tier(model_name: str, resolution_tier: str) -> None:
+    from vlm_exam.providers.anthropic import RESOLUTION_TIERS
+
+    if resolution_tier not in RESOLUTION_TIERS:
+        valid = ", ".join(sorted(RESOLUTION_TIERS))
+        raise ValueError(
+            f"Model {model_name!r} has unknown resolution_tier "
+            f"{resolution_tier!r}. Valid tiers: {valid}."
+        )
+
+
+def _validate_provider_upload_routes(
+    model_name: str,
+    coordinate_format: DetectionCoordinateFormat,
+    routes: tuple[RouteConfig, ...],
+) -> None:
+    from vlm_exam.providers import PRE_RESIZING_PROVIDERS
+    from vlm_exam.tasks.detection import DetectionCoordinateFormat
+
+    if coordinate_format != DetectionCoordinateFormat.XYXY_ABSOLUTE_PROVIDER_UPLOAD:
+        return
+    offending = sorted(
+        {
+            route.provider
+            for route in routes
+            if route.provider not in PRE_RESIZING_PROVIDERS
+        }
+    )
+    if offending:
+        providers = ", ".join(offending)
+        supported = ", ".join(sorted(PRE_RESIZING_PROVIDERS))
+        raise ValueError(
+            f"Model {model_name!r} uses coordinate format "
+            f"{coordinate_format.value!r}, whose pixel scaling only holds for "
+            f"providers that pre-resize uploads ({supported}); "
+            f"incompatible routes: {providers}."
+        )
 
 
 def load_config(config_path: Path | None = None) -> BenchmarkConfig:

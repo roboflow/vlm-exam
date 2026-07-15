@@ -338,11 +338,18 @@ class QATask(Task):
 
         return samples
 
-    def build_prompt(self, sample: Sample) -> str:
+    def build_prompt(
+        self,
+        sample: Sample,
+        *,
+        uploaded_size: tuple[int, int] | None = None,
+    ) -> str:
         """Build a short-answer prompt from a sample.
 
         Args:
             sample: A ``QASample`` instance.
+            uploaded_size: Unused; QA prompts do not reference image
+                dimensions.
 
         Returns:
             Formatted prompt string.
@@ -357,6 +364,7 @@ class QATask(Task):
         *,
         match_mode: str = "strict",
         judge: Judge | None = None,
+        uploaded_size: tuple[int, int] | None = None,
     ) -> EvaluationResult:
         """Evaluate a prediction against the expected answer.
 
@@ -365,6 +373,7 @@ class QATask(Task):
             prediction: Raw model output text.
             match_mode: ``"strict"`` or ``"judge"``.
             judge: Optional LLM judge for non-strict matching.
+            uploaded_size: Unused; QA scoring does not use coordinates.
 
         Returns:
             Evaluation result with correctness flag.
@@ -384,7 +393,12 @@ class QATask(Task):
 class OCRTask(QATask):
     """Full-text transcription task scored by character similarity."""
 
-    def build_prompt(self, sample: Sample) -> str:
+    def build_prompt(
+        self,
+        sample: Sample,
+        *,
+        uploaded_size: tuple[int, int] | None = None,
+    ) -> str:
         """Return the OCR instruction block verbatim.
 
         OCR questions are self-contained instruction sets, so no
@@ -392,6 +406,8 @@ class OCRTask(QATask):
 
         Args:
             sample: A ``QASample`` instance.
+            uploaded_size: Unused; OCR prompts do not reference image
+                dimensions.
 
         Returns:
             The question text unchanged.
@@ -405,6 +421,7 @@ class OCRTask(QATask):
         *,
         match_mode: str = "strict",
         judge: Judge | None = None,
+        uploaded_size: tuple[int, int] | None = None,
     ) -> EvaluationResult:
         """Score a transcription by normalized character similarity.
 
@@ -413,6 +430,7 @@ class OCRTask(QATask):
             prediction: Raw model output text.
             match_mode: Ignored; OCR is always scored by similarity.
             judge: Ignored; OCR is always scored by similarity.
+            uploaded_size: Unused; OCR scoring does not use coordinates.
 
         Returns:
             Evaluation result with a [0, 1] similarity score and a
@@ -448,6 +466,7 @@ class CountingTask(QATask):
         *,
         match_mode: str = "strict",
         judge: Judge | None = None,
+        uploaded_size: tuple[int, int] | None = None,
     ) -> EvaluationResult:
         """Compare parsed integer counts; the count must be exact.
 
@@ -457,6 +476,7 @@ class CountingTask(QATask):
             match_mode: Ignored unless the expected answer is not an
                 integer, in which case strict matching applies.
             judge: Ignored; counts are compared deterministically.
+            uploaded_size: Unused; counting does not use coordinates.
 
         Returns:
             Evaluation result with correctness flag.
