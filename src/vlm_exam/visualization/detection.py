@@ -13,9 +13,11 @@
 # limitations under the License.
 
 import copy
+import math
 from pathlib import Path
 
 import cv2
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import supervision as sv
@@ -27,11 +29,13 @@ from vlm_exam.visualization.theme import (
     DIVIDER_COLOR,
     FAILURE_COLOR,
     FAILURE_TEXT_COLOR,
+    HERO_IMAGE_RECT,
     HERO_RAIL_RECT,
     PANEL_LABEL_COLOR,
     ROBOFLOW_PURPLE,
     SUCCESS_COLOR,
     SUCCESS_TEXT_COLOR,
+    TEXT_PRIMARY,
     create_hero_card,
     draw_brand_footer,
     draw_identity_row,
@@ -78,13 +82,34 @@ _TEXT_COLOR_PALETTE = sv.ColorPalette(
     ]
 )
 
+# Independent knobs that happen to share a value: display fit is downscale-only
+# for card layout, annotation normalization scales up or down so box thickness
+# and label size stay consistent across source resolutions.
 _TARGET_LONG_EDGE = 1024
-_LABEL_FONT_SIZE = 16
-_LABEL_PADDING = 8
+_ANNOTATION_LONG_EDGE = 1024
+_LABEL_FONT_SIZE = 18
+_LABEL_PADDING = 9
 _LABEL_CHAR_WIDTH_FACTOR = 0.62
 _COLLISION_FRACTION = 0.5
 _MIN_COLLIDING_LABELS = 8
 _MAX_LABELED_BOXES = 30
+
+_BOX_THICKNESS = 3
+
+_LEGEND_MAX_ROWS_PER_COLUMN = 8
+_LEGEND_ROW_HEIGHT_INCHES = 0.28
+_LEGEND_SWATCH_INCHES = 0.16
+_LEGEND_PADDING_INCHES = 0.12
+_LEGEND_SWATCH_GAP_INCHES = 0.09
+_LEGEND_COLUMN_GAP_INCHES = 0.28
+_LEGEND_FONT_SIZE = 11.5
+_LEGEND_CHAR_WIDTH_INCHES = _LEGEND_FONT_SIZE * 0.55 / 72
+_LEGEND_MARGIN_INCHES = 0.14
+_LEGEND_PANEL_ALPHA = 0.88
+_LEGEND_PANEL_CORNER_INCHES = 0.06
+_LEGEND_SWATCH_CORNER_INCHES = 0.03
+_LEGEND_SWATCH_EDGE_COLOR = (0.0, 0.0, 0.0, 0.28)
+_LEGEND_SWATCH_EDGE_WIDTH = 0.6
 
 _DIFF_ONLY_EXPECTED_COLOR = SUCCESS_COLOR
 _DIFF_ONLY_MODEL_COLOR = FAILURE_COLOR
@@ -101,10 +126,33 @@ def _display_scale(width: int, height: int) -> float:
     return _TARGET_LONG_EDGE / long_edge
 
 
+def _annotation_scale(width: int, height: int) -> float:
+    return _ANNOTATION_LONG_EDGE / max(width, height)
+
+
 def _scale_detections(detections: sv.Detections, scale: float) -> sv.Detections:
     scaled = copy.deepcopy(detections)
     scaled.xyxy = (scaled.xyxy * scale).astype(np.float32)
     return scaled
+
+
+def _normalize_for_annotation(
+    image: np.ndarray,
+    detections_list: list[sv.Detections],
+) -> tuple[np.ndarray, list[sv.Detections]]:
+    height, width = image.shape[:2]
+    scale = _annotation_scale(width, height)
+    interpolation = cv2.INTER_AREA if scale < 1.0 else cv2.INTER_CUBIC
+    resized = cv2.resize(
+        image,
+        (round(width * scale), round(height * scale)),
+        interpolation=interpolation,
+    )
+    scaled = [
+        _scale_detections(detections, scale) if len(detections) > 0 else detections
+        for detections in detections_list
+    ]
+    return resized, scaled
 
 
 def _label_rectangles(
@@ -157,7 +205,7 @@ def _labels_collide(
     if len(detections) < 2:
         return False
 
-    scale = _display_scale(*image_wh)
+    scale = _annotation_scale(*image_wh)
     scaled = _scale_detections(detections, scale)
     rectangles = _label_rectangles(scaled, labels)
 
@@ -185,9 +233,9 @@ def _annotate_image(
     Resizes the image to a fixed long-edge before annotation so that font
     size and line thickness appear identical across different resolutions.
     """
-    image, (detections,) = _scale_for_display(image, [detections])
+    image, (detections,) = _normalize_for_annotation(image, [detections])
 
-    box_annotator = sv.BoxAnnotator(color=_COLOR_PALETTE, thickness=2)
+    box_annotator = sv.BoxAnnotator(color=_COLOR_PALETTE, thickness=_BOX_THICKNESS)
     scene = image.copy()
     scene = box_annotator.annotate(scene=scene, detections=detections)
 
@@ -207,6 +255,257 @@ def _annotate_image(
     return scene
 
 
+def _legend_entries(
+    class_ids: np.ndarray | None,
+    labels: list[str],
+) -> list[tuple[str, sv.Color]]:
+    if class_ids is None:
+        return []
+    entries: list[tuple[str, sv.Color]] = []
+    seen: set[int] = set()
+    for class_id, label in zip(class_ids, labels):
+        class_id = int(class_id)
+        if class_id in seen:
+            continue
+        seen.add(class_id)
+        entries.append((label, _COLOR_PALETTE.by_idx(class_id)))
+    return entries
+
+
+def _draw_class_legend_overlay(
+    figure: plt.Figure,
+    image_rect: tuple[float, float, float, float],
+    entries: list[tuple[str, sv.Color]],
+) -> None:
+    if not entries:
+        return
+    fonts = load_fonts()
+    columns = 1 if len(entries) <= _LEGEND_MAX_ROWS_PER_COLUMN else 2
+    rows = math.ceil(len(entries) / columns)
+    longest = max(len(name) for name, _ in entries)
+    column_width = (
+        _LEGEND_SWATCH_INCHES
+        + _LEGEND_SWATCH_GAP_INCHES
+        + longest * _LEGEND_CHAR_WIDTH_INCHES
+    )
+    width_inches = (
+        2 * _LEGEND_PADDING_INCHES
+        + columns * column_width
+        + (columns - 1) * _LEGEND_COLUMN_GAP_INCHES
+    )
+    height_inches = 2 * _LEGEND_PADDING_INCHES + rows * _LEGEND_ROW_HEIGHT_INCHES
+
+    fig_width, fig_height = CARD_FIGURE_SIZE
+    left, bottom, _, image_height = image_rect
+    panel_width = width_inches / fig_width
+    panel_height = height_inches / fig_height
+    panel_left = left + _LEGEND_MARGIN_INCHES / fig_width
+    panel_bottom = (
+        bottom + image_height - _LEGEND_MARGIN_INCHES / fig_height - panel_height
+    )
+
+    axes = figure.add_axes((panel_left, panel_bottom, panel_width, panel_height))
+    axes.set_axis_off()
+    axes.set_xlim(0, width_inches)
+    axes.set_ylim(0, height_inches)
+    axes.add_patch(
+        mpatches.FancyBboxPatch(
+            (0.0, 0.0),
+            width_inches,
+            height_inches,
+            boxstyle=f"round,pad=0,rounding_size={_LEGEND_PANEL_CORNER_INCHES}",
+            facecolor=(1.0, 1.0, 1.0, _LEGEND_PANEL_ALPHA),
+            edgecolor=DIVIDER_COLOR,
+            linewidth=1.0,
+            clip_on=False,
+            zorder=5,
+        )
+    )
+
+    column_stride = column_width + _LEGEND_COLUMN_GAP_INCHES
+
+    for index, (name, color) in enumerate(entries):
+        column = index // rows
+        row = index % rows
+        x = _LEGEND_PADDING_INCHES + column * column_stride
+        y = (
+            height_inches
+            - _LEGEND_PADDING_INCHES
+            - (row + 0.5) * _LEGEND_ROW_HEIGHT_INCHES
+        )
+        axes.add_patch(
+            mpatches.FancyBboxPatch(
+                (x, y - _LEGEND_SWATCH_INCHES / 2),
+                _LEGEND_SWATCH_INCHES,
+                _LEGEND_SWATCH_INCHES,
+                boxstyle=f"round,pad=0,rounding_size={_LEGEND_SWATCH_CORNER_INCHES}",
+                facecolor=color.as_hex(),
+                edgecolor=_LEGEND_SWATCH_EDGE_COLOR,
+                linewidth=_LEGEND_SWATCH_EDGE_WIDTH,
+                clip_on=False,
+                zorder=6,
+            )
+        )
+        axes.text(
+            x + _LEGEND_SWATCH_INCHES + _LEGEND_SWATCH_GAP_INCHES,
+            y,
+            name,
+            fontsize=_LEGEND_FONT_SIZE,
+            ha="left",
+            va="center",
+            color=TEXT_PRIMARY,
+            font=fonts.medium,
+            zorder=6,
+            clip_on=False,
+        )
+
+
+def _draw_rounded_rectangle(
+    image: np.ndarray,
+    top_left: tuple[int, int],
+    bottom_right: tuple[int, int],
+    radius: int,
+    color: tuple[int, int, int],
+    thickness: int,
+) -> None:
+    x1, y1 = top_left
+    x2, y2 = bottom_right
+    radius = max(0, min(radius, (x2 - x1) // 2, (y2 - y1) // 2))
+    corners = (
+        (x1 + radius, y1 + radius, 180),
+        (x2 - radius, y1 + radius, 270),
+        (x2 - radius, y2 - radius, 0),
+        (x1 + radius, y2 - radius, 90),
+    )
+    if thickness < 0:
+        cv2.rectangle(image, (x1 + radius, y1), (x2 - radius, y2), color, -1)
+        cv2.rectangle(image, (x1, y1 + radius), (x2, y2 - radius), color, -1)
+        for center_x, center_y, _ in corners:
+            cv2.circle(image, (center_x, center_y), radius, color, -1)
+        return
+    cv2.line(image, (x1 + radius, y1), (x2 - radius, y1), color, thickness, cv2.LINE_AA)
+    cv2.line(image, (x1 + radius, y2), (x2 - radius, y2), color, thickness, cv2.LINE_AA)
+    cv2.line(image, (x1, y1 + radius), (x1, y2 - radius), color, thickness, cv2.LINE_AA)
+    cv2.line(image, (x2, y1 + radius), (x2, y2 - radius), color, thickness, cv2.LINE_AA)
+    for center_x, center_y, start_angle in corners:
+        cv2.ellipse(
+            image,
+            (center_x, center_y),
+            (radius, radius),
+            start_angle,
+            0,
+            90,
+            color,
+            thickness,
+            cv2.LINE_AA,
+        )
+
+
+def _draw_class_legend_cv2(
+    image: np.ndarray,
+    entries: list[tuple[str, sv.Color]],
+) -> np.ndarray:
+    if not entries:
+        return image
+
+    height, width = image.shape[:2]
+    unit = max(width, height) / _ANNOTATION_LONG_EDGE
+    padding = round(13 * unit)
+    swatch = round(18 * unit)
+    row_height = round(28 * unit)
+    swatch_gap = round(9 * unit)
+    column_gap = round(22 * unit)
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 0.52 * unit
+    text_thickness = max(1, round(unit))
+
+    columns = 1 if len(entries) <= _LEGEND_MAX_ROWS_PER_COLUMN else 2
+    rows = math.ceil(len(entries) / columns)
+    text_widths = [
+        cv2.getTextSize(name, font, font_scale, text_thickness)[0][0]
+        for name, _ in entries
+    ]
+    column_text_widths = []
+    for column in range(columns):
+        widths = text_widths[column * rows : (column + 1) * rows]
+        column_text_widths.append(max(widths) if widths else 0)
+
+    panel_width = (
+        2 * padding
+        + sum(column_text_widths)
+        + columns * (swatch + swatch_gap)
+        + (columns - 1) * column_gap
+    )
+    panel_height = 2 * padding + rows * row_height
+
+    origin_x = round(10 * unit)
+    origin_y = origin_x
+    panel_radius = round(8 * unit)
+    swatch_radius = round(4 * unit)
+    border_thickness = max(1, round(unit))
+
+    overlay = image.copy()
+    _draw_rounded_rectangle(
+        overlay,
+        (origin_x, origin_y),
+        (origin_x + panel_width, origin_y + panel_height),
+        panel_radius,
+        (255, 255, 255),
+        -1,
+    )
+    cv2.addWeighted(
+        overlay, _LEGEND_PANEL_ALPHA, image, 1 - _LEGEND_PANEL_ALPHA, 0, image
+    )
+    _draw_rounded_rectangle(
+        image,
+        (origin_x, origin_y),
+        (origin_x + panel_width, origin_y + panel_height),
+        panel_radius,
+        (237, 232, 232),
+        border_thickness,
+    )
+
+    column_x = origin_x + padding
+    for column in range(columns):
+        for row in range(rows):
+            index = column * rows + row
+            if index >= len(entries):
+                break
+            name, color = entries[index]
+            row_top = origin_y + padding + row * row_height
+            swatch_y = row_top + (row_height - swatch) // 2
+            _draw_rounded_rectangle(
+                image,
+                (column_x, swatch_y),
+                (column_x + swatch, swatch_y + swatch),
+                swatch_radius,
+                color.as_bgr(),
+                -1,
+            )
+            _draw_rounded_rectangle(
+                image,
+                (column_x, swatch_y),
+                (column_x + swatch, swatch_y + swatch),
+                swatch_radius,
+                (120, 120, 130),
+                border_thickness,
+            )
+            text_x = column_x + swatch + swatch_gap
+            text_y = row_top + row_height // 2 + round(6 * unit)
+            cv2.putText(
+                image,
+                name,
+                (text_x, text_y),
+                font,
+                font_scale,
+                (46, 26, 26),
+                text_thickness,
+                cv2.LINE_AA,
+            )
+        column_x += swatch + swatch_gap + column_text_widths[column] + column_gap
+    return image
+
+
 def save_annotated_detection(
     image: np.ndarray,
     detections: sv.Detections,
@@ -222,8 +521,8 @@ def save_annotated_detection(
         labels: Class labels, one per detection.
         output_path: Destination PNG path.
         label_mode: ``"labels"`` draws class labels on boxes, ``"boxes"``
-            draws boxes only, and ``"auto"`` picks based on estimated
-            label overlap.
+            draws boxes with an in-image class color legend, and ``"auto"``
+            picks based on estimated label overlap.
 
     Returns:
         The path written.
@@ -243,6 +542,10 @@ def save_annotated_detection(
         labels,
         label_mode == "labels",
     )
+    if label_mode == "boxes":
+        annotated = _draw_class_legend_cv2(
+            annotated, _legend_entries(detections.class_id, labels)
+        )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(output_path), annotated)
     return output_path
@@ -352,8 +655,8 @@ def plot_detection_card(
         config: Benchmark config for display info.
         map_score: Per-image mAP@50 score if available.
         label_mode: ``"labels"`` draws class labels on boxes, ``"boxes"``
-            draws boxes only, and ``"auto"`` picks based on estimated
-            label overlap.
+            draws boxes with an in-image class color legend, and ``"auto"``
+            picks based on estimated label overlap.
 
     Returns:
         Matplotlib figure with the detection card.
@@ -379,6 +682,13 @@ def plot_detection_card(
     figure, image_axes, rail = create_hero_card()
     image_axes.imshow(pred_annotated)
     draw_image_stage(figure, image_axes)
+
+    if label_mode == "boxes":
+        _draw_class_legend_overlay(
+            figure,
+            _fit_figure_rect(HERO_IMAGE_RECT, pred_annotated.shape),
+            _legend_entries(predictions.class_id, pred_labels),
+        )
 
     draw_identity_row(
         rail,

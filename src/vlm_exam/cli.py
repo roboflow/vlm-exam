@@ -997,7 +997,10 @@ def visualize(
     "label_mode",
     default="auto",
     type=click.Choice(["auto", "labels", "boxes"]),
-    help="Draw class labels on boxes, boxes only, or pick automatically.",
+    help=(
+        "Draw class labels on boxes, boxes with an in-image class color "
+        "legend, or pick automatically based on label density."
+    ),
 )
 @click.option(
     "--format",

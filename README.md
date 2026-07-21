@@ -144,8 +144,9 @@ vlm-exam detection-visualize \
 ```
 
 `--label-mode` controls box labeling: `labels` draws class names on the boxes,
-`legend` draws boxes only with a color legend below the images, and `auto`
-(default) picks based on label density.
+`boxes` draws boxes with a class color legend overlaid on the image (so colors
+still map to class names when per-box labels would be too crowded), and `auto`
+(default) picks between the two based on label density.
 
 ### Generate leaderboards
 

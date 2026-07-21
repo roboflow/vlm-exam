@@ -13,6 +13,9 @@ data/
 visualizations/detection/
 visualizations/leaderboards/alternative/
 
+web/homepage-assets/
+web/homepage-assets.zip
+
 logs/
 results-smoke/
 experiments/

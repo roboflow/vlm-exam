@@ -18,7 +18,12 @@ import io
 import openai
 from PIL import Image
 
-from vlm_exam.providers.base import Provider, Usage
+from vlm_exam.providers.base import (
+    REQUEST_TIMEOUT_SECONDS,
+    Provider,
+    Usage,
+    call_with_retries,
+)
 
 
 def _image_to_base64_url(image: Image.Image) -> str:
@@ -39,7 +44,11 @@ class OpenAIProvider(Provider):
     ) -> None:
         self._model = model
         self._wire_model_id = provider_model_id or model
-        self._client = openai.OpenAI(api_key=api_key)
+        self._client = openai.OpenAI(
+            api_key=api_key,
+            timeout=REQUEST_TIMEOUT_SECONDS,
+            max_retries=0,
+        )
 
     @property
     def model(self) -> str:
@@ -53,18 +62,20 @@ class OpenAIProvider(Provider):
     ) -> tuple[str, Usage]:
         data_url = _image_to_base64_url(image)
 
-        response = self._client.responses.create(
-            model=self._wire_model_id,
-            reasoning={"effort": effort},
-            input=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "input_image", "image_url": data_url},
-                        {"type": "input_text", "text": prompt},
-                    ],
-                }
-            ],
+        response = call_with_retries(
+            lambda: self._client.responses.create(
+                model=self._wire_model_id,
+                reasoning={"effort": effort},
+                input=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "input_image", "image_url": data_url},
+                            {"type": "input_text", "text": prompt},
+                        ],
+                    }
+                ],
+            )
         )
 
         answer = response.output_text.strip()
