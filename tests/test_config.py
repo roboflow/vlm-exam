@@ -129,7 +129,7 @@ class TestResolutionTier:
                 "name": "Claude Sonnet 5",
                 "lab": "anthropic",
                 "provider": "anthropic",
-                "detection_coordinate_format": "xyxy_absolute_provider_upload",
+                "detection_coordinate_format": "xyxy_absolute_resized_image",
                 "pricing": {
                     "input_per_million_tokens": 2.0,
                     "output_per_million_tokens": 10.0,
@@ -144,7 +144,7 @@ class TestResolutionTier:
                 "name": "Claude Haiku",
                 "lab": "anthropic",
                 "provider": "anthropic",
-                "detection_coordinate_format": "xyxy_absolute_provider_upload",
+                "detection_coordinate_format": "xyxy_absolute_resized_image",
                 "resolution_tier": "standard",
                 "pricing": {
                     "input_per_million_tokens": 1.0,
@@ -161,7 +161,7 @@ class TestResolutionTier:
                     "name": "Claude Typo",
                     "lab": "anthropic",
                     "provider": "anthropic",
-                    "detection_coordinate_format": "xyxy_absolute_provider_upload",
+                    "detection_coordinate_format": "xyxy_absolute_resized_image",
                     "resolution_tier": "standrad",
                     "pricing": {
                         "input_per_million_tokens": 1.0,
@@ -179,7 +179,7 @@ class TestProviderUploadRouteGuard:
                     "name": "Bad Model",
                     "lab": "openai",
                     "provider": "openai",
-                    "detection_coordinate_format": "xyxy_absolute_provider_upload",
+                    "detection_coordinate_format": "xyxy_absolute_resized_image",
                     "pricing": {
                         "input_per_million_tokens": 1.0,
                         "output_per_million_tokens": 2.0,
@@ -193,7 +193,7 @@ class TestProviderUploadRouteGuard:
                 {
                     "name": "Claude With Fallback",
                     "lab": "anthropic",
-                    "detection_coordinate_format": "xyxy_absolute_provider_upload",
+                    "detection_coordinate_format": "xyxy_absolute_resized_image",
                     "routes": [
                         {"provider": "anthropic"},
                         {"provider": "openrouter", "provider_model_id": "x/y"},
@@ -211,7 +211,7 @@ class TestProviderUploadRouteGuard:
                 "name": "Claude Opus",
                 "lab": "anthropic",
                 "provider": "anthropic",
-                "detection_coordinate_format": "xyxy_absolute_provider_upload",
+                "detection_coordinate_format": "xyxy_absolute_resized_image",
                 "pricing": {
                     "input_per_million_tokens": 5.0,
                     "output_per_million_tokens": 25.0,

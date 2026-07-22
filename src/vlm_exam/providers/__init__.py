@@ -29,7 +29,7 @@ PRE_RESIZING_PROVIDERS = frozenset({"anthropic"})
 """Providers that pre-resize uploads to match the model's native resolution.
 
 These are the only providers for which the
-``xyxy_absolute_provider_upload`` detection coordinate format is valid,
+``xyxy_absolute_resized_image`` detection coordinate format is valid,
 and the only ones that accept a ``resolution_tier``.
 """
 

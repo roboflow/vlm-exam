@@ -20,13 +20,17 @@ from typing import Any
 import openai
 from PIL import Image
 
-from vlm_exam.providers.base import Provider, Usage
+from vlm_exam.providers.base import (
+    REQUEST_TIMEOUT_SECONDS,
+    Provider,
+    RetryStats,
+    Usage,
+    call_with_retries,
+)
 
 _BASE_URL = "https://openrouter.ai/api/v1"
 _MAX_OUTPUT_TOKENS = 8192
 _EMPTY_RESPONSE_TEXT = "[model returned no content]"
-_REQUEST_TIMEOUT_SECONDS = 120.0
-_MAX_RETRIES = 3
 
 
 def _image_to_base64_url(image: Image.Image) -> str:
@@ -78,8 +82,8 @@ class OpenRouterProvider(Provider):
         self._client = openai.OpenAI(
             base_url=_BASE_URL,
             api_key=api_key or os.environ.get("OPENROUTER_API_KEY"),
-            timeout=_REQUEST_TIMEOUT_SECONDS,
-            max_retries=_MAX_RETRIES,
+            timeout=REQUEST_TIMEOUT_SECONDS,
+            max_retries=0,
         )
 
     @property
@@ -91,31 +95,37 @@ class OpenRouterProvider(Provider):
         image: Image.Image,
         prompt: str,
         effort: str,
-    ) -> tuple[str, Usage]:
+    ) -> tuple[str, Usage, RetryStats]:
         data_url = _image_to_base64_url(image)
 
-        response = self._client.chat.completions.create(
-            model=self._provider_model_id,
-            max_tokens=_MAX_OUTPUT_TOKENS,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "image_url", "image_url": {"url": data_url}},
-                        {"type": "text", "text": prompt},
-                    ],
-                }
-            ],
-            extra_body={
-                "reasoning": _reasoning_config(effort, self._provider_model_id)
-            },
+        response, retry_stats = call_with_retries(
+            lambda: self._client.chat.completions.create(
+                model=self._provider_model_id,
+                max_tokens=_MAX_OUTPUT_TOKENS,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "image_url", "image_url": {"url": data_url}},
+                            {"type": "text", "text": prompt},
+                        ],
+                    }
+                ],
+                extra_body={
+                    "reasoning": _reasoning_config(effort, self._provider_model_id)
+                },
+            )
         )
 
         message = response.choices[0].message
         answer = (message.content or _EMPTY_RESPONSE_TEXT).strip()
 
         usage = response.usage
-        return answer, Usage(
-            input_tokens=usage.prompt_tokens if usage else 0,
-            output_tokens=usage.completion_tokens if usage else 0,
+        return (
+            answer,
+            Usage(
+                input_tokens=usage.prompt_tokens if usage else 0,
+                output_tokens=usage.completion_tokens if usage else 0,
+            ),
+            retry_stats,
         )

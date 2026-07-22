@@ -20,7 +20,7 @@ import anthropic
 import openai
 from PIL import Image
 
-from vlm_exam.providers.base import Provider, Usage
+from vlm_exam.providers.base import Provider, RetryStats, Usage
 
 _logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ class FallbackProvider(Provider):
         image: Image.Image,
         prompt: str,
         effort: str,
-    ) -> tuple[str, Usage]:
+    ) -> tuple[str, Usage, RetryStats]:
         while True:
             provider = self._providers[self._active_index]
             try:

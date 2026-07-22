@@ -101,7 +101,7 @@ vlm-exam summary --dataset-directory data/detection/train
   its native grounding convention (GitHub, forums, papers, official docs).
   Valid values are the `DetectionCoordinateFormat` enum strings in
   `src/vlm_exam/tasks/detection.py`: `yxyx_normalized_0_to_1000`,
-  `xyxy_normalized_0_to_1000`, `xyxy_absolute_provider_upload`,
+  `xyxy_normalized_0_to_1000`, `xyxy_absolute_resized_image`,
   `xyxy_absolute_original_image`, and `yxyx_absolute_original_image`. The
   format follows the model, not the route -- the same weights use the same
   box convention on Google direct and OpenRouter.

@@ -14,12 +14,14 @@
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 import click
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from PIL import Image
 
 _CRITIQUE_PROMPT = (
     "You are a senior visual designer reviewing an automatically generated "
@@ -71,14 +73,56 @@ _CRITIQUE_PROMPT = (
     "If the card looks clean, reply with exactly: NO ISSUES"
 )
 
+_ANNOTATION_CRITIQUE_PROMPT = (
+    "You are a senior visual designer reviewing object-detection benchmark "
+    "result cards. Each card shows, on its left half, an input image "
+    "annotated with predicted bounding boxes drawn in distinct colors. When "
+    "per-box text labels would be too crowded, the card instead draws a "
+    "class color legend: a translucent panel (usually top-left, one or two "
+    "columns) with a colored swatch next to each class name, so viewers can "
+    "map each box color to its class.\n\n"
+    "You are given a MONTAGE that tiles several cards of DIFFERENT source "
+    "image resolutions together. Judge ONLY these two things:\n"
+    "1. Legend: when a card has no per-box text labels, is a color legend "
+    "present, readable, and unambiguous? Flag missing legends, low contrast "
+    "between swatch/text and the panel, swatches whose color is hard to tell "
+    "apart from the box color they represent, clipped or truncated class "
+    "names, a panel that overlaps important image content, or an oversized "
+    "or undersized panel.\n"
+    "2. Consistency: across the tiled cards, do the bounding-box line "
+    "thickness and the label/legend font sizes look VISUALLY CONSISTENT "
+    "regardless of source resolution? Flag any card whose boxes look "
+    "noticeably thicker or thinner, or whose text looks larger or smaller, "
+    "than the others.\n\n"
+    "Do NOT critique the underlying photo content, the box positions, the "
+    "right-hand rail, or detection accuracy. Focus solely on legend "
+    "readability and cross-card consistency of box thickness and font size.\n\n"
+    "Format: one numbered line per issue, starting with a severity tag "
+    "[HIGH], [MEDIUM], or [LOW], then a specific, actionable description that "
+    "names the affected card (by grid position, e.g. top-left) and what to "
+    "change. If both aspects look clean and consistent, reply with exactly: "
+    "NO ISSUES"
+)
 
-def critique_image(client: genai.Client, model: str, image_path: Path) -> str:
+_PROMPTS = {
+    "layout": _CRITIQUE_PROMPT,
+    "annotations": _ANNOTATION_CRITIQUE_PROMPT,
+}
+
+
+def critique_image(
+    client: genai.Client,
+    model: str,
+    image_path: Path,
+    prompt: str = _CRITIQUE_PROMPT,
+) -> str:
     """Ask a vision model to critique one rendered card image.
 
     Args:
         client: Configured google-genai client.
         model: Gemini model identifier.
         image_path: Path to the PNG card to review.
+        prompt: Critique instruction sent alongside the image.
 
     Returns:
         The model's critique text.
@@ -88,10 +132,63 @@ def critique_image(client: genai.Client, model: str, image_path: Path) -> str:
     )
     response = client.models.generate_content(
         model=model,
-        contents=[image_part, _CRITIQUE_PROMPT],
+        contents=[image_part, prompt],
         config=types.GenerateContentConfig(temperature=0.0),
     )
     return (response.text or "EMPTY RESPONSE").strip()
+
+
+def build_montage(
+    image_paths: list[Path],
+    output_path: Path,
+    columns: int = 2,
+    cell_width: int = 900,
+    gap: int = 24,
+) -> Path:
+    """Tile card PNGs into a single montage for cross-card comparison.
+
+    Args:
+        image_paths: Card PNGs to tile, in reading order.
+        output_path: Destination PNG path for the montage.
+        columns: Number of grid columns.
+        cell_width: Width each card is resized to before tiling.
+        gap: Pixel gap between cells and around the grid.
+
+    Returns:
+        The montage path written.
+    """
+    resized: list[Image.Image] = []
+    for path in image_paths:
+        image = Image.open(path).convert("RGB")
+        width, height = image.size
+        new_height = round(height * cell_width / width)
+        resized.append(image.resize((cell_width, new_height)))
+
+    rows = math.ceil(len(resized) / columns)
+    row_heights = [
+        max(
+            (image.size[1] for image in resized[row * columns : (row + 1) * columns]),
+            default=0,
+        )
+        for row in range(rows)
+    ]
+    total_width = gap + columns * (cell_width + gap)
+    total_height = gap + sum(row_heights) + rows * gap
+    canvas = Image.new("RGB", (total_width, total_height), (255, 255, 255))
+
+    y = gap
+    for row in range(rows):
+        for column in range(columns):
+            index = row * columns + column
+            if index >= len(resized):
+                break
+            x = gap + column * (cell_width + gap)
+            canvas.paste(resized[index], (x, y))
+        y += row_heights[row] + gap
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(output_path)
+    return output_path
 
 
 @click.command()
@@ -112,25 +209,53 @@ def critique_image(client: genai.Client, model: str, image_path: Path) -> str:
     type=click.Path(),
     help="Markdown report path (default: critique.md next to the images).",
 )
-def main(images_directory: str, model: str, report_file: str | None) -> None:
+@click.option(
+    "--focus",
+    default="layout",
+    type=click.Choice(sorted(_PROMPTS)),
+    help="Critique focus: 'layout' (general polish) or 'annotations' "
+    "(detection legend and cross-card box/font consistency).",
+)
+@click.option(
+    "--montage/--no-montage",
+    default=False,
+    help="Tile all cards into one montage and critique that instead of "
+    "each card separately (needed for cross-card consistency checks).",
+)
+def main(
+    images_directory: str,
+    model: str,
+    report_file: str | None,
+    focus: str,
+    montage: bool,
+) -> None:
     """Review rendered benchmark cards with a vision-model design critic."""
     load_dotenv()
     client = genai.Client()
 
     images_path = Path(images_directory)
     image_files = sorted(images_path.glob("*.png"))
+    image_files = [path for path in image_files if path.name != "_montage.png"]
     if not image_files:
         click.echo(f"No .png files found in {images_directory}")
         return
 
+    prompt = _PROMPTS[focus]
     report_path = Path(report_file) if report_file else images_path / "critique.md"
-    sections: list[str] = [f"# Card critique ({model})\n"]
+    sections: list[str] = [f"# Card critique ({model}, focus={focus})\n"]
 
-    for image_path in image_files:
-        click.echo(f"\n=== {image_path.name} ===")
-        feedback = critique_image(client, model, image_path)
+    if montage:
+        montage_path = build_montage(image_files, images_path / "_montage.png")
+        click.echo(f"\n=== montage of {len(image_files)} cards ===")
+        feedback = critique_image(client, model, montage_path, prompt)
         click.echo(feedback)
-        sections.append(f"## {image_path.name}\n\n{feedback}\n")
+        sections.append(f"## montage ({len(image_files)} cards)\n\n{feedback}\n")
+    else:
+        for image_path in image_files:
+            click.echo(f"\n=== {image_path.name} ===")
+            feedback = critique_image(client, model, image_path, prompt)
+            click.echo(feedback)
+            sections.append(f"## {image_path.name}\n\n{feedback}\n")
 
     report_path.write_text("\n".join(sections))
     click.echo(f"\nReport written to {report_path}")

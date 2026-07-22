@@ -93,7 +93,7 @@ class DetectionCoordinateFormat(str, Enum):
 
     YXYX_NORMALIZED_0_TO_1000 = "yxyx_normalized_0_to_1000"
     XYXY_NORMALIZED_0_TO_1000 = "xyxy_normalized_0_to_1000"
-    XYXY_ABSOLUTE_PROVIDER_UPLOAD = "xyxy_absolute_provider_upload"
+    XYXY_ABSOLUTE_RESIZED_IMAGE = "xyxy_absolute_resized_image"
     XYXY_ABSOLUTE_ORIGINAL_IMAGE = "xyxy_absolute_original_image"
     YXYX_ABSOLUTE_ORIGINAL_IMAGE = "yxyx_absolute_original_image"
 
@@ -118,7 +118,7 @@ class DetectionTask(Task):
     def __init__(
         self,
         prompt_classes: str = "image",
-        coordinate_format: str | DetectionCoordinateFormat = (
+        coordinate_format: DetectionCoordinateFormat = (
             DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000
         ),
     ) -> None:
@@ -138,7 +138,7 @@ class DetectionTask(Task):
                 f"Unknown prompt_classes mode {prompt_classes!r}. Valid modes: {modes}"
             )
         self._prompt_classes = prompt_classes
-        self._coordinate_format = DetectionCoordinateFormat(coordinate_format)
+        self._coordinate_format = coordinate_format
         self._classes: list[str] = []
 
     @property
@@ -262,9 +262,9 @@ class DetectionTask(Task):
         class_list = ", ".join(image_classes)
 
         match self._coordinate_format:
-            case DetectionCoordinateFormat.XYXY_ABSOLUTE_PROVIDER_UPLOAD:
+            case DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE:
                 if uploaded_size is None:
-                    fmt = DetectionCoordinateFormat.XYXY_ABSOLUTE_PROVIDER_UPLOAD
+                    fmt = DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE
                     raise ValueError(
                         f"coordinate format {fmt.value!r} requires uploaded_size; "
                         "it must come from a provider that pre-resizes uploads."
@@ -360,7 +360,7 @@ def parse_prediction(
     prediction: str,
     resolution_wh: tuple[int, int],
     classes: list[str],
-    coordinate_format: str | DetectionCoordinateFormat = (
+    coordinate_format: DetectionCoordinateFormat = (
         DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000
     ),
     *,
@@ -387,9 +387,8 @@ def parse_prediction(
     Returns:
         Parsed detections, or empty detections on failure.
     """
-    format_enum = DetectionCoordinateFormat(coordinate_format)
-    match format_enum:
-        case DetectionCoordinateFormat.XYXY_ABSOLUTE_PROVIDER_UPLOAD:
+    match coordinate_format:
+        case DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE:
             if uploaded_wh is None:
                 max_edge, max_tokens = resolution_tier_limits(resolution_tier)
                 uploaded_wh = compute_resize_dimensions(
@@ -679,9 +678,11 @@ def compute_dataset_map(
             sample_result.predicted,
             resolution_wh,
             list(sample.classes),
-            coordinate_format=sample_result.metadata.get(
-                "coordinate_format",
-                DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000.value,
+            coordinate_format=DetectionCoordinateFormat(
+                sample_result.metadata.get(
+                    "coordinate_format",
+                    DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000.value,
+                )
             ),
             uploaded_wh=recorded_uploaded_wh(sample_result.metadata),
         )

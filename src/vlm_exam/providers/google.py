@@ -18,7 +18,13 @@ from google import genai
 from google.genai import types
 from PIL import Image
 
-from vlm_exam.providers.base import Provider, Usage
+from vlm_exam.providers.base import (
+    REQUEST_TIMEOUT_SECONDS,
+    Provider,
+    RetryStats,
+    Usage,
+    call_with_retries,
+)
 
 _LEGACY_THINKING_BUDGETS = {"low": 128, "medium": 2048, "high": 8192}
 
@@ -49,7 +55,16 @@ class GoogleProvider(Provider):
     ) -> None:
         self._model = model
         self._wire_model_id = provider_model_id or model
-        self._client = genai.Client(api_key=api_key)
+        # timeout is milliseconds here; retry is disabled (attempts=1) so
+        # call_with_retries is the single retry authority, matching the
+        # max_retries=0 set on the other providers.
+        self._client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(
+                timeout=int(REQUEST_TIMEOUT_SECONDS * 1000),
+                retry_options=types.HttpRetryOptions(attempts=1),
+            ),
+        )
 
     @property
     def model(self) -> str:
@@ -60,25 +75,31 @@ class GoogleProvider(Provider):
         image: Image.Image,
         prompt: str,
         effort: str,
-    ) -> tuple[str, Usage]:
+    ) -> tuple[str, Usage, RetryStats]:
         png_bytes = _image_to_png_bytes(image)
 
-        response = self._client.models.generate_content(
-            model=self._wire_model_id,
-            contents=[
-                types.Part.from_bytes(data=png_bytes, mime_type="image/png"),
-                prompt,
-            ],
-            config=types.GenerateContentConfig(
-                thinking_config=_thinking_config(self._wire_model_id, effort),
-            ),
+        response, retry_stats = call_with_retries(
+            lambda: self._client.models.generate_content(
+                model=self._wire_model_id,
+                contents=[
+                    types.Part.from_bytes(data=png_bytes, mime_type="image/png"),
+                    prompt,
+                ],
+                config=types.GenerateContentConfig(
+                    thinking_config=_thinking_config(self._wire_model_id, effort),
+                ),
+            )
         )
 
         answer = response.text.strip()
         output_tokens = response.usage_metadata.candidates_token_count or 0
         thoughts_tokens = response.usage_metadata.thoughts_token_count or 0
 
-        return answer, Usage(
-            input_tokens=response.usage_metadata.prompt_token_count,
-            output_tokens=output_tokens + thoughts_tokens,
+        return (
+            answer,
+            Usage(
+                input_tokens=response.usage_metadata.prompt_token_count,
+                output_tokens=output_tokens + thoughts_tokens,
+            ),
+            retry_stats,
         )

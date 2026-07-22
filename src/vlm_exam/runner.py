@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any
 
 from PIL import Image, ImageOps
 
-from vlm_exam.providers.base import Provider, Usage
+from vlm_exam.providers.base import Provider, RetryStats, Usage
 from vlm_exam.results import RunResult, SampleResult
 from vlm_exam.tasks.base import Sample, Task
 
@@ -100,13 +100,16 @@ def run_benchmark(
 
         usage = Usage(input_tokens=0, output_tokens=0)
         elapsed_seconds: float | None = None
+        total_seconds: float | None = None
+        retry_stats: RetryStats | None = None
         prediction: str
         predict_succeeded = False
 
         try:
             start_time = time.perf_counter()
-            prediction, usage = provider.predict(image, prompt, effort)
-            elapsed_seconds = time.perf_counter() - start_time
+            prediction, usage, retry_stats = provider.predict(image, prompt, effort)
+            total_seconds = time.perf_counter() - start_time
+            elapsed_seconds = retry_stats.inference_seconds
             predict_succeeded = True
         except Exception as error:
             prediction = f"ERROR: {error}"
@@ -130,6 +133,13 @@ def run_benchmark(
         if predict_succeeded and uploaded_size is not None:
             metadata["uploaded_width"] = uploaded_size[0]
             metadata["uploaded_height"] = uploaded_size[1]
+        if predict_succeeded and retry_stats is not None:
+            metadata["attempts"] = retry_stats.attempts
+            metadata["retries"] = retry_stats.attempts - 1
+            if total_seconds is not None:
+                metadata["total_seconds"] = round(total_seconds, 4)
+            if retry_stats.transient_error_types:
+                metadata["transient_errors"] = list(retry_stats.transient_error_types)
         expected = task.expected_text(sample)
 
         sample_results.append(
@@ -148,9 +158,15 @@ def run_benchmark(
 
         if verbose:
             status = "\u2705" if evaluation.correct else "\u274c"
-            time_string = (
-                f"{elapsed_seconds:.1f}s" if elapsed_seconds is not None else "N/A"
-            )
+            if elapsed_seconds is None:
+                time_string = "N/A"
+            elif retry_stats is not None and retry_stats.attempts > 1:
+                time_string = (
+                    f"{elapsed_seconds:.1f}s (total {total_seconds:.1f}s, "
+                    f"{retry_stats.attempts - 1} retries)"
+                )
+            else:
+                time_string = f"{elapsed_seconds:.1f}s"
             if evaluation.details and "map50" in evaluation.details:
                 map50 = evaluation.details["map50"]
                 n_pred = evaluation.details.get("num_predictions", 0)

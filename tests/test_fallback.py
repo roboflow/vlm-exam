@@ -21,7 +21,7 @@ from PIL import Image
 
 from vlm_exam.config import ModelConfig, PricingConfig, RouteConfig
 from vlm_exam.providers import build_model_provider
-from vlm_exam.providers.base import Provider, Usage
+from vlm_exam.providers.base import Provider, RetryStats, Usage
 from vlm_exam.providers.fallback import FallbackProvider, is_rate_limit_error
 from vlm_exam.tasks.detection import DetectionCoordinateFormat
 
@@ -46,12 +46,13 @@ class _StubProvider(Provider):
         image: Image.Image,
         prompt: str,
         effort: str,
-    ) -> tuple[str, Usage]:
+    ) -> tuple[str, Usage, RetryStats]:
         self.call_count += 1
         outcome = self._responses.pop(0)
         if isinstance(outcome, Exception):
             raise outcome
-        return outcome
+        answer, usage = outcome
+        return answer, usage, RetryStats(attempts=1, inference_seconds=0.0)
 
 
 def _rate_limit_error() -> anthropic.RateLimitError:
@@ -85,7 +86,7 @@ class TestFallbackProvider:
             responses=[("answer", Usage(1, 2))],
         )
         provider = FallbackProvider(model="test-model", providers=[primary])
-        answer, usage = provider.predict(image, "prompt", "low")
+        answer, usage, _ = provider.predict(image, "prompt", "low")
         assert answer == "answer"
         assert usage.output_tokens == 2
         assert primary.call_count == 1
@@ -107,8 +108,8 @@ class TestFallbackProvider:
             ],
         )
         provider = FallbackProvider(model="test-model", providers=[primary, fallback])
-        answer_one, _ = provider.predict(image, "prompt", "low")
-        answer_two, _ = provider.predict(image, "prompt", "low")
+        answer_one, _, _ = provider.predict(image, "prompt", "low")
+        answer_two, _, _ = provider.predict(image, "prompt", "low")
         assert answer_one == "first"
         assert answer_two == "second"
         assert primary.call_count == 1

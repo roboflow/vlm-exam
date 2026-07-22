@@ -137,15 +137,16 @@ Side-by-side ground truth vs. prediction cards with per-image mAP@50:
 
 ```bash
 vlm-exam detection-visualize \
-    --results-file results/detection_gemini-3.5-flash_low_20260707_122136.jsonl \
+    --results-file results/detection_gemini-3.5-flash_low_20260721_114044.jsonl \
     --dataset-directory data/detection/train \
     --output-directory visualizations/detection \
     --max-images 20
 ```
 
 `--label-mode` controls box labeling: `labels` draws class names on the boxes,
-`legend` draws boxes only with a color legend below the images, and `auto`
-(default) picks based on label density.
+`boxes` draws boxes with a class color legend overlaid on the image (so colors
+still map to class names when per-box labels would be too crowded), and `auto`
+(default) picks between the two based on label density.
 
 ### Generate leaderboards
 
@@ -287,7 +288,7 @@ Each model must declare `detection_coordinate_format` for its native
 grounding convention. Valid values are defined by
 `DetectionCoordinateFormat` in `src/vlm_exam/tasks/detection.py`:
 `yxyx_normalized_0_to_1000`, `xyxy_normalized_0_to_1000`,
-`xyxy_absolute_provider_upload`, `xyxy_absolute_original_image`, and
+`xyxy_absolute_resized_image`, `xyxy_absolute_original_image`, and
 `yxyx_absolute_original_image`.
 
 For rate-limit resilience, list multiple `routes` in priority order.

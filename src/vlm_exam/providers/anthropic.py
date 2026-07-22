@@ -19,7 +19,13 @@ import math
 import anthropic
 from PIL import Image
 
-from vlm_exam.providers.base import Provider, Usage
+from vlm_exam.providers.base import (
+    REQUEST_TIMEOUT_SECONDS,
+    Provider,
+    RetryStats,
+    Usage,
+    call_with_retries,
+)
 
 _REFUSAL_TEXT = "[model refused to answer]"
 
@@ -125,7 +131,11 @@ class AnthropicProvider(Provider):
         self._model = model
         self._wire_model_id = provider_model_id or model
         self._max_edge, self._max_tokens = resolution_tier_limits(resolution_tier)
-        self._client = anthropic.Anthropic(api_key=api_key)
+        self._client = anthropic.Anthropic(
+            api_key=api_key,
+            timeout=REQUEST_TIMEOUT_SECONDS,
+            max_retries=0,
+        )
 
     @property
     def model(self) -> str:
@@ -148,29 +158,31 @@ class AnthropicProvider(Provider):
         image: Image.Image,
         prompt: str,
         effort: str,
-    ) -> tuple[str, Usage]:
+    ) -> tuple[str, Usage, RetryStats]:
         base64_data = self._prepare_image(image)
 
-        message = self._client.messages.create(
-            model=self._wire_model_id,
-            max_tokens=4096,
-            output_config={"effort": effort},
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image",
-                            "source": {
-                                "type": "base64",
-                                "media_type": "image/png",
-                                "data": base64_data,
+        message, retry_stats = call_with_retries(
+            lambda: self._client.messages.create(
+                model=self._wire_model_id,
+                max_tokens=4096,
+                output_config={"effort": effort},
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": "image/png",
+                                    "data": base64_data,
+                                },
                             },
-                        },
-                        {"type": "text", "text": prompt},
-                    ],
-                }
-            ],
+                            {"type": "text", "text": prompt},
+                        ],
+                    }
+                ],
+            )
         )
 
         text_blocks = [block.text for block in message.content if block.type == "text"]
@@ -179,7 +191,11 @@ class AnthropicProvider(Provider):
         # resume logic does not retry it forever.
         answer = text_blocks[0].strip() if text_blocks else _REFUSAL_TEXT
 
-        return answer, Usage(
-            input_tokens=message.usage.input_tokens,
-            output_tokens=message.usage.output_tokens,
+        return (
+            answer,
+            Usage(
+                input_tokens=message.usage.input_tokens,
+                output_tokens=message.usage.output_tokens,
+            ),
+            retry_stats,
         )

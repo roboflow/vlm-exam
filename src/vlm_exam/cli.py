@@ -997,7 +997,10 @@ def visualize(
     "label_mode",
     default="auto",
     type=click.Choice(["auto", "labels", "boxes"]),
-    help="Draw class labels on boxes, boxes only, or pick automatically.",
+    help=(
+        "Draw class labels on boxes, boxes with an in-image class color "
+        "legend, or pick automatically based on label density."
+    ),
 )
 @click.option(
     "--format",
@@ -1033,6 +1036,7 @@ def detection_visualize(
     import cv2
 
     from vlm_exam.tasks.detection import (
+        DetectionCoordinateFormat,
         DetectionTask,
         build_sample_index,
         detection_labels,
@@ -1085,9 +1089,11 @@ def detection_visualize(
             sample_result.predicted,
             resolution_wh,
             list(sample.classes),
-            coordinate_format=sample_result.metadata.get(
-                "coordinate_format",
-                "yxyx_normalized_0_to_1000",
+            coordinate_format=DetectionCoordinateFormat(
+                sample_result.metadata.get(
+                    "coordinate_format",
+                    DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000.value,
+                )
             ),
             uploaded_wh=recorded_uploaded_wh(sample_result.metadata),
         )
