@@ -15,12 +15,22 @@
 from __future__ import annotations
 
 import logging
+import random
+import time
 
 import anthropic
 import openai
 from PIL import Image
 
-from vlm_exam.providers.base import Provider, RetryStats, Usage
+from vlm_exam.providers.base import (
+    MAX_RETRIES,
+    RETRY_BACKOFF_BASE,
+    RETRY_INITIAL_DELAY_SECONDS,
+    RETRY_JITTER_SECONDS,
+    Provider,
+    RetryStats,
+    Usage,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -82,6 +92,8 @@ class FallbackProvider(Provider):
         prompt: str,
         effort: str,
     ) -> tuple[str, Usage, RetryStats]:
+        delay = RETRY_INITIAL_DELAY_SECONDS
+        last_route_rate_limit_attempts = 0
         while True:
             provider = self._providers[self._active_index]
             try:
@@ -89,11 +101,22 @@ class FallbackProvider(Provider):
             except Exception as error:
                 if not is_rate_limit_error(error):
                     raise
-                if self._active_index + 1 >= len(self._providers):
+                if self._active_index + 1 < len(self._providers):
+                    self._active_index += 1
+                    _logger.warning(
+                        "Rate limited on route %d; failing over to route %d.",
+                        self._active_index - 1,
+                        self._active_index,
+                    )
+                    continue
+                if last_route_rate_limit_attempts >= MAX_RETRIES:
                     raise
-                self._active_index += 1
+                last_route_rate_limit_attempts += 1
+                sleep_seconds = delay + random.uniform(0, RETRY_JITTER_SECONDS)
                 _logger.warning(
-                    "Rate limited on route %d; failing over to route %d.",
-                    self._active_index - 1,
+                    "Rate limited on last route %d; retrying in %.1fs.",
                     self._active_index,
+                    sleep_seconds,
                 )
+                time.sleep(sleep_seconds)
+                delay *= RETRY_BACKOFF_BASE

@@ -117,3 +117,12 @@ vlm-exam summary --dataset-directory data/detection/train
 - ALWAYS give the user the log file path as soon as processing starts, so
   they can `tail -f` it without asking. Never make the user request
   progress; the link must be provided up front.
+
+## Git workflow
+
+- Do not commit or push directly to `main`. Create a branch from the
+  current `main` with a short descriptive name (e.g.
+  `feat/provider-image-preprocessing`) and open a pull request, unless
+  the user explicitly instructs otherwise.
+- Before creating the branch and pushing, ask the user to confirm that
+  workflow (branch name and intent to open a PR).

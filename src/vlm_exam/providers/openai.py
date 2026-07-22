@@ -25,9 +25,14 @@ from vlm_exam.providers.base import (
     Usage,
     call_with_retries,
 )
+from vlm_exam.providers.image_upload import (
+    OPENAI_MAX_EDGE_PIXELS,
+    resize_image_to_max_edge,
+    scale_dimensions_to_max_edge,
+)
 
 
-def _image_to_base64_url(image: Image.Image) -> str:
+def _png_data_url(image: Image.Image) -> str:
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     base64_data = base64.standard_b64encode(buffer.getvalue()).decode("utf-8")
@@ -42,9 +47,12 @@ class OpenAIProvider(Provider):
         model: str,
         api_key: str | None = None,
         provider_model_id: str | None = None,
+        resolution_tier: str = "high",
+        max_edge_pixels: int = OPENAI_MAX_EDGE_PIXELS,
     ) -> None:
         self._model = model
         self._wire_model_id = provider_model_id or model
+        self._max_edge_pixels = max_edge_pixels
         self._client = openai.OpenAI(
             api_key=api_key,
             timeout=REQUEST_TIMEOUT_SECONDS,
@@ -55,13 +63,17 @@ class OpenAIProvider(Provider):
     def model(self) -> str:
         return self._model
 
+    def uploaded_image_size(self, image: Image.Image) -> tuple[int, int]:
+        return scale_dimensions_to_max_edge(*image.size, self._max_edge_pixels)
+
     def predict(
         self,
         image: Image.Image,
         prompt: str,
         effort: str,
     ) -> tuple[str, Usage, RetryStats]:
-        data_url = _image_to_base64_url(image)
+        upload_image = resize_image_to_max_edge(image, self._max_edge_pixels)
+        data_url = _png_data_url(upload_image)
 
         response, retry_stats = call_with_retries(
             lambda: self._client.responses.create(

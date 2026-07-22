@@ -35,9 +35,17 @@ REQUEST_TIMEOUT_SECONDS = 120.0
 MAX_RETRIES = 3
 """Retries attempted after the first try on a transient (retryable) error."""
 
-_RETRY_INITIAL_DELAY_SECONDS = 2.0
-_RETRY_BACKOFF_BASE = 2.0
-_RETRY_JITTER_SECONDS = 0.5
+EMPTY_RESPONSE_TEXT = "[model returned no content]"
+"""Sentinel recorded when a provider returns a blocked or empty response."""
+
+RETRY_INITIAL_DELAY_SECONDS = 2.0
+"""First backoff delay applied when retrying a transient error."""
+
+RETRY_BACKOFF_BASE = 2.0
+"""Multiplier applied to the delay after each retry."""
+
+RETRY_JITTER_SECONDS = 0.5
+"""Maximum random jitter added to each backoff delay."""
 _RETRYABLE_STATUS_CODES = frozenset({408, 425, 500, 502, 503, 504, 529})
 _RETRYABLE_ERROR_NAMES = frozenset(
     {
@@ -109,7 +117,7 @@ def call_with_retries(operation: Callable[[], _T]) -> tuple[_T, RetryStats]:
         A tuple of the operation result and a :class:`RetryStats` describing
         how many attempts it took and how long the successful attempt ran.
     """
-    delay = _RETRY_INITIAL_DELAY_SECONDS
+    delay = RETRY_INITIAL_DELAY_SECONDS
     transient_error_types: list[str] = []
     for attempt in range(1, MAX_RETRIES + 2):
         try:
@@ -125,7 +133,7 @@ def call_with_retries(operation: Callable[[], _T]) -> tuple[_T, RetryStats]:
             if attempt > MAX_RETRIES or not is_retryable_error(error):
                 raise
             transient_error_types.append(type(error).__name__)
-            sleep_seconds = delay + random.uniform(0, _RETRY_JITTER_SECONDS)
+            sleep_seconds = delay + random.uniform(0, RETRY_JITTER_SECONDS)
             _logger.warning(
                 "Retryable error on attempt %d/%d (%s: %s); retrying in %.1fs.",
                 attempt,
@@ -135,7 +143,7 @@ def call_with_retries(operation: Callable[[], _T]) -> tuple[_T, RetryStats]:
                 sleep_seconds,
             )
             time.sleep(sleep_seconds)
-            delay *= _RETRY_BACKOFF_BASE
+            delay *= RETRY_BACKOFF_BASE
     raise AssertionError("unreachable: retry loop exited without return or raise")
 
 

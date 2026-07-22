@@ -123,6 +123,25 @@ class TestFallbackProvider:
         with pytest.raises(ValueError, match="broken"):
             provider.predict(image, "prompt", "low")
 
+    def test_last_route_rate_limit_retries_with_backoff(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setattr("vlm_exam.providers.fallback.time.sleep", lambda _: None)
+        image = Image.new("RGB", (10, 10))
+        primary = _StubProvider(
+            "test-model",
+            responses=[
+                _rate_limit_error(),
+                _rate_limit_error(),
+                ("recovered", Usage(1, 1)),
+            ],
+        )
+        provider = FallbackProvider(model="test-model", providers=[primary])
+        answer, _, _ = provider.predict(image, "prompt", "low")
+        assert answer == "recovered"
+        assert primary.call_count == 3
+
     def test_all_routes_exhausted_raises_last_error(self) -> None:
         image = Image.new("RGB", (10, 10))
         primary = _StubProvider(
@@ -131,7 +150,12 @@ class TestFallbackProvider:
         )
         fallback = _StubProvider(
             "test-model",
-            responses=[_rate_limit_error()],
+            responses=[
+                _rate_limit_error(),
+                _rate_limit_error(),
+                _rate_limit_error(),
+                _rate_limit_error(),
+            ],
         )
         provider = FallbackProvider(model="test-model", providers=[primary, fallback])
         with pytest.raises(anthropic.RateLimitError):

@@ -21,6 +21,7 @@ results-smoke/
 results-detection-v5/
 results-qa-gemini/
 results-qa-leaderboard/
+results-openai-resize/
 experiments/
 .vlm_exam_judge_cache.json
 visualizations/cases/
@@ -37,6 +38,7 @@ visualizations/extraction/
 visualizations/identification/
 visualizations/ocr/
 visualizations/reasoning/
+visualizations/zero_map_analysis/
 
 .cursor/
 .idea/
@@ -44,3 +46,5 @@ visualizations/reasoning/
 *.swp
 *.swo
 .DS_Store
+scripts/render_zero_map_detection_cards.py
+scripts/render_zero_map_model_comparison.py
