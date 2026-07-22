@@ -25,12 +25,14 @@ _PROVIDER_REGISTRY: dict[str, str] = {
     "openrouter": "vlm_exam.providers.openrouter.OpenRouterProvider",
 }
 
-PRE_RESIZING_PROVIDERS = frozenset({"anthropic"})
-"""Providers that pre-resize uploads to match the model's native resolution.
+PRE_RESIZING_PROVIDERS = frozenset({"anthropic", "openai"})
+"""Providers that deterministically pre-resize every upload.
 
-These are the only providers for which the
-``xyxy_absolute_resized_image`` detection coordinate format is valid,
-and the only ones that accept a ``resolution_tier``.
+Anthropic mirrors the model's documented resize formula (driven by
+``resolution_tier``); OpenAI caps the longest edge at
+:data:`vlm_exam.providers.image_upload.OPENAI_MAX_EDGE_PIXELS`. These are
+the only providers for which the ``xyxy_absolute_resized_image``
+detection coordinate format is valid.
 """
 
 __all__ = [
@@ -63,7 +65,7 @@ def create_provider(
         provider_model_id: Optional upstream model identifier sent to the
             provider API. Defaults to ``model`` when omitted.
         resolution_tier: Image resolution tier, forwarded only to
-            providers that pre-resize uploads (currently Anthropic).
+            providers that pre-resize uploads (Anthropic and OpenAI).
 
     Returns:
         A ready-to-use provider instance.

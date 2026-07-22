@@ -172,13 +172,13 @@ class TestResolutionTier:
 
 
 class TestProviderUploadRouteGuard:
-    def test_rejects_provider_upload_on_non_anthropic_route(self) -> None:
+    def test_rejects_resized_format_on_non_resizing_provider(self) -> None:
         with pytest.raises(ValueError, match="pre-resize"):
             _parse_model(
                 {
                     "name": "Bad Model",
-                    "lab": "openai",
-                    "provider": "openai",
+                    "lab": "google",
+                    "provider": "google",
                     "detection_coordinate_format": "xyxy_absolute_resized_image",
                     "pricing": {
                         "input_per_million_tokens": 1.0,

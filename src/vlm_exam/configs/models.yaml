@@ -115,7 +115,7 @@ models:
     name: GPT-5.5
     lab: openai
     provider: openai
-    detection_coordinate_format: xyxy_absolute_original_image
+    detection_coordinate_format: xyxy_absolute_resized_image
     pricing:
       input_per_million_tokens: 5.00
       output_per_million_tokens: 30.00
@@ -123,7 +123,7 @@ models:
     name: GPT-5.4 mini
     lab: openai
     provider: openai
-    detection_coordinate_format: xyxy_absolute_original_image
+    detection_coordinate_format: xyxy_absolute_resized_image
     pricing:
       input_per_million_tokens: 0.75
       output_per_million_tokens: 4.50
@@ -132,7 +132,7 @@ models:
     lab: openai
     provider: openai
     provider_model_id: gpt-5.6-sol
-    detection_coordinate_format: xyxy_absolute_original_image
+    detection_coordinate_format: xyxy_absolute_resized_image
     pricing:
       input_per_million_tokens: 5.00
       output_per_million_tokens: 30.00
@@ -141,7 +141,7 @@ models:
     lab: openai
     provider: openai
     provider_model_id: gpt-5.6-terra
-    detection_coordinate_format: xyxy_absolute_original_image
+    detection_coordinate_format: xyxy_absolute_resized_image
     pricing:
       input_per_million_tokens: 2.50
       output_per_million_tokens: 15.00
@@ -150,7 +150,7 @@ models:
     lab: openai
     provider: openai
     provider_model_id: gpt-5.6-luna
-    detection_coordinate_format: xyxy_absolute_original_image
+    detection_coordinate_format: xyxy_absolute_resized_image
     pricing:
       input_per_million_tokens: 1.00
       output_per_million_tokens: 6.00

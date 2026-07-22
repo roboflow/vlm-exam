@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import base64
-import io
 import os
 from typing import Any
 
@@ -21,23 +19,21 @@ import openai
 from PIL import Image
 
 from vlm_exam.providers.base import (
+    EMPTY_RESPONSE_TEXT,
     REQUEST_TIMEOUT_SECONDS,
     Provider,
     RetryStats,
     Usage,
     call_with_retries,
 )
+from vlm_exam.providers.image_upload import (
+    OPENROUTER_JPEG_QUALITY,
+    OPENROUTER_MAX_BASE64_BYTES,
+    jpeg_data_url_under_max_base64_bytes,
+)
 
 _BASE_URL = "https://openrouter.ai/api/v1"
 _MAX_OUTPUT_TOKENS = 8192
-_EMPTY_RESPONSE_TEXT = "[model returned no content]"
-
-
-def _image_to_base64_url(image: Image.Image) -> str:
-    buffer = io.BytesIO()
-    image.save(buffer, format="PNG")
-    base64_data = base64.standard_b64encode(buffer.getvalue()).decode("utf-8")
-    return f"data:image/png;base64,{base64_data}"
 
 
 def _reasoning_config(effort: str, provider_model_id: str) -> dict[str, Any]:
@@ -79,6 +75,7 @@ class OpenRouterProvider(Provider):
         """
         self._model = model
         self._provider_model_id = provider_model_id or model
+        self._encoded_cache: tuple[Image.Image, str, tuple[int, int]] | None = None
         self._client = openai.OpenAI(
             base_url=_BASE_URL,
             api_key=api_key or os.environ.get("OPENROUTER_API_KEY"),
@@ -90,13 +87,33 @@ class OpenRouterProvider(Provider):
     def model(self) -> str:
         return self._model
 
+    def _encode_image(self, image: Image.Image) -> tuple[str, tuple[int, int]]:
+        # The runner probes uploaded_image_size() and then predict() with
+        # the same image object; a one-slot cache avoids encoding twice.
+        cached = self._encoded_cache
+        if cached is not None and cached[0] is image:
+            return cached[1], cached[2]
+        data_url, uploaded_size = jpeg_data_url_under_max_base64_bytes(
+            image,
+            OPENROUTER_MAX_BASE64_BYTES,
+            quality=OPENROUTER_JPEG_QUALITY,
+        )
+        self._encoded_cache = (image, data_url, uploaded_size)
+        return data_url, uploaded_size
+
+    def uploaded_image_size(self, image: Image.Image) -> tuple[int, int] | None:
+        _, uploaded_size = self._encode_image(image)
+        if uploaded_size == image.size:
+            return None
+        return uploaded_size
+
     def predict(
         self,
         image: Image.Image,
         prompt: str,
         effort: str,
     ) -> tuple[str, Usage, RetryStats]:
-        data_url = _image_to_base64_url(image)
+        data_url, _ = self._encode_image(image)
 
         response, retry_stats = call_with_retries(
             lambda: self._client.chat.completions.create(
@@ -117,8 +134,11 @@ class OpenRouterProvider(Provider):
             )
         )
 
-        message = response.choices[0].message
-        answer = (message.content or _EMPTY_RESPONSE_TEXT).strip()
+        if not response.choices:
+            answer = EMPTY_RESPONSE_TEXT
+        else:
+            message = response.choices[0].message
+            answer = (message.content or EMPTY_RESPONSE_TEXT).strip()
 
         usage = response.usage
         return (

@@ -19,6 +19,7 @@ from google.genai import types
 from PIL import Image
 
 from vlm_exam.providers.base import (
+    EMPTY_RESPONSE_TEXT,
     REQUEST_TIMEOUT_SECONDS,
     Provider,
     RetryStats,
@@ -91,7 +92,7 @@ class GoogleProvider(Provider):
             )
         )
 
-        answer = response.text.strip()
+        answer = response.text.strip() if response.text else EMPTY_RESPONSE_TEXT
         output_tokens = response.usage_metadata.candidates_token_count or 0
         thoughts_tokens = response.usage_metadata.thoughts_token_count or 0
 
