@@ -103,7 +103,7 @@ vlm-exam summary --dataset-directory data/detection/train
   wording**, **output JSON field names**, axis order, and coordinate space.
 - Do not assume an existing `box_2d` prompt variant matches a provider's
   documented schema (e.g. separate `x_min`/`y_min`/`x_max`/`y_max` keys
-  versus a four-number `box_2d` array). Map to a enum value only after a
+  versus a four-number `box_2d` array). Map to an enum value only after a
   local format probe confirms mAP on a ~20-image detection subset.
 - Set the required `detection_coordinate_format` per model after that
   research and probe. Valid values are the `DetectionCoordinateFormat` enum
