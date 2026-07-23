@@ -84,6 +84,16 @@ _NORMALIZED_XYXY_PROMPT_TEMPLATE = (
     "Only use these labels: {class_list}"
 )
 
+_META_FLAT_NORMALIZED_PROMPT_TEMPLATE = (
+    "You are an object grounding expert. Detect all objects in this image "
+    "matching these labels: {class_list}. Ensure the objects accurately "
+    "match the request and do not miss any objects. For each object, answer "
+    'in the format {{"label": "<name>", "x_min": <int>, "y_min": <int>, '
+    '"x_max": <int>, "y_max": <int>}}. The coordinates should be in the '
+    "0-1000 range. Return a JSON array of results. If you cannot find an "
+    "object, omit it from the results."
+)
+
 PROMPT_CLASS_MODES = ("image", "all")
 """Valid values for the detection prompt class listing mode."""
 
@@ -93,6 +103,7 @@ class DetectionCoordinateFormat(str, Enum):
 
     YXYX_NORMALIZED_0_TO_1000 = "yxyx_normalized_0_to_1000"
     XYXY_NORMALIZED_0_TO_1000 = "xyxy_normalized_0_to_1000"
+    XYXY_NORMALIZED_0_TO_1000_META_FLAT = "xyxy_normalized_0_to_1000_meta_flat"
     XYXY_ABSOLUTE_RESIZED_IMAGE = "xyxy_absolute_resized_image"
     XYXY_ABSOLUTE_ORIGINAL_IMAGE = "xyxy_absolute_original_image"
     YXYX_ABSOLUTE_ORIGINAL_IMAGE = "yxyx_absolute_original_image"
@@ -289,6 +300,10 @@ class DetectionTask(Task):
                 )
             case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000:
                 return _NORMALIZED_XYXY_PROMPT_TEMPLATE.format(class_list=class_list)
+            case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT:
+                return _META_FLAT_NORMALIZED_PROMPT_TEMPLATE.format(
+                    class_list=class_list
+                )
             case _:
                 return _PROMPT_TEMPLATE.format(class_list=class_list)
 
@@ -401,6 +416,8 @@ def parse_prediction(
             parser = _parse_pixel_yxyx_native_json
         case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000:
             parser = _parse_normalized_xyxy_json
+        case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT:
+            parser = _parse_meta_flat_normalized_json
         case _:
             parser = _parse_with_supervision
 
@@ -617,6 +634,57 @@ def _parse_normalized_xyxy_json(
         ):
             continue
         x_min, y_min, x_max, y_max = (float(value) for value in box)
+        xyxy_list.append(
+            [x_min * scale_x, y_min * scale_y, x_max * scale_x, y_max * scale_y]
+        )
+        class_ids.append(class_index[label])
+        class_names.append(label)
+
+    if not xyxy_list:
+        return sv.Detections.empty()
+
+    detections = sv.Detections(
+        xyxy=np.array(xyxy_list, dtype=np.float32),
+        class_id=np.array(class_ids, dtype=int),
+    )
+    detections.data["class_name"] = np.array(class_names)
+    return detections
+
+
+def _parse_meta_flat_normalized_json(
+    prediction: str,
+    resolution_wh: tuple[int, int],
+    classes: list[str],
+) -> sv.Detections:
+    try:
+        entries = json.loads(prediction)
+    except json.JSONDecodeError:
+        return sv.Detections.empty()
+    if not isinstance(entries, list):
+        return sv.Detections.empty()
+
+    width, height = resolution_wh
+    scale_x = width / 1000.0
+    scale_y = height / 1000.0
+    class_index = {name: index for index, name in enumerate(classes)}
+
+    xyxy_list: list[list[float]] = []
+    class_ids: list[int] = []
+    class_names: list[str] = []
+
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        label = entry.get("label")
+        if label not in class_index:
+            continue
+        try:
+            x_min = float(entry["x_min"])
+            y_min = float(entry["y_min"])
+            x_max = float(entry["x_max"])
+            y_max = float(entry["y_max"])
+        except (KeyError, TypeError, ValueError):
+            continue
         xyxy_list.append(
             [x_min * scale_x, y_min * scale_y, x_max * scale_x, y_max * scale_y]
         )

@@ -97,14 +97,23 @@ vlm-exam summary --dataset-directory data/detection/train
   legacy single `provider` field). The vlm-exam model **key** is used in
   result filenames and leaderboards. Each route's `provider_model_id` is
   the upstream API id; when omitted, the model key is used.
-- Set the required `detection_coordinate_format` per model after researching
-  its native grounding convention (GitHub, forums, papers, official docs).
-  Valid values are the `DetectionCoordinateFormat` enum strings in
-  `src/vlm_exam/tasks/detection.py`: `yxyx_normalized_0_to_1000`,
-  `xyxy_normalized_0_to_1000`, `xyxy_absolute_resized_image`,
-  `xyxy_absolute_original_image`, and `yxyx_absolute_original_image`. The
-  format follows the model, not the route -- the same weights use the same
-  box convention on Google direct and OpenRouter.
+- Before adding any model, research its capabilities online using **official
+  provider documentation** (API reference, cookbooks, model cards). Record
+  what you find, especially for detection: the provider's **native prompt
+  wording**, **output JSON field names**, axis order, and coordinate space.
+- Do not assume an existing `box_2d` prompt variant matches a provider's
+  documented schema (e.g. separate `x_min`/`y_min`/`x_max`/`y_max` keys
+  versus a four-number `box_2d` array). Map to a enum value only after a
+  local format probe confirms mAP on a ~20-image detection subset.
+- Set the required `detection_coordinate_format` per model after that
+  research and probe. Valid values are the `DetectionCoordinateFormat` enum
+  strings in `src/vlm_exam/tasks/detection.py`: `yxyx_normalized_0_to_1000`,
+  `xyxy_normalized_0_to_1000`, `xyxy_normalized_0_to_1000_meta_flat`,
+  `xyxy_absolute_resized_image`, `xyxy_absolute_original_image`, and
+  `yxyx_absolute_original_image`. The format follows the model, not the route
+  -- the same weights use the same box convention on Google direct and
+  OpenRouter. Cite the source URL when choosing a format (in the PR
+  description).
 - Add fallback routes when a provider has tight rate limits. Example:
   `gemini-3.1-pro-preview` uses Google first, then OpenRouter on 429.
 
