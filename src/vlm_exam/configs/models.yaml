@@ -190,3 +190,12 @@ models:
     pricing:
       input_per_million_tokens: 0.73
       output_per_million_tokens: 3.49
+  muse-spark-1.1:
+    name: Muse Spark 1.1
+    lab: meta
+    provider: openrouter
+    provider_model_id: meta/muse-spark-1.1
+    detection_coordinate_format: xyxy_normalized_0_to_1000_meta_flat
+    pricing:
+      input_per_million_tokens: 1.25
+      output_per_million_tokens: 4.25

@@ -33,15 +33,16 @@ from vlm_exam.providers.image_upload import (
 )
 
 _BASE_URL = "https://openrouter.ai/api/v1"
-_MAX_OUTPUT_TOKENS = 8192
+_MAX_OUTPUT_TOKENS = 16384
 
 
 def _reasoning_config(effort: str, provider_model_id: str) -> dict[str, Any]:
     # Qwen and GLM default to extended reasoning, which at "low" effort
     # bloats latency and truncates the answer inside the reasoning trace;
     # disabling it keeps low-effort runs fast and well-formed.
-    # Gemini on OpenRouter requires reasoning and rejects enabled=False.
-    if provider_model_id.startswith("google/"):
+    # Gemini and Muse Spark on OpenRouter require reasoning and reject
+    # enabled=False.
+    if provider_model_id.startswith(("google/", "meta/")):
         return {"effort": effort}
     if effort == "low":
         return {"enabled": False}

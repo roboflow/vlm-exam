@@ -177,6 +177,18 @@ class TestBuildPrompt:
         with pytest.raises(ValueError):
             DetectionCoordinateFormat("bogus")
 
+    def test_meta_flat_prompt_uses_named_coordinate_fields(self) -> None:
+        task = DetectionTask(
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT
+            )
+        )
+        sample = _make_sample(_detections([[0, 0, 10, 10]], [0]))
+        prompt = task.build_prompt(sample)
+        assert "object grounding expert" in prompt
+        assert '"x_min"' in prompt
+        assert "0-1000 range" in prompt
+
 
 class TestParsePrediction:
     def test_parses_fenced_json(self) -> None:
@@ -190,6 +202,33 @@ class TestParsePrediction:
 
     def test_malformed_json_returns_empty(self) -> None:
         detections = parse_prediction("not json at all", (100, 100), ["cat"])
+        assert len(detections) == 0
+
+    def test_parses_meta_flat_normalized_coordinates(self) -> None:
+        prediction = (
+            '[{"label": "cat", "x_min": 100, "y_min": 200, "x_max": 300, "y_max": 400}]'
+        )
+        detections = parse_prediction(
+            prediction,
+            (1000, 1000),
+            ["cat", "dog"],
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT
+            ),
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [100, 200, 300, 400])
+
+    def test_meta_flat_missing_fields_returns_empty(self) -> None:
+        prediction = '[{"label": "cat", "x_min": 100, "y_min": 200}]'
+        detections = parse_prediction(
+            prediction,
+            (1000, 1000),
+            ["cat"],
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT
+            ),
+        )
         assert len(detections) == 0
 
     def test_unknown_labels_are_filtered(self) -> None:
