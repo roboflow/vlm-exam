@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-23T11:42:18Z",
+  "generated_at": "2026-07-23T13:21:31Z",
   "efforts": [
     "low"
   ],
@@ -3671,31 +3671,31 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 59.5
+            "value": 58.16
           },
           "metrics": {
-            "map50": 59.5,
-            "map75": 42.34,
-            "map50_95": 39.68
+            "map50": 58.16,
+            "map75": 40.59,
+            "map50_95": 38.51
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
           "tokens": {
             "input": 606991,
-            "output": 392163,
-            "total": 999154,
-            "average_per_sample": 3996.6
+            "output": 409894,
+            "total": 1016885,
+            "average_per_sample": 4067.5
           },
           "cost": {
-            "total_usd": 2.425432,
-            "average_per_sample_usd": 0.009702
+            "total_usd": 2.500788,
+            "average_per_sample_usd": 0.010003
           },
           "speed": {
-            "total_seconds": 3907.328,
-            "average_seconds_per_sample": 15.629
+            "total_seconds": 4098.01,
+            "average_seconds_per_sample": 16.392
           },
-          "timestamp": "2026-07-23T11:42:18Z"
+          "timestamp": "2026-07-23T13:21:31Z"
         }
       },
       "overall": {
@@ -3703,17 +3703,17 @@
         "sample_count": 513,
         "tokens": {
           "input": 1009068,
-          "output": 520308,
-          "total": 1529376,
-          "average_per_sample": 2981.2
+          "output": 538039,
+          "total": 1547107,
+          "average_per_sample": 3015.8
         },
         "cost": {
-          "total_usd": 3.472644,
-          "average_per_sample_usd": 0.006769
+          "total_usd": 3.548001,
+          "average_per_sample_usd": 0.006916
         },
         "speed": {
-          "total_seconds": 5716.833,
-          "average_seconds_per_sample": 11.209
+          "total_seconds": 5907.516,
+          "average_seconds_per_sample": 11.583
         }
       }
     }

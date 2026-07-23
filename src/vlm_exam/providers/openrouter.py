@@ -33,7 +33,7 @@ from vlm_exam.providers.image_upload import (
 )
 
 _BASE_URL = "https://openrouter.ai/api/v1"
-_MAX_OUTPUT_TOKENS = 8192
+_MAX_OUTPUT_TOKENS = 16384
 
 
 def _reasoning_config(effort: str, provider_model_id: str) -> dict[str, Any]:
