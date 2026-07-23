@@ -22,6 +22,7 @@ results-detection-v5/
 results-qa-gemini/
 results-qa-leaderboard/
 results-openai-resize/
+results-openrouter-rerun/
 experiments/
 .vlm_exam_judge_cache.json
 visualizations/cases/
