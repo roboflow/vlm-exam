@@ -25,3 +25,7 @@ def test_qwen_disables_reasoning_at_low_effort() -> None:
     assert _reasoning_config("low", "qwen/qwen3-vl-235b-a22b-instruct") == {
         "enabled": False
     }
+
+
+def test_muse_spark_keeps_reasoning_at_low_effort() -> None:
+    assert _reasoning_config("low", "meta/muse-spark-1.1") == {"effort": "low"}
