@@ -590,7 +590,7 @@ def efficiency_report(
             config,
             "Benchmark Efficiency \u2014 Avg Tokens per Image",
             format_value=lambda value: f"{value:,.0f}",
-            sort_ascending=False,
+            sort_ascending=True,
         ),
         f"efficiency_tokens_{effort}.png",
     )
@@ -600,7 +600,7 @@ def efficiency_report(
             config,
             "Benchmark Efficiency \u2014 Avg Cost per Image",
             format_value=format_cost,
-            sort_ascending=False,
+            sort_ascending=True,
         ),
         f"efficiency_cost_{effort}.png",
     )
@@ -610,7 +610,7 @@ def efficiency_report(
             config,
             "Benchmark Efficiency \u2014 Avg Time per Image",
             format_value=lambda value: f"{value:.1f}s",
-            sort_ascending=False,
+            sort_ascending=True,
         ),
         f"efficiency_time_{effort}.png",
     )
