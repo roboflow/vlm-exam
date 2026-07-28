@@ -91,6 +91,17 @@ vlm-exam summary --dataset-directory data/detection/train
   means the results did not change.
 - The file is a generated artifact; never hand-edit it.
 
+## Leaderboard charts
+
+- Regenerate the leaderboard charts in `visualizations/leaderboards/` and
+  commit them in every PR that changes `results/`, so the tracked PNGs
+  never drift from the underlying runs:
+
+```bash
+vlm-exam leaderboard --dataset-directory data/detection/train
+vlm-exam efficiency-report
+```
+
 ## Adding and benchmarking models
 
 - In `configs/models.yaml`, each model has an ordered `routes` list (or
