@@ -164,7 +164,7 @@ class AnthropicProvider(Provider):
         message, retry_stats = call_with_retries(
             lambda: self._client.messages.create(
                 model=self._wire_model_id,
-                max_tokens=4096,
+                max_tokens=16384,
                 output_config={"effort": effort},
                 messages=[
                     {
