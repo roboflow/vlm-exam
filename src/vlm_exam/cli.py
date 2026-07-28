@@ -49,6 +49,14 @@ _QA_DATASET_PROJECTS = {
     "reasoning": "vlm-exam-reasoning",
 }
 
+_QA_DATASET_VERSIONS = {
+    "ocr": 1,
+    "extraction": 1,
+    "counting": 1,
+    "identification": 1,
+    "reasoning": 2,
+}
+
 
 def _resolve_model_filter(
     config: BenchmarkConfig,
@@ -99,9 +107,9 @@ def _save_card(
 )
 @click.option(
     "--dataset-version",
-    default=1,
+    default=None,
     type=int,
-    help="Dataset version to download for every project.",
+    help="Dataset version to download for every project; defaults per task.",
 )
 @click.option(
     "--tasks",
@@ -112,7 +120,7 @@ def _save_card(
 def download(
     data_directory: str,
     workspace: str,
-    dataset_version: int,
+    dataset_version: int | None,
     task_names: str,
 ) -> None:
     """Download the QA benchmark datasets from Roboflow."""
@@ -128,10 +136,11 @@ def download(
                 f"Unknown task {task_name!r}. Available tasks: {available}"
             )
         project_slug = _QA_DATASET_PROJECTS[task_name]
+        version_number = dataset_version or _QA_DATASET_VERSIONS[task_name]
         target = Path(data_directory) / task_name
-        click.echo(f"Downloading {workspace}/{project_slug} v{dataset_version} ...")
+        click.echo(f"Downloading {workspace}/{project_slug} v{version_number} ...")
         project = workspace_client.project(project_slug)
-        version = project.version(dataset_version)
+        version = project.version(version_number)
         version.download("jsonl", location=str(target), overwrite=True)
         click.echo(f"  saved to {target}")
 
