@@ -796,20 +796,29 @@ def leaderboard(
 
     from vlm_exam.metrics import run_accuracy, run_mean_similarity
 
+    efforts_by_task: dict[str, set[str]] = {}
+    for task_name, effort in runs_by_task_effort:
+        efforts_by_task.setdefault(task_name, set()).add(effort)
+
     for (task_name, effort), runs in sorted(runs_by_task_effort.items()):
+        effort_suffix = (
+            f" \u2014 {effort.title()} Effort"
+            if len(efforts_by_task[task_name]) > 1
+            else ""
+        )
         if task_name == "ocr":
             accuracy = {run.model: run_accuracy(run) for run in runs}
             similarity = {run.model: run_mean_similarity(run) for run in runs}
             figure = plot_accuracy_chart(
                 accuracy,
                 config,
-                "OCR Benchmark \u2014 Accuracy",
+                f"OCR Benchmark \u2014 Accuracy{effort_suffix}",
             )
             save_figure(figure, f"ocr_accuracy_{effort}.png")
             figure = plot_accuracy_chart(
                 similarity,
                 config,
-                "OCR Benchmark \u2014 Mean Similarity",
+                f"OCR Benchmark \u2014 Mean Similarity{effort_suffix}",
             )
             save_figure(figure, f"ocr_similarity_{effort}.png")
 
@@ -818,7 +827,7 @@ def leaderboard(
             figure = plot_accuracy_chart(
                 accuracy,
                 config,
-                f"{task_name.title()} Benchmark",
+                f"{task_name.title()} Benchmark{effort_suffix}",
             )
             save_figure(figure, f"{task_name}_accuracy_{effort}.png")
 
@@ -852,10 +861,11 @@ def leaderboard(
             for metric_key, values in metrics.items():
                 if not values:
                     continue
+                metric_title = metric_titles[metric_key]
                 figure = plot_metric_chart(
                     values,
                     config,
-                    f"Object Detection \u2014 {metric_titles[metric_key]}",
+                    f"Object Detection \u2014 {metric_title}{effort_suffix}",
                     format_value=lambda value: f"{value * 100:.1f}%",
                     sort_ascending=False,
                     full_scale=1.0,
