@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vlm-exam-sam3"
+version = "0.1.0"
+description = "SAM 3 reference environment for vlm-exam"
+requires-python = ">=3.10"
+dependencies = [
+    "vlm-exam",
+    "transformers>=4.57.0",
+    "torch",
+    "torchvision",
+    "accelerate",
+    "huggingface_hub",
+]
+
+[tool.uv.sources]
+vlm-exam = { path = "../..", editable = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vlm_exam_sam3"]

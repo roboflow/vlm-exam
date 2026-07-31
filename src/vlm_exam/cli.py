@@ -25,6 +25,7 @@ from dotenv import load_dotenv
 from vlm_exam.config import BenchmarkConfig, load_config
 from vlm_exam.judge import Judge
 from vlm_exam.providers import build_model_provider
+from vlm_exam.reference.cli import register_reference_commands
 from vlm_exam.results import (
     RunResult,
     is_failed_sample,
@@ -1137,3 +1138,6 @@ def detection_visualize(
         count += 1
 
     click.echo(f"Saved {count} visualizations to {output_path}")
+
+
+register_reference_commands(main)

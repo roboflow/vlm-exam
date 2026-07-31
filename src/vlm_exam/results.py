@@ -73,8 +73,10 @@ def merge_resumed_runs(previous: RunResult, resumed: RunResult) -> RunResult:
 
     Failed samples from the previous run are replaced by the resumed
     run's sample for the same image and question; successful samples
-    are kept as-is. Sample order follows the previous run and indexes
-    are rewritten to be contiguous.
+    are kept as-is. Resumed samples absent from the previous run are
+    appended, so resuming an incomplete run keeps its new samples.
+    Sample order follows the previous run and indexes are rewritten to
+    be contiguous.
 
     Args:
         previous: The partial run containing failed samples.
@@ -84,6 +86,7 @@ def merge_resumed_runs(previous: RunResult, resumed: RunResult) -> RunResult:
         A complete run result carrying the resumed run's timestamp.
     """
     resumed_by_key = {_sample_key(sample): sample for sample in resumed.samples}
+    previous_keys = {_sample_key(sample) for sample in previous.samples}
 
     merged: list[SampleResult] = []
     for sample in previous.samples:
@@ -91,6 +94,9 @@ def merge_resumed_runs(previous: RunResult, resumed: RunResult) -> RunResult:
         if is_failed_sample(sample) and replacement is not None:
             merged.append(replacement)
         else:
+            merged.append(sample)
+    for sample in resumed.samples:
+        if _sample_key(sample) not in previous_keys:
             merged.append(sample)
 
     merged = [replace(sample, index=position) for position, sample in enumerate(merged)]

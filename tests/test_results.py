@@ -100,3 +100,22 @@ class TestMergeResumedRuns:
         merged = merge_resumed_runs(previous, resumed)
 
         assert merged.samples[0].predicted == "[]"
+
+    def test_new_samples_from_resumed_run_are_appended(self) -> None:
+        previous = _run([_sample(0, "a.jpg", "[]", True)])
+        resumed = _run(
+            [
+                _sample(0, "b.jpg", "[]", True),
+                _sample(1, "c.jpg", "[]", True),
+            ],
+            timestamp="20260707_111111",
+        )
+
+        merged = merge_resumed_runs(previous, resumed)
+
+        assert [sample.image for sample in merged.samples] == [
+            "a.jpg",
+            "b.jpg",
+            "c.jpg",
+        ]
+        assert [sample.index for sample in merged.samples] == [0, 1, 2]

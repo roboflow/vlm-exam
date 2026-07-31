@@ -433,6 +433,41 @@ def parse_prediction(
     return parser(prediction[start : stop + 1], resolution_wh, classes)
 
 
+def _confidence_from_entry(entry: dict[str, Any]) -> float | None:
+    value = entry.get("confidence")
+    if value is None:
+        return None
+    try:
+        score = float(value)
+    except (TypeError, ValueError):
+        return None
+    if score < 0.0 or score > 1.0:
+        return None
+    return score
+
+
+def _assemble_detections(
+    xyxy_list: list[list[float]],
+    class_ids: list[int],
+    class_names: list[str],
+    confidences: list[float | None],
+) -> sv.Detections:
+    detections = sv.Detections(
+        xyxy=np.array(xyxy_list, dtype=np.float32),
+        class_id=np.array(class_ids, dtype=int),
+    )
+    detections.data["class_name"] = np.array(class_names)
+    if any(confidence is not None for confidence in confidences):
+        detections.confidence = np.array(
+            [
+                confidence if confidence is not None else 0.0
+                for confidence in confidences
+            ],
+            dtype=np.float32,
+        )
+    return detections
+
+
 def _parse_with_supervision(
     prediction: str,
     resolution_wh: tuple[int, int],
@@ -473,6 +508,7 @@ def _parse_pixel_json(
     xyxy_list: list[list[float]] = []
     class_ids: list[int] = []
     class_names: list[str] = []
+    confidences: list[float | None] = []
 
     for entry in entries:
         if not isinstance(entry, dict):
@@ -498,16 +534,12 @@ def _parse_pixel_json(
         )
         class_ids.append(class_index[label])
         class_names.append(label)
+        confidences.append(_confidence_from_entry(entry))
 
     if not xyxy_list:
         return sv.Detections.empty()
 
-    detections = sv.Detections(
-        xyxy=np.array(xyxy_list, dtype=np.float32),
-        class_id=np.array(class_ids, dtype=int),
-    )
-    detections.data["class_name"] = np.array(class_names)
-    return detections
+    return _assemble_detections(xyxy_list, class_ids, class_names, confidences)
 
 
 def _parse_pixel_native_json(
@@ -560,6 +592,7 @@ def _parse_absolute_pixel_json(
     xyxy_list: list[list[float]] = []
     class_ids: list[int] = []
     class_names: list[str] = []
+    confidences: list[float | None] = []
 
     for entry in entries:
         if not isinstance(entry, dict):
@@ -588,16 +621,12 @@ def _parse_absolute_pixel_json(
         )
         class_ids.append(class_index[label])
         class_names.append(label)
+        confidences.append(_confidence_from_entry(entry))
 
     if not xyxy_list:
         return sv.Detections.empty()
 
-    detections = sv.Detections(
-        xyxy=np.array(xyxy_list, dtype=np.float32),
-        class_id=np.array(class_ids, dtype=int),
-    )
-    detections.data["class_name"] = np.array(class_names)
-    return detections
+    return _assemble_detections(xyxy_list, class_ids, class_names, confidences)
 
 
 def _parse_normalized_xyxy_json(
@@ -620,6 +649,7 @@ def _parse_normalized_xyxy_json(
     xyxy_list: list[list[float]] = []
     class_ids: list[int] = []
     class_names: list[str] = []
+    confidences: list[float | None] = []
 
     for entry in entries:
         if not isinstance(entry, dict):
@@ -639,16 +669,12 @@ def _parse_normalized_xyxy_json(
         )
         class_ids.append(class_index[label])
         class_names.append(label)
+        confidences.append(_confidence_from_entry(entry))
 
     if not xyxy_list:
         return sv.Detections.empty()
 
-    detections = sv.Detections(
-        xyxy=np.array(xyxy_list, dtype=np.float32),
-        class_id=np.array(class_ids, dtype=int),
-    )
-    detections.data["class_name"] = np.array(class_names)
-    return detections
+    return _assemble_detections(xyxy_list, class_ids, class_names, confidences)
 
 
 def _parse_meta_flat_normalized_json(
@@ -671,6 +697,7 @@ def _parse_meta_flat_normalized_json(
     xyxy_list: list[list[float]] = []
     class_ids: list[int] = []
     class_names: list[str] = []
+    confidences: list[float | None] = []
 
     for entry in entries:
         if not isinstance(entry, dict):
@@ -690,16 +717,82 @@ def _parse_meta_flat_normalized_json(
         )
         class_ids.append(class_index[label])
         class_names.append(label)
+        confidences.append(_confidence_from_entry(entry))
 
     if not xyxy_list:
         return sv.Detections.empty()
 
-    detections = sv.Detections(
-        xyxy=np.array(xyxy_list, dtype=np.float32),
-        class_id=np.array(class_ids, dtype=int),
-    )
-    detections.data["class_name"] = np.array(class_names)
-    return detections
+    return _assemble_detections(xyxy_list, class_ids, class_names, confidences)
+
+
+def filter_prediction_json(prediction: str, min_confidence: float) -> str:
+    """Drop prediction entries below a confidence threshold.
+
+    Args:
+        prediction: JSON list string from a detection run.
+        min_confidence: Minimum confidence score to retain.
+
+    Returns:
+        Filtered JSON list string.
+    """
+    try:
+        entries = json.loads(prediction)
+    except json.JSONDecodeError:
+        return prediction
+    if not isinstance(entries, list):
+        return prediction
+
+    filtered: list[dict[str, object]] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        confidence = _confidence_from_entry(entry)
+        if confidence is None or confidence < min_confidence:
+            continue
+        filtered.append(entry)
+    return json.dumps(filtered)
+
+
+def filter_detections_by_confidence(
+    detections: sv.Detections,
+    min_confidence: float,
+) -> sv.Detections:
+    """Retain only detections at or above a confidence threshold.
+
+    Args:
+        detections: Parsed model predictions.
+        min_confidence: Minimum confidence score to retain.
+
+    Returns:
+        Filtered detections, or the original when confidence is absent.
+    """
+    if detections.confidence is None or len(detections) == 0:
+        return detections
+    mask = detections.confidence >= min_confidence
+    return detections[mask]
+
+
+def compute_image_map50(
+    predictions: sv.Detections,
+    ground_truth: sv.Detections,
+) -> float:
+    """Compute per-image mAP@50 for one prediction-ground-truth pair.
+
+    Args:
+        predictions: Model predictions for one image.
+        ground_truth: Ground-truth boxes for the same image.
+
+    Returns:
+        mAP@50 score for the image.
+    """
+    if len(ground_truth) == 0 and len(predictions) == 0:
+        return 1.0
+    if len(ground_truth) == 0 or len(predictions) == 0:
+        return 0.0
+
+    map_metric = MeanAveragePrecision()
+    map_metric.update([predictions], [ground_truth])
+    return float(map_metric.compute().map50)
 
 
 @dataclass(frozen=True)
@@ -715,6 +808,8 @@ class DatasetMapResult:
 def compute_dataset_map(
     run_result: RunResult,
     sample_index: dict[str, DetectionSample],
+    *,
+    min_confidence: float | None = None,
 ) -> DatasetMapResult | None:
     """Compute dataset-level mAP for a detection run.
 
@@ -728,6 +823,8 @@ def compute_dataset_map(
         run_result: A detection benchmark run loaded from disk.
         sample_index: Mapping of image basename to detection sample,
             as produced by :func:`build_sample_index`.
+        min_confidence: When set, drop predictions below this confidence
+            before computing mAP.
 
     Returns:
         Dataset-level mAP result, or ``None`` when no run sample could
@@ -741,9 +838,13 @@ def compute_dataset_map(
         if sample is None:
             continue
 
+        prediction_text = sample_result.predicted
+        if min_confidence is not None:
+            prediction_text = filter_prediction_json(prediction_text, min_confidence)
+
         resolution_wh = (sample.image_width, sample.image_height)
         predicted = parse_prediction(
-            sample_result.predicted,
+            prediction_text,
             resolution_wh,
             list(sample.classes),
             coordinate_format=DetectionCoordinateFormat(

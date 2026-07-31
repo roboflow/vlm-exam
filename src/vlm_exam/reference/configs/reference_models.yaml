@@ -1,0 +1,70 @@
+labs:
+  meta:
+    name: Meta
+    color: "#0668E1"
+    logo_url: https://svgl.app/library/meta.svg
+  ultralytics:
+    name: Ultralytics
+    color: "#111F68"
+    logo_url: https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg
+
+models:
+  yoloe-11l-seg:
+    name: YOLOE-11l
+    lab: ultralytics
+    family: yoloe
+    adapter: yoloe
+    checkpoint: yoloe-11l-seg.pt
+    checkpoint_sha256: a993fb0fc7c8830939ae14e6434a925dd1179428158c2761482eb8a8d8a3699f
+    coordinate_format: xyxy_absolute_original_image
+    card_confidence_threshold: 0.01
+    supported_devices:
+      - mps
+      - cpu
+      - cuda
+    inference:
+      conf: 0.001
+      iou: 0.7
+      imgsz: 640
+      max_det: 300
+      agnostic_nms: true
+
+  yoloe-26x-seg:
+    name: YOLOE-26x
+    lab: ultralytics
+    family: yoloe
+    adapter: yoloe
+    checkpoint: yoloe-26x-seg.pt
+    checkpoint_sha256: d08d390a08f98195f7c87807839fe4ff93a5491645fef1bc3bf0700efafdd639
+    coordinate_format: xyxy_absolute_original_image
+    card_confidence_threshold: 0.01
+    supported_devices:
+      - mps
+      - cpu
+      - cuda
+    inference:
+      conf: 0.001
+      iou: 0.7
+      imgsz: 640
+      max_det: 300
+      agnostic_nms: null
+
+  sam3:
+    name: SAM 3
+    lab: meta
+    family: sam3
+    adapter: sam3
+    checkpoint: facebook/sam3
+    checkpoint_revision: 3c879f39826c281e95690f02c7821c4de09afae7
+    coordinate_format: xyxy_absolute_original_image
+    card_confidence_threshold: 0.5
+    supported_devices:
+      - mps
+      - cpu
+      - cuda
+    inference:
+      conf: 0.05
+      iou: null
+      imgsz: null
+      max_det: null
+      agnostic_nms: null

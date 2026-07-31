@@ -28,6 +28,8 @@ from vlm_exam.tasks.detection import (
     DetectionTask,
     build_sample_index,
     compute_dataset_map,
+    compute_image_map50,
+    filter_prediction_json,
     parse_prediction,
 )
 
@@ -631,6 +633,50 @@ class TestComputeDatasetMap:
         assert result is not None
         assert result.map50 > 0.99
 
+    def test_min_confidence_filters_low_scoring_boxes(self) -> None:
+        sample = _make_sample(_detections([[10, 10, 50, 50]], [0]))
+        index = build_sample_index([sample])
+        run = _make_run(
+            "image.jpg",
+            json.dumps(
+                [
+                    {
+                        "box_2d": [100, 100, 500, 500],
+                        "label": "cat",
+                        "confidence": 0.9,
+                    },
+                    {
+                        "box_2d": [600, 600, 900, 900],
+                        "label": "cat",
+                        "confidence": 0.2,
+                    },
+                ]
+            ),
+            metadata={"coordinate_format": "yxyx_normalized_0_to_1000"},
+        )
+        unfiltered = compute_dataset_map(run, index)
+        filtered = compute_dataset_map(run, index, min_confidence=0.5)
+        assert unfiltered is not None
+        assert filtered is not None
+        assert filtered.map50 >= unfiltered.map50
+
+
+class TestConfidenceFiltering:
+    def test_filter_prediction_json_drops_subthreshold_entries(self) -> None:
+        raw = json.dumps(
+            [
+                {"box_2d": [1, 1, 2, 2], "label": "cat", "confidence": 0.9},
+                {"box_2d": [3, 3, 4, 4], "label": "cat", "confidence": 0.2},
+            ]
+        )
+        filtered = json.loads(filter_prediction_json(raw, 0.5))
+        assert len(filtered) == 1
+        assert filtered[0]["confidence"] == 0.9
+
+    def test_compute_image_map50_handles_empty_predictions(self) -> None:
+        ground_truth = _detections([[10, 10, 50, 50]], [0])
+        assert compute_image_map50(sv.Detections.empty(), ground_truth) == 0.0
+
 
 class TestEvaluateUploadedSize:
     def test_evaluate_uses_provided_uploaded_size(self) -> None:
@@ -699,6 +745,32 @@ class TestLabelCollision:
 
         detections = _detections([[0, 0, 100, 100]], [0])
         assert _labels_collide(detections, ["cat"], (1000, 1000)) is False
+
+
+class TestConfidenceParsing:
+    def test_absolute_pixel_predictions_keep_confidence(self) -> None:
+        prediction = (
+            '[{"box_2d": [10, 20, 50, 60], "label": "cat", "confidence": 0.87},'
+            ' {"box_2d": [1, 2, 3, 4], "label": "dog", "confidence": 0.12}]'
+        )
+        detections = parse_prediction(
+            prediction,
+            (100, 100),
+            ["cat", "dog"],
+            coordinate_format=DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE,
+        )
+        assert detections.confidence is not None
+        assert detections.confidence.tolist() == pytest.approx([0.87, 0.12])
+
+    def test_vlm_predictions_remain_without_confidence(self) -> None:
+        prediction = '[{"box_2d": [100, 200, 300, 400], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction,
+            (1000, 1000),
+            ["cat"],
+            coordinate_format=DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000,
+        )
+        assert detections.confidence is None
 
 
 class TestDetectionCard:
