@@ -13,12 +13,13 @@
 # limitations under the License.
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
 from vlm_exam.config import load_config
-from vlm_exam.reference.config import load_reference_config
+from vlm_exam.reference.config import ReferenceConfig, load_reference_config
 from vlm_exam.reference.constants import REFERENCE_EFFORT
 from vlm_exam.reference.leaderboard import (
     YOLOE_GEMINI_FOCUS_VLM,
@@ -96,6 +97,19 @@ class TestMixedDetectionLeaderboard:
         )
         yoloe_x_best = chart_config.models["yoloe-26x-seg-best"].name
         assert yoloe_x_best == "YOLOE-26x (best prompt)"
+
+    def test_unlisted_reference_without_lab_is_ignored(self) -> None:
+        vlm_config = load_config()
+        reference_config = load_reference_config()
+        models = dict(reference_config.models)
+        models["experimental"] = replace(models["sam3"], key="experimental", lab=None)
+
+        chart_config = build_mixed_leaderboard_config(
+            vlm_config,
+            ReferenceConfig(models=models, labs=reference_config.labs),
+        )
+
+        assert "experimental-baseline" not in chart_config.models
 
     def test_family_reference_key_counts(self) -> None:
         assert len(family_reference_keys("sam3")) == 2

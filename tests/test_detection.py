@@ -673,6 +673,18 @@ class TestConfidenceFiltering:
         assert len(filtered) == 1
         assert filtered[0]["confidence"] == 0.9
 
+    def test_filter_prediction_json_keeps_entries_without_confidence(self) -> None:
+        raw = json.dumps(
+            [
+                {"box_2d": [1, 1, 2, 2], "label": "cat"},
+                {"box_2d": [3, 3, 4, 4], "label": "cat", "confidence": 0.2},
+            ]
+        )
+
+        filtered = json.loads(filter_prediction_json(raw, 0.5))
+
+        assert filtered == [{"box_2d": [1, 1, 2, 2], "label": "cat"}]
+
     def test_compute_image_map50_handles_empty_predictions(self) -> None:
         ground_truth = _detections([[10, 10, 50, 50]], [0])
         assert compute_image_map50(sv.Detections.empty(), ground_truth) == 0.0

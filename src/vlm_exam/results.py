@@ -15,6 +15,8 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
@@ -62,10 +64,22 @@ class RunResult:
     samples: list[SampleResult] = field(default_factory=list)
 
 
-def _sample_key(sample: SampleResult) -> tuple[str, str]:
-    # Several QA samples can share one image file, so the image name
-    # alone is not a unique key; the question disambiguates them.
-    return (sample.image, str(sample.metadata.get("question", "")))
+def _sample_key(sample: SampleResult, task: str) -> tuple[str, str]:
+    question = "" if task == "detection" else str(sample.metadata.get("question", ""))
+    return (sample.image, question)
+
+
+def _index_samples(
+    samples: list[SampleResult],
+    task: str,
+) -> dict[tuple[str, str], SampleResult]:
+    indexed: dict[tuple[str, str], SampleResult] = {}
+    for sample in samples:
+        key = _sample_key(sample, task)
+        if key in indexed:
+            raise ValueError(f"Duplicate sample in resumed run: {key!r}")
+        indexed[key] = sample
+    return indexed
 
 
 def merge_resumed_runs(previous: RunResult, resumed: RunResult) -> RunResult:
@@ -85,18 +99,29 @@ def merge_resumed_runs(previous: RunResult, resumed: RunResult) -> RunResult:
     Returns:
         A complete run result carrying the resumed run's timestamp.
     """
-    resumed_by_key = {_sample_key(sample): sample for sample in resumed.samples}
-    previous_keys = {_sample_key(sample) for sample in previous.samples}
+    if (
+        previous.model,
+        previous.effort,
+        previous.task,
+    ) != (
+        resumed.model,
+        resumed.effort,
+        resumed.task,
+    ):
+        raise ValueError("Cannot merge runs with different model, effort, or task.")
+
+    resumed_by_key = _index_samples(resumed.samples, resumed.task)
+    previous_by_key = _index_samples(previous.samples, previous.task)
 
     merged: list[SampleResult] = []
     for sample in previous.samples:
-        replacement = resumed_by_key.get(_sample_key(sample))
+        replacement = resumed_by_key.get(_sample_key(sample, previous.task))
         if is_failed_sample(sample) and replacement is not None:
             merged.append(replacement)
         else:
             merged.append(sample)
     for sample in resumed.samples:
-        if _sample_key(sample) not in previous_keys:
+        if _sample_key(sample, resumed.task) not in previous_by_key:
             merged.append(sample)
 
     merged = [replace(sample, index=position) for position, sample in enumerate(merged)]
@@ -121,16 +146,31 @@ def save_results(run: RunResult, path: Path) -> None:
         path: Output file path.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w") as file:
-        for sample in run.samples:
-            record = {
-                "model": run.model,
-                "effort": run.effort,
-                "task": run.task,
-                "timestamp": run.timestamp,
-                **asdict(sample),
-            }
-            file.write(json.dumps(record) + "\n")
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as file:
+            temporary_path = Path(file.name)
+            for sample in run.samples:
+                record = {
+                    "model": run.model,
+                    "effort": run.effort,
+                    "task": run.task,
+                    "timestamp": run.timestamp,
+                    **asdict(sample),
+                }
+                file.write(json.dumps(record) + "\n")
+            file.flush()
+            os.fsync(file.fileno())
+        os.replace(temporary_path, path)
+    finally:
+        if temporary_path is not None and temporary_path.exists():
+            temporary_path.unlink()
 
 
 def load_results(path: Path) -> RunResult:

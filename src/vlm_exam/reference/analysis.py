@@ -18,7 +18,6 @@ import json
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
 
 import numpy as np
 import supervision as sv
@@ -28,9 +27,10 @@ from vlm_exam.results import RunResult
 from vlm_exam.tasks.detection import (
     DetectionCoordinateFormat,
     DetectionSample,
-    filter_detections_by_confidence,
     filter_prediction_json,
     parse_prediction,
+    prediction_confidence,
+    recorded_coordinate_format,
 )
 
 IOU_MATCH_THRESHOLD = 0.5
@@ -153,17 +153,6 @@ def size_bucket(area: float) -> SizeBucket:
     return SizeBucket.LARGE
 
 
-def _coordinate_format(
-    sample_result_metadata: dict[str, Any],
-) -> DetectionCoordinateFormat:
-    return DetectionCoordinateFormat(
-        sample_result_metadata.get(
-            "coordinate_format",
-            DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE.value,
-        )
-    )
-
-
 def _parse_run_predictions(
     run: RunResult,
     sample_index: dict[str, DetectionSample],
@@ -184,10 +173,11 @@ def _parse_run_predictions(
             prediction_text,
             (sample.image_width, sample.image_height),
             list(sample.classes),
-            coordinate_format=_coordinate_format(sample_result.metadata),
+            coordinate_format=recorded_coordinate_format(
+                sample_result.metadata,
+                default=DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE,
+            ),
         )
-        if min_confidence is not None:
-            predicted = filter_detections_by_confidence(predicted, min_confidence)
         predictions.append(predicted)
         targets.append(sample.ground_truth)
         images.append(sample_result.image)
@@ -205,10 +195,10 @@ def _match_predictions(
     predictions: sv.Detections,
     *,
     class_aware: bool,
-) -> tuple[set[int], set[int], list[float], list[tuple[int, int]]]:
+) -> tuple[set[int], set[int], dict[int, float], list[tuple[int, int]]]:
     matched_ground_truth: set[int] = set()
     matched_predictions: set[int] = set()
-    matched_ious: list[float] = []
+    matched_ious: dict[int, float] = {}
     cross_class_matches: list[tuple[int, int]] = []
 
     if len(targets) == 0 or len(predictions) == 0:
@@ -240,7 +230,7 @@ def _match_predictions(
             continue
         matched_ground_truth.add(best_ground_truth_index)
         matched_predictions.add(prediction_index)
-        matched_ious.append(best_iou)
+        matched_ious[best_ground_truth_index] = best_iou
         if (
             not class_aware
             and targets.class_id[best_ground_truth_index]
@@ -272,7 +262,7 @@ def _recall_metrics(
         true_positive_count += len(matched_ground_truth)
         false_negative_count += len(target) - len(matched_ground_truth)
         false_positive_count += len(prediction) - len(matched_predictions)
-        matched_ious.extend(image_ious)
+        matched_ious.extend(image_ious.values())
 
         if class_aware and len(prediction) > 0 and len(target) > 0:
             ious = sv.box_iou_batch(target.xyxy, prediction.xyxy)
@@ -332,15 +322,15 @@ def _prediction_counts(
             label = entry.get("label")
             if not isinstance(label, str) or label not in classes:
                 continue
-            confidence = entry.get("confidence")
-            try:
-                score = float(confidence)
-            except (TypeError, ValueError):
-                score = 0.0
-            if min_confidence is not None and score < min_confidence:
+            score = prediction_confidence(entry)
+            if (
+                min_confidence is not None
+                and score is not None
+                and score < min_confidence
+            ):
                 continue
             total_counts[label] += 1
-            if score >= CONFIDENCE_REPORT_THRESHOLD:
+            if score is not None and score >= CONFIDENCE_REPORT_THRESHOLD:
                 conf_counts[label] += 1
     return total_counts, conf_counts
 
@@ -416,7 +406,7 @@ def _per_class_recall_and_confusion(
             class_name = classes[int(target.class_id[ground_truth_index])]
             per_class_true_positive[class_name] += 1
 
-        _, _, agnostic_ious, cross_matches = _match_predictions(
+        _, _, _, cross_matches = _match_predictions(
             target,
             prediction,
             class_aware=False,
@@ -432,11 +422,9 @@ def _per_class_recall_and_confusion(
             prediction,
             class_aware=True,
         )
-        for ground_truth_index, iou in zip(
-            sorted(aware_ground_truth), aware_ious, strict=False
-        ):
+        for ground_truth_index in aware_ground_truth:
             class_name = classes[int(target.class_id[ground_truth_index])]
-            per_class_matched_iou[class_name].append(iou)
+            per_class_matched_iou[class_name].append(aware_ious[ground_truth_index])
 
         for prediction_index in range(len(prediction)):
             if prediction_index in matched_predictions:

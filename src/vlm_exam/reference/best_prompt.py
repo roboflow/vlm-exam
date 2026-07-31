@@ -22,10 +22,10 @@ import supervision as sv
 from vlm_exam.reference.constants import REFERENCE_EFFORT
 from vlm_exam.results import RunResult, SampleResult
 from vlm_exam.tasks.detection import (
-    DetectionCoordinateFormat,
     DetectionSample,
     compute_image_map50,
     parse_prediction,
+    recorded_coordinate_format,
     recorded_uploaded_wh,
 )
 
@@ -62,12 +62,7 @@ def _parse_sample_predictions(
         sample_result.predicted,
         resolution_wh,
         list(sample.classes),
-        coordinate_format=DetectionCoordinateFormat(
-            sample_result.metadata.get(
-                "coordinate_format",
-                DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000.value,
-            )
-        ),
+        coordinate_format=recorded_coordinate_format(sample_result.metadata),
         uploaded_wh=recorded_uploaded_wh(sample_result.metadata),
     )
 

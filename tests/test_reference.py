@@ -30,7 +30,12 @@ from vlm_exam.reference.config import (
     assert_no_vlm_model_overlap,
     load_reference_config,
 )
-from vlm_exam.reference.manifest import build_run_manifest, save_manifest
+from vlm_exam.reference.manifest import (
+    RunManifest,
+    build_run_manifest,
+    load_manifest,
+    save_manifest,
+)
 from vlm_exam.reference.serializer import serialize_reference_prediction
 from vlm_exam.reference.validate import validate_reference_run
 from vlm_exam.reference.visualization import (
@@ -239,6 +244,10 @@ class _RecordingAdapter:
         self.set_calls: list[tuple[str, ...]] = []
 
     @property
+    def classes_processed(self) -> str:
+        return "individually"
+
+    @property
     def device(self) -> str:
         return "cpu"
 
@@ -313,7 +322,7 @@ class TestRunnerVocabulary:
                 agnostic_nms=None,
             ),
         )
-        run, _ = reference_runner.run_reference_benchmark(
+        run, manifest = reference_runner.run_reference_benchmark(
             model_config=model_config,
             dataset_directory=str(dataset),
             output_path=tmp_path / "run.jsonl",
@@ -323,10 +332,103 @@ class TestRunnerVocabulary:
         )
 
         assert run.timestamp == "20260731_120000"
+        assert manifest.classes_processed == "individually"
         assert adapter.set_calls == [("cat",), ("dog",), ("cat",)]
         for sample in run.samples:
+            assert sample.metadata["classes_processed"] == "individually"
             predicted_labels = {box["label"] for box in json.loads(sample.predicted)}
             assert predicted_labels <= set(sample.metadata["prompt_class_names"])
+
+
+class TestReferenceManifest:
+    def test_failed_replace_preserves_previous_manifest(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        dataset = tmp_path / "dataset"
+        dataset.mkdir()
+        (dataset / "_annotations.coco.json").write_text("{}")
+        model_config = load_reference_config().models["sam3"]
+        manifest = build_run_manifest(
+            model_config=model_config,
+            effort="reference",
+            task="detection",
+            timestamp="20260731_120000",
+            dataset_directory=str(dataset),
+            prompt_classes="image",
+            classes_processed="individually",
+            device="cpu",
+            precision="float32",
+        )
+        path = tmp_path / "run.manifest.json"
+        save_manifest(manifest, path)
+
+        def fail_replace(source: Path, destination: Path) -> None:
+            raise OSError("replace failed")
+
+        monkeypatch.setattr("vlm_exam.reference.manifest.os.replace", fail_replace)
+        manifest.completed_sample_count = 1
+
+        with pytest.raises(OSError, match="replace failed"):
+            save_manifest(manifest, path)
+
+        assert load_manifest(path).completed_sample_count == 0
+        assert not list(tmp_path.glob("*.tmp"))
+
+    def test_resume_rejects_dirty_or_changed_commit(self, tmp_path: Path) -> None:
+        from vlm_exam.reference.runner import _validate_resume_configuration
+
+        dataset = tmp_path / "dataset"
+        dataset.mkdir()
+        (dataset / "_annotations.coco.json").write_text("{}")
+        model_config = load_reference_config().models["sam3"]
+
+        def manifest() -> RunManifest:
+            value = build_run_manifest(
+                model_config=model_config,
+                effort="reference",
+                task="detection",
+                timestamp="20260731_120000",
+                dataset_directory=str(dataset),
+                prompt_classes="image",
+                classes_processed="individually",
+                device="cpu",
+                precision="float32",
+            )
+            value.benchmark_commit = "abc"
+            value.benchmark_dirty = False
+            return value
+
+        resume_file = tmp_path / "run.jsonl"
+        previous = manifest()
+        save_manifest(previous, resume_file.with_suffix(".manifest.json"))
+        current = manifest()
+        _validate_resume_configuration(
+            resume_file,
+            current,
+            max_samples=None,
+            image_filter=None,
+        )
+
+        current.benchmark_dirty = True
+        with pytest.raises(ValueError, match="trees to be clean"):
+            _validate_resume_configuration(
+                resume_file,
+                current,
+                max_samples=None,
+                image_filter=None,
+            )
+
+        current.benchmark_dirty = False
+        current.benchmark_commit = "def"
+        with pytest.raises(ValueError, match="benchmark_commit"):
+            _validate_resume_configuration(
+                resume_file,
+                current,
+                max_samples=None,
+                image_filter=None,
+            )
 
 
 class TestReferenceValidation:
@@ -381,6 +483,7 @@ class TestReferenceValidation:
             timestamp="20260729_120000",
             dataset_directory=str(dataset),
             prompt_classes="image",
+            classes_processed="together",
             device="cpu",
             precision="float32",
         )

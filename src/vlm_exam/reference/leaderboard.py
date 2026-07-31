@@ -165,7 +165,7 @@ def leaderboard_rows_for_family(
         for row in leaderboard.rows
         if row.source == "vlm" or row.key in reference_keys
     ]
-    rows.sort(key=lambda row: row.map50, reverse=True)
+    rows.sort(key=lambda row: (-row.map50, row.key))
     return MixedDetectionLeaderboard(rows=tuple(rows))
 
 
@@ -175,7 +175,7 @@ def leaderboard_rows_for_keys(
 ) -> MixedDetectionLeaderboard:
     """Filter and re-rank rows to an explicit key set."""
     rows = [row for row in leaderboard.rows if row.key in keys]
-    rows.sort(key=lambda row: row.map50, reverse=True)
+    rows.sort(key=lambda row: (-row.map50, row.key))
     return MixedDetectionLeaderboard(rows=tuple(rows))
 
 
@@ -223,13 +223,13 @@ def build_mixed_leaderboard_config(
     )
     for reference_model_key in reference_config.models:
         reference_entry = reference_config.models[reference_model_key]
+        if reference_model_key not in REFERENCE_LEADERBOARD_NAMES:
+            continue
         if reference_entry.lab is None:
             raise ValueError(
                 f"Reference model {reference_model_key!r} has no lab; "
                 "required for mixed leaderboard rendering."
             )
-        if reference_model_key not in REFERENCE_LEADERBOARD_NAMES:
-            continue
         for variant in REFERENCE_CHART_VARIANT_SUFFIX:
             key = _reference_leaderboard_key(reference_model_key, variant)
             models[key] = ModelConfig(
@@ -351,7 +351,7 @@ def build_mixed_detection_leaderboard(
         if best_row is not None:
             rows.append(best_row)
 
-    rows.sort(key=lambda row: row.map50, reverse=True)
+    rows.sort(key=lambda row: (-row.map50, row.key))
     return MixedDetectionLeaderboard(rows=tuple(rows))
 
 

@@ -26,6 +26,7 @@ from vlm_exam.reference.analysis import (
 from vlm_exam.reference.base import ReferencePrediction
 from vlm_exam.reference.prompts import (
     load_image_conditioned_prompt_set,
+    resolve_prompt_texts,
     validate_prompt_set_coverage,
 )
 from vlm_exam.reference.serializer import serialize_reference_prediction
@@ -79,6 +80,50 @@ class TestPromptAssets:
 
         with pytest.raises(ValueError, match="Duplicate prompt"):
             load_image_conditioned_prompt_set(jsonl_path)
+
+    def test_duplicate_prompt_text_is_case_insensitive(self, tmp_path: Path) -> None:
+        jsonl_path = tmp_path / "prompts.jsonl"
+        rows = [
+            {
+                "image": "a.jpg",
+                "class_name": "one cent coin",
+                "primary": "Small Copper Coin",
+            },
+            {
+                "image": "a.jpg",
+                "class_name": "two cent coin",
+                "primary": "small copper coin",
+            },
+        ]
+        jsonl_path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
+
+        with pytest.raises(ValueError, match="Duplicate prompt"):
+            load_image_conditioned_prompt_set(jsonl_path)
+
+    def test_resolved_primary_cannot_collide_with_fallback(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        jsonl_path = tmp_path / "prompts.jsonl"
+        jsonl_path.write_text(
+            json.dumps(
+                {
+                    "image": "a.jpg",
+                    "class_name": "cat",
+                    "primary": "dog",
+                    "variants": [],
+                }
+            )
+            + "\n"
+        )
+        prompt_set = load_image_conditioned_prompt_set(jsonl_path)
+
+        with pytest.raises(ValueError, match="maps to both"):
+            resolve_prompt_texts(
+                prompt_set,
+                image="a.jpg",
+                canonical_classes=("cat", "dog"),
+            )
 
     def test_label_remap_round_trip(self) -> None:
         prediction = ReferencePrediction(
@@ -169,3 +214,96 @@ class TestReferenceAnalysis:
         assert report.map50 >= 0.0
         assert len(report.per_class) == 2
         assert report.recall_class_agnostic >= report.recall_class_aware
+
+    def test_matched_iou_is_attributed_to_correct_class(self) -> None:
+        classes = ("cat", "dog")
+        ground_truth = sv.Detections(
+            xyxy=np.array([[0, 0, 10, 10], [20, 20, 30, 30]], dtype=np.float32),
+            class_id=np.array([0, 1], dtype=int),
+        )
+        sample = DetectionSample(
+            image_path="/tmp/a.jpg",
+            image_width=40,
+            image_height=40,
+            classes=classes,
+            ground_truth=ground_truth,
+        )
+        run = RunResult(
+            model="reference",
+            effort="reference",
+            task="detection",
+            timestamp="20260731_120000",
+            samples=[
+                SampleResult(
+                    index=0,
+                    image="a.jpg",
+                    expected="",
+                    predicted=(
+                        '[{"box_2d": [20, 20, 30, 30], "label": "dog",'
+                        ' "confidence": 0.9},'
+                        ' {"box_2d": [0, 0, 8, 10], "label": "cat",'
+                        ' "confidence": 0.8}]'
+                    ),
+                    correct=True,
+                    input_tokens=0,
+                    output_tokens=0,
+                    metadata={
+                        "coordinate_format": "xyxy_absolute_original_image",
+                        "reference": True,
+                    },
+                )
+            ],
+        )
+
+        report = build_reference_analysis_report(run, build_sample_index([sample]))
+        rows = {row.class_name: row for row in report.per_class}
+
+        assert rows["cat"].mean_matched_iou == pytest.approx(0.8)
+        assert rows["dog"].mean_matched_iou == pytest.approx(1.0)
+
+    def test_confidence_filter_retains_unscored_predictions(self) -> None:
+        classes = ("cat",)
+        sample = DetectionSample(
+            image_path="/tmp/a.jpg",
+            image_width=100,
+            image_height=100,
+            classes=classes,
+            ground_truth=sv.Detections(
+                xyxy=np.array([[10, 10, 30, 30]], dtype=np.float32),
+                class_id=np.array([0], dtype=int),
+            ),
+        )
+        run = RunResult(
+            model="reference",
+            effort="reference",
+            task="detection",
+            timestamp="20260731_120000",
+            samples=[
+                SampleResult(
+                    index=0,
+                    image="a.jpg",
+                    expected="",
+                    predicted=(
+                        '[{"box_2d": [10, 10, 30, 30], "label": "cat"},'
+                        ' {"box_2d": [40, 40, 60, 60], "label": "cat",'
+                        ' "confidence": 0.2}]'
+                    ),
+                    correct=True,
+                    input_tokens=0,
+                    output_tokens=0,
+                    metadata={
+                        "coordinate_format": "xyxy_absolute_original_image",
+                        "reference": True,
+                    },
+                )
+            ],
+        )
+
+        report = build_reference_analysis_report(
+            run,
+            build_sample_index([sample]),
+            min_confidence=0.5,
+        )
+
+        assert report.per_class[0].prediction_count == 1
+        assert report.recall_class_aware == pytest.approx(1.0)

@@ -21,6 +21,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from vlm_exam.tasks.detection import DetectionSample
+
 MAX_PROMPT_WORDS = 6
 MIN_PROMPT_WORDS = 1
 
@@ -74,6 +76,29 @@ class LoadedPromptSet:
     image_conditioned: ImageConditionedPromptSet | None = None
 
 
+def prompt_classes_for_sample(
+    sample: DetectionSample,
+    prompt_classes: str,
+) -> tuple[str, ...]:
+    """Return the classes that should be prompted for one detection sample.
+
+    Args:
+        sample: Detection sample with dataset classes and ground truth.
+        prompt_classes: ``image`` for present classes or ``all`` for all classes.
+
+    Returns:
+        Ordered, duplicate-free class names.
+    """
+    if (
+        prompt_classes == "image"
+        and sample.ground_truth.class_id is not None
+        and len(sample.ground_truth) > 0
+    ):
+        present_ids = sorted(set(sample.ground_truth.class_id.tolist()))
+        return tuple(sample.classes[class_id] for class_id in present_ids)
+    return tuple(dict.fromkeys(sample.classes))
+
+
 def file_sha256(path: Path) -> str:
     """Return the SHA256 digest of a file."""
     digest = hashlib.sha256()
@@ -116,7 +141,13 @@ def load_image_conditioned_prompt_set(path: Path) -> LoadedPromptSet:
             primary = str(raw.get("primary", variants[0] if variants else class_name))
             for phrase in (primary, *variants):
                 _validate_prompt_phrase(phrase)
-            prompt_key = (image, primary)
+            entry_key = (image, class_name)
+            if entry_key in entries:
+                raise ValueError(
+                    f"Duplicate image/class prompt entry at line {line_number}: "
+                    f"{entry_key!r}."
+                )
+            prompt_key = (image, primary.strip().casefold())
             previous_owner = prompt_owners.get(prompt_key)
             if previous_owner is not None and previous_owner != class_name:
                 raise ValueError(
@@ -124,7 +155,7 @@ def load_image_conditioned_prompt_set(path: Path) -> LoadedPromptSet:
                     f"{previous_owner!r} and {class_name!r}."
                 )
             prompt_owners[prompt_key] = class_name
-            entries[(image, class_name)] = ImageConditionedEntry(
+            entries[entry_key] = ImageConditionedEntry(
                 image=image,
                 class_name=class_name,
                 primary=primary,
@@ -184,6 +215,7 @@ def resolve_prompt_texts(
         mapping from prompt text back to canonical class name for label remapping.
     """
     prompt_to_canonical: dict[str, str] = {}
+    normalized_owners: dict[str, str] = {}
     prompt_texts: list[str] = []
     for class_name in canonical_classes:
         if prompt_set is None:
@@ -191,6 +223,14 @@ def resolve_prompt_texts(
         else:
             assert prompt_set.image_conditioned is not None
             prompt_text = prompt_set.image_conditioned.resolve(image, class_name)
+        normalized_prompt = prompt_text.strip().casefold()
+        previous_owner = normalized_owners.get(normalized_prompt)
+        if previous_owner is not None and previous_owner != class_name:
+            raise ValueError(
+                f"Resolved prompt {prompt_text!r} for image {image!r} maps to both "
+                f"{previous_owner!r} and {class_name!r}."
+            )
+        normalized_owners[normalized_prompt] = class_name
         prompt_texts.append(prompt_text)
         prompt_to_canonical[prompt_text] = class_name
     return tuple(prompt_texts), prompt_to_canonical

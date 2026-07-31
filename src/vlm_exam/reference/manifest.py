@@ -16,9 +16,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import platform
 import subprocess
 import sys
+import tempfile
 from dataclasses import asdict, dataclass, field, fields
 from datetime import datetime, timezone
 from pathlib import Path
@@ -90,9 +92,9 @@ def _git_dirty() -> bool | None:
                 "--porcelain",
                 "--untracked-files=all",
                 "--",
-                ".",
-                ":(exclude)reference/results",
-                ":(exclude)reference/leaderboards",
+                ":(top)",
+                ":(top,exclude)reference/results",
+                ":(top,exclude)reference/leaderboards",
             ],
             stderr=subprocess.DEVNULL,
             text=True,
@@ -131,6 +133,7 @@ def build_run_manifest(
     timestamp: str,
     dataset_directory: str,
     prompt_classes: str,
+    classes_processed: str,
     device: str,
     precision: str,
     deviations: list[str] | None = None,
@@ -144,6 +147,8 @@ def build_run_manifest(
         timestamp: Run timestamp string.
         dataset_directory: Dataset root path.
         prompt_classes: ``image`` or ``all`` class listing mode.
+        classes_processed: Whether the adapter processes classes together or
+            individually.
         device: Resolved device backend.
         precision: Numeric precision used for inference.
         deviations: Documented deviations from the standard procedure.
@@ -172,7 +177,7 @@ def build_run_manifest(
         dataset_annotations_sha256=_file_sha256(annotations_path),
         dataset_image_count=0,
         prompt_classes=prompt_classes,
-        classes_processed="together",
+        classes_processed=classes_processed,
         coordinate_format=model_config.coordinate_format.value,
         device=device,
         precision=precision,
@@ -196,9 +201,24 @@ def save_manifest(manifest: RunManifest, path: Path) -> None:
         path: Output file path.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w") as file:
-        json.dump(manifest.to_dict(), file, indent=2)
-        file.write("\n")
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as file:
+            temporary_path = Path(file.name)
+            json.dump(manifest.to_dict(), file, indent=2)
+            file.write("\n")
+            file.flush()
+            os.fsync(file.fileno())
+        os.replace(temporary_path, path)
+    finally:
+        if temporary_path is not None and temporary_path.exists():
+            temporary_path.unlink()
 
 
 def load_manifest(path: Path) -> RunManifest:

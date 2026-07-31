@@ -433,7 +433,15 @@ def parse_prediction(
     return parser(prediction[start : stop + 1], resolution_wh, classes)
 
 
-def _confidence_from_entry(entry: dict[str, Any]) -> float | None:
+def prediction_confidence(entry: dict[str, Any]) -> float | None:
+    """Return a valid confidence score from one prediction entry.
+
+    Args:
+        entry: Parsed prediction object.
+
+    Returns:
+        Score in the inclusive range 0-1, or ``None`` when absent or invalid.
+    """
     value = entry.get("confidence")
     if value is None:
         return None
@@ -534,7 +542,7 @@ def _parse_pixel_json(
         )
         class_ids.append(class_index[label])
         class_names.append(label)
-        confidences.append(_confidence_from_entry(entry))
+        confidences.append(prediction_confidence(entry))
 
     if not xyxy_list:
         return sv.Detections.empty()
@@ -621,7 +629,7 @@ def _parse_absolute_pixel_json(
         )
         class_ids.append(class_index[label])
         class_names.append(label)
-        confidences.append(_confidence_from_entry(entry))
+        confidences.append(prediction_confidence(entry))
 
     if not xyxy_list:
         return sv.Detections.empty()
@@ -669,7 +677,7 @@ def _parse_normalized_xyxy_json(
         )
         class_ids.append(class_index[label])
         class_names.append(label)
-        confidences.append(_confidence_from_entry(entry))
+        confidences.append(prediction_confidence(entry))
 
     if not xyxy_list:
         return sv.Detections.empty()
@@ -717,7 +725,7 @@ def _parse_meta_flat_normalized_json(
         )
         class_ids.append(class_index[label])
         class_names.append(label)
-        confidences.append(_confidence_from_entry(entry))
+        confidences.append(prediction_confidence(entry))
 
     if not xyxy_list:
         return sv.Detections.empty()
@@ -746,8 +754,8 @@ def filter_prediction_json(prediction: str, min_confidence: float) -> str:
     for entry in entries:
         if not isinstance(entry, dict):
             continue
-        confidence = _confidence_from_entry(entry)
-        if confidence is None or confidence < min_confidence:
+        confidence = prediction_confidence(entry)
+        if confidence is not None and confidence < min_confidence:
             continue
         filtered.append(entry)
     return json.dumps(filtered)
@@ -847,11 +855,8 @@ def compute_dataset_map(
             prediction_text,
             resolution_wh,
             list(sample.classes),
-            coordinate_format=DetectionCoordinateFormat(
-                sample_result.metadata.get(
-                    "coordinate_format",
-                    DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000.value,
-                )
+            coordinate_format=recorded_coordinate_format(
+                sample_result.metadata,
             ),
             uploaded_wh=recorded_uploaded_wh(sample_result.metadata),
         )
@@ -870,6 +875,26 @@ def compute_dataset_map(
         map75=float(result.map75),
         map50_95=float(result.map50_95),
         image_count=len(all_predictions),
+    )
+
+
+def recorded_coordinate_format(
+    metadata: dict[str, Any],
+    default: DetectionCoordinateFormat = (
+        DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000
+    ),
+) -> DetectionCoordinateFormat:
+    """Read the detection coordinate format recorded in sample metadata.
+
+    Args:
+        metadata: Sample result metadata.
+        default: Format used by runs created before metadata was recorded.
+
+    Returns:
+        Recorded or default coordinate format.
+    """
+    return DetectionCoordinateFormat(
+        metadata.get("coordinate_format", default.value),
     )
 
 

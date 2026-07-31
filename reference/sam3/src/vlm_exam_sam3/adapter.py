@@ -44,6 +44,11 @@ class Sam3Adapter:
         self._prompt_texts: tuple[str, ...] = ()
 
     @property
+    def classes_processed(self) -> str:
+        """Return how class prompts are processed during inference."""
+        return "individually"
+
+    @property
     def device(self) -> str:
         """Device backend used for inference."""
         return self._device

@@ -31,6 +31,7 @@ from vlm_exam.tasks.detection import (
     build_sample_index,
     compute_dataset_map,
     parse_prediction,
+    recorded_coordinate_format,
 )
 
 
@@ -63,11 +64,9 @@ def _strip_confidence_map(
             sample_result.predicted,
             resolution_wh,
             list(sample.classes),
-            coordinate_format=DetectionCoordinateFormat(
-                sample_result.metadata.get(
-                    "coordinate_format",
-                    DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE.value,
-                )
+            coordinate_format=recorded_coordinate_format(
+                sample_result.metadata,
+                default=DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE,
             ),
         )
         if predicted.confidence is not None:

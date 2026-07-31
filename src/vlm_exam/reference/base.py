@@ -38,6 +38,11 @@ class ReferenceAdapter(Protocol):
     """Local open-vocabulary detector adapter."""
 
     @property
+    def classes_processed(self) -> str:
+        """Return whether classes are processed together or individually."""
+        ...
+
+    @property
     def device(self) -> str:
         """Device backend used for inference."""
         ...

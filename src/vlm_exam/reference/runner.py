@@ -32,7 +32,11 @@ from vlm_exam.reference.manifest import (
     new_run_timestamp,
     save_manifest,
 )
-from vlm_exam.reference.prompts import LoadedPromptSet, resolve_prompt_texts
+from vlm_exam.reference.prompts import (
+    LoadedPromptSet,
+    prompt_classes_for_sample,
+    resolve_prompt_texts,
+)
 from vlm_exam.reference.serializer import serialize_reference_prediction
 from vlm_exam.results import (
     RunResult,
@@ -91,20 +95,6 @@ def resolve_device(
     return requested
 
 
-def _prompt_classes_for_sample(
-    sample: DetectionSample,
-    prompt_classes: str,
-) -> tuple[str, ...]:
-    if (
-        prompt_classes == "image"
-        and sample.ground_truth.class_id is not None
-        and len(sample.ground_truth) > 0
-    ):
-        present_ids = set(sample.ground_truth.class_id)
-        return tuple(sample.classes[class_id] for class_id in sorted(present_ids))
-    return sample.classes
-
-
 def _images_to_rerun(previous: RunResult | None) -> set[str]:
     if previous is None:
         return set()
@@ -124,6 +114,11 @@ def _validate_resume_configuration(
     if not previous_path.exists():
         raise ValueError(f"Resume manifest not found: {previous_path}")
     previous = load_manifest(previous_path)
+    if previous.benchmark_dirty is not False or current.benchmark_dirty is not False:
+        raise ValueError(
+            "Resuming requires both the original and current benchmark trees "
+            "to be clean."
+        )
     fields = (
         "model",
         "checkpoint",
@@ -136,6 +131,10 @@ def _validate_resume_configuration(
         "inference",
         "device",
         "precision",
+        "classes_processed",
+        "benchmark_commit",
+        "benchmark_dirty",
+        "dependency_versions",
         "prompt_asset_type",
         "prompt_set_sha256",
     )
@@ -231,6 +230,7 @@ def run_reference_benchmark(
             f"re-running {len(samples_to_process)} samples."
         )
 
+    adapter = create_reference_adapter(model_config, device=resolved_device)
     manifest = build_run_manifest(
         model_config=model_config,
         effort=REFERENCE_EFFORT,
@@ -238,6 +238,7 @@ def run_reference_benchmark(
         timestamp=run_timestamp,
         dataset_directory=dataset_directory,
         prompt_classes=prompt_classes,
+        classes_processed=adapter.classes_processed,
         device=resolved_device,
         precision=precision,
         deviations=deviations,
@@ -255,30 +256,26 @@ def run_reference_benchmark(
             max_samples=max_samples,
             image_filter=image_filter,
         )
+    if previous_run is not None:
+        manifest.completed_sample_count = len(previous_run.samples)
+        manifest.failed_sample_count = sum(
+            1 for sample in previous_run.samples if is_failed_sample(sample)
+        )
     manifest_path = manifest_path_for_results(output_path)
     save_manifest(manifest, manifest_path)
 
-    adapter = create_reference_adapter(model_config, device=resolved_device)
-    resumed_samples: list[SampleResult] = []
+    processed_samples: list[SampleResult] = []
     total = len(samples_to_process)
     run_start = time.perf_counter()
     image_to_index = {
         os.path.basename(sample.image_path): position
         for position, sample in enumerate(all_samples)
     }
-    partial_run = RunResult(
-        model=model_config.key,
-        effort=REFERENCE_EFFORT,
-        task="detection",
-        timestamp=run_timestamp,
-        samples=[],
-    )
-
     for offset, sample in enumerate(samples_to_process):
         assert isinstance(sample, DetectionSample)
         image_name = os.path.basename(sample.image_path)
         index = image_to_index[image_name]
-        class_names = _prompt_classes_for_sample(sample, prompt_classes)
+        class_names = prompt_classes_for_sample(sample, prompt_classes)
         prompt_texts, prompt_to_canonical = resolve_prompt_texts(
             prompt_set,
             image=image_name,
@@ -294,7 +291,7 @@ def run_reference_benchmark(
             "reference": True,
             "prompt_class_names": list(class_names),
             "prompt_texts": list(prompt_texts),
-            "classes_processed": "together",
+            "classes_processed": adapter.classes_processed,
             "device": resolved_device,
             "checkpoint": model_config.checkpoint,
         }
@@ -323,7 +320,7 @@ def run_reference_benchmark(
         if evaluation.details:
             metadata.update(evaluation.details)
 
-        resumed_samples.append(
+        processed_samples.append(
             SampleResult(
                 index=index,
                 image=image_name,
@@ -342,17 +339,25 @@ def run_reference_benchmark(
             effort=REFERENCE_EFFORT,
             task="detection",
             timestamp=run_timestamp,
-            samples=resumed_samples,
+            samples=processed_samples,
         )
+        saved_run = partial_run
         if previous_run is not None:
-            partial_run = merge_resumed_runs(previous_run, partial_run)
-        save_results(partial_run, output_path)
+            saved_run = merge_resumed_runs(previous_run, partial_run)
+        save_results(saved_run, output_path)
+        manifest.completed_sample_count = len(saved_run.samples)
+        manifest.failed_sample_count = sum(
+            1 for saved_sample in saved_run.samples if is_failed_sample(saved_sample)
+        )
+        manifest.total_seconds = time.perf_counter() - run_start
         save_manifest(manifest, manifest_path)
 
         if verbose:
             status = "ok" if evaluation.correct else "miss"
             map50 = metadata.get("map50")
-            time_string = f"{elapsed_seconds:.1f}s" if elapsed_seconds else "N/A"
+            time_string = (
+                f"{elapsed_seconds:.1f}s" if elapsed_seconds is not None else "N/A"
+            )
             if map50 is not None:
                 print(
                     f"[{offset + 1}/{total}] {status}  {time_string}"
@@ -363,11 +368,11 @@ def run_reference_benchmark(
             else:
                 print(f"[{offset + 1}/{total}] {status}  {time_string}  {image_name}")
 
-    if previous_run is not None and resumed_samples:
+    if previous_run is not None and processed_samples:
         final_run = merge_resumed_runs(previous_run, partial_run)
     elif previous_run is not None:
         final_run = previous_run
-    elif resumed_samples:
+    elif processed_samples:
         final_run = partial_run
     else:
         final_run = RunResult(

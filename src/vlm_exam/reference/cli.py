@@ -182,11 +182,11 @@ def reference_detection_visualize(
         resolve_card_confidence_threshold,
     )
     from vlm_exam.tasks.detection import (
-        DetectionCoordinateFormat,
         DetectionTask,
         build_sample_index,
         filter_prediction_json,
         parse_prediction,
+        recorded_coordinate_format,
         recorded_uploaded_wh,
     )
     from vlm_exam.visualization.detection import (
@@ -297,12 +297,7 @@ def reference_detection_visualize(
             prediction_text,
             resolution_wh,
             list(sample.classes),
-            coordinate_format=DetectionCoordinateFormat(
-                sample_result.metadata.get(
-                    "coordinate_format",
-                    DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000.value,
-                )
-            ),
+            coordinate_format=recorded_coordinate_format(sample_result.metadata),
             uploaded_wh=recorded_uploaded_wh(sample_result.metadata),
         )
 
@@ -436,7 +431,11 @@ def reference_run(
     """Run a local reference detection model on the benchmark dataset."""
     from vlm_exam.reference.config import load_reference_config
     from vlm_exam.reference.manifest import new_run_timestamp
-    from vlm_exam.reference.prompts import load_prompt_set, validate_prompt_set_coverage
+    from vlm_exam.reference.prompts import (
+        load_prompt_set,
+        prompt_classes_for_sample,
+        validate_prompt_set_coverage,
+    )
     from vlm_exam.reference.runner import run_reference_benchmark
     from vlm_exam.tasks.detection import DetectionTask
 
@@ -486,7 +485,7 @@ def reference_run(
         required_pairs = [
             (os.path.basename(sample.image_path), class_name)
             for sample in samples
-            for class_name in _prompt_classes_for_validation(sample, prompt_classes)
+            for class_name in prompt_classes_for_sample(sample, prompt_classes)
         ]
         coverage_errors = validate_prompt_set_coverage(
             prompt_set,
@@ -515,23 +514,6 @@ def reference_run(
         f"({manifest.failed_sample_count} failed)."
     )
     click.echo(f"Manifest saved to {result_path.with_suffix('.manifest.json')}")
-
-
-def _prompt_classes_for_validation(
-    sample: object,
-    prompt_classes: str,
-) -> tuple[str, ...]:
-    from vlm_exam.tasks.detection import DetectionSample
-
-    assert isinstance(sample, DetectionSample)
-    if (
-        prompt_classes == "image"
-        and sample.ground_truth.class_id is not None
-        and len(sample.ground_truth) > 0
-    ):
-        present_ids = set(sample.ground_truth.class_id)
-        return tuple(sample.classes[class_id] for class_id in sorted(present_ids))
-    return sample.classes
 
 
 @click.command("reference-validate")

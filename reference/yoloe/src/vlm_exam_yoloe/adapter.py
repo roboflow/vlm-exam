@@ -32,19 +32,41 @@ def _file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _resolve_checkpoint(checkpoint: str) -> Path | None:
+    configured = Path(checkpoint).expanduser()
+    candidates = [configured]
+    if not configured.is_absolute():
+        adapter_path = Path(__file__).resolve()
+        candidates.extend(
+            [
+                adapter_path.parents[2] / configured,
+                adapter_path.parents[4] / configured,
+            ]
+        )
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate.resolve()
+    return None
+
+
 class YoloeAdapter:
     """Ultralytics YOLO-E reference adapter."""
 
     def __init__(self, model_config: ReferenceModelConfig, device: str) -> None:
         from ultralytics import YOLOE
+        from ultralytics.utils.downloads import attempt_download_asset
 
         self._model_config = model_config
         self._device = device
-        checkpoint = Path(model_config.checkpoint)
-        if not checkpoint.exists():
-            project_checkpoint = Path(__file__).resolve().parents[2] / checkpoint
-            if project_checkpoint.exists():
-                checkpoint = project_checkpoint
+        checkpoint = _resolve_checkpoint(model_config.checkpoint)
+        if checkpoint is None:
+            downloaded = Path(attempt_download_asset(model_config.checkpoint))
+            if not downloaded.exists():
+                raise FileNotFoundError(
+                    f"YOLO-E checkpoint could not be downloaded: "
+                    f"{model_config.checkpoint}"
+                )
+            checkpoint = downloaded.resolve()
         if model_config.checkpoint_sha256 is not None:
             actual_sha256 = _file_sha256(checkpoint)
             if actual_sha256 != model_config.checkpoint_sha256:
@@ -55,6 +77,11 @@ class YoloeAdapter:
         self._model = YOLOE(str(checkpoint))
         self._model.to(device)
         self._class_names: tuple[str, ...] = ()
+
+    @property
+    def classes_processed(self) -> str:
+        """Return how class prompts are processed during inference."""
+        return "together"
 
     @property
     def device(self) -> str:
