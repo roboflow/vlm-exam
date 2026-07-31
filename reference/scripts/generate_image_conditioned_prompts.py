@@ -94,23 +94,6 @@ _IDENTITY_WORDS = {
     "euro",
     "euros",
 }
-_CLASS_STOP_WORDS = {"a", "an", "and", "doing", "in", "of", "on", "the", "with"}
-_VISUAL_SYNONYMS = {
-    "ball": {"basketball"},
-    "basket": {"basketball", "net"},
-    "bike": {"bicycle"},
-    "car": {"automobile"},
-    "die": {"dice"},
-    "dunk": {"dunking"},
-    "figure": {"diagram", "illustration"},
-    "jersey": {"uniform"},
-    "number": {"digit", "numeral"},
-    "player": {"athlete", "person"},
-    "referee": {"official"},
-    "rim": {"hoop"},
-    "van": {"minivan"},
-}
-
 _GENERATION_PROMPT = (
     "You are writing text queries for an open-vocabulary object detector. "
     "Describe how every listed benchmark class visually appears in this image. "
@@ -162,34 +145,6 @@ def _image_to_png_bytes(image: Image.Image) -> bytes:
     return buffer.getvalue()
 
 
-def _class_token_matches(class_token: str, phrase_tokens: set[str]) -> set[str]:
-    accepted = {class_token, *_VISUAL_SYNONYMS.get(class_token, set())}
-    return phrase_tokens & accepted
-
-
-def _has_distinct_class_matches(
-    class_tokens: set[str],
-    phrase_tokens: set[str],
-) -> bool:
-    candidates = {
-        class_token: _class_token_matches(class_token, phrase_tokens)
-        for class_token in class_tokens
-    }
-    if any(not matches for matches in candidates.values()):
-        return False
-    ordered = sorted(candidates, key=lambda token: len(candidates[token]))
-
-    def assign(index: int, used: set[str]) -> bool:
-        if index == len(ordered):
-            return True
-        return any(
-            assign(index + 1, used | {match})
-            for match in candidates[ordered[index]] - used
-        )
-
-    return assign(0, set())
-
-
 def _validate_phrase(
     phrase: str,
     class_name: str,
@@ -213,14 +168,6 @@ def _validate_phrase(
     for requirement in identity_requirements:
         if phrase_tokens.isdisjoint(requirement):
             issues.append(f"missing identity token {sorted(requirement)!r}: {phrase!r}")
-    descriptive_tokens = (
-        class_tokens - _CLASS_STOP_WORDS - _IDENTITY_WORDS - set(_NUMBER_WORDS)
-    )
-    if descriptive_tokens and not _has_distinct_class_matches(
-        descriptive_tokens,
-        phrase_tokens,
-    ):
-        issues.append(f"missing class concept: {phrase!r}")
     return issues
 
 

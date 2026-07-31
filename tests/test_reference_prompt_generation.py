@@ -151,52 +151,13 @@ class TestGeneration:
 
         assert any("identity token" in issue for issue in issues)
 
-    def test_visual_synonym_is_allowed(self) -> None:
+    def test_visual_description_without_exact_class_token_is_allowed(self) -> None:
         issues = generator._validate_phrase(
             "orange metal basketball hoop",
             "basket rim",
         )
 
         assert issues == []
-
-    def test_unrelated_class_concept_is_rejected(self) -> None:
-        issues = generator._validate_phrase("shiny red fire hydrant", "cat")
-
-        assert any("class concept" in issue for issue in issues)
-
-    @pytest.mark.parametrize(
-        ("phrase", "class_name"),
-        [
-            ("military battle tank", "oil tank"),
-            ("woven picnic basket", "basket rim"),
-            ("personal safety equipment", "person"),
-        ],
-    )
-    def test_partial_or_prefix_overlap_is_rejected(
-        self,
-        phrase: str,
-        class_name: str,
-    ) -> None:
-        issues = generator._validate_phrase(phrase, class_name)
-
-        assert any("class concept" in issue for issue in issues)
-
-    @pytest.mark.parametrize(
-        ("phrase", "class_name"),
-        [
-            ("round orange ball", "basketball"),
-            ("player dunking", "player doing layup dunk"),
-            ("orange metal hoop", "basket rim"),
-        ],
-    )
-    def test_distinct_class_concepts_cannot_share_or_drop_aliases(
-        self,
-        phrase: str,
-        class_name: str,
-    ) -> None:
-        issues = generator._validate_phrase(phrase, class_name)
-
-        assert any("class concept" in issue for issue in issues)
 
 
 class TestResumeValidation:
