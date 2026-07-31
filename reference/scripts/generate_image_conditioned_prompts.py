@@ -94,7 +94,22 @@ _IDENTITY_WORDS = {
     "euro",
     "euros",
 }
-_CLASS_STOP_WORDS = {"a", "an", "and", "in", "of", "on", "the", "with"}
+_CLASS_STOP_WORDS = {"a", "an", "and", "doing", "in", "of", "on", "the", "with"}
+_VISUAL_SYNONYMS = {
+    "ball": {"basketball"},
+    "basket": {"basketball", "net"},
+    "bike": {"bicycle"},
+    "car": {"automobile"},
+    "die": {"dice"},
+    "dunk": {"dunking"},
+    "figure": {"diagram", "illustration"},
+    "jersey": {"uniform"},
+    "number": {"digit", "numeral"},
+    "player": {"athlete", "person"},
+    "referee": {"official"},
+    "rim": {"hoop"},
+    "van": {"minivan"},
+}
 
 _GENERATION_PROMPT = (
     "You are writing text queries for an open-vocabulary object detector. "
@@ -103,7 +118,7 @@ _GENERATION_PROMPT = (
     "from the other classes.\n\n"
     "Requirements:\n"
     "- Return one entry for every class, using the exact class_name supplied.\n"
-    "- Each entry has primary (string) and variants (array of 1-2 strings).\n"
+    "- Each entry has class_name and primary string fields.\n"
     "- Each phrase must be 2-6 words.\n"
     "- Focus on visual attributes: color, shape, material, parts, "
     "markings, relative size, and distinctive appearance.\n"
@@ -130,14 +145,8 @@ _RESPONSE_SCHEMA: dict[str, Any] = {
                 "properties": {
                     "class_name": {"type": "string"},
                     "primary": {"type": "string"},
-                    "variants": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "minItems": 1,
-                        "maxItems": 2,
-                    },
                 },
-                "required": ["class_name", "primary", "variants"],
+                "required": ["class_name", "primary"],
                 "additionalProperties": False,
             },
         }
@@ -153,10 +162,37 @@ def _image_to_png_bytes(image: Image.Image) -> bytes:
     return buffer.getvalue()
 
 
+def _class_token_matches(class_token: str, phrase_tokens: set[str]) -> set[str]:
+    accepted = {class_token, *_VISUAL_SYNONYMS.get(class_token, set())}
+    return phrase_tokens & accepted
+
+
+def _has_distinct_class_matches(
+    class_tokens: set[str],
+    phrase_tokens: set[str],
+) -> bool:
+    candidates = {
+        class_token: _class_token_matches(class_token, phrase_tokens)
+        for class_token in class_tokens
+    }
+    if any(not matches for matches in candidates.values()):
+        return False
+    ordered = sorted(candidates, key=lambda token: len(candidates[token]))
+
+    def assign(index: int, used: set[str]) -> bool:
+        if index == len(ordered):
+            return True
+        return any(
+            assign(index + 1, used | {match})
+            for match in candidates[ordered[index]] - used
+        )
+
+    return assign(0, set())
+
+
 def _validate_phrase(
     phrase: str,
     class_name: str,
-    sibling_classes: tuple[str, ...] = (),
 ) -> list[str]:
     issues: list[str] = []
     words = phrase.split()
@@ -180,20 +216,11 @@ def _validate_phrase(
     descriptive_tokens = (
         class_tokens - _CLASS_STOP_WORDS - _IDENTITY_WORDS - set(_NUMBER_WORDS)
     )
-    if descriptive_tokens and phrase_tokens.isdisjoint(descriptive_tokens):
-        issues.append(f"missing class token: {phrase!r}")
-    sibling_tokens = {
-        token
-        for sibling in sibling_classes
-        if sibling != class_name
-        for token in _TOKEN_PATTERN.findall(sibling.casefold())
-    }
-    discriminative_tokens = descriptive_tokens - sibling_tokens
-    if discriminative_tokens and phrase_tokens.isdisjoint(discriminative_tokens):
-        issues.append(
-            f"missing discriminative token {sorted(discriminative_tokens)!r}: "
-            f"{phrase!r}"
-        )
+    if descriptive_tokens and not _has_distinct_class_matches(
+        descriptive_tokens,
+        phrase_tokens,
+    ):
+        issues.append(f"missing class concept: {phrase!r}")
     return issues
 
 
@@ -508,19 +535,17 @@ def _validate_entries(
         if entry is None:
             continue
         primary, variants = entry
-        if not 1 <= len(variants) <= 2:
-            issues.append(f"{class_name!r} must have 1-2 variants")
-        for phrase in (primary, *variants):
-            if not phrase:
-                issues.append(f"empty phrase for {class_name!r}")
-                continue
+        if not primary:
+            issues.append(f"empty primary for {class_name!r}")
+        else:
             issues.extend(
                 f"{class_name!r}: {issue}"
-                for issue in _validate_phrase(
-                    phrase,
-                    class_name,
-                    sibling_classes=class_names,
-                )
+                for issue in _validate_phrase(primary, class_name)
+            )
+        for variant in variants:
+            issues.extend(
+                f"{class_name!r}: {issue}"
+                for issue in _validate_phrase(variant, class_name)
             )
         normalized = primary.casefold()
         previous_owner = prompt_owners.get(normalized)
