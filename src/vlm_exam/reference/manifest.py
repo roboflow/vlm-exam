@@ -84,7 +84,16 @@ def _git_commit() -> str | None:
 def _git_dirty() -> bool | None:
     try:
         output = subprocess.check_output(
-            ["git", "status", "--porcelain"],
+            [
+                "git",
+                "status",
+                "--porcelain",
+                "--untracked-files=all",
+                "--",
+                ".",
+                ":(exclude)reference/results",
+                ":(exclude)reference/leaderboards",
+            ],
             stderr=subprocess.DEVNULL,
             text=True,
         )
