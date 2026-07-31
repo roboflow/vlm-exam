@@ -159,6 +159,25 @@ class TestGeneration:
 
         assert issues == []
 
+    @pytest.mark.parametrize(
+        ("phrase", "class_name"),
+        [
+            ("walking pedestrian from above", "person"),
+            ("large box cargo truck", "truck"),
+        ],
+    )
+    def test_viewpoint_and_box_truck_are_not_annotation_leaks(
+        self,
+        phrase: str,
+        class_name: str,
+    ) -> None:
+        assert generator._validate_phrase(phrase, class_name) == []
+
+    def test_bounding_box_reference_is_rejected(self) -> None:
+        issues = generator._validate_phrase("cat in red bounding box", "cat")
+
+        assert any("annotation reference" in issue for issue in issues)
+
 
 class TestResumeValidation:
     def test_incompatible_manifest_is_rejected(self, tmp_path: Path) -> None:

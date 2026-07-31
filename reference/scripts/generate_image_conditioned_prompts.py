@@ -63,10 +63,12 @@ _SPATIAL_PATTERN = re.compile(
     re.IGNORECASE,
 )
 _ANNOTATION_PATTERN = re.compile(
-    r"\b(box|boxes|boxed|outline|outlined|highlight|highlighted|"
+    r"\b(bounding box|colored box|boxes|boxed|box outline|outline|outlined|"
+    r"highlight|highlighted|"
     r"annotation|annotated|marker|marked|border|c\d+)\b",
     re.IGNORECASE,
 )
+_VIEWPOINT_PATTERN = re.compile(r"\bfrom\s+(above|below)\b", re.IGNORECASE)
 _TOKEN_PATTERN = re.compile(r"\b[\w]+\b", re.UNICODE)
 _NUMBER_WORDS = {
     "0": "zero",
@@ -153,7 +155,8 @@ def _validate_phrase(
     words = phrase.split()
     if len(words) < max(2, MIN_PROMPT_WORDS) or len(words) > MAX_PROMPT_WORDS:
         issues.append(f"word count out of range: {phrase!r}")
-    if _SPATIAL_PATTERN.search(phrase):
+    spatial_text = _VIEWPOINT_PATTERN.sub("", phrase)
+    if _SPATIAL_PATTERN.search(spatial_text):
         issues.append(f"spatial reference: {phrase!r}")
     if _ANNOTATION_PATTERN.search(phrase):
         issues.append(f"annotation reference: {phrase!r}")
