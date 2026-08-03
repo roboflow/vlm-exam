@@ -1,0 +1,173 @@
+1 euro cent coin: fine-grained
+1 euro coin: fine-grained
+10 euro cent coin: fine-grained
+10 poker chip: fine-grained
+100 poker chip: fine-grained
+1000 poker chip: fine-grained
+10000 poker chip: fine-grained
+2 euro cent coin: fine-grained
+2 euro coin: fine-grained
+20 euro cent coin: fine-grained
+20 poker chip: fine-grained
+5 euro cent coin: fine-grained
+5 poker chip: fine-grained
+50 euro cent coin: fine-grained
+50 poker chip: fine-grained
+500 poker chip: fine-grained
+5000 poker chip: fine-grained
+ace of diamonds: fine-grained
+and gate symbol: abbreviated-ambiguous
+awning tricycle: common
+back bumper: common
+back door: common
+back window: common
+back windshield: common
+ball in basket: common
+banana tree: common
+barcode: common
+basket rim: domain-specific
+basketball: common
+bean grain: common
+bike: common
+black bishop: fine-grained
+black king: common
+black knight: common
+black pawn: common
+black queen: common
+black rook: common
+blood sample tube: common
+blue poker chip: fine-grained
+bullet hole: common
+bus: common
+cable screw: common
+car: common
+caramel corn jelly bean: common
+carrot: common
+chickpea grain: common
+chicory seed: common
+concrete mixer: domain-specific
+container ISO type code: common
+corn kernel: common
+crack: common
+cracked insulator: common
+dc current source symbol: domain-specific
+dc voltage source symbol: domain-specific
+dimension annotation: common
+door: abbreviated-ambiguous
+dump truck: common
+egg: common
+eight of clubs: fine-grained
+eight of hearts: fine-grained
+empty portable gas cylinder: common
+equation: common
+excavator: domain-specific
+fabric cut: common
+face: common
+fallen person: common
+figure: abbreviated-ambiguous
+figure caption: common
+five die: common
+five of clubs: fine-grained
+five of hearts: fine-grained
+football: common
+four die: common
+four of diamonds: fine-grained
+front bumper: common
+front door: abbreviated-ambiguous
+front window: abbreviated-ambiguous
+full portable gas cylinder: common
+garlic on conveyor: common
+goalkeeper: common
+green poker chip: fine-grained
+ground symbol: domain-specific
+headlight: common
+hood: common
+insulator flashover: common
+jack of diamonds: fine-grained
+jack of spades: fine-grained
+jersey number: common
+juicy pear jelly bean: common
+king of diamonds: fine-grained
+king of spades: fine-grained
+lego 3x2 brick: common
+lego 4x1 brick: common
+lego 4x2 brick: common
+lentil grain: common
+log cross-section: common
+mirror: common
+mixed berry smoothie jelly bean: common
+motorcycle: common
+nand gate symbol: domain-specific
+nine of diamonds: fine-grained
+nine of spades: fine-grained
+not gate symbol: domain-specific
+oil tank: abbreviated-ambiguous
+one die: common
+or gate symbol: abbreviated-ambiguous
+orange poker chip: fine-grained
+page number: common
+paragraph: common
+peach jelly bean: common
+person: common
+pill: common
+player: common
+player doing layup dunk: domain-specific
+player in possession: common
+player taking jump shot: common
+potato: common
+queen of diamonds: fine-grained
+queen of spades: fine-grained
+red poker chip: fine-grained
+referee: common
+resistor symbol: domain-specific
+retaining clip: common
+safety helmet: common
+safety vest: common
+screw: common
+seven of clubs: fine-grained
+seven of hearts: fine-grained
+ship in SAR satellite image: common
+shipping container number: common
+shipping container wall dent: common
+signature: common
+six die: common
+six of clubs: fine-grained
+six of hearts: fine-grained
+soda bottle cap: common
+solar panel hot spot: common
+subsection: abbreviated-ambiguous
+surface roughness symbol: domain-specific
+table: abbreviated-ambiguous
+table caption: common
+tail light: common
+technical drawing table: common
+ten of diamonds: fine-grained
+ten of spades: fine-grained
+three die: common
+three of diamonds: fine-grained
+tire size text: common
+tire spike absent: common
+tire spike normal: common
+top banana jelly bean: common
+tower crane: domain-specific
+tricycle: common
+truck: common
+tutti-fruitti jelly bean: common
+two die: common
+two of diamonds: fine-grained
+van: common
+velcro cable tie: common
+white bishop: fine-grained
+white king: common
+white knight: common
+white pawn: common
+white poker chip: fine-grained
+white queen: common
+white rook: common
+white standard price tag: common
+wildfire: common
+window: common
+windshield: common
+wire hole: common
+yellow large price tag: common
+yellow standard price tag: common

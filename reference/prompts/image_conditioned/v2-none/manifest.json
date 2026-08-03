@@ -1,0 +1,16 @@
+{
+  "version": "v2",
+  "generation_model": "gemini-3.5-flash",
+  "generation_prompt_version": "image_conditioned_v2",
+  "dataset_directory": "data/detection/train",
+  "dataset_annotations_sha256": "b652d428fa289f05790544161cc44521441439aab5a63eb97d38aa8cb3c0509e",
+  "prompt_classes": "image",
+  "conditioning": "none",
+  "image_list": null,
+  "selected_images_sha256": "0d8fc6b2b7c9a53e931892c914cd4be961bf12b22611dc2d0c30bf68e1e9fe60",
+  "selected_image_contents_sha256": "50054d8f0b98ff0fd9cfbaf4095e6c7fb50c9710f8a382132a3f942c637dc287",
+  "generation_config_sha256": "bb5250f40b2b9707b27621ed9ec6e1c2c9d5fcabf27ed014bec96534f15de179",
+  "image_count": 250,
+  "pair_count": 691,
+  "output_file": "reference/prompts/image_conditioned/v2-none/prompts.jsonl"
+}

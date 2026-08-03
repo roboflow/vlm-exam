@@ -74,6 +74,27 @@ avoid a loop"). Never narrate what the code does.
   runs that are not comparable to runs made before this behavior existed;
   re-run all models on such a dataset rather than mixing old and new runs.
 
+## Reference models
+
+- SAM 3, YOLO-E, and future local reference detectors are comparison
+  baselines, not VLM benchmark entries. Their code, environments, results,
+  prompts, documentation, and rendered leaderboards live under `reference/`
+  or `src/vlm_exam/reference/`.
+- Never put reference run files in `results/`, add reference model keys to
+  `src/vlm_exam/configs/models.yaml`, or include reference rows in the main
+  VLM leaderboard or `web/benchmark_summary.json`.
+- Full reference runs use effort `reference` and belong in
+  `reference/results/`. Partial and smoke runs remain local.
+- The committed reference prompt modes are class names, image-conditioned v1,
+  v2 none, and v2 overlay. Treat other prompt-generation experiments as local
+  scratch work unless their scope is explicitly approved.
+- Regenerate the separate mixed comparison charts with
+  `vlm-exam reference-detection-leaderboard`; output belongs in
+  `reference/leaderboards/`.
+- Keep model-specific dependencies and adapters in each model's isolated
+  project under `reference/<model>/`. The main package must not depend on
+  PyTorch, Transformers, Ultralytics, or model weights.
+
 ## Web summary
 
 - Regenerate `web/benchmark_summary.json` and commit it in every PR so the

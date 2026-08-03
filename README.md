@@ -34,6 +34,9 @@ charts at any time with `vlm-exam leaderboard`.
 
 ![Object Detection mAP@50 leaderboard](visualizations/leaderboards/detection_map50_low.png)
 
+Reference open-vocabulary detectors (YOLO-E, etc.) are benchmarked separately.
+See [reference/README.md](reference/README.md) for setup and commands.
+
 Stricter IoU thresholds:
 [mAP@75](visualizations/leaderboards/detection_map75_low.png) |
 [mAP@50:95](visualizations/leaderboards/detection_map50_95_low.png)

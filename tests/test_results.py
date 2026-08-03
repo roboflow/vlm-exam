@@ -12,15 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pathlib import Path
+
+import pytest
+
 from vlm_exam.results import (
     RunResult,
     SampleResult,
     is_failed_sample,
+    load_results,
     merge_resumed_runs,
+    save_results,
 )
 
 
-def _sample(index: int, image: str, predicted: str, correct: bool) -> SampleResult:
+def _sample(
+    index: int,
+    image: str,
+    predicted: str,
+    correct: bool,
+    *,
+    metadata: dict[str, str] | None = None,
+) -> SampleResult:
     return SampleResult(
         index=index,
         image=image,
@@ -29,6 +42,7 @@ def _sample(index: int, image: str, predicted: str, correct: bool) -> SampleResu
         correct=correct,
         input_tokens=10,
         output_tokens=10,
+        metadata=metadata or {},
     )
 
 
@@ -100,3 +114,84 @@ class TestMergeResumedRuns:
         merged = merge_resumed_runs(previous, resumed)
 
         assert merged.samples[0].predicted == "[]"
+
+    def test_new_samples_from_resumed_run_are_appended(self) -> None:
+        previous = _run([_sample(0, "a.jpg", "[]", True)])
+        resumed = _run(
+            [
+                _sample(0, "b.jpg", "[]", True),
+                _sample(1, "c.jpg", "[]", True),
+            ],
+            timestamp="20260707_111111",
+        )
+
+        merged = merge_resumed_runs(previous, resumed)
+
+        assert [sample.image for sample in merged.samples] == [
+            "a.jpg",
+            "b.jpg",
+            "c.jpg",
+        ]
+        assert [sample.index for sample in merged.samples] == [0, 1, 2]
+
+    def test_detection_resume_matches_by_image_despite_metadata_drift(self) -> None:
+        previous = _run(
+            [
+                _sample(
+                    0,
+                    "a.jpg",
+                    "ERROR: boom",
+                    False,
+                    metadata={"question": "old metadata"},
+                )
+            ]
+        )
+        resumed = _run(
+            [
+                _sample(
+                    0,
+                    "a.jpg",
+                    "[]",
+                    True,
+                    metadata={"question": "new metadata"},
+                )
+            ]
+        )
+
+        merged = merge_resumed_runs(previous, resumed)
+
+        assert len(merged.samples) == 1
+        assert merged.samples[0].predicted == "[]"
+
+    def test_duplicate_detection_images_are_rejected(self) -> None:
+        previous = _run(
+            [
+                _sample(0, "a.jpg", "[]", True),
+                _sample(1, "a.jpg", "[]", True),
+            ]
+        )
+
+        with pytest.raises(ValueError, match="Duplicate sample"):
+            merge_resumed_runs(previous, _run([]))
+
+
+class TestSaveResults:
+    def test_failed_replace_preserves_previous_file(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        path = tmp_path / "run.jsonl"
+        original = _run([_sample(0, "a.jpg", "[]", True)])
+        save_results(original, path)
+
+        def fail_replace(source: Path, destination: Path) -> None:
+            raise OSError("replace failed")
+
+        monkeypatch.setattr("vlm_exam.results.os.replace", fail_replace)
+
+        with pytest.raises(OSError, match="replace failed"):
+            save_results(_run([_sample(0, "b.jpg", "[]", True)]), path)
+
+        assert load_results(path).samples[0].image == "a.jpg"
+        assert not list(tmp_path.glob("*.tmp"))

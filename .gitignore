@@ -8,6 +8,15 @@ build/
 .venv/
 .env
 *.egg
+*.pkl
+*.pickle
+*.pt
+mobileclip*.ts
+*.local.json
+*.local.yaml
+*.local.yml
+.env.*
+!.env.example
 
 data/
 visualizations/detection/
@@ -23,7 +32,16 @@ results-qa-gemini/
 results-qa-leaderboard/
 results-openai-resize/
 results-openrouter-rerun/
+results-probe-*/
+results-reasoning-v2/
+results-reference*/
+results-workflows-comparison/
+reference/results-smoke/
+reference/analysis/
 experiments/
+/data-v2/
+/prompts/
+/workflows/
 .vlm_exam_judge_cache.json
 visualizations/cases/
 visualizations/review/
@@ -40,6 +58,13 @@ visualizations/identification/
 visualizations/ocr/
 visualizations/reasoning/
 visualizations/zero_map_analysis/
+visualizations/gemini-3.5-flash/
+visualizations/kimi-k3/
+visualizations/low-map-cases/
+visualizations/openai-resize/
+visualizations/reference-analysis/
+visualizations/leaderboards/reference-mixed/
+visualizations/*.png
 
 .cursor/
 .idea/

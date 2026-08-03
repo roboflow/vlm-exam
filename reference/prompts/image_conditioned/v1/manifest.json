@@ -1,0 +1,9 @@
+{
+  "version": "v1",
+  "generation_model": "gemini-3.5-flash",
+  "generation_prompt_version": "image_conditioned_v1",
+  "dataset_directory": "data/detection/train",
+  "prompt_classes": "image",
+  "pair_count": 691,
+  "output_file": "reference/prompts/image_conditioned/v1/prompts.jsonl"
+}
