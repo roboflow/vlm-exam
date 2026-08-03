@@ -43,7 +43,7 @@ GENERATION_PROMPT_VERSION = "image_conditioned_v2"
 GENERATION_MODEL = "gemini-3.5-flash"
 MAX_BOXES_PER_CLASS = 12
 MAX_GENERATION_ATTEMPTS = 3
-CONDITIONING_MODES = ("none", "overlay", "coords", "overlay_coords")
+CONDITIONING_MODES = ("none", "overlay")
 _CLASS_COLORS = (
     "#ff3b30",
     "#007aff",
@@ -390,20 +390,6 @@ def _draw_box_overlay(
     return overlay
 
 
-def _normalized_box(
-    box: list[float],
-    image_width: int,
-    image_height: int,
-) -> list[int]:
-    x_min, y_min, x_max, y_max = box
-    return [
-        round(max(0.0, min(1.0, y_min / image_height)) * 1000),
-        round(max(0.0, min(1.0, x_min / image_width)) * 1000),
-        round(max(0.0, min(1.0, y_max / image_height)) * 1000),
-        round(max(0.0, min(1.0, x_max / image_width)) * 1000),
-    ]
-
-
 def _conditioning_input(
     image: Image.Image,
     sample: DetectionSample,
@@ -411,16 +397,11 @@ def _conditioning_input(
     conditioning: str,
 ) -> tuple[Image.Image, str]:
     boxes_by_class = _selected_boxes(sample, class_names)
-    use_overlay = conditioning in {"overlay", "overlay_coords"}
-    use_coordinates = conditioning in {"coords", "overlay_coords"}
+    use_overlay = conditioning == "overlay"
     conditioned_image = (
         _draw_box_overlay(image, class_names, boxes_by_class) if use_overlay else image
     )
     lines = ["Classes and annotation codes:" if use_overlay else "Classes:"]
-    if use_coordinates:
-        lines.append(
-            "box_2d uses [y_min, x_min, y_max, x_max] normalized from 0 to 1000."
-        )
     ground_truth_class_ids = (
         sample.ground_truth.class_id if sample.ground_truth.class_id is not None else ()
     )
@@ -433,13 +414,7 @@ def _conditioning_input(
         )
         prefix = f"{class_code}: " if use_overlay else ""
         line = f'- {prefix}"{class_name}"'
-        if use_coordinates:
-            normalized = [
-                _normalized_box(box, image.width, image.height)
-                for box in boxes_by_class[class_name]
-            ]
-            line += f"; box_2d={normalized}"
-        if (use_overlay or use_coordinates) and total > MAX_BOXES_PER_CLASS:
+        if use_overlay and total > MAX_BOXES_PER_CLASS:
             line += f"; showing {MAX_BOXES_PER_CLASS} of {total} instances"
         lines.append(line)
     return conditioned_image, "\n".join(lines)
@@ -574,9 +549,9 @@ def _complete_image(
 )
 @click.option(
     "--output-directory",
-    default="reference/prompts/image_conditioned/v2",
+    default=None,
     type=click.Path(),
-    help="Directory for image-conditioned prompt JSONL output.",
+    help="Output directory; defaults to v2-<conditioning> under reference prompts.",
 )
 @click.option(
     "--model",
@@ -610,7 +585,7 @@ def _complete_image(
 )
 def main(
     dataset_directory: str,
-    output_directory: str,
+    output_directory: str | None,
     model_name: str,
     prompt_classes: str,
     conditioning: str,
@@ -625,7 +600,9 @@ def main(
             "GOOGLE_API_KEY or GEMINI_API_KEY must be set in .env"
         )
 
-    output_dir = Path(output_directory)
+    output_dir = Path(
+        output_directory or f"reference/prompts/image_conditioned/v2-{conditioning}"
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
     jsonl_path = output_dir / "prompts.jsonl"
     manifest_path = output_dir / "manifest.json"

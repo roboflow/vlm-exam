@@ -60,25 +60,9 @@ def _resolve_reference_dataset_directory(
 @click.command("reference-detection-visualize")
 @click.option(
     "--results-file",
-    default=None,
+    required=True,
     type=click.Path(exists=True),
     help="Path to a reference detection result JSONL file.",
-)
-@click.option(
-    "--baseline-file",
-    default=None,
-    type=click.Path(exists=True),
-    help=(
-        "Baseline run JSONL for best-of visualization (with --image-conditioned-file)."
-    ),
-)
-@click.option(
-    "--image-conditioned-file",
-    default=None,
-    type=click.Path(exists=True),
-    help=(
-        "Image-conditioned run JSONL for best-of visualization (with --baseline-file)."
-    ),
 )
 @click.option(
     "--dataset-directory",
@@ -156,9 +140,7 @@ def _resolve_reference_dataset_directory(
     ),
 )
 def reference_detection_visualize(
-    results_file: str | None,
-    baseline_file: str | None,
-    image_conditioned_file: str | None,
+    results_file: str,
     dataset_directory: str | None,
     output_directory: str,
     max_images: int,
@@ -194,18 +176,7 @@ def reference_detection_visualize(
         save_annotated_detection,
     )
 
-    best_of = baseline_file is not None or image_conditioned_file is not None
-    if best_of and (baseline_file is None or image_conditioned_file is None):
-        raise click.UsageError(
-            "--baseline-file and --image-conditioned-file must be given together."
-        )
-    if best_of == (results_file is not None):
-        raise click.UsageError(
-            "Provide either --results-file or the "
-            "--baseline-file/--image-conditioned-file pair."
-        )
-
-    anchor_path = Path(results_file if results_file is not None else baseline_file)
+    anchor_path = Path(results_file)
     dataset_path = _resolve_reference_dataset_directory(
         anchor_path,
         dataset_directory,
@@ -215,20 +186,7 @@ def reference_detection_visualize(
     samples = task.load_samples(str(dataset_path))
     sample_by_image = build_sample_index(samples)
 
-    if best_of:
-        from vlm_exam.reference.best_prompt import merge_best_prompt_run
-
-        try:
-            merge_result = merge_best_prompt_run(
-                load_results(Path(baseline_file)),
-                load_results(Path(image_conditioned_file)),
-                sample_by_image,
-            )
-        except ValueError as error:
-            raise click.UsageError(str(error)) from error
-        run_result = merge_result.merged_run
-    else:
-        run_result = load_results(anchor_path)
+    run_result = load_results(anchor_path)
     output_path = Path(output_directory)
     output_path.mkdir(parents=True, exist_ok=True)
 
@@ -694,18 +652,16 @@ def reference_detection_leaderboard(
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    from vlm_exam.reference.config import load_reference_config
+    from vlm_exam.reference.config import (
+        assert_no_vlm_model_overlap,
+        load_reference_config,
+    )
     from vlm_exam.reference.leaderboard import (
         LEADERBOARD_FAMILIES,
-        YOLOE_GEMINI_FOCUS_CHART_TITLE,
-        YOLOE_GEMINI_FOCUS_VLM,
         build_mixed_detection_leaderboard,
         build_mixed_leaderboard_config,
-        chart_config_with_row_labels,
         format_mixed_detection_leaderboard_markdown,
-        format_yoloe_gemini_focus_markdown,
         leaderboard_rows_for_family,
-        leaderboard_rows_for_yoloe_gemini_focus,
         mixed_detection_leaderboard_payload,
     )
     from vlm_exam.tasks.detection import DetectionTask, build_sample_index
@@ -715,6 +671,7 @@ def reference_detection_leaderboard(
     reference_config = load_reference_config(
         Path(reference_config_path) if reference_config_path else None
     )
+    assert_no_vlm_model_overlap(reference_config, set(vlm_config.models))
     task = DetectionTask()
     sample_index = build_sample_index(task.load_samples(dataset_directory))
     leaderboard = build_mixed_detection_leaderboard(
@@ -774,48 +731,6 @@ def reference_detection_leaderboard(
                 f"  Top mAP@50: {top.display_name} ({top.source}) = {top.map50:.4f}"
             )
 
-    gemini_focus_output = output_path / "yoloe" / "gemini-focus"
-    gemini_focus_output.mkdir(parents=True, exist_ok=True)
-    class_names_leaderboard = leaderboard_rows_for_yoloe_gemini_focus(
-        leaderboard,
-        "class_names",
-    )
-    augmented_prompt_leaderboard = leaderboard_rows_for_yoloe_gemini_focus(
-        leaderboard,
-        "augmented_prompt",
-    )
-    for prompt, focus_leaderboard in (
-        ("class_names", class_names_leaderboard),
-        ("augmented_prompt", augmented_prompt_leaderboard),
-    ):
-        focus_chart_config = chart_config_with_row_labels(
-            chart_config, focus_leaderboard
-        )
-        values = focus_leaderboard.map50
-        if not values:
-            continue
-        figure = plot_metric_chart(
-            values,
-            focus_chart_config,
-            YOLOE_GEMINI_FOCUS_CHART_TITLE[prompt],
-            format_value=lambda value: f"{value * 100:.1f}%",
-            sort_ascending=False,
-            full_scale=1.0,
-        )
-        file_path = gemini_focus_output / f"detection_map50_{prompt}.png"
-        figure.savefig(str(file_path), dpi=150)
-        plt.close(figure)
-        saved.append(file_path)
-        click.echo(f"yoloe/gemini-focus/{prompt}: {len(focus_leaderboard.rows)} models")
-    gemini_focus_markdown = gemini_focus_output / "leaderboard.md"
-    gemini_focus_markdown.write_text(
-        format_yoloe_gemini_focus_markdown(
-            class_names_leaderboard,
-            augmented_prompt_leaderboard,
-            vlm_name=vlm_config.models[YOLOE_GEMINI_FOCUS_VLM].name,
-        )
-    )
-
     json_path = output_path / "leaderboard.json"
     json_path.write_text(
         json.dumps(mixed_detection_leaderboard_payload(leaderboard), indent=2) + "\n"
@@ -826,7 +741,6 @@ def reference_detection_leaderboard(
     click.echo("  leaderboard.json")
     for family in LEADERBOARD_FAMILIES:
         click.echo(f"  {family}/leaderboard.md")
-    click.echo("  yoloe/gemini-focus/leaderboard.md")
     click.echo(f"Wrote mixed leaderboard to {output_path}")
 
 

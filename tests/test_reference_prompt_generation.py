@@ -42,20 +42,6 @@ def _sample(box_count: int = 1) -> DetectionSample:
 
 
 class TestConditioning:
-    def test_coordinate_mode_caps_dense_classes(self) -> None:
-        _, context = generator._conditioning_input(
-            Image.new("RGB", (100, 100)),
-            _sample(box_count=20),
-            ("cat", "dog"),
-            "coords",
-        )
-
-        cat_line = next(line for line in context.splitlines() if '"cat"' in line)
-        assert cat_line.count("[") == generator.MAX_BOXES_PER_CLASS + 1
-        assert "showing 12 of 20 instances" in cat_line
-        assert "C1" not in context
-        assert "[y_min, x_min, y_max, x_max]" in context
-
     def test_none_mode_does_not_leak_instance_counts(self) -> None:
         _, context = generator._conditioning_input(
             Image.new("RGB", (100, 100)),
@@ -220,7 +206,7 @@ class TestReviewRendering:
                     "generation_prompt_version": "image_conditioned_v2",
                     "generation_config_sha256": "config",
                     "prompt_classes": "image",
-                    "conditioning": "coords",
+                    "conditioning": "none",
                     "dataset_annotations_sha256": "dataset",
                     "selected_images_sha256": "images",
                     "selected_image_contents_sha256": "contents",
@@ -235,7 +221,6 @@ class TestReviewRendering:
                 dataset_sha256="dataset",
                 selected_images_sha256="images",
                 selected_image_contents_sha256="contents",
-                generation_config_sha256="config",
             )
 
     def test_mislabeled_prompt_record_is_rejected(self, tmp_path: Path) -> None:
@@ -248,7 +233,7 @@ class TestReviewRendering:
                     "primary": "striped cat",
                     "generation_model": "gemini-3.5-flash",
                     "generation_prompt_version": "image_conditioned_v2",
-                    "conditioning": "coords",
+                    "conditioning": "none",
                 }
             )
             + "\n"

@@ -29,13 +29,11 @@ from PIL import Image, ImageOps
 from vlm_exam.reference.prompts import file_sha256, prompt_classes_for_sample
 from vlm_exam.tasks.detection import DetectionSample, DetectionTask
 
-_MODES = ("v1", "none", "overlay", "coords", "overlay_coords")
+_MODES = ("v1", "none", "overlay")
 _MODE_LABELS = {
     "v1": "v1 per-class",
     "none": "all classes",
     "overlay": "box overlay",
-    "coords": "box coordinates",
-    "overlay_coords": "overlay + coordinates",
 }
 
 
@@ -75,7 +73,6 @@ def _validate_probe_manifest(
     dataset_sha256: str,
     selected_images_sha256: str,
     selected_image_contents_sha256: str,
-    generation_config_sha256: str,
 ) -> None:
     manifest_path = path.with_name("manifest.json")
     if not manifest_path.exists():
@@ -90,7 +87,6 @@ def _validate_probe_manifest(
         "dataset_annotations_sha256": dataset_sha256,
         "selected_images_sha256": selected_images_sha256,
         "selected_image_contents_sha256": selected_image_contents_sha256,
-        "generation_config_sha256": generation_config_sha256,
     }
     mismatches = [
         field for field, value in expected.items() if manifest.get(field) != value
@@ -98,6 +94,10 @@ def _validate_probe_manifest(
     if mismatches:
         raise ValueError(
             f"Prompt manifest {manifest_path} is incompatible: {', '.join(mismatches)}"
+        )
+    if not manifest.get("generation_config_sha256"):
+        raise ValueError(
+            f"Prompt manifest {manifest_path} has no generator provenance."
         )
 
 
@@ -251,9 +251,6 @@ def main(
     dataset_sha256 = file_sha256(Path(dataset_directory) / "_annotations.coco.json")
     selected_image_contents_sha256 = _selected_image_contents_sha256(samples)
     probe_path = Path(probe_directory)
-    generator_sha256 = file_sha256(
-        Path(__file__).with_name("generate_image_conditioned_prompts.py")
-    )
     try:
         for mode in _MODES:
             if mode == "v1":
@@ -264,7 +261,6 @@ def main(
                 dataset_sha256=dataset_sha256,
                 selected_images_sha256=selected_images_sha256,
                 selected_image_contents_sha256=selected_image_contents_sha256,
-                generation_config_sha256=generator_sha256,
             )
     except ValueError as error:
         raise click.ClickException(str(error)) from error

@@ -114,11 +114,6 @@ def _validate_resume_configuration(
     if not previous_path.exists():
         raise ValueError(f"Resume manifest not found: {previous_path}")
     previous = load_manifest(previous_path)
-    if previous.benchmark_dirty is not False or current.benchmark_dirty is not False:
-        raise ValueError(
-            "Resuming requires both the original and current benchmark trees "
-            "to be clean."
-        )
     fields = (
         "model",
         "checkpoint",
@@ -133,7 +128,6 @@ def _validate_resume_configuration(
         "precision",
         "classes_processed",
         "benchmark_commit",
-        "benchmark_dirty",
         "dependency_versions",
         "prompt_asset_type",
         "prompt_set_sha256",

@@ -134,25 +134,20 @@ def build_reference_report_rows(
             )
         )
 
-    reference_runs = load_results_directory(
-        reference_results_directory,
-        pattern="detection_*.jsonl",
-    )
-    latest_reference: dict[str, RunResult] = {}
-    for run in reference_runs:
-        if run.effort != REFERENCE_EFFORT:
-            continue
-        existing = latest_reference.get(run.model)
-        if existing is None or run.timestamp > existing.timestamp:
-            latest_reference[run.model] = run
-
-    for model, run in latest_reference.items():
+    latest_reference = _latest_runs_by_key(reference_results_directory)
+    for (model, prompt_type, prompt_version), indexed in latest_reference.items():
+        run = indexed.run
         map_result = compute_dataset_map(run, sample_index)
         if map_result is None:
             continue
+        prompt_mode = (
+            "class names"
+            if prompt_type == "none"
+            else (prompt_version or "image conditioned").replace("-", " ")
+        )
         rows.append(
             ReferenceReportRow(
-                model=f"{model} (reference)",
+                model=f"{model} ({prompt_mode})",
                 run_type="reference",
                 map50=map_result.map50,
                 map75=map_result.map75,
@@ -213,8 +208,8 @@ class _IndexedReferenceRun:
 
 def _latest_runs_by_key(
     results_directory: Path,
-) -> dict[tuple[str, str], _IndexedReferenceRun]:
-    latest: dict[tuple[str, str], _IndexedReferenceRun] = {}
+) -> dict[tuple[str, str, str | None], _IndexedReferenceRun]:
+    latest: dict[tuple[str, str, str | None], _IndexedReferenceRun] = {}
     for path in sorted(results_directory.glob("detection_*.jsonl")):
         run = load_results(path)
         if run.effort != REFERENCE_EFFORT:
@@ -226,7 +221,7 @@ def _latest_runs_by_key(
             manifest = load_manifest(manifest_path)
             prompt_type = manifest.prompt_asset_type
             prompt_version = manifest.prompt_set_version
-        key = (run.model, prompt_type)
+        key = (run.model, prompt_type, prompt_version)
         indexed = _IndexedReferenceRun(
             run=run,
             prompt_asset_type=prompt_type,
@@ -261,7 +256,7 @@ def build_prompt_experiment_rows(
 
     baseline_runs = _latest_runs_by_key(baseline_directory)
     baseline_map: dict[str, float] = {}
-    for (model, prompt_type), indexed in baseline_runs.items():
+    for (model, prompt_type, _), indexed in baseline_runs.items():
         if prompt_type != "none":
             continue
         map_result = compute_dataset_map(indexed.run, sample_index)
@@ -270,7 +265,7 @@ def build_prompt_experiment_rows(
 
     experiment_runs = _latest_runs_by_key(experiment_directory)
     rows: list[PromptExperimentRow] = []
-    for (model, prompt_type), indexed in experiment_runs.items():
+    for (model, prompt_type, _), indexed in experiment_runs.items():
         if prompt_type == "none":
             continue
         run = indexed.run

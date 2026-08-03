@@ -85,6 +85,9 @@ avoid a loop"). Never narrate what the code does.
   VLM leaderboard or `web/benchmark_summary.json`.
 - Full reference runs use effort `reference` and belong in
   `reference/results/`. Partial and smoke runs remain local.
+- The committed reference prompt modes are class names, image-conditioned v1,
+  v2 none, and v2 overlay. Treat other prompt-generation experiments as local
+  scratch work unless their scope is explicitly approved.
 - Regenerate the separate mixed comparison charts with
   `vlm-exam reference-detection-leaderboard`; output belongs in
   `reference/leaderboards/`.

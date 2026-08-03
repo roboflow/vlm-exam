@@ -1,0 +1,588 @@
+{
+  "families": {
+    "sam3": [
+      {
+        "rank": 1,
+        "key": "gemini-3.5-flash",
+        "display_name": "Gemini 3.5 Flash",
+        "source": "vlm",
+        "map50": 0.6864779591560364,
+        "map75": 0.5575541853904724,
+        "map50_95": 0.5296393632888794,
+        "image_count": 250
+      },
+      {
+        "rank": 2,
+        "key": "gpt-5.6-sol",
+        "display_name": "GPT-5.6 Sol",
+        "source": "vlm",
+        "map50": 0.6819125413894653,
+        "map75": 0.46575695276260376,
+        "map50_95": 0.4522857666015625,
+        "image_count": 250
+      },
+      {
+        "rank": 3,
+        "key": "gemini-3.1-pro-preview",
+        "display_name": "Gemini 3.1 Pro",
+        "source": "vlm",
+        "map50": 0.67430579662323,
+        "map75": 0.5577555894851685,
+        "map50_95": 0.5238602161407471,
+        "image_count": 250
+      },
+      {
+        "rank": 4,
+        "key": "gpt-5.6-terra",
+        "display_name": "GPT-5.6 Terra",
+        "source": "vlm",
+        "map50": 0.6066476106643677,
+        "map75": 0.4044465124607086,
+        "map50_95": 0.39587458968162537,
+        "image_count": 250
+      },
+      {
+        "rank": 5,
+        "key": "qwen-3.7-plus",
+        "display_name": "Qwen 3.7 Plus",
+        "source": "vlm",
+        "map50": 0.6009292006492615,
+        "map75": 0.4842965006828308,
+        "map50_95": 0.4514198303222656,
+        "image_count": 250
+      },
+      {
+        "rank": 6,
+        "key": "gpt-5.6-luna",
+        "display_name": "GPT-5.6 Luna",
+        "source": "vlm",
+        "map50": 0.5986581444740295,
+        "map75": 0.41410204768180847,
+        "map50_95": 0.41055384278297424,
+        "image_count": 250
+      },
+      {
+        "rank": 7,
+        "key": "qwen-3.5-27b",
+        "display_name": "Qwen3.5 27B",
+        "source": "vlm",
+        "map50": 0.5875003933906555,
+        "map75": 0.46400296688079834,
+        "map50_95": 0.4507962167263031,
+        "image_count": 250
+      },
+      {
+        "rank": 8,
+        "key": "muse-spark-1.1",
+        "display_name": "Muse Spark 1.1",
+        "source": "vlm",
+        "map50": 0.5816001892089844,
+        "map75": 0.4059329330921173,
+        "map50_95": 0.3851112425327301,
+        "image_count": 250
+      },
+      {
+        "rank": 9,
+        "key": "gemini-3.5-flash-lite",
+        "display_name": "Gemini 3.5 Flash-Lite",
+        "source": "vlm",
+        "map50": 0.5751329064369202,
+        "map75": 0.4658010005950928,
+        "map50_95": 0.4455079138278961,
+        "image_count": 250
+      },
+      {
+        "rank": 10,
+        "key": "glm-5v-turbo",
+        "display_name": "GLM 5V Turbo",
+        "source": "vlm",
+        "map50": 0.5606750249862671,
+        "map75": 0.3958078622817993,
+        "map50_95": 0.3897145688533783,
+        "image_count": 250
+      },
+      {
+        "rank": 11,
+        "key": "claude-fable-5",
+        "display_name": "Claude Fable 5",
+        "source": "vlm",
+        "map50": 0.5598483681678772,
+        "map75": 0.30999326705932617,
+        "map50_95": 0.3136852979660034,
+        "image_count": 250
+      },
+      {
+        "rank": 12,
+        "key": "gemini-3.6-flash",
+        "display_name": "Gemini 3.6 Flash",
+        "source": "vlm",
+        "map50": 0.5597978234291077,
+        "map75": 0.46403899788856506,
+        "map50_95": 0.44503307342529297,
+        "image_count": 250
+      },
+      {
+        "rank": 13,
+        "key": "claude-opus-5",
+        "display_name": "Claude Opus 5",
+        "source": "vlm",
+        "map50": 0.5402697920799255,
+        "map75": 0.3007286787033081,
+        "map50_95": 0.3038828670978546,
+        "image_count": 250
+      },
+      {
+        "rank": 14,
+        "key": "qwen-3-vl-235b",
+        "display_name": "Qwen3-VL 235B",
+        "source": "vlm",
+        "map50": 0.5216057896614075,
+        "map75": 0.4290522038936615,
+        "map50_95": 0.40309005975723267,
+        "image_count": 250
+      },
+      {
+        "rank": 15,
+        "key": "sam3-v2-overlay",
+        "display_name": "SAM 3 (v2 overlay)",
+        "source": "reference",
+        "map50": 0.5205345749855042,
+        "map75": 0.4377327859401703,
+        "map50_95": 0.42307305335998535,
+        "image_count": 250
+      },
+      {
+        "rank": 16,
+        "key": "kimi-k3",
+        "display_name": "Kimi K3",
+        "source": "vlm",
+        "map50": 0.5192005038261414,
+        "map75": 0.41543030738830566,
+        "map50_95": 0.4040353298187256,
+        "image_count": 250
+      },
+      {
+        "rank": 17,
+        "key": "sam3-v2-none",
+        "display_name": "SAM 3 (v2 none)",
+        "source": "reference",
+        "map50": 0.504594087600708,
+        "map75": 0.44032150506973267,
+        "map50_95": 0.4171762466430664,
+        "image_count": 250
+      },
+      {
+        "rank": 18,
+        "key": "sam3-v1",
+        "display_name": "SAM 3 (v1)",
+        "source": "reference",
+        "map50": 0.48921599984169006,
+        "map75": 0.43513429164886475,
+        "map50_95": 0.4132937490940094,
+        "image_count": 250
+      },
+      {
+        "rank": 19,
+        "key": "qwen-3.7-flash",
+        "display_name": "Qwen 3.7 Flash",
+        "source": "vlm",
+        "map50": 0.4283016622066498,
+        "map75": 0.3290863037109375,
+        "map50_95": 0.3107004761695862,
+        "image_count": 250
+      },
+      {
+        "rank": 20,
+        "key": "gpt-5.5",
+        "display_name": "GPT-5.5",
+        "source": "vlm",
+        "map50": 0.4166167974472046,
+        "map75": 0.2109050303697586,
+        "map50_95": 0.22212667763233185,
+        "image_count": 250
+      },
+      {
+        "rank": 21,
+        "key": "sam3-class-names",
+        "display_name": "SAM 3 (class names)",
+        "source": "reference",
+        "map50": 0.3914719820022583,
+        "map75": 0.3278094232082367,
+        "map50_95": 0.31019800901412964,
+        "image_count": 250
+      },
+      {
+        "rank": 22,
+        "key": "gemini-3-flash-preview",
+        "display_name": "Gemini 3 Flash",
+        "source": "vlm",
+        "map50": 0.38597866892814636,
+        "map75": 0.29183053970336914,
+        "map50_95": 0.2794109284877777,
+        "image_count": 250
+      },
+      {
+        "rank": 23,
+        "key": "claude-opus-4-8",
+        "display_name": "Claude Opus 4.8",
+        "source": "vlm",
+        "map50": 0.38580814003944397,
+        "map75": 0.13283853232860565,
+        "map50_95": 0.1684291958808899,
+        "image_count": 250
+      },
+      {
+        "rank": 24,
+        "key": "claude-sonnet-5",
+        "display_name": "Claude Sonnet 5",
+        "source": "vlm",
+        "map50": 0.36075517535209656,
+        "map75": 0.15780913829803467,
+        "map50_95": 0.18053632974624634,
+        "image_count": 250
+      },
+      {
+        "rank": 25,
+        "key": "kimi-k2.6",
+        "display_name": "Kimi K2.6",
+        "source": "vlm",
+        "map50": 0.35664740204811096,
+        "map75": 0.2669923007488251,
+        "map50_95": 0.26822495460510254,
+        "image_count": 250
+      },
+      {
+        "rank": 26,
+        "key": "gemini-2.5-pro",
+        "display_name": "Gemini 2.5 Pro",
+        "source": "vlm",
+        "map50": 0.3373276889324188,
+        "map75": 0.2507953643798828,
+        "map50_95": 0.24736258387565613,
+        "image_count": 250
+      },
+      {
+        "rank": 27,
+        "key": "gpt-5.4-mini",
+        "display_name": "GPT-5.4 mini",
+        "source": "vlm",
+        "map50": 0.16079232096672058,
+        "map75": 0.03477901220321655,
+        "map50_95": 0.05893566086888313,
+        "image_count": 250
+      }
+    ],
+    "yoloe": [
+      {
+        "rank": 1,
+        "key": "gemini-3.5-flash",
+        "display_name": "Gemini 3.5 Flash",
+        "source": "vlm",
+        "map50": 0.6864779591560364,
+        "map75": 0.5575541853904724,
+        "map50_95": 0.5296393632888794,
+        "image_count": 250
+      },
+      {
+        "rank": 2,
+        "key": "gpt-5.6-sol",
+        "display_name": "GPT-5.6 Sol",
+        "source": "vlm",
+        "map50": 0.6819125413894653,
+        "map75": 0.46575695276260376,
+        "map50_95": 0.4522857666015625,
+        "image_count": 250
+      },
+      {
+        "rank": 3,
+        "key": "gemini-3.1-pro-preview",
+        "display_name": "Gemini 3.1 Pro",
+        "source": "vlm",
+        "map50": 0.67430579662323,
+        "map75": 0.5577555894851685,
+        "map50_95": 0.5238602161407471,
+        "image_count": 250
+      },
+      {
+        "rank": 4,
+        "key": "gpt-5.6-terra",
+        "display_name": "GPT-5.6 Terra",
+        "source": "vlm",
+        "map50": 0.6066476106643677,
+        "map75": 0.4044465124607086,
+        "map50_95": 0.39587458968162537,
+        "image_count": 250
+      },
+      {
+        "rank": 5,
+        "key": "qwen-3.7-plus",
+        "display_name": "Qwen 3.7 Plus",
+        "source": "vlm",
+        "map50": 0.6009292006492615,
+        "map75": 0.4842965006828308,
+        "map50_95": 0.4514198303222656,
+        "image_count": 250
+      },
+      {
+        "rank": 6,
+        "key": "gpt-5.6-luna",
+        "display_name": "GPT-5.6 Luna",
+        "source": "vlm",
+        "map50": 0.5986581444740295,
+        "map75": 0.41410204768180847,
+        "map50_95": 0.41055384278297424,
+        "image_count": 250
+      },
+      {
+        "rank": 7,
+        "key": "qwen-3.5-27b",
+        "display_name": "Qwen3.5 27B",
+        "source": "vlm",
+        "map50": 0.5875003933906555,
+        "map75": 0.46400296688079834,
+        "map50_95": 0.4507962167263031,
+        "image_count": 250
+      },
+      {
+        "rank": 8,
+        "key": "muse-spark-1.1",
+        "display_name": "Muse Spark 1.1",
+        "source": "vlm",
+        "map50": 0.5816001892089844,
+        "map75": 0.4059329330921173,
+        "map50_95": 0.3851112425327301,
+        "image_count": 250
+      },
+      {
+        "rank": 9,
+        "key": "gemini-3.5-flash-lite",
+        "display_name": "Gemini 3.5 Flash-Lite",
+        "source": "vlm",
+        "map50": 0.5751329064369202,
+        "map75": 0.4658010005950928,
+        "map50_95": 0.4455079138278961,
+        "image_count": 250
+      },
+      {
+        "rank": 10,
+        "key": "glm-5v-turbo",
+        "display_name": "GLM 5V Turbo",
+        "source": "vlm",
+        "map50": 0.5606750249862671,
+        "map75": 0.3958078622817993,
+        "map50_95": 0.3897145688533783,
+        "image_count": 250
+      },
+      {
+        "rank": 11,
+        "key": "claude-fable-5",
+        "display_name": "Claude Fable 5",
+        "source": "vlm",
+        "map50": 0.5598483681678772,
+        "map75": 0.30999326705932617,
+        "map50_95": 0.3136852979660034,
+        "image_count": 250
+      },
+      {
+        "rank": 12,
+        "key": "gemini-3.6-flash",
+        "display_name": "Gemini 3.6 Flash",
+        "source": "vlm",
+        "map50": 0.5597978234291077,
+        "map75": 0.46403899788856506,
+        "map50_95": 0.44503307342529297,
+        "image_count": 250
+      },
+      {
+        "rank": 13,
+        "key": "claude-opus-5",
+        "display_name": "Claude Opus 5",
+        "source": "vlm",
+        "map50": 0.5402697920799255,
+        "map75": 0.3007286787033081,
+        "map50_95": 0.3038828670978546,
+        "image_count": 250
+      },
+      {
+        "rank": 14,
+        "key": "qwen-3-vl-235b",
+        "display_name": "Qwen3-VL 235B",
+        "source": "vlm",
+        "map50": 0.5216057896614075,
+        "map75": 0.4290522038936615,
+        "map50_95": 0.40309005975723267,
+        "image_count": 250
+      },
+      {
+        "rank": 15,
+        "key": "kimi-k3",
+        "display_name": "Kimi K3",
+        "source": "vlm",
+        "map50": 0.5192005038261414,
+        "map75": 0.41543030738830566,
+        "map50_95": 0.4040353298187256,
+        "image_count": 250
+      },
+      {
+        "rank": 16,
+        "key": "qwen-3.7-flash",
+        "display_name": "Qwen 3.7 Flash",
+        "source": "vlm",
+        "map50": 0.4283016622066498,
+        "map75": 0.3290863037109375,
+        "map50_95": 0.3107004761695862,
+        "image_count": 250
+      },
+      {
+        "rank": 17,
+        "key": "gpt-5.5",
+        "display_name": "GPT-5.5",
+        "source": "vlm",
+        "map50": 0.4166167974472046,
+        "map75": 0.2109050303697586,
+        "map50_95": 0.22212667763233185,
+        "image_count": 250
+      },
+      {
+        "rank": 18,
+        "key": "gemini-3-flash-preview",
+        "display_name": "Gemini 3 Flash",
+        "source": "vlm",
+        "map50": 0.38597866892814636,
+        "map75": 0.29183053970336914,
+        "map50_95": 0.2794109284877777,
+        "image_count": 250
+      },
+      {
+        "rank": 19,
+        "key": "claude-opus-4-8",
+        "display_name": "Claude Opus 4.8",
+        "source": "vlm",
+        "map50": 0.38580814003944397,
+        "map75": 0.13283853232860565,
+        "map50_95": 0.1684291958808899,
+        "image_count": 250
+      },
+      {
+        "rank": 20,
+        "key": "claude-sonnet-5",
+        "display_name": "Claude Sonnet 5",
+        "source": "vlm",
+        "map50": 0.36075517535209656,
+        "map75": 0.15780913829803467,
+        "map50_95": 0.18053632974624634,
+        "image_count": 250
+      },
+      {
+        "rank": 21,
+        "key": "kimi-k2.6",
+        "display_name": "Kimi K2.6",
+        "source": "vlm",
+        "map50": 0.35664740204811096,
+        "map75": 0.2669923007488251,
+        "map50_95": 0.26822495460510254,
+        "image_count": 250
+      },
+      {
+        "rank": 22,
+        "key": "gemini-2.5-pro",
+        "display_name": "Gemini 2.5 Pro",
+        "source": "vlm",
+        "map50": 0.3373276889324188,
+        "map75": 0.2507953643798828,
+        "map50_95": 0.24736258387565613,
+        "image_count": 250
+      },
+      {
+        "rank": 23,
+        "key": "yoloe-11l-seg-v2-overlay",
+        "display_name": "YOLOE-11l (v2 overlay)",
+        "source": "reference",
+        "map50": 0.2411818951368332,
+        "map75": 0.19617094099521637,
+        "map50_95": 0.18468478322029114,
+        "image_count": 250
+      },
+      {
+        "rank": 24,
+        "key": "yoloe-26x-seg-v1",
+        "display_name": "YOLOE-26x (v1)",
+        "source": "reference",
+        "map50": 0.2396545261144638,
+        "map75": 0.19589988887310028,
+        "map50_95": 0.18567536771297455,
+        "image_count": 250
+      },
+      {
+        "rank": 25,
+        "key": "yoloe-26x-seg-v2-overlay",
+        "display_name": "YOLOE-26x (v2 overlay)",
+        "source": "reference",
+        "map50": 0.2391190528869629,
+        "map75": 0.19655901193618774,
+        "map50_95": 0.18401312828063965,
+        "image_count": 250
+      },
+      {
+        "rank": 26,
+        "key": "yoloe-26x-seg-v2-none",
+        "display_name": "YOLOE-26x (v2 none)",
+        "source": "reference",
+        "map50": 0.22971321642398834,
+        "map75": 0.18799354135990143,
+        "map50_95": 0.17464956641197205,
+        "image_count": 250
+      },
+      {
+        "rank": 27,
+        "key": "yoloe-11l-seg-v2-none",
+        "display_name": "YOLOE-11l (v2 none)",
+        "source": "reference",
+        "map50": 0.22786055505275726,
+        "map75": 0.185771182179451,
+        "map50_95": 0.17146335542201996,
+        "image_count": 250
+      },
+      {
+        "rank": 28,
+        "key": "yoloe-11l-seg-v1",
+        "display_name": "YOLOE-11l (v1)",
+        "source": "reference",
+        "map50": 0.22403159737586975,
+        "map75": 0.17832837998867035,
+        "map50_95": 0.16900403797626495,
+        "image_count": 250
+      },
+      {
+        "rank": 29,
+        "key": "yoloe-26x-seg-class-names",
+        "display_name": "YOLOE-26x (class names)",
+        "source": "reference",
+        "map50": 0.2020431011915207,
+        "map75": 0.16711080074310303,
+        "map50_95": 0.15699520707130432,
+        "image_count": 250
+      },
+      {
+        "rank": 30,
+        "key": "yoloe-11l-seg-class-names",
+        "display_name": "YOLOE-11l (class names)",
+        "source": "reference",
+        "map50": 0.18287941813468933,
+        "map75": 0.14270640909671783,
+        "map50_95": 0.13429856300354004,
+        "image_count": 250
+      },
+      {
+        "rank": 31,
+        "key": "gpt-5.4-mini",
+        "display_name": "GPT-5.4 mini",
+        "source": "vlm",
+        "map50": 0.16079232096672058,
+        "map75": 0.03477901220321655,
+        "map50_95": 0.05893566086888313,
+        "image_count": 250
+      }
+    ]
+  }
+}

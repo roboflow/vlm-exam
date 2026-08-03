@@ -48,6 +48,19 @@ uv run vlm-exam reference-run \
   --device auto
 ```
 
+## Image-conditioned prompts
+
+Frozen v1, v2 none, and v2 overlay prompt sets live under
+`reference/prompts/image_conditioned/`. Pass one with `--prompt-set`:
+
+```bash
+uv run vlm-exam reference-run \
+  --model yoloe-11l-seg \
+  --dataset-directory ../../data/detection/train \
+  --output-directory ../results \
+  --prompt-set ../prompts/image_conditioned/v2-overlay/prompts.jsonl
+```
+
 ## Validate and evaluate
 
 From the main repo root (or this env):

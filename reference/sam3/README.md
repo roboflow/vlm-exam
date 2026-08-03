@@ -47,14 +47,15 @@ uv run vlm-exam reference-run \
 ## Image-conditioned prompts
 
 SAM 3 accepts one text phrase per forward pass; the adapter loops over the
-per-image class list.
+per-image class list. Frozen prompt sets are available under
+`reference/prompts/image_conditioned/` for v1, v2 none, and v2 overlay.
 
 ```bash
 uv run vlm-exam reference-run \
   --model sam3 \
   --dataset-directory ../../data/detection/train \
   --output-directory ../results \
-  --prompt-set ../prompts/image_conditioned/v1/prompts.jsonl
+  --prompt-set ../prompts/image_conditioned/v2-overlay/prompts.jsonl
 ```
 
 ## Notes

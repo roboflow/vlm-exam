@@ -15,21 +15,66 @@
 REFERENCE_EFFORT = "reference"
 """Effort label written into reference-run JSONL files."""
 
-CANONICAL_BEST_PAIRS: tuple[tuple[str, str, str], ...] = (
+CANONICAL_REFERENCE_RUNS: tuple[tuple[str, str, str], ...] = (
     (
-        "yoloe-11l-seg",
-        "reference/results/detection_yoloe-11l-seg_reference_20260729_224530.jsonl",
-        "reference/results/detection_yoloe-11l-seg_reference_20260729_224941.jsonl",
-    ),
-    (
-        "yoloe-26x-seg",
-        "reference/results/detection_yoloe-26x-seg_reference_20260729_224745.jsonl",
-        "reference/results/detection_yoloe-26x-seg_reference_20260729_225750.jsonl",
+        "sam3",
+        "class-names",
+        "reference/results/detection_sam3_reference_20260803_093736.jsonl",
     ),
     (
         "sam3",
-        "reference/results/detection_sam3_reference_20260730_103753.jsonl",
-        "reference/results/detection_sam3_reference_20260730_121633.jsonl",
+        "v1",
+        "reference/results/detection_sam3_reference_20260803_095800.jsonl",
+    ),
+    (
+        "sam3",
+        "v2-none",
+        "reference/results/detection_sam3_reference_20260803_101805.jsonl",
+    ),
+    (
+        "sam3",
+        "v2-overlay",
+        "reference/results/detection_sam3_reference_20260803_104113.jsonl",
+    ),
+    (
+        "yoloe-11l-seg",
+        "class-names",
+        "reference/results/detection_yoloe-11l-seg_reference_20260803_090104.jsonl",
+    ),
+    (
+        "yoloe-11l-seg",
+        "v1",
+        "reference/results/detection_yoloe-11l-seg_reference_20260803_090240.jsonl",
+    ),
+    (
+        "yoloe-11l-seg",
+        "v2-none",
+        "reference/results/detection_yoloe-11l-seg_reference_20260803_090418.jsonl",
+    ),
+    (
+        "yoloe-11l-seg",
+        "v2-overlay",
+        "reference/results/detection_yoloe-11l-seg_reference_20260803_090556.jsonl",
+    ),
+    (
+        "yoloe-26x-seg",
+        "class-names",
+        "reference/results/detection_yoloe-26x-seg_reference_20260803_092841.jsonl",
+    ),
+    (
+        "yoloe-26x-seg",
+        "v1",
+        "reference/results/detection_yoloe-26x-seg_reference_20260803_093010.jsonl",
+    ),
+    (
+        "yoloe-26x-seg",
+        "v2-none",
+        "reference/results/detection_yoloe-26x-seg_reference_20260803_093140.jsonl",
+    ),
+    (
+        "yoloe-26x-seg",
+        "v2-overlay",
+        "reference/results/detection_yoloe-26x-seg_reference_20260803_093309.jsonl",
     ),
 )
-"""Canonical baseline and image-conditioned reference runs for 250-image eval."""
+"""Canonical full-dataset reference runs by model and prompt mode."""

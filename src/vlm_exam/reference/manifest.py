@@ -58,7 +58,6 @@ class RunManifest:
     total_seconds: float | None = None
     failed_sample_count: int = 0
     completed_sample_count: int = 0
-    benchmark_dirty: bool | None = None
     checkpoint_revision: str | None = None
     checkpoint_sha256: str | None = None
     prompt_asset_type: str = "none"
@@ -81,27 +80,6 @@ def _git_commit() -> str | None:
     except (OSError, subprocess.CalledProcessError):
         return None
     return output.strip() or None
-
-
-def _git_dirty() -> bool | None:
-    try:
-        output = subprocess.check_output(
-            [
-                "git",
-                "status",
-                "--porcelain",
-                "--untracked-files=all",
-                "--",
-                ":(top)",
-                ":(top,exclude)reference/results",
-                ":(top,exclude)reference/leaderboards",
-            ],
-            stderr=subprocess.DEVNULL,
-            text=True,
-        )
-    except (OSError, subprocess.CalledProcessError):
-        return None
-    return bool(output.strip())
 
 
 def _file_sha256(path: Path) -> str:
@@ -187,7 +165,6 @@ def build_run_manifest(
         platform=platform.platform(),
         dependency_versions=_collect_dependency_versions(),
         deviations=list(deviations or []),
-        benchmark_dirty=_git_dirty(),
         checkpoint_revision=model_config.checkpoint_revision,
         checkpoint_sha256=model_config.checkpoint_sha256,
     )

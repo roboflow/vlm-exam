@@ -1,0 +1,50 @@
+{
+  "run_type": "reference",
+  "model": "yoloe-26x-seg",
+  "model_name": "YOLOE-26x",
+  "checkpoint": "yoloe-26x-seg.pt",
+  "adapter": "yoloe",
+  "effort": "reference",
+  "task": "detection",
+  "timestamp": "20260803_092841",
+  "dataset_directory": "data/detection/train",
+  "dataset_annotations_sha256": "b652d428fa289f05790544161cc44521441439aab5a63eb97d38aa8cb3c0509e",
+  "dataset_image_count": 250,
+  "prompt_classes": "image",
+  "classes_processed": "together",
+  "coordinate_format": "xyxy_absolute_original_image",
+  "device": "mps",
+  "precision": "float32",
+  "inference": {
+    "conf": 0.001,
+    "iou": 0.7,
+    "imgsz": 640,
+    "max_det": 300,
+    "agnostic_nms": null
+  },
+  "benchmark_commit": "1fd65b767747a24cb6c88d7c2f2a185703b69685",
+  "python_version": "3.12.12 (main, Dec  9 2025, 19:05:33) [Clang 21.1.4 ]",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "dependency_versions": {
+    "python": "3.12.12",
+    "vlm_exam": "0.1.0",
+    "ultralytics": "8.4.110",
+    "torch": "2.13.0",
+    "numpy": "2.5.1",
+    "supervision": "0.29.1"
+  },
+  "deviations": [
+    "Mask outputs are ignored; evaluation uses boxes only.",
+    "Confidence floor set to 0.001 for COCO-style evaluation.",
+    "Checkpoint uses NMS-free end-to-end decoding."
+  ],
+  "total_seconds": 85.9695451669395,
+  "failed_sample_count": 0,
+  "completed_sample_count": 250,
+  "checkpoint_revision": null,
+  "checkpoint_sha256": "d08d390a08f98195f7c87807839fe4ff93a5491645fef1bc3bf0700efafdd639",
+  "prompt_asset_type": "none",
+  "prompt_set_path": null,
+  "prompt_set_version": null,
+  "prompt_set_sha256": null
+}

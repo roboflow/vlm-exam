@@ -14,27 +14,23 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
 from vlm_exam.config import BenchmarkConfig, ModelConfig, PricingConfig, RouteConfig
 from vlm_exam.metrics import build_latest_runs_index
-from vlm_exam.reference.best_prompt import merge_best_prompt_run
 from vlm_exam.reference.config import ReferenceConfig
-from vlm_exam.reference.constants import CANONICAL_BEST_PAIRS
+from vlm_exam.reference.constants import CANONICAL_REFERENCE_RUNS
 from vlm_exam.results import RunResult, load_results, load_results_directory
 from vlm_exam.tasks.detection import DetectionSample, compute_dataset_map
 
 MixedDetectionSource = Literal[
     "vlm",
-    "reference-baseline",
-    "reference-image-conditioned",
-    "reference-best",
+    "reference",
 ]
 LeaderboardFamily = Literal["sam3", "yoloe"]
-ReferenceChartVariant = Literal["baseline", "image-conditioned", "best"]
-YoloeGeminiFocusPrompt = Literal["class_names", "augmented_prompt"]
+ReferenceChartVariant = Literal["class-names", "v1", "v2-none", "v2-overlay"]
 
 LEADERBOARD_FAMILIES: tuple[LeaderboardFamily, ...] = ("sam3", "yoloe")
 
@@ -44,31 +40,18 @@ REFERENCE_LEADERBOARD_NAMES: dict[str, str] = {
     "yoloe-26x-seg": "YOLOE-26x",
 }
 
-YOLOE_GEMINI_FOCUS_VLM = "gemini-3.5-flash"
-
 REFERENCE_CHART_VARIANT_SUFFIX: dict[ReferenceChartVariant, str] = {
-    "baseline": " (base prompt)",
-    "image-conditioned": " (augmented prompt)",
-    "best": " (best prompt)",
-}
-
-YOLOE_GEMINI_FOCUS_PROMPT_VARIANT: dict[
-    YoloeGeminiFocusPrompt, ReferenceChartVariant
-] = {
-    "class_names": "baseline",
-    "augmented_prompt": "image-conditioned",
-}
-
-YOLOE_GEMINI_FOCUS_CHART_TITLE: dict[YoloeGeminiFocusPrompt, str] = {
-    "class_names": "Object Detection — mAP@50 (class names)",
-    "augmented_prompt": "Object Detection — mAP@50 (augmented prompt)",
+    "class-names": " (class names)",
+    "v1": " (v1)",
+    "v2-none": " (v2 none)",
+    "v2-overlay": " (v2 overlay)",
 }
 
 _FAMILY_LEADERBOARD_VARIANTS: dict[
     LeaderboardFamily, tuple[ReferenceChartVariant, ...]
 ] = {
-    "sam3": ("baseline", "best"),
-    "yoloe": ("baseline", "best"),
+    "sam3": ("class-names", "v1", "v2-none", "v2-overlay"),
+    "yoloe": ("class-names", "v1", "v2-none", "v2-overlay"),
 }
 
 _FAMILY_REFERENCE_MODELS: dict[LeaderboardFamily, tuple[str, ...]] = {
@@ -122,29 +105,6 @@ def reference_leaderboard_display_name(
     return f"{base_name}{REFERENCE_CHART_VARIANT_SUFFIX[variant]}"
 
 
-def row_chart_label(row: MixedDetectionLeaderboardRow) -> str:
-    """Return a chart label with prompt-variant suffixes removed."""
-    if row.source == "vlm":
-        return row.display_name
-    for reference_model, short_name in REFERENCE_LEADERBOARD_NAMES.items():
-        if row.key.startswith(f"{reference_model}-"):
-            return short_name
-    return row.display_name
-
-
-def chart_config_with_row_labels(
-    base_config: BenchmarkConfig,
-    rows: MixedDetectionLeaderboard,
-) -> BenchmarkConfig:
-    """Return a chart config whose row labels omit prompt-variant suffixes."""
-    models = dict(base_config.models)
-    for row in rows.rows:
-        if row.key not in models:
-            continue
-        models[row.key] = replace(models[row.key], name=row_chart_label(row))
-    return BenchmarkConfig(labs=base_config.labs, models=models)
-
-
 def family_reference_keys(family: LeaderboardFamily) -> frozenset[str]:
     """Return synthetic leaderboard keys for one reference model family."""
     keys: list[str] = []
@@ -169,45 +129,11 @@ def leaderboard_rows_for_family(
     return MixedDetectionLeaderboard(rows=tuple(rows))
 
 
-def leaderboard_rows_for_keys(
-    leaderboard: MixedDetectionLeaderboard,
-    keys: frozenset[str],
-) -> MixedDetectionLeaderboard:
-    """Filter and re-rank rows to an explicit key set."""
-    rows = [row for row in leaderboard.rows if row.key in keys]
-    rows.sort(key=lambda row: (-row.map50, row.key))
-    return MixedDetectionLeaderboard(rows=tuple(rows))
-
-
-def yoloe_gemini_focus_keys(
-    prompt: YoloeGeminiFocusPrompt,
-    *,
-    vlm_model: str = YOLOE_GEMINI_FOCUS_VLM,
-) -> frozenset[str]:
-    """Return leaderboard keys for one YOLO-E vs Gemini focus chart."""
-    variant = YOLOE_GEMINI_FOCUS_PROMPT_VARIANT[prompt]
-    keys = {vlm_model}
-    for reference_model in _FAMILY_REFERENCE_MODELS["yoloe"]:
-        keys.add(_reference_leaderboard_key(reference_model, variant))
-    return frozenset(keys)
-
-
-def leaderboard_rows_for_yoloe_gemini_focus(
-    leaderboard: MixedDetectionLeaderboard,
-    prompt: YoloeGeminiFocusPrompt,
-    *,
-    vlm_model: str = YOLOE_GEMINI_FOCUS_VLM,
-) -> MixedDetectionLeaderboard:
-    """Filter to one VLM plus YOLO-E rows for one prompt setting."""
-    keys = yoloe_gemini_focus_keys(prompt, vlm_model=vlm_model)
-    return leaderboard_rows_for_keys(leaderboard, keys)
-
-
 def build_mixed_leaderboard_config(
     vlm_config: BenchmarkConfig,
     reference_config: ReferenceConfig,
 ) -> BenchmarkConfig:
-    """Build a chart config covering VLMs and reference baseline/best variants.
+    """Build a chart config covering VLMs and canonical reference prompt modes.
 
     Args:
         vlm_config: Loaded VLM benchmark configuration.
@@ -309,47 +235,18 @@ def build_mixed_detection_leaderboard(
         if row is not None:
             rows.append(row)
 
-    for reference_model, baseline_path, image_conditioned_path in CANONICAL_BEST_PAIRS:
-        baseline_run = load_results(root / baseline_path)
-        image_conditioned_run = load_results(root / image_conditioned_path)
-        baseline_key = _reference_leaderboard_key(reference_model, "baseline")
-        image_conditioned_key = _reference_leaderboard_key(
-            reference_model,
-            "image-conditioned",
-        )
-        best_key = _reference_leaderboard_key(reference_model, "best")
-        baseline_row = _row_from_run(
-            baseline_run,
+    for reference_model, variant, results_path in CANONICAL_REFERENCE_RUNS:
+        run = load_results(root / results_path)
+        key = _reference_leaderboard_key(reference_model, variant)
+        row = _row_from_run(
+            run,
             sample_index,
-            key=baseline_key,
-            display_name=chart_config.models[baseline_key].name,
-            source="reference-baseline",
+            key=key,
+            display_name=chart_config.models[key].name,
+            source="reference",
         )
-        if baseline_row is not None:
-            rows.append(baseline_row)
-        image_conditioned_row = _row_from_run(
-            image_conditioned_run,
-            sample_index,
-            key=image_conditioned_key,
-            display_name=chart_config.models[image_conditioned_key].name,
-            source="reference-image-conditioned",
-        )
-        if image_conditioned_row is not None:
-            rows.append(image_conditioned_row)
-        merged_run = merge_best_prompt_run(
-            baseline_run,
-            image_conditioned_run,
-            sample_index,
-        ).merged_run
-        best_row = _row_from_run(
-            merged_run,
-            sample_index,
-            key=best_key,
-            display_name=chart_config.models[best_key].name,
-            source="reference-best",
-        )
-        if best_row is not None:
-            rows.append(best_row)
+        if row is not None:
+            rows.append(row)
 
     rows.sort(key=lambda row: (-row.map50, row.key))
     return MixedDetectionLeaderboard(rows=tuple(rows))
@@ -378,7 +275,7 @@ def format_mixed_detection_leaderboard_markdown(
     *,
     title: str = "Mixed detection leaderboard",
     description: str = (
-        "All VLM low-effort runs plus reference base-prompt and best-prompt rows."
+        "All VLM low-effort runs plus canonical reference prompt-mode rows."
     ),
 ) -> str:
     """Format mixed leaderboard rows as a markdown table."""
@@ -399,38 +296,6 @@ def format_mixed_detection_leaderboard_markdown(
     return "\n".join(lines) + "\n"
 
 
-def format_yoloe_gemini_focus_markdown(
-    class_names_leaderboard: MixedDetectionLeaderboard,
-    augmented_prompt_leaderboard: MixedDetectionLeaderboard,
-    *,
-    vlm_name: str,
-) -> str:
-    """Format YOLO-E vs Gemini focus leaderboards as mAP@50 markdown tables."""
-    sections = (
-        ("class names", class_names_leaderboard),
-        ("augmented prompt", augmented_prompt_leaderboard),
-    )
-    lines = [
-        f"# Mixed detection leaderboard — YOLO-E vs {vlm_name}",
-        "",
-        f"{vlm_name} compared with YOLOE-11l and YOLOE-26x at mAP@50.",
-        "",
-    ]
-    for section_title, section_leaderboard in sections:
-        lines.extend(
-            [
-                f"## {section_title.title()}",
-                "",
-                "| Rank | Model | mAP@50 |",
-                "| ---: | --- | ---: |",
-            ]
-        )
-        for rank, row in enumerate(section_leaderboard.rows, start=1):
-            lines.append(f"| {rank} | {row_chart_label(row)} | {row.map50:.4f} |")
-        lines.append("")
-    return "\n".join(lines).rstrip() + "\n"
-
-
 def mixed_detection_leaderboard_payload(
     leaderboard: MixedDetectionLeaderboard,
 ) -> dict[str, object]:
@@ -439,8 +304,4 @@ def mixed_detection_leaderboard_payload(
         family: _serialize_rows(leaderboard_rows_for_family(leaderboard, family).rows)
         for family in LEADERBOARD_FAMILIES
     }
-    for prompt in YOLOE_GEMINI_FOCUS_PROMPT_VARIANT:
-        families[f"yoloe_gemini_focus_{prompt}"] = _serialize_rows(
-            leaderboard_rows_for_yoloe_gemini_focus(leaderboard, prompt).rows
-        )
     return {"families": families}

@@ -65,6 +65,58 @@ def _file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _resolve_prompt_path(results_path: Path, prompt_set_path: str) -> Path:
+    path = Path(prompt_set_path)
+    if path.is_absolute():
+        return path
+    resolved_results = results_path.resolve()
+    for parent in (resolved_results.parent, *resolved_results.parents):
+        candidate = parent / path
+        if candidate.exists():
+            return candidate
+    return Path.cwd() / path
+
+
+def _validate_prompt_asset(
+    manifest: RunManifest,
+    results_path: Path,
+) -> list[ValidationIssue]:
+    if manifest.prompt_asset_type == "none":
+        return []
+    if not manifest.prompt_set_path:
+        return [ValidationIssue(None, None, "Manifest prompt set path is missing.")]
+    if not manifest.prompt_set_sha256:
+        return [ValidationIssue(None, None, "Manifest prompt set hash is missing.")]
+    prompt_path = _resolve_prompt_path(results_path, manifest.prompt_set_path)
+    if not prompt_path.exists():
+        return [
+            ValidationIssue(
+                None,
+                None,
+                f"Manifest prompt set does not exist: {manifest.prompt_set_path}.",
+            )
+        ]
+    issues: list[ValidationIssue] = []
+    if _file_sha256(prompt_path) != manifest.prompt_set_sha256:
+        issues.append(
+            ValidationIssue(None, None, "Manifest prompt set hash is invalid.")
+        )
+    expected_version = (
+        prompt_path.parent.name
+        if prompt_path.parent.name.startswith("v")
+        else prompt_path.stem
+    )
+    if manifest.prompt_set_version != expected_version:
+        issues.append(
+            ValidationIssue(
+                None,
+                None,
+                "Manifest prompt set version does not match its path.",
+            )
+        )
+    return issues
+
+
 def _validate_sample_prediction(
     sample: SampleResult,
     classes: list[str],
@@ -330,6 +382,7 @@ def validate_reference_run(
             )
 
     if manifest is not None:
+        issues.extend(_validate_prompt_asset(manifest, results_path))
         annotations_path = Path(dataset_directory) / "_annotations.coco.json"
         if manifest.dataset_annotations_sha256 != _file_sha256(annotations_path):
             issues.append(

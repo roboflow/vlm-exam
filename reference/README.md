@@ -10,16 +10,24 @@ the website payload and main leaderboard charts.
 
 ## Results
 
-| Model | Class names mAP@50 | Image-conditioned mAP@50 | Best prompt mAP@50 |
-| --- | ---: | ---: | ---: |
-| SAM 3 | 0.3913 | 0.4878 | 0.5337 |
-| YOLOE-11l | 0.1829 | 0.2240 | 0.2462 |
-| YOLOE-26x | 0.2020 | 0.2397 | 0.2671 |
+| Model | Class names | v1 | v2 none | v2 overlay |
+| --- | ---: | ---: | ---: | ---: |
+| SAM 3 | 0.3915 | 0.4892 | 0.5046 | **0.5205** |
+| YOLOE-11l | 0.1829 | 0.2240 | 0.2279 | **0.2412** |
+| YOLOE-26x | 0.2020 | **0.2397** | 0.2297 | 0.2391 |
 
-Best prompt is a per-image oracle that keeps whichever of the class-name and
-image-conditioned runs scores higher on that image. It is a diagnostic
-heuristic, not a deployable single-pass setting or a guaranteed upper bound on
-dataset-level mAP.
+All values are dataset-level mAP@50 on the same 250 images. Class names use no
+generated descriptions. The frozen prompt pipelines are:
+
+- `v1`: Gemini sees the clean image and one class at a time.
+- `v2 none`: Gemini sees the clean image and all classes together.
+- `v2 overlay`: Gemini sees all classes together on a copy annotated with up to
+  12 ground-truth boxes per class.
+
+The overlay is used only to generate text. Reference detectors always receive
+the original clean image and the generated text prompts. The v2 pipelines are
+offline, dataset-specific experiments because prompt generation uses the
+ground-truth class list and, for overlay, ground-truth boxes.
 
 ### SAM 3 compared with VLMs
 
@@ -37,18 +45,11 @@ dataset-level mAP.
 [mAP@50:95](leaderboards/yoloe/detection_map50_95.png) |
 [table](leaderboards/yoloe/leaderboard.md)
 
-### YOLO-E and Gemini 3.5 Flash
-
-![Class-name comparison](leaderboards/yoloe/gemini-focus/detection_map50_class_names.png)
-
-![Image-conditioned comparison](leaderboards/yoloe/gemini-focus/detection_map50_augmented_prompt.png)
-
 ## Layout
 
-- `results/`: six committed full-dataset runs, one class-name and one
-  image-conditioned run per model
+- `results/`: 12 committed full-dataset runs, one per model and prompt mode
 - `leaderboards/`: generated mixed VLM/reference charts and tables
-- `prompts/image_conditioned/v1/`: frozen Gemini-generated prompt asset
+- `prompts/image_conditioned/`: frozen v1, v2 none, and v2 overlay assets
 - `scripts/`: reference-only generation and analysis utilities
 - `sam3/` and `yoloe/`: isolated model projects, each with its own adapter,
   dependencies, lockfile, and setup guide
@@ -72,14 +73,14 @@ For YOLO-E, use `reference/yoloe` and select either `yoloe-11l-seg` or
 `yoloe-26x-seg`. See each model directory's README for prerequisites and
 checkpoint details.
 
-To use the frozen image-conditioned prompts:
+To use a frozen image-conditioned prompt set:
 
 ```bash
 uv run vlm-exam reference-run \
   --model sam3 \
   --dataset-directory ../../data/detection/train \
   --output-directory ../results \
-  --prompt-set ../prompts/image_conditioned/v1/prompts.jsonl
+  --prompt-set ../prompts/image_conditioned/v2-overlay/prompts.jsonl
 ```
 
 Only full 250-image runs belong in `reference/results/`. Keep smoke and partial

@@ -1,0 +1,48 @@
+{
+  "run_type": "reference",
+  "model": "sam3",
+  "model_name": "SAM 3",
+  "checkpoint": "facebook/sam3",
+  "adapter": "sam3",
+  "effort": "reference",
+  "task": "detection",
+  "timestamp": "20260803_093736",
+  "dataset_directory": "data/detection/train",
+  "dataset_annotations_sha256": "b652d428fa289f05790544161cc44521441439aab5a63eb97d38aa8cb3c0509e",
+  "dataset_image_count": 250,
+  "prompt_classes": "image",
+  "classes_processed": "individually",
+  "coordinate_format": "xyxy_absolute_original_image",
+  "device": "mps",
+  "precision": "float32",
+  "inference": {
+    "conf": 0.05,
+    "iou": null,
+    "imgsz": null,
+    "max_det": null,
+    "agnostic_nms": null
+  },
+  "benchmark_commit": "1fd65b767747a24cb6c88d7c2f2a185703b69685",
+  "python_version": "3.12.12 (main, Dec  9 2025, 19:05:33) [Clang 21.1.4 ]",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "dependency_versions": {
+    "python": "3.12.12",
+    "vlm_exam": "0.1.0",
+    "torch": "2.13.0",
+    "numpy": "2.5.1",
+    "supervision": "0.29.1"
+  },
+  "deviations": [
+    "Mask outputs are ignored; evaluation uses boxes only.",
+    "Instance segmentation threshold set to 0.05."
+  ],
+  "total_seconds": 1213.1360458749114,
+  "failed_sample_count": 0,
+  "completed_sample_count": 250,
+  "checkpoint_revision": "3c879f39826c281e95690f02c7821c4de09afae7",
+  "checkpoint_sha256": null,
+  "prompt_asset_type": "none",
+  "prompt_set_path": null,
+  "prompt_set_version": null,
+  "prompt_set_sha256": null
+}

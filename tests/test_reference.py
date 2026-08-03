@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -37,7 +38,7 @@ from vlm_exam.reference.manifest import (
     save_manifest,
 )
 from vlm_exam.reference.serializer import serialize_reference_prediction
-from vlm_exam.reference.validate import validate_reference_run
+from vlm_exam.reference.validate import _validate_prompt_asset, validate_reference_run
 from vlm_exam.reference.visualization import (
     build_reference_card_config,
     detection_labels_for_card,
@@ -376,7 +377,7 @@ class TestReferenceManifest:
         assert load_manifest(path).completed_sample_count == 0
         assert not list(tmp_path.glob("*.tmp"))
 
-    def test_resume_rejects_dirty_or_changed_commit(self, tmp_path: Path) -> None:
+    def test_resume_rejects_changed_commit(self, tmp_path: Path) -> None:
         from vlm_exam.reference.runner import _validate_resume_configuration
 
         dataset = tmp_path / "dataset"
@@ -397,7 +398,6 @@ class TestReferenceManifest:
                 precision="float32",
             )
             value.benchmark_commit = "abc"
-            value.benchmark_dirty = False
             return value
 
         resume_file = tmp_path / "run.jsonl"
@@ -411,16 +411,6 @@ class TestReferenceManifest:
             image_filter=None,
         )
 
-        current.benchmark_dirty = True
-        with pytest.raises(ValueError, match="trees to be clean"):
-            _validate_resume_configuration(
-                resume_file,
-                current,
-                max_samples=None,
-                image_filter=None,
-            )
-
-        current.benchmark_dirty = False
         current.benchmark_commit = "def"
         with pytest.raises(ValueError, match="benchmark_commit"):
             _validate_resume_configuration(
@@ -493,6 +483,45 @@ class TestReferenceValidation:
 
         report = validate_reference_run(results_path, str(dataset))
         assert report.ok
+
+    def test_prompt_asset_hash_and_version_are_validated(self, tmp_path: Path) -> None:
+        dataset = tmp_path / "dataset"
+        dataset.mkdir()
+        (dataset / "_annotations.coco.json").write_text("{}")
+        manifest = build_run_manifest(
+            model_config=load_reference_config().models["sam3"],
+            effort="reference",
+            task="detection",
+            timestamp="20260803_120000",
+            dataset_directory=str(dataset),
+            prompt_classes="image",
+            classes_processed="individually",
+            device="cpu",
+            precision="float32",
+        )
+        prompt_path = (
+            tmp_path
+            / "reference"
+            / "prompts"
+            / "image_conditioned"
+            / "v2-none"
+            / "prompts.jsonl"
+        )
+        prompt_path.parent.mkdir(parents=True)
+        prompt_path.write_text("{}\n")
+        manifest.prompt_asset_type = "image_conditioned"
+        manifest.prompt_set_path = (
+            "reference/prompts/image_conditioned/v2-none/prompts.jsonl"
+        )
+        manifest.prompt_set_version = "v1"
+        manifest.prompt_set_sha256 = hashlib.sha256(b"different").hexdigest()
+        results_path = tmp_path / "reference" / "results" / "run.jsonl"
+
+        issues = _validate_prompt_asset(manifest, results_path)
+
+        messages = {issue.message for issue in issues}
+        assert "Manifest prompt set hash is invalid." in messages
+        assert "Manifest prompt set version does not match its path." in messages
 
 
 class TestLeaderboardGuards:

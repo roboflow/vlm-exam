@@ -28,8 +28,7 @@ from vlm_exam.reference.analysis import (
     ReferenceAnalysisReport,
     build_reference_analysis_report,
 )
-from vlm_exam.reference.best_prompt import BestPromptMergeResult, merge_best_prompt_run
-from vlm_exam.reference.constants import CANONICAL_BEST_PAIRS, REFERENCE_EFFORT
+from vlm_exam.reference.constants import REFERENCE_EFFORT
 from vlm_exam.reference.manifest import load_manifest, manifest_path_for_results
 from vlm_exam.results import load_results
 from vlm_exam.tasks.detection import DetectionTask, build_sample_index
@@ -157,33 +156,6 @@ def _write_summary_markdown(report: ReferenceAnalysisReport, output_path: Path) 
     output_path.write_text("\n".join(lines) + "\n")
 
 
-def _write_selection_markdown(
-    merge_result: BestPromptMergeResult,
-    output_path: Path,
-) -> None:
-    image_count = len(merge_result.selections)
-    lines = [
-        "# Best-prompt selection summary",
-        "",
-        "Per-image oracle: keep baseline or image-conditioned predictions "
-        "whichever scores higher native mAP@50. Ties keep baseline.",
-        "",
-        f"- Images: {image_count}",
-        f"- Baseline wins: {merge_result.baseline_wins}",
-        f"- Image-conditioned wins: {merge_result.image_conditioned_wins}",
-        f"- Ties (baseline kept): {merge_result.ties}",
-        "",
-        "| Image | Baseline mAP@50 | Image-conditioned mAP@50 | Selected |",
-        "| --- | ---: | ---: | --- |",
-    ]
-    for selection in merge_result.selections:
-        lines.append(
-            f"| {selection.image} | {selection.baseline_map50:.4f} | "
-            f"{selection.image_conditioned_map50:.4f} | {selection.selected} |"
-        )
-    output_path.write_text("\n".join(lines) + "\n")
-
-
 def _write_charts(report: ReferenceAnalysisReport, output_directory: Path) -> None:
     output_directory.mkdir(parents=True, exist_ok=True)
 
@@ -287,33 +259,6 @@ def _analyze_run(
     return report
 
 
-def _analyze_best_of(
-    baseline_file: Path,
-    image_conditioned_file: Path,
-    sample_index: dict,
-    name_difficulty: dict[str, str],
-    output_directory: Path,
-) -> tuple[ReferenceAnalysisReport, BestPromptMergeResult]:
-    baseline_run = load_results(baseline_file)
-    image_conditioned_run = load_results(image_conditioned_file)
-    merge_result = merge_best_prompt_run(
-        baseline_run,
-        image_conditioned_run,
-        sample_index,
-    )
-    report = build_reference_analysis_report(
-        merge_result.merged_run,
-        sample_index,
-        name_difficulty=name_difficulty,
-    )
-    output_directory.mkdir(parents=True, exist_ok=True)
-    _write_per_class_csv(report, output_directory / "per_class.csv")
-    _write_summary_markdown(report, output_directory / "summary.md")
-    _write_selection_markdown(merge_result, output_directory / "selection.md")
-    _write_charts(report, output_directory / "charts")
-    return report, merge_result
-
-
 @click.command()
 @click.option(
     "--results-directory",
@@ -351,30 +296,6 @@ def _analyze_best_of(
     type=float,
     help="Drop predictions below this confidence before computing metrics.",
 )
-@click.option(
-    "--best-of",
-    is_flag=True,
-    default=False,
-    help="Merge baseline and image-conditioned runs with per-image oracle selection.",
-)
-@click.option(
-    "--best-all-models",
-    is_flag=True,
-    default=False,
-    help="Run oracle best-prompt analysis for all canonical model pairs.",
-)
-@click.option(
-    "--baseline-file",
-    default=None,
-    type=click.Path(exists=True),
-    help="Baseline results JSONL for --best-of.",
-)
-@click.option(
-    "--image-conditioned-file",
-    default=None,
-    type=click.Path(exists=True),
-    help="Image-conditioned results JSONL for --best-of.",
-)
 def main(
     results_directory: str,
     dataset_directory: str,
@@ -382,10 +303,6 @@ def main(
     results_file: str | None,
     name_difficulty_config: str,
     confidence_threshold: float | None,
-    best_of: bool,
-    best_all_models: bool,
-    baseline_file: str | None,
-    image_conditioned_file: str | None,
 ) -> None:
     """Analyze reference detection runs with per-class and bucketed metrics."""
     task = DetectionTask()
@@ -393,64 +310,6 @@ def main(
     sample_index = build_sample_index(samples)
     difficulty = _load_name_difficulty(Path(name_difficulty_config))
     output_root = Path(output_directory)
-
-    if best_all_models or best_of:
-        if confidence_threshold is not None:
-            raise click.ClickException(
-                "--confidence-threshold is not supported with --best-of."
-            )
-        if results_file is not None:
-            raise click.ClickException(
-                "--results-file cannot be combined with --best-of."
-            )
-
-        pairs: list[tuple[str, Path, Path, Path]] = []
-        if best_all_models:
-            for model, baseline_path, image_conditioned_path in CANONICAL_BEST_PAIRS:
-                pairs.append(
-                    (
-                        model,
-                        Path(baseline_path),
-                        Path(image_conditioned_path),
-                        output_root / model / "best",
-                    )
-                )
-        else:
-            if baseline_file is None or image_conditioned_file is None:
-                raise click.ClickException(
-                    "--best-of requires --baseline-file and --image-conditioned-file."
-                )
-            baseline_path = Path(baseline_file)
-            image_conditioned_path = Path(image_conditioned_file)
-            model = load_results(baseline_path).model
-            pairs.append(
-                (
-                    model,
-                    baseline_path,
-                    image_conditioned_path,
-                    output_root / model / "best",
-                )
-            )
-
-        for model, baseline_path, image_conditioned_path, run_output in pairs:
-            report, merge_result = _analyze_best_of(
-                baseline_path,
-                image_conditioned_path,
-                sample_index,
-                difficulty,
-                run_output,
-            )
-            click.echo(
-                f"{model} best: mAP@50={report.map50:.4f}, "
-                f"mAP@50:95={report.map50_95:.4f}, "
-                f"recall aware={report.recall_class_aware:.4f}, "
-                f"agnostic={report.recall_class_agnostic:.4f} "
-                f"(baseline wins={merge_result.baseline_wins}, "
-                f"image-conditioned wins={merge_result.image_conditioned_wins}, "
-                f"ties={merge_result.ties})"
-            )
-            click.echo(f"Wrote analysis to {run_output}")
-        return
 
     if results_file is not None:
         path = Path(results_file)
