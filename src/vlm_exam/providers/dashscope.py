@@ -34,6 +34,8 @@ from vlm_exam.providers.image_upload import (
 _BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 _MAX_OUTPUT_TOKENS = 16384
 
+_REASONING_REQUIRED_MODELS = frozenset({"qwen3.8-max"})
+
 
 class DashScopeProvider(Provider):
     """Alibaba Cloud DashScope provider for Qwen vision models.
@@ -119,7 +121,15 @@ class DashScopeProvider(Provider):
                 # bloats latency and truncates the answer inside the
                 # reasoning trace; disabling it keeps low-effort runs fast
                 # and well-formed (mirrors the OpenRouter Qwen behavior).
-                extra_body={"enable_thinking": effort != "low"},
+                # Qwen3.8-Max is the exception: its OpenRouter endpoint
+                # mandates reasoning, so this fallback keeps thinking on to
+                # match the primary route's behavior within a run.
+                extra_body={
+                    "enable_thinking": (
+                        self._provider_model_id in _REASONING_REQUIRED_MODELS
+                        or effort != "low"
+                    )
+                },
             )
         )
 

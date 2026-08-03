@@ -45,9 +45,10 @@ def _reasoning_config(effort: str, provider_model_id: str) -> dict[str, Any]:
     # disabling it keeps low-effort runs fast and well-formed.
     # Gemini, Muse Spark, and Qwen3.8-Max on OpenRouter require reasoning
     # and reject enabled=False.
-    if provider_model_id.startswith(("google/", "meta/")):
-        return {"effort": effort}
-    if provider_model_id in _REASONING_REQUIRED_MODELS:
+    if (
+        provider_model_id.startswith(("google/", "meta/"))
+        or provider_model_id in _REASONING_REQUIRED_MODELS
+    ):
         return {"effort": effort}
     if effort == "low":
         return {"enabled": False}
