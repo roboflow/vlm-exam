@@ -41,10 +41,10 @@ REFERENCE_LEADERBOARD_NAMES: dict[str, str] = {
 }
 
 REFERENCE_CHART_VARIANT_LABEL: dict[ReferenceChartVariant, str] = {
-    "class-names": "Class names",
-    "v1": "Per-class prompts",
-    "v2-none": "Joint prompts",
-    "v2-overlay": "Box-guided prompts",
+    "class-names": "class names",
+    "v1": "per-class prompts",
+    "v2-none": "joint prompts",
+    "v2-overlay": "box-guided prompts",
 }
 
 _FAMILY_LEADERBOARD_VARIANTS: dict[
@@ -102,7 +102,7 @@ def reference_leaderboard_display_name(
 ) -> str:
     """Return the chart label for a reference model prompt variant."""
     base_name = REFERENCE_LEADERBOARD_NAMES[reference_model]
-    return f"{base_name} — {REFERENCE_CHART_VARIANT_LABEL[variant]}"
+    return f"{base_name} ({REFERENCE_CHART_VARIANT_LABEL[variant]})"
 
 
 def family_reference_keys(family: LeaderboardFamily) -> frozenset[str]:

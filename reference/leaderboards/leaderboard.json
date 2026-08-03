@@ -144,7 +144,7 @@
       {
         "rank": 15,
         "key": "sam3-v2-overlay",
-        "display_name": "SAM 3 \u2014 Box-guided prompts",
+        "display_name": "SAM 3 (box-guided prompts)",
         "source": "reference",
         "map50": 0.5205345749855042,
         "map75": 0.4377327859401703,
@@ -164,7 +164,7 @@
       {
         "rank": 17,
         "key": "sam3-v2-none",
-        "display_name": "SAM 3 \u2014 Joint prompts",
+        "display_name": "SAM 3 (joint prompts)",
         "source": "reference",
         "map50": 0.504594087600708,
         "map75": 0.44032150506973267,
@@ -174,7 +174,7 @@
       {
         "rank": 18,
         "key": "sam3-v1",
-        "display_name": "SAM 3 \u2014 Per-class prompts",
+        "display_name": "SAM 3 (per-class prompts)",
         "source": "reference",
         "map50": 0.48921599984169006,
         "map75": 0.43513429164886475,
@@ -204,7 +204,7 @@
       {
         "rank": 21,
         "key": "sam3-class-names",
-        "display_name": "SAM 3 \u2014 Class names",
+        "display_name": "SAM 3 (class names)",
         "source": "reference",
         "map50": 0.3914719820022583,
         "map75": 0.3278094232082367,
@@ -496,7 +496,7 @@
       {
         "rank": 23,
         "key": "yoloe-11l-seg-v2-overlay",
-        "display_name": "YOLOE-11l \u2014 Box-guided prompts",
+        "display_name": "YOLOE-11l (box-guided prompts)",
         "source": "reference",
         "map50": 0.2411818951368332,
         "map75": 0.19617094099521637,
@@ -506,7 +506,7 @@
       {
         "rank": 24,
         "key": "yoloe-26x-seg-v1",
-        "display_name": "YOLOE-26x \u2014 Per-class prompts",
+        "display_name": "YOLOE-26x (per-class prompts)",
         "source": "reference",
         "map50": 0.2396545261144638,
         "map75": 0.19589988887310028,
@@ -516,7 +516,7 @@
       {
         "rank": 25,
         "key": "yoloe-26x-seg-v2-overlay",
-        "display_name": "YOLOE-26x \u2014 Box-guided prompts",
+        "display_name": "YOLOE-26x (box-guided prompts)",
         "source": "reference",
         "map50": 0.2391190528869629,
         "map75": 0.19655901193618774,
@@ -526,7 +526,7 @@
       {
         "rank": 26,
         "key": "yoloe-26x-seg-v2-none",
-        "display_name": "YOLOE-26x \u2014 Joint prompts",
+        "display_name": "YOLOE-26x (joint prompts)",
         "source": "reference",
         "map50": 0.22971321642398834,
         "map75": 0.18799354135990143,
@@ -536,7 +536,7 @@
       {
         "rank": 27,
         "key": "yoloe-11l-seg-v2-none",
-        "display_name": "YOLOE-11l \u2014 Joint prompts",
+        "display_name": "YOLOE-11l (joint prompts)",
         "source": "reference",
         "map50": 0.22786055505275726,
         "map75": 0.185771182179451,
@@ -546,7 +546,7 @@
       {
         "rank": 28,
         "key": "yoloe-11l-seg-v1",
-        "display_name": "YOLOE-11l \u2014 Per-class prompts",
+        "display_name": "YOLOE-11l (per-class prompts)",
         "source": "reference",
         "map50": 0.22403159737586975,
         "map75": 0.17832837998867035,
@@ -556,7 +556,7 @@
       {
         "rank": 29,
         "key": "yoloe-26x-seg-class-names",
-        "display_name": "YOLOE-26x \u2014 Class names",
+        "display_name": "YOLOE-26x (class names)",
         "source": "reference",
         "map50": 0.2020431011915207,
         "map75": 0.16711080074310303,
@@ -566,7 +566,7 @@
       {
         "rank": 30,
         "key": "yoloe-11l-seg-class-names",
-        "display_name": "YOLOE-11l \u2014 Class names",
+        "display_name": "YOLOE-11l (class names)",
         "source": "reference",
         "map50": 0.18287941813468933,
         "map75": 0.14270640909671783,
