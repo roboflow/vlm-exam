@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-from typing import Any
 
 import openai
 from PIL import Image
@@ -32,35 +31,17 @@ from vlm_exam.providers.image_upload import (
     jpeg_data_url_under_max_base64_bytes,
 )
 
-_BASE_URL = "https://openrouter.ai/api/v1"
+_BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 _MAX_OUTPUT_TOKENS = 16384
 
 
-_REASONING_REQUIRED_MODELS = frozenset({"qwen/qwen3.8-max"})
+class DashScopeProvider(Provider):
+    """Alibaba Cloud DashScope provider for Qwen vision models.
 
-
-def _reasoning_config(effort: str, provider_model_id: str) -> dict[str, Any]:
-    # Qwen and GLM default to extended reasoning, which at "low" effort
-    # bloats latency and truncates the answer inside the reasoning trace;
-    # disabling it keeps low-effort runs fast and well-formed.
-    # Gemini, Muse Spark, and Qwen3.8-Max on OpenRouter require reasoning
-    # and reject enabled=False.
-    if provider_model_id.startswith(("google/", "meta/")):
-        return {"effort": effort}
-    if provider_model_id in _REASONING_REQUIRED_MODELS:
-        return {"effort": effort}
-    if effort == "low":
-        return {"enabled": False}
-    return {"effort": effort}
-
-
-class OpenRouterProvider(Provider):
-    """OpenRouter provider for OpenAI-compatible vision models.
-
-    Serves any OpenRouter model that accepts image input through the
-    chat completions API. The vlm-exam model key is decoupled from the
-    OpenRouter slug via ``provider_model_id`` so result files and
-    leaderboard lookups keep using the short key.
+    Calls the Model Studio international (Singapore) endpoint through its
+    OpenAI-compatible chat completions API. The vlm-exam model key is
+    decoupled from the DashScope model id via ``provider_model_id`` so
+    result files and leaderboard lookups keep using the short key.
     """
 
     def __init__(
@@ -74,17 +55,17 @@ class OpenRouterProvider(Provider):
         Args:
             model: vlm-exam model key, reported as ``model`` and used in
                 result filenames and config lookups.
-            api_key: Optional OpenRouter API key. Falls back to the
-                ``OPENROUTER_API_KEY`` environment variable.
-            provider_model_id: OpenRouter model slug to call (e.g.
-                ``"qwen/qwen3.7-plus"``). Defaults to ``model``.
+            api_key: Optional DashScope API key. Falls back to the
+                ``DASHSCOPE_API_KEY`` environment variable.
+            provider_model_id: DashScope model id to call (e.g.
+                ``"qwen3.8-max"``). Defaults to ``model``.
         """
         self._model = model
         self._provider_model_id = provider_model_id or model
         self._encoded_cache: tuple[Image.Image, str, tuple[int, int]] | None = None
         self._client = openai.OpenAI(
             base_url=_BASE_URL,
-            api_key=api_key or os.environ.get("OPENROUTER_API_KEY"),
+            api_key=api_key or os.environ.get("DASHSCOPE_API_KEY"),
             timeout=REQUEST_TIMEOUT_SECONDS,
             max_retries=0,
         )
@@ -134,9 +115,11 @@ class OpenRouterProvider(Provider):
                         ],
                     }
                 ],
-                extra_body={
-                    "reasoning": _reasoning_config(effort, self._provider_model_id)
-                },
+                # Qwen defaults to extended reasoning, which at "low" effort
+                # bloats latency and truncates the answer inside the
+                # reasoning trace; disabling it keeps low-effort runs fast
+                # and well-formed (mirrors the OpenRouter Qwen behavior).
+                extra_body={"enable_thinking": effort != "low"},
             )
         )
 

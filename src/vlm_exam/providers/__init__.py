@@ -20,6 +20,7 @@ from vlm_exam.providers.fallback import FallbackProvider
 
 _PROVIDER_REGISTRY: dict[str, str] = {
     "anthropic": "vlm_exam.providers.anthropic.AnthropicProvider",
+    "dashscope": "vlm_exam.providers.dashscope.DashScopeProvider",
     "google": "vlm_exam.providers.google.GoogleProvider",
     "openai": "vlm_exam.providers.openai.OpenAIProvider",
     "openrouter": "vlm_exam.providers.openrouter.OpenRouterProvider",
