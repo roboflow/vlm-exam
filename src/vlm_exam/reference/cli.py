@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 _REFERENCE_RESULTS_DIRECTORY = (
     Path(__file__).resolve().parents[3] / "reference" / "results"
 )
+_REFERENCE_CHART_LABEL_AREA_WIDTH = 78.0
 
 
 def _save_card(
@@ -711,6 +712,7 @@ def reference_detection_leaderboard(
                 format_value=lambda value: f"{value * 100:.1f}%",
                 sort_ascending=False,
                 full_scale=1.0,
+                label_area_width=_REFERENCE_CHART_LABEL_AREA_WIDTH,
             )
             file_path = family_output / f"detection_{metric_key}.png"
             figure.savefig(str(file_path), dpi=150)

@@ -18,13 +18,13 @@ All VLM low-effort runs plus canonical reference prompt-mode rows.
 | 12 | Gemini 3.6 Flash | vlm | 0.5598 | 0.4640 | 0.4450 | 250 |
 | 13 | Claude Opus 5 | vlm | 0.5403 | 0.3007 | 0.3039 | 250 |
 | 14 | Qwen3-VL 235B | vlm | 0.5216 | 0.4291 | 0.4031 | 250 |
-| 15 | SAM 3 (v2 overlay) | reference | 0.5205 | 0.4377 | 0.4231 | 250 |
+| 15 | SAM 3 — Box-guided prompts | reference | 0.5205 | 0.4377 | 0.4231 | 250 |
 | 16 | Kimi K3 | vlm | 0.5192 | 0.4154 | 0.4040 | 250 |
-| 17 | SAM 3 (v2 none) | reference | 0.5046 | 0.4403 | 0.4172 | 250 |
-| 18 | SAM 3 (v1) | reference | 0.4892 | 0.4351 | 0.4133 | 250 |
+| 17 | SAM 3 — Joint prompts | reference | 0.5046 | 0.4403 | 0.4172 | 250 |
+| 18 | SAM 3 — Per-class prompts | reference | 0.4892 | 0.4351 | 0.4133 | 250 |
 | 19 | Qwen 3.7 Flash | vlm | 0.4283 | 0.3291 | 0.3107 | 250 |
 | 20 | GPT-5.5 | vlm | 0.4166 | 0.2109 | 0.2221 | 250 |
-| 21 | SAM 3 (class names) | reference | 0.3915 | 0.3278 | 0.3102 | 250 |
+| 21 | SAM 3 — Class names | reference | 0.3915 | 0.3278 | 0.3102 | 250 |
 | 22 | Gemini 3 Flash | vlm | 0.3860 | 0.2918 | 0.2794 | 250 |
 | 23 | Claude Opus 4.8 | vlm | 0.3858 | 0.1328 | 0.1684 | 250 |
 | 24 | Claude Sonnet 5 | vlm | 0.3608 | 0.1578 | 0.1805 | 250 |

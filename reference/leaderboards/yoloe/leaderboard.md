@@ -26,12 +26,12 @@ All VLM low-effort runs plus canonical reference prompt-mode rows.
 | 20 | Claude Sonnet 5 | vlm | 0.3608 | 0.1578 | 0.1805 | 250 |
 | 21 | Kimi K2.6 | vlm | 0.3566 | 0.2670 | 0.2682 | 250 |
 | 22 | Gemini 2.5 Pro | vlm | 0.3373 | 0.2508 | 0.2474 | 250 |
-| 23 | YOLOE-11l (v2 overlay) | reference | 0.2412 | 0.1962 | 0.1847 | 250 |
-| 24 | YOLOE-26x (v1) | reference | 0.2397 | 0.1959 | 0.1857 | 250 |
-| 25 | YOLOE-26x (v2 overlay) | reference | 0.2391 | 0.1966 | 0.1840 | 250 |
-| 26 | YOLOE-26x (v2 none) | reference | 0.2297 | 0.1880 | 0.1746 | 250 |
-| 27 | YOLOE-11l (v2 none) | reference | 0.2279 | 0.1858 | 0.1715 | 250 |
-| 28 | YOLOE-11l (v1) | reference | 0.2240 | 0.1783 | 0.1690 | 250 |
-| 29 | YOLOE-26x (class names) | reference | 0.2020 | 0.1671 | 0.1570 | 250 |
-| 30 | YOLOE-11l (class names) | reference | 0.1829 | 0.1427 | 0.1343 | 250 |
+| 23 | YOLOE-11l — Box-guided prompts | reference | 0.2412 | 0.1962 | 0.1847 | 250 |
+| 24 | YOLOE-26x — Per-class prompts | reference | 0.2397 | 0.1959 | 0.1857 | 250 |
+| 25 | YOLOE-26x — Box-guided prompts | reference | 0.2391 | 0.1966 | 0.1840 | 250 |
+| 26 | YOLOE-26x — Joint prompts | reference | 0.2297 | 0.1880 | 0.1746 | 250 |
+| 27 | YOLOE-11l — Joint prompts | reference | 0.2279 | 0.1858 | 0.1715 | 250 |
+| 28 | YOLOE-11l — Per-class prompts | reference | 0.2240 | 0.1783 | 0.1690 | 250 |
+| 29 | YOLOE-26x — Class names | reference | 0.2020 | 0.1671 | 0.1570 | 250 |
+| 30 | YOLOE-11l — Class names | reference | 0.1829 | 0.1427 | 0.1343 | 250 |
 | 31 | GPT-5.4 mini | vlm | 0.1608 | 0.0348 | 0.0589 | 250 |

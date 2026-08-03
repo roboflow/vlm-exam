@@ -40,11 +40,12 @@ def _add_model_label(
     model_id: str,
     config: BenchmarkConfig,
     y: float,
+    label_area_width: float = LABEL_AREA_WIDTH,
 ) -> None:
     fonts = load_fonts()
     model_info = config.models[model_id]
     lab_info = config.labs[model_info.lab]
-    logo_x = -LABEL_AREA_WIDTH
+    logo_x = -label_area_width
 
     try:
         logo_image = fetch_logo(lab_info.logo_url, size=32)
@@ -218,6 +219,7 @@ def plot_metric_chart(
     format_value: Callable[[float], str],
     sort_ascending: bool = True,
     full_scale: float | None = None,
+    label_area_width: float = LABEL_AREA_WIDTH,
 ) -> plt.Figure:
     """Single-bar horizontal chart for one metric across models.
 
@@ -229,6 +231,7 @@ def plot_metric_chart(
         sort_ascending: Whether to sort models from lowest to highest.
         full_scale: Value that corresponds to a full-length bar. When
             ``None``, bars are scaled relative to the highest value.
+        label_area_width: Horizontal space reserved for model labels.
 
     Returns:
         Matplotlib figure.
@@ -302,18 +305,24 @@ def plot_metric_chart(
             font=fonts.display,
         )
 
-        _add_model_label(axes, model_id, config, y)
+        _add_model_label(
+            axes,
+            model_id,
+            config,
+            y,
+            label_area_width=label_area_width,
+        )
 
     _configure_clean_axes(
         axes,
-        -LABEL_AREA_WIDTH - 2,
+        -label_area_width - 2,
         118,
         -1.0,
         total_y_range + 2.2,
     )
 
     axes.text(
-        -LABEL_AREA_WIDTH - 2,
+        -label_area_width - 2,
         total_y_range + 1.8,
         title,
         fontsize=28,
