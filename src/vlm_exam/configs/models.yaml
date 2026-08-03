@@ -163,6 +163,18 @@ models:
     pricing:
       input_per_million_tokens: 1.00
       output_per_million_tokens: 6.00
+  qwen-3.8-max:
+    name: Qwen3.8-Max
+    lab: qwen
+    detection_coordinate_format: xyxy_normalized_0_to_1000
+    routes:
+      - provider: openrouter
+        provider_model_id: qwen/qwen3.8-max
+      - provider: dashscope
+        provider_model_id: qwen3.8-max
+    pricing:
+      input_per_million_tokens: 2.00
+      output_per_million_tokens: 6.00
   qwen-3.7-plus:
     name: Qwen 3.7 Plus
     lab: qwen
