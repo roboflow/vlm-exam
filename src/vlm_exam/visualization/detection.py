@@ -404,12 +404,13 @@ def _draw_rounded_rectangle(
 def _draw_class_legend_cv2(
     image: np.ndarray,
     entries: list[tuple[str, sv.Color]],
+    unit_scale: float = 1.0,
 ) -> np.ndarray:
     if not entries:
         return image
 
     height, width = image.shape[:2]
-    unit = max(width, height) / _ANNOTATION_LONG_EDGE
+    unit = max(width, height) / _ANNOTATION_LONG_EDGE * unit_scale
     padding = round(13 * unit)
     swatch = round(18 * unit)
     row_height = round(28 * unit)
@@ -504,6 +505,28 @@ def _draw_class_legend_cv2(
             )
         column_x += swatch + swatch_gap + column_text_widths[column] + column_gap
     return image
+
+
+def draw_image_legend(
+    image: np.ndarray,
+    entries: list[tuple[str, sv.Color]],
+    scale: float = 1.0,
+) -> np.ndarray:
+    """Draw the card-style color legend panel onto an image.
+
+    Renders the same semi-transparent rounded panel with color swatches
+    used by the detection cards, in the top-left corner, scaled to the
+    image resolution.
+
+    Args:
+        image: BGR image as a numpy array; modified in place.
+        entries: Ordered (label, color) pairs to show.
+        scale: Multiplier on the resolution-proportional legend size.
+
+    Returns:
+        The annotated image.
+    """
+    return _draw_class_legend_cv2(image, entries, unit_scale=scale)
 
 
 def save_annotated_detection(

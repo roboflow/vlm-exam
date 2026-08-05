@@ -74,3 +74,11 @@ visualizations/*.png
 .DS_Store
 scripts/render_zero_map_detection_cards.py
 scripts/render_zero_map_model_comparison.py
+
+# Qwen3.8-Max box-prompting + format exploration (local only)
+results-box-prompting-*/
+results-format-*
+samples/
+visualizations/reasoning-cards/
+visualizations/leaderboards/reasoning-high-top10/
+visualizations/leaderboards/top10/
