@@ -68,14 +68,14 @@ _POSITIVE_COLOR = (255, 0, 0)
 _NEGATIVE_COLOR = (0, 80, 255)
 _GAP = 12
 
-DISPLAY_POSITIVE_HEX = "#00C853"
-"""Display color for positive prompt boxes (vivid green)."""
+DISPLAY_POSITIVE_HEX = "#00DC82"
+"""Display color for positive prompt boxes (emerald green)."""
 
-DISPLAY_NEGATIVE_HEX = "#FF1744"
-"""Display color for negative prompt boxes (vivid red)."""
+DISPLAY_NEGATIVE_HEX = "#FF3366"
+"""Display color for negative prompt boxes (raspberry red)."""
 
-DISPLAY_PREDICTION_HEX = "#2979FF"
-"""Display color for prediction boxes (vivid blue)."""
+DISPLAY_PREDICTION_HEX = "#00A8FF"
+"""Display color for prediction boxes (azure blue)."""
 
 _DISPLAY_POSITIVE_RGB = (0, 200, 83)
 _DISPLAY_NEGATIVE_RGB = (255, 23, 68)
