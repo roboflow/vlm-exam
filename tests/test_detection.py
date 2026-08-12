@@ -347,6 +347,39 @@ class TestParseObjectScanFallback:
         assert len(detections) == 0
 
 
+class TestParseNormalizedPercentPrediction:
+    def test_scales_xyxy_percentages_to_pixels(self) -> None:
+        prediction = '[{"box_2d": [10, 20, 30, 40], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction,
+            (200, 100),
+            ["cat", "dog"],
+            coordinate_format=DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_100,
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [20, 20, 60, 40])
+
+    def test_accepts_description_label_alias(self) -> None:
+        prediction = '[{"box_2d": [0, 0, 50, 50], "description": "dog"}]'
+        detections = parse_prediction(
+            prediction,
+            (100, 100),
+            ["cat", "dog"],
+            coordinate_format=DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_100,
+        )
+        assert len(detections) == 1
+        assert detections.class_id is not None
+        assert detections.class_id[0] == 1
+
+    def test_prompt_requests_percent_coordinates(self) -> None:
+        task = DetectionTask(
+            coordinate_format=DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_100
+        )
+        sample = _make_sample(_detections([[10, 10, 20, 20]], [0]))
+        prompt = task.build_prompt(sample)
+        assert "floats between 0 and 100" in prompt
+        assert "[x_min, y_min, x_max, y_max]" in prompt
+
 class TestParsePixelPrediction:
     def test_parses_pixel_coordinates_directly(self) -> None:
         prediction = '[{"box_2d": [10, 20, 30, 40], "label": "cat"}]'

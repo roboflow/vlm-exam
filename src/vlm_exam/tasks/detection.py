@@ -84,6 +84,16 @@ _NORMALIZED_XYXY_PROMPT_TEMPLATE = (
     "Only use these labels: {class_list}"
 )
 
+_NORMALIZED_XYXY_PERCENT_PROMPT_TEMPLATE = (
+    "Detect all objects in this image. "
+    "Output a JSON list where each entry contains the text label in the key "
+    '"label" and the 2D bounding box in the key "box_2d". '
+    'The "box_2d" value must be [x_min, y_min, x_max, y_max] as percentages '
+    "of image width and height (floats between 0 and 100). "
+    "Return only the JSON list, with no extra text. "
+    "Only use these labels: {class_list}"
+)
+
 _META_FLAT_NORMALIZED_PROMPT_TEMPLATE = (
     "You are an object grounding expert. Detect all objects in this image "
     "matching these labels: {class_list}. Ensure the objects accurately "
@@ -103,6 +113,7 @@ class DetectionCoordinateFormat(str, Enum):
 
     YXYX_NORMALIZED_0_TO_1000 = "yxyx_normalized_0_to_1000"
     XYXY_NORMALIZED_0_TO_1000 = "xyxy_normalized_0_to_1000"
+    XYXY_NORMALIZED_0_TO_100 = "xyxy_normalized_0_to_100"
     XYXY_NORMALIZED_0_TO_1000_META_FLAT = "xyxy_normalized_0_to_1000_meta_flat"
     XYXY_ABSOLUTE_RESIZED_IMAGE = "xyxy_absolute_resized_image"
     XYXY_ABSOLUTE_ORIGINAL_IMAGE = "xyxy_absolute_original_image"
@@ -300,6 +311,10 @@ class DetectionTask(Task):
                 )
             case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000:
                 return _NORMALIZED_XYXY_PROMPT_TEMPLATE.format(class_list=class_list)
+            case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_100:
+                return _NORMALIZED_XYXY_PERCENT_PROMPT_TEMPLATE.format(
+                    class_list=class_list
+                )
             case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT:
                 return _META_FLAT_NORMALIZED_PROMPT_TEMPLATE.format(
                     class_list=class_list
@@ -419,6 +434,8 @@ def parse_prediction(
             parser = _parse_pixel_yxyx_native_json
         case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000:
             parser = _parse_normalized_xyxy_json
+        case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_100:
+            parser = _parse_normalized_xyxy_percent_json
         case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT:
             parser = _parse_meta_flat_normalized_json
         case _:
@@ -653,6 +670,34 @@ def _parse_normalized_xyxy_json(
     resolution_wh: tuple[int, int],
     classes: list[str],
 ) -> sv.Detections:
+    return _parse_normalized_xyxy_scaled_json(
+        prediction,
+        resolution_wh,
+        classes,
+        normalize_max=1000.0,
+    )
+
+
+def _parse_normalized_xyxy_percent_json(
+    prediction: str,
+    resolution_wh: tuple[int, int],
+    classes: list[str],
+) -> sv.Detections:
+    return _parse_normalized_xyxy_scaled_json(
+        prediction,
+        resolution_wh,
+        classes,
+        normalize_max=100.0,
+    )
+
+
+def _parse_normalized_xyxy_scaled_json(
+    prediction: str,
+    resolution_wh: tuple[int, int],
+    classes: list[str],
+    *,
+    normalize_max: float,
+) -> sv.Detections:
     try:
         entries = json.loads(prediction)
     except json.JSONDecodeError:
@@ -661,8 +706,8 @@ def _parse_normalized_xyxy_json(
         return sv.Detections.empty()
 
     width, height = resolution_wh
-    scale_x = width / 1000.0
-    scale_y = height / 1000.0
+    scale_x = width / normalize_max
+    scale_y = height / normalize_max
     class_index = {name: index for index, name in enumerate(classes)}
 
     xyxy_list: list[list[float]] = []
@@ -674,7 +719,7 @@ def _parse_normalized_xyxy_json(
         if not isinstance(entry, dict):
             continue
         box = entry.get("box_2d", entry.get("bbox_2d"))
-        label = entry.get("label")
+        label = entry.get("label", entry.get("description"))
         if (
             not isinstance(box, list)
             or len(box) != 4

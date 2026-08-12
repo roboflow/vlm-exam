@@ -24,6 +24,7 @@ _PROVIDER_REGISTRY: dict[str, str] = {
     "google": "vlm_exam.providers.google.GoogleProvider",
     "openai": "vlm_exam.providers.openai.OpenAIProvider",
     "openrouter": "vlm_exam.providers.openrouter.OpenRouterProvider",
+    "xai": "vlm_exam.providers.xai.XAIProvider",
 }
 
 PRE_RESIZING_PROVIDERS = frozenset({"anthropic", "openai"})
