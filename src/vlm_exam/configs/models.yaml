@@ -256,3 +256,12 @@ models:
     pricing:
       input_per_million_tokens: 1.25
       output_per_million_tokens: 4.25
+  muse-glimmer-30b:
+    name: Muse Glimmer 30B
+    lab: meta
+    provider: openrouter
+    provider_model_id: meta/muse-glimmer-30b
+    detection_coordinate_format: xyxy_normalized_0_to_1000_meta_flat
+    pricing:
+      input_per_million_tokens: 0.35
+      output_per_million_tokens: 1.50
