@@ -256,6 +256,97 @@ class TestParsePrediction:
         assert detections.class_id[0] == 1
 
 
+class TestParseObjectScanFallback:
+    def test_parses_newline_delimited_meta_flat_objects(self) -> None:
+        prediction = (
+            '{"label": "cat", "x_min": 100, "y_min": 200, "x_max": 300, "y_max": 400}\n'
+            '{"label": "dog", "x_min": 0, "y_min": 0, "x_max": 50, "y_max": 50}'
+        )
+        detections = parse_prediction(
+            prediction,
+            (1000, 1000),
+            ["cat", "dog"],
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT
+            ),
+        )
+        assert len(detections) == 2
+        np.testing.assert_allclose(detections.xyxy[0], [100, 200, 300, 400])
+
+    def test_parses_comma_separated_meta_flat_objects(self) -> None:
+        prediction = (
+            '{"label": "cat", "x_min": 100, "y_min": 200, "x_max": 300, "y_max": 400}, '
+            '{"label": "dog", "x_min": 0, "y_min": 0, "x_max": 50, "y_max": 50}'
+        )
+        detections = parse_prediction(
+            prediction,
+            (1000, 1000),
+            ["cat", "dog"],
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT
+            ),
+        )
+        assert len(detections) == 2
+
+    def test_parses_single_meta_flat_object_without_array(self) -> None:
+        prediction = (
+            '{"label": "cat", "x_min": 100, "y_min": 200, "x_max": 300, "y_max": 400}'
+        )
+        detections = parse_prediction(
+            prediction,
+            (1000, 1000),
+            ["cat"],
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT
+            ),
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [100, 200, 300, 400])
+
+    def test_parses_bare_objects_for_normalized_xyxy_format(self) -> None:
+        prediction = (
+            '{"box_2d": [100, 200, 300, 400], "label": "cat"}\n'
+            '{"box_2d": [0, 0, 100, 100], "label": "dog"}'
+        )
+        detections = parse_prediction(
+            prediction,
+            (1000, 1000),
+            ["cat", "dog"],
+            coordinate_format=DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000,
+        )
+        assert len(detections) == 2
+        np.testing.assert_allclose(detections.xyxy[0], [100, 200, 300, 400])
+
+    def test_object_scan_keeps_format_validation(self) -> None:
+        prediction = '{"label": "cat", "x_min": 100, "y_min": 200}'
+        detections = parse_prediction(
+            prediction,
+            (1000, 1000),
+            ["cat"],
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT
+            ),
+        )
+        assert len(detections) == 0
+
+    def test_object_scan_skips_default_supervision_format(self) -> None:
+        prediction = '{"box_2d": [100, 200, 300, 400], "label": "cat"}'
+        detections = parse_prediction(prediction, (1000, 1000), ["cat"])
+        assert len(detections) == 0
+
+    def test_garbage_with_braces_returns_empty(self) -> None:
+        prediction = "the objects {are somewhere} in the image"
+        detections = parse_prediction(
+            prediction,
+            (1000, 1000),
+            ["cat"],
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT
+            ),
+        )
+        assert len(detections) == 0
+
+
 class TestParsePixelPrediction:
     def test_parses_pixel_coordinates_directly(self) -> None:
         prediction = '[{"box_2d": [10, 20, 30, 40], "label": "cat"}]'

@@ -384,8 +384,11 @@ def parse_prediction(
 ) -> sv.Detections:
     """Parse model JSON output into supervision Detections.
 
-    Falls back to the outermost JSON array substring when the model
-    wraps the JSON in prose or unexpected formatting.
+    Every JSON-based format gets the same recovery ladder: strict parse
+    of the raw text, then the outermost JSON array substring (for JSON
+    wrapped in prose or markdown fences), then a scan for top-level JSON
+    objects (for bare comma-separated or newline-delimited objects).
+    Format-specific key and coordinate validation is never relaxed.
 
     Args:
         prediction: Raw JSON string from the model.
@@ -427,10 +430,18 @@ def parse_prediction(
 
     start = prediction.find("[")
     stop = prediction.rfind("]")
-    if start == -1 or stop <= start:
+    if start != -1 and stop > start:
+        detections = parser(prediction[start : stop + 1], resolution_wh, classes)
+        if len(detections) > 0:
+            return detections
+
+    if parser is _parse_with_supervision:
         return detections
 
-    return parser(prediction[start : stop + 1], resolution_wh, classes)
+    entries = _extract_flat_object_entries(prediction)
+    if not entries:
+        return detections
+    return parser(json.dumps(entries), resolution_wh, classes)
 
 
 def prediction_confidence(entry: dict[str, Any]) -> float | None:
@@ -685,6 +696,28 @@ def _parse_normalized_xyxy_json(
     return _assemble_detections(xyxy_list, class_ids, class_names, confidences)
 
 
+def _extract_flat_object_entries(prediction: str) -> list[Any]:
+    # Some models emit detection entries as bare comma-separated or
+    # newline-delimited objects instead of a JSON array (first seen with
+    # Muse Glimmer). Scanning for top-level objects accepts all such
+    # shapes without loosening per-format key checks.
+    decoder = json.JSONDecoder()
+    entries: list[Any] = []
+    index = 0
+    while True:
+        start = prediction.find("{", index)
+        if start == -1:
+            break
+        try:
+            entry, end = decoder.raw_decode(prediction, start)
+        except json.JSONDecodeError:
+            index = start + 1
+            continue
+        entries.append(entry)
+        index = end
+    return entries
+
+
 def _parse_meta_flat_normalized_json(
     prediction: str,
     resolution_wh: tuple[int, int],
@@ -694,6 +727,8 @@ def _parse_meta_flat_normalized_json(
         entries = json.loads(prediction)
     except json.JSONDecodeError:
         return sv.Detections.empty()
+    if isinstance(entries, dict):
+        entries = [entries]
     if not isinstance(entries, list):
         return sv.Detections.empty()
 
