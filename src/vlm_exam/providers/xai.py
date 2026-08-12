@@ -79,6 +79,10 @@ class XAIProvider(Provider):
         data_url = _png_data_url(image)
         request: dict[str, Any] = {
             "model": self._provider_model_id,
+            # xAI rejects responses exceeding its server-side storage limit
+            # (400 "Response is too large to store"); we never retrieve
+            # stored responses, so disable storage entirely.
+            "store": False,
             "reasoning": {"effort": effort},
             "input": [
                 {

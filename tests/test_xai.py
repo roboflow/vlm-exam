@@ -54,6 +54,7 @@ class TestXAIProvider:
         assert retry_stats.attempts == 1
         kwargs = client.responses.create.call_args.kwargs
         assert kwargs["model"] == "grok-4.5"
+        assert kwargs["store"] is False
         assert kwargs["reasoning"] == {"effort": "low"}
         content = kwargs["input"][0]["content"]
         assert content[0]["type"] == "input_image"
