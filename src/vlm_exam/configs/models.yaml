@@ -31,6 +31,10 @@ labs:
     name: Z.AI
     color: "#3859FF"
     logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/zai.svg
+  xai:
+    name: xAI
+    color: "#000000"
+    logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/xai.svg
 
 models:
   claude-fable-5:
@@ -265,3 +269,21 @@ models:
     pricing:
       input_per_million_tokens: 0.35
       output_per_million_tokens: 1.50
+  grok-4.5:
+    name: Grok 4.5
+    lab: xai
+    provider: xai
+    provider_model_id: grok-4.5
+    detection_coordinate_format: xyxy_normalized_0_to_100
+    pricing:
+      input_per_million_tokens: 2.00
+      output_per_million_tokens: 6.00
+  grok-4.6:
+    name: Grok 4.6
+    lab: xai
+    provider: xai
+    provider_model_id: grok-4.6
+    detection_coordinate_format: xyxy_normalized_0_to_100
+    pricing:
+      input_per_million_tokens: 2.00
+      output_per_million_tokens: 6.00
