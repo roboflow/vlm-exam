@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-13T17:42:32Z",
+  "generated_at": "2026-08-14T16:23:07Z",
   "efforts": [
     "low",
     "high"
@@ -6647,6 +6647,60 @@
         "speed": {
           "total_seconds": 5573.773,
           "average_seconds_per_sample": 8.695
+        }
+      }
+    },
+    {
+      "id": "muse-glimmer-30b:high",
+      "key": "muse-glimmer-30b",
+      "name": "Muse Glimmer 30B",
+      "lab": "meta",
+      "effort": "high",
+      "tasks": {
+        "reasoning": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 62.91
+          },
+          "metrics": {
+            "accuracy": 62.91
+          },
+          "sample_count": 151,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 211460,
+            "output": 279825,
+            "total": 491285,
+            "average_per_sample": 3253.5
+          },
+          "cost": {
+            "total_usd": 0.493748,
+            "average_per_sample_usd": 0.00327
+          },
+          "speed": {
+            "total_seconds": 3794.985,
+            "average_seconds_per_sample": 25.132
+          },
+          "timestamp": "2026-08-14T16:23:07Z"
+        }
+      },
+      "overall": {
+        "task_count": 1,
+        "sample_count": 151,
+        "tokens": {
+          "input": 211460,
+          "output": 279825,
+          "total": 491285,
+          "average_per_sample": 3253.5
+        },
+        "cost": {
+          "total_usd": 0.493748,
+          "average_per_sample_usd": 0.00327
+        },
+        "speed": {
+          "total_seconds": 3794.985,
+          "average_seconds_per_sample": 25.132
         }
       }
     },
