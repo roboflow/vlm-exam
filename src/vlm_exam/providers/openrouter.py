@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import threading
 from typing import Any
 
 import openai
@@ -82,7 +83,7 @@ class OpenRouterProvider(Provider):
         """
         self._model = model
         self._provider_model_id = provider_model_id or model
-        self._encoded_cache: tuple[Image.Image, str, tuple[int, int]] | None = None
+        self._encoded_cache_local = threading.local()
         self._client = openai.OpenAI(
             base_url=_BASE_URL,
             api_key=api_key or os.environ.get("OPENROUTER_API_KEY"),
@@ -97,7 +98,7 @@ class OpenRouterProvider(Provider):
     def _encode_image(self, image: Image.Image) -> tuple[str, tuple[int, int]]:
         # The runner probes uploaded_image_size() and then predict() with
         # the same image object; a one-slot cache avoids encoding twice.
-        cached = self._encoded_cache
+        cached = getattr(self._encoded_cache_local, "value", None)
         if cached is not None and cached[0] is image:
             return cached[1], cached[2]
         data_url, uploaded_size = jpeg_data_url_under_max_base64_bytes(
@@ -105,7 +106,7 @@ class OpenRouterProvider(Provider):
             OPENROUTER_MAX_BASE64_BYTES,
             quality=OPENROUTER_JPEG_QUALITY,
         )
-        self._encoded_cache = (image, data_url, uploaded_size)
+        self._encoded_cache_local.value = (image, data_url, uploaded_size)
         return data_url, uploaded_size
 
     def uploaded_image_size(self, image: Image.Image) -> tuple[int, int] | None:
