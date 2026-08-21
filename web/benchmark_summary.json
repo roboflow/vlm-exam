@@ -6215,6 +6215,251 @@
       }
     },
     {
+      "id": "qwen-3.8-27b:low",
+      "key": "qwen-3.8-27b",
+      "name": "Qwen3.8 27B",
+      "lab": "qwen",
+      "effort": "low",
+      "tasks": {
+        "ocr": {
+          "primary_metric": {
+            "name": "similarity",
+            "value": 81.42
+          },
+          "metrics": {
+            "similarity": 81.42
+          },
+          "sample_count": 37,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 38787,
+            "output": 16717,
+            "total": 55504,
+            "average_per_sample": 1500.1
+          },
+          "cost": {
+            "total_usd": 0.051757,
+            "average_per_sample_usd": 0.001399
+          },
+          "speed": {
+            "total_seconds": 391.279,
+            "average_seconds_per_sample": 10.575
+          },
+          "timestamp": "2026-08-14T16:43:35Z"
+        },
+        "extraction": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 79.38
+          },
+          "metrics": {
+            "accuracy": 79.38
+          },
+          "sample_count": 97,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 109000,
+            "output": 718,
+            "total": 109718,
+            "average_per_sample": 1131.1
+          },
+          "cost": {
+            "total_usd": 0.034423,
+            "average_per_sample_usd": 0.000355
+          },
+          "speed": {
+            "total_seconds": 120.347,
+            "average_seconds_per_sample": 1.241
+          },
+          "timestamp": "2026-08-14T16:40:16Z"
+        },
+        "counting": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 41.89
+          },
+          "metrics": {
+            "accuracy": 41.89
+          },
+          "sample_count": 74,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 83239,
+            "output": 160,
+            "total": 83399,
+            "average_per_sample": 1127.0
+          },
+          "cost": {
+            "total_usd": 0.025356,
+            "average_per_sample_usd": 0.000343
+          },
+          "speed": {
+            "total_seconds": 79.28,
+            "average_seconds_per_sample": 1.071
+          },
+          "timestamp": "2026-08-14T16:38:55Z"
+        },
+        "identification": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 78.12
+          },
+          "metrics": {
+            "accuracy": 78.12
+          },
+          "sample_count": 32,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 31254,
+            "output": 125,
+            "total": 31379,
+            "average_per_sample": 980.6
+          },
+          "cost": {
+            "total_usd": 0.009676,
+            "average_per_sample_usd": 0.000302
+          },
+          "speed": {
+            "total_seconds": 36.146,
+            "average_seconds_per_sample": 1.13
+          },
+          "timestamp": "2026-08-14T16:42:47Z"
+        },
+        "reasoning": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 31.79
+          },
+          "metrics": {
+            "accuracy": 31.79
+          },
+          "sample_count": 151,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 160793,
+            "output": 451,
+            "total": 161244,
+            "average_per_sample": 1067.8
+          },
+          "cost": {
+            "total_usd": 0.04932,
+            "average_per_sample_usd": 0.000327
+          },
+          "speed": {
+            "total_seconds": 162.82,
+            "average_seconds_per_sample": 1.078
+          },
+          "timestamp": "2026-08-14T16:50:07Z"
+        },
+        "detection": {
+          "primary_metric": {
+            "name": "map50",
+            "value": 54.51
+          },
+          "metrics": {
+            "map50": 54.51,
+            "map75": 43.18,
+            "map50_95": 41.19
+          },
+          "sample_count": 250,
+          "evaluated_sample_count": 250,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 771660,
+            "output": 174986,
+            "total": 946646,
+            "average_per_sample": 3786.6
+          },
+          "cost": {
+            "total_usd": 0.651464,
+            "average_per_sample_usd": 0.002606
+          },
+          "speed": {
+            "total_seconds": 3909.127,
+            "average_seconds_per_sample": 15.637
+          },
+          "timestamp": "2026-08-14T16:34:12Z"
+        }
+      },
+      "overall": {
+        "task_count": 6,
+        "sample_count": 641,
+        "tokens": {
+          "input": 1194733,
+          "output": 193157,
+          "total": 1387890,
+          "average_per_sample": 2165.2
+        },
+        "cost": {
+          "total_usd": 0.821997,
+          "average_per_sample_usd": 0.001282
+        },
+        "speed": {
+          "total_seconds": 4698.999,
+          "average_seconds_per_sample": 7.331
+        }
+      }
+    },
+    {
+      "id": "qwen-3.8-27b:high",
+      "key": "qwen-3.8-27b",
+      "name": "Qwen3.8 27B",
+      "lab": "qwen",
+      "effort": "high",
+      "tasks": {
+        "reasoning": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 62.25
+          },
+          "metrics": {
+            "accuracy": 62.25
+          },
+          "sample_count": 151,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 166833,
+            "output": 386111,
+            "total": 552944,
+            "average_per_sample": 3661.9
+          },
+          "cost": {
+            "total_usd": 0.976716,
+            "average_per_sample_usd": 0.006468
+          },
+          "speed": {
+            "total_seconds": 8132.13,
+            "average_seconds_per_sample": 53.855
+          },
+          "timestamp": "2026-08-14T19:52:27Z"
+        }
+      },
+      "overall": {
+        "task_count": 1,
+        "sample_count": 151,
+        "tokens": {
+          "input": 166833,
+          "output": 386111,
+          "total": 552944,
+          "average_per_sample": 3661.9
+        },
+        "cost": {
+          "total_usd": 0.976716,
+          "average_per_sample_usd": 0.006468
+        },
+        "speed": {
+          "total_seconds": 8132.13,
+          "average_seconds_per_sample": 53.855
+        }
+      }
+    },
+    {
       "id": "qwen-3.6-27b:low",
       "key": "qwen-3.6-27b",
       "name": "Qwen3.6 27B",
