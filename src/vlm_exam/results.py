@@ -21,6 +21,8 @@ from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
+from vlm_exam.providers.base import EMPTY_RESPONSE_TEXT
+
 ERROR_PREDICTION_PREFIX = "ERROR:"
 """Prefix marking a sample whose provider call failed."""
 
@@ -36,6 +38,19 @@ def is_failed_sample(sample: SampleResult) -> bool:
         model output.
     """
     return sample.predicted.startswith(ERROR_PREDICTION_PREFIX)
+
+
+def is_incomplete_sample(sample: SampleResult) -> bool:
+    """Report whether a sample should be re-run on ``--resume-file``.
+
+    Args:
+        sample: A sample result loaded from a run file.
+
+    Returns:
+        True when the prediction is a provider error or the empty-content
+        sentinel.
+    """
+    return is_failed_sample(sample) or sample.predicted == EMPTY_RESPONSE_TEXT
 
 
 @dataclass
@@ -85,16 +100,17 @@ def _index_samples(
 def merge_resumed_runs(previous: RunResult, resumed: RunResult) -> RunResult:
     """Merge a resumed run into a partial previous run.
 
-    Failed samples from the previous run are replaced by the resumed
-    run's sample for the same image and question; successful samples
-    are kept as-is. Resumed samples absent from the previous run are
-    appended, so resuming an incomplete run keeps its new samples.
+    Incomplete samples from the previous run (provider errors or empty
+    content) are replaced by the resumed run's sample for the same
+    image and question; other samples are kept as-is. Resumed samples
+    absent from the previous run are appended, so resuming an
+    incomplete run keeps its new samples.
     Sample order follows the previous run and indexes are rewritten to
     be contiguous.
 
     Args:
-        previous: The partial run containing failed samples.
-        resumed: A run covering (at least) the previously failed images.
+        previous: The partial run containing incomplete samples.
+        resumed: A run covering (at least) the previously incomplete images.
 
     Returns:
         A complete run result carrying the resumed run's timestamp.
@@ -116,7 +132,7 @@ def merge_resumed_runs(previous: RunResult, resumed: RunResult) -> RunResult:
     merged: list[SampleResult] = []
     for sample in previous.samples:
         replacement = resumed_by_key.get(_sample_key(sample, previous.task))
-        if is_failed_sample(sample) and replacement is not None:
+        if is_incomplete_sample(sample) and replacement is not None:
             merged.append(replacement)
         else:
             merged.append(sample)

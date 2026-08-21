@@ -16,10 +16,12 @@ from pathlib import Path
 
 import pytest
 
+from vlm_exam.providers.base import EMPTY_RESPONSE_TEXT
 from vlm_exam.results import (
     RunResult,
     SampleResult,
     is_failed_sample,
+    is_incomplete_sample,
     load_results,
     merge_resumed_runs,
     save_results,
@@ -62,6 +64,25 @@ class TestIsFailedSample:
 
     def test_regular_prediction_is_not_failed(self) -> None:
         assert is_failed_sample(_sample(0, "a.jpg", "[]", True)) is False
+
+    def test_empty_response_is_not_a_provider_error(self) -> None:
+        assert (
+            is_failed_sample(_sample(0, "a.jpg", EMPTY_RESPONSE_TEXT, False)) is False
+        )
+
+
+class TestIsIncompleteSample:
+    def test_error_prediction_is_incomplete(self) -> None:
+        assert is_incomplete_sample(_sample(0, "a.jpg", "ERROR: boom", False)) is True
+
+    def test_empty_response_is_incomplete(self) -> None:
+        assert (
+            is_incomplete_sample(_sample(0, "a.jpg", EMPTY_RESPONSE_TEXT, False))
+            is True
+        )
+
+    def test_wrong_answer_is_not_incomplete(self) -> None:
+        assert is_incomplete_sample(_sample(0, "a.jpg", "wrong", False)) is False
 
 
 class TestMergeResumedRuns:
@@ -114,6 +135,28 @@ class TestMergeResumedRuns:
         merged = merge_resumed_runs(previous, resumed)
 
         assert merged.samples[0].predicted == "[]"
+
+    def test_replaces_empty_response_and_keeps_wrong_answer(self) -> None:
+        previous = _run(
+            [
+                _sample(0, "a.jpg", EMPTY_RESPONSE_TEXT, False),
+                _sample(1, "b.jpg", "wrong", False),
+            ]
+        )
+        resumed = _run(
+            [
+                _sample(0, "a.jpg", "4", True),
+                _sample(1, "b.jpg", "should not replace", True),
+            ],
+            timestamp="20260707_111111",
+        )
+
+        merged = merge_resumed_runs(previous, resumed)
+
+        assert merged.samples[0].predicted == "4"
+        assert merged.samples[0].correct is True
+        assert merged.samples[1].predicted == "wrong"
+        assert merged.samples[1].correct is False
 
     def test_new_samples_from_resumed_run_are_appended(self) -> None:
         previous = _run([_sample(0, "a.jpg", "[]", True)])

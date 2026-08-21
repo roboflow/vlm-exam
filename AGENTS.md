@@ -73,6 +73,15 @@ avoid a loop"). Never narrate what the code does.
   Datasets whose images carry EXIF orientation tags will therefore produce
   runs that are not comparable to runs made before this behavior existed;
   re-run all models on such a dataset rather than mixing old and new runs.
+- Commit runs as they came out of the benchmark: model failures (provider
+  `ERROR:` predictions and empty-content responses) count as wrong answers
+  and stay in the file, matching how every model already on the leaderboard
+  was published. The one allowed cleanup is a single `--resume-file` pass
+  for failures we inflicted ourselves (e.g. 429 rate limits from running
+  with `--concurrency`), which existed only because of our request rate,
+  not the model. Do not retry a model's own failures for some models and
+  not others; changing that policy means re-running it uniformly for every
+  model on the leaderboard in one dedicated PR.
 
 ## Reference models
 

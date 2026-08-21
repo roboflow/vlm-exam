@@ -29,6 +29,7 @@ from vlm_exam.reference.cli import register_reference_commands
 from vlm_exam.results import (
     RunResult,
     is_failed_sample,
+    is_incomplete_sample,
     load_results,
     load_results_directory,
     merge_resumed_runs,
@@ -222,6 +223,13 @@ def download(
         "re-run and merged into a new complete result file."
     ),
 )
+@click.option(
+    "--concurrency",
+    "concurrency",
+    default=1,
+    type=click.IntRange(min=1),
+    help="In-flight provider calls (default 1, sequential).",
+)
 def run(
     task_name: str,
     models: str,
@@ -234,6 +242,7 @@ def run(
     max_samples: int | None,
     prompt_classes: str,
     resume_file: str | None,
+    concurrency: int,
 ) -> None:
     """Run a benchmark for one or more models."""
     config = load_config(Path(config_path) if config_path else None)
@@ -263,7 +272,9 @@ def run(
                 f"{previous_run.effort!r}; pass matching --task and --effort."
             )
         failed_images = {
-            sample.image for sample in previous_run.samples if is_failed_sample(sample)
+            sample.image
+            for sample in previous_run.samples
+            if is_incomplete_sample(sample)
         }
         samples = [
             sample
@@ -281,6 +292,8 @@ def run(
         judge = Judge(model=judge_model)
 
     click.echo(f"Loaded {len(samples)} samples from {dataset_directory}")
+    if concurrency > 1:
+        click.echo(f"Concurrency: {concurrency}")
     if judge:
         click.echo(f"Match mode: {match_mode} (judge: {judge_model})")
     else:
@@ -310,6 +323,7 @@ def run(
             task_name=task_name,
             match_mode=match_mode,
             judge=judge,
+            concurrency=concurrency,
         )
 
         if previous_run is not None:
