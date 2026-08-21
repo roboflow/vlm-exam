@@ -5237,7 +5237,7 @@
     {
       "id": "qwen-3.5-plus-20260420:low",
       "key": "qwen-3.5-plus-20260420",
-      "name": "Qwen 3.5 Plus 2026-04-20",
+      "name": "Qwen 3.5 Plus",
       "lab": "qwen",
       "effort": "low",
       "tasks": {
@@ -5428,7 +5428,7 @@
     {
       "id": "qwen-3.5-plus-20260420:high",
       "key": "qwen-3.5-plus-20260420",
-      "name": "Qwen 3.5 Plus 2026-04-20",
+      "name": "Qwen 3.5 Plus",
       "lab": "qwen",
       "effort": "high",
       "tasks": {
@@ -5482,7 +5482,7 @@
     {
       "id": "qwen-3.5-flash-02-23:low",
       "key": "qwen-3.5-flash-02-23",
-      "name": "Qwen 3.5 Flash 2026-02-23",
+      "name": "Qwen 3.5 Flash",
       "lab": "qwen",
       "effort": "low",
       "tasks": {
@@ -5673,7 +5673,7 @@
     {
       "id": "qwen-3.5-flash-02-23:high",
       "key": "qwen-3.5-flash-02-23",
-      "name": "Qwen 3.5 Flash 2026-02-23",
+      "name": "Qwen 3.5 Flash",
       "lab": "qwen",
       "effort": "high",
       "tasks": {
