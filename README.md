@@ -294,7 +294,8 @@ grounding convention. Valid values are defined by
 `DetectionCoordinateFormat` in `src/vlm_exam/tasks/detection.py`:
 `yxyx_normalized_0_to_1000`, `xyxy_normalized_0_to_1000`,
 `xyxy_normalized_0_to_100`, `xyxy_absolute_resized_image`,
-`xyxy_absolute_original_image`, and `yxyx_absolute_original_image`.
+`xyxy_absolute_original_image`, `xyxy_absolute_original_image_bbox_2d`,
+and `yxyx_absolute_original_image`.
 
 For rate-limit resilience, list multiple `routes` in priority order.
 `FallbackProvider` fails over on 429/quota errors and sticks to the next

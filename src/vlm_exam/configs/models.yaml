@@ -39,6 +39,10 @@ labs:
     name: DeepSeek
     color: "#4D6BFE"
     logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/deepseek.svg
+  stealth:
+    name: Stealth
+    color: "#6B7280"
+    logo_url: https://openrouter.ai/images/icons/Stealth.svg
 
 models:
   claude-fable-5:
@@ -326,3 +330,12 @@ models:
     pricing:
       input_per_million_tokens: 0.44
       output_per_million_tokens: 1.32
+  ox-alpha:
+    name: Ox Alpha
+    lab: stealth
+    provider: openrouter
+    provider_model_id: stealth/ox-alpha
+    detection_coordinate_format: xyxy_absolute_original_image_bbox_2d
+    pricing:
+      input_per_million_tokens: 0.00
+      output_per_million_tokens: 0.00
