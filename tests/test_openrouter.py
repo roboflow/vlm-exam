@@ -29,3 +29,7 @@ def test_qwen_disables_reasoning_at_low_effort() -> None:
 
 def test_muse_spark_keeps_reasoning_at_low_effort() -> None:
     assert _reasoning_config("low", "meta/muse-spark-1.1") == {"effort": "low"}
+
+
+def test_glm_5_3_flash_keeps_reasoning_at_low_effort() -> None:
+    assert _reasoning_config("low", "z-ai/glm-5.3-flash") == {"effort": "low"}
