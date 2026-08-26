@@ -40,6 +40,7 @@ _REASONING_REQUIRED_MODELS = frozenset(
     {
         "qwen/qwen3.8-max",
         "stealth/ox-alpha",
+        "z-ai/glm-5.3-flash",
     }
 )
 
@@ -48,8 +49,8 @@ def _reasoning_config(effort: str, provider_model_id: str) -> dict[str, Any]:
     # Qwen and GLM default to extended reasoning, which at "low" effort
     # bloats latency and truncates the answer inside the reasoning trace;
     # disabling it keeps low-effort runs fast and well-formed.
-    # Gemini, Muse Spark, Qwen3.8-Max, and Ox Alpha on OpenRouter require
-    # reasoning and reject enabled=False.
+    # Gemini, Muse Spark, Qwen3.8-Max, Ox Alpha, and GLM 5.3 Flash on
+    # OpenRouter require reasoning and reject enabled=False.
     if (
         provider_model_id.startswith(("google/", "meta/"))
         or provider_model_id in _REASONING_REQUIRED_MODELS

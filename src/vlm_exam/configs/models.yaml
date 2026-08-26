@@ -258,6 +258,15 @@ models:
     pricing:
       input_per_million_tokens: 1.20
       output_per_million_tokens: 4.00
+  glm-5.3-flash:
+    name: GLM 5.3 Flash
+    lab: zai
+    provider: openrouter
+    provider_model_id: z-ai/glm-5.3-flash
+    detection_coordinate_format: xyxy_absolute_original_image_bbox_2d
+    pricing:
+      input_per_million_tokens: 0.075
+      output_per_million_tokens: 0.25
   kimi-k2.6:
     name: Kimi K2.6
     lab: moonshot
