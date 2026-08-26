@@ -7687,7 +7687,7 @@
     {
       "id": "deepseek-v4-flash-vision-exp:low",
       "key": "deepseek-v4-flash-vision-exp",
-      "name": "DeepSeek V4 Flash Vision Exp",
+      "name": "DeepSeek V4 Flash",
       "lab": "deepseek",
       "effort": "low",
       "tasks": {
@@ -7878,7 +7878,7 @@
     {
       "id": "deepseek-v4-flash-vision-exp:high",
       "key": "deepseek-v4-flash-vision-exp",
-      "name": "DeepSeek V4 Flash Vision Exp",
+      "name": "DeepSeek V4 Flash",
       "lab": "deepseek",
       "effort": "high",
       "tasks": {

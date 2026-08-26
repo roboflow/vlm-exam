@@ -318,7 +318,7 @@ models:
       input_per_million_tokens: 2.00
       output_per_million_tokens: 6.00
   deepseek-v4-flash-vision-exp:
-    name: DeepSeek V4 Flash Vision Exp
+    name: DeepSeek V4 Flash
     lab: deepseek
     provider: openrouter
     provider_model_id: deepseek/deepseek-v4-flash-vision-exp
