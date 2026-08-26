@@ -35,6 +35,10 @@ labs:
     name: xAI
     color: "#000000"
     logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/xai.svg
+  deepseek:
+    name: DeepSeek
+    color: "#4D6BFE"
+    logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/deepseek.svg
 
 models:
   claude-fable-5:
@@ -313,3 +317,12 @@ models:
     pricing:
       input_per_million_tokens: 2.00
       output_per_million_tokens: 6.00
+  deepseek-v4-flash-vision-exp:
+    name: DeepSeek V4 Flash Vision Exp
+    lab: deepseek
+    provider: openrouter
+    provider_model_id: deepseek/deepseek-v4-flash-vision-exp
+    detection_coordinate_format: xyxy_normalized_0_to_1000
+    pricing:
+      input_per_million_tokens: 0.44
+      output_per_million_tokens: 1.32

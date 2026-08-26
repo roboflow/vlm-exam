@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T16:25:23Z",
+  "generated_at": "2026-08-21T15:42:43Z",
   "efforts": [
     "low",
     "high"
@@ -7681,6 +7681,251 @@
         "speed": {
           "total_seconds": 5561.263,
           "average_seconds_per_sample": 37.832
+        }
+      }
+    },
+    {
+      "id": "deepseek-v4-flash-vision-exp:low",
+      "key": "deepseek-v4-flash-vision-exp",
+      "name": "DeepSeek V4 Flash Vision Exp",
+      "lab": "deepseek",
+      "effort": "low",
+      "tasks": {
+        "ocr": {
+          "primary_metric": {
+            "name": "similarity",
+            "value": 86.67
+          },
+          "metrics": {
+            "similarity": 86.67
+          },
+          "sample_count": 37,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 14378,
+            "output": 14129,
+            "total": 28507,
+            "average_per_sample": 770.5
+          },
+          "cost": {
+            "total_usd": 0.024977,
+            "average_per_sample_usd": 0.000675
+          },
+          "speed": {
+            "total_seconds": 163.742,
+            "average_seconds_per_sample": 4.425
+          },
+          "timestamp": "2026-08-21T15:36:39Z"
+        },
+        "extraction": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 64.95
+          },
+          "metrics": {
+            "accuracy": 64.95
+          },
+          "sample_count": 97,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 37017,
+            "output": 387,
+            "total": 37404,
+            "average_per_sample": 385.6
+          },
+          "cost": {
+            "total_usd": 0.016798,
+            "average_per_sample_usd": 0.000173
+          },
+          "speed": {
+            "total_seconds": 122.525,
+            "average_seconds_per_sample": 1.263
+          },
+          "timestamp": "2026-08-21T15:36:40Z"
+        },
+        "counting": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 45.95
+          },
+          "metrics": {
+            "accuracy": 45.95
+          },
+          "sample_count": 74,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 28764,
+            "output": 74,
+            "total": 28838,
+            "average_per_sample": 389.7
+          },
+          "cost": {
+            "total_usd": 0.012754,
+            "average_per_sample_usd": 0.000172
+          },
+          "speed": {
+            "total_seconds": 93.772,
+            "average_seconds_per_sample": 1.267
+          },
+          "timestamp": "2026-08-21T15:36:40Z"
+        },
+        "identification": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 68.75
+          },
+          "metrics": {
+            "accuracy": 68.75
+          },
+          "sample_count": 32,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 12447,
+            "output": 84,
+            "total": 12531,
+            "average_per_sample": 391.6
+          },
+          "cost": {
+            "total_usd": 0.005588,
+            "average_per_sample_usd": 0.000175
+          },
+          "speed": {
+            "total_seconds": 39.909,
+            "average_seconds_per_sample": 1.247
+          },
+          "timestamp": "2026-08-21T15:36:41Z"
+        },
+        "reasoning": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 30.46
+          },
+          "metrics": {
+            "accuracy": 30.46
+          },
+          "sample_count": 151,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 58839,
+            "output": 241,
+            "total": 59080,
+            "average_per_sample": 391.3
+          },
+          "cost": {
+            "total_usd": 0.026207,
+            "average_per_sample_usd": 0.000174
+          },
+          "speed": {
+            "total_seconds": 186.263,
+            "average_seconds_per_sample": 1.234
+          },
+          "timestamp": "2026-08-21T15:36:42Z"
+        },
+        "detection": {
+          "primary_metric": {
+            "name": "map50",
+            "value": 45.32
+          },
+          "metrics": {
+            "map50": 45.32,
+            "map75": 28.79,
+            "map50_95": 29.87
+          },
+          "sample_count": 250,
+          "evaluated_sample_count": 250,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 111448,
+            "output": 172614,
+            "total": 284062,
+            "average_per_sample": 1136.2
+          },
+          "cost": {
+            "total_usd": 0.276888,
+            "average_per_sample_usd": 0.001108
+          },
+          "speed": {
+            "total_seconds": 1761.426,
+            "average_seconds_per_sample": 7.046
+          },
+          "timestamp": "2026-08-21T15:42:43Z"
+        }
+      },
+      "overall": {
+        "task_count": 6,
+        "sample_count": 641,
+        "tokens": {
+          "input": 262893,
+          "output": 187529,
+          "total": 450422,
+          "average_per_sample": 702.7
+        },
+        "cost": {
+          "total_usd": 0.363211,
+          "average_per_sample_usd": 0.000567
+        },
+        "speed": {
+          "total_seconds": 2367.637,
+          "average_seconds_per_sample": 3.694
+        }
+      }
+    },
+    {
+      "id": "deepseek-v4-flash-vision-exp:high",
+      "key": "deepseek-v4-flash-vision-exp",
+      "name": "DeepSeek V4 Flash Vision Exp",
+      "lab": "deepseek",
+      "effort": "high",
+      "tasks": {
+        "reasoning": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 48.34
+          },
+          "metrics": {
+            "accuracy": 48.34
+          },
+          "sample_count": 151,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 70919,
+            "output": 263708,
+            "total": 334627,
+            "average_per_sample": 2216.1
+          },
+          "cost": {
+            "total_usd": 0.379299,
+            "average_per_sample_usd": 0.002512
+          },
+          "speed": {
+            "total_seconds": 2476.102,
+            "average_seconds_per_sample": 16.398
+          },
+          "timestamp": "2026-08-21T15:36:42Z"
+        }
+      },
+      "overall": {
+        "task_count": 1,
+        "sample_count": 151,
+        "tokens": {
+          "input": 70919,
+          "output": 263708,
+          "total": 334627,
+          "average_per_sample": 2216.1
+        },
+        "cost": {
+          "total_usd": 0.379299,
+          "average_per_sample_usd": 0.002512
+        },
+        "speed": {
+          "total_seconds": 2476.102,
+          "average_seconds_per_sample": 16.398
         }
       }
     }
