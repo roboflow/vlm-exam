@@ -380,6 +380,7 @@ class TestParseNormalizedPercentPrediction:
         assert "floats between 0 and 100" in prompt
         assert "[x_min, y_min, x_max, y_max]" in prompt
 
+
 class TestParsePixelPrediction:
     def test_parses_pixel_coordinates_directly(self) -> None:
         prediction = '[{"box_2d": [10, 20, 30, 40], "label": "cat"}]'
@@ -587,6 +588,31 @@ class TestParseNativePixelPrediction:
         prompt = task.build_prompt(sample)
         assert "[y_min, x_min, y_max, x_max]" in prompt
         assert "100x100 pixel image" in prompt
+
+    def test_bbox_2d_pixel_prompt_matches_qwen25_schema(self) -> None:
+        task = DetectionTask(
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE_BBOX_2D
+            )
+        )
+        sample = _make_sample(_detections([[0, 0, 10, 10]], [0]))
+        prompt = task.build_prompt(sample)
+        assert '"bbox_2d": [x1, y1, x2, y2]' in prompt
+        assert 'key "box_2d"' not in prompt
+        assert "cat" in prompt
+
+    def test_parses_bbox_2d_pixel_native_coordinates(self) -> None:
+        prediction = '[{"bbox_2d": [10, 20, 30, 40], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction,
+            (100, 100),
+            ["cat", "dog"],
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE_BBOX_2D
+            ),
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [10, 20, 30, 40])
 
 
 class TestEvaluate:

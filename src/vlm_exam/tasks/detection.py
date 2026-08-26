@@ -73,6 +73,13 @@ _PIXEL_YXYX_PROMPT_TEMPLATE = (
     "Only use these labels: {class_list}"
 )
 
+_BBOX_2D_PIXEL_PROMPT_TEMPLATE = (
+    "Detect all objects in this image and return their locations in the "
+    "form of coordinates. The format of output should be like "
+    '{{"bbox_2d": [x1, y1, x2, y2], "label": "<name>"}}. '
+    "Only use these labels: {class_list}. Return a JSON array only."
+)
+
 _NORMALIZED_XYXY_PROMPT_TEMPLATE = (
     "Detect all objects in this image. "
     "Output a JSON list where each entry contains the 2D bounding box "
@@ -117,6 +124,7 @@ class DetectionCoordinateFormat(str, Enum):
     XYXY_NORMALIZED_0_TO_1000_META_FLAT = "xyxy_normalized_0_to_1000_meta_flat"
     XYXY_ABSOLUTE_RESIZED_IMAGE = "xyxy_absolute_resized_image"
     XYXY_ABSOLUTE_ORIGINAL_IMAGE = "xyxy_absolute_original_image"
+    XYXY_ABSOLUTE_ORIGINAL_IMAGE_BBOX_2D = "xyxy_absolute_original_image_bbox_2d"
     YXYX_ABSOLUTE_ORIGINAL_IMAGE = "yxyx_absolute_original_image"
 
 
@@ -303,6 +311,8 @@ class DetectionTask(Task):
                     height=sample.image_height,
                     class_list=class_list,
                 )
+            case DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE_BBOX_2D:
+                return _BBOX_2D_PIXEL_PROMPT_TEMPLATE.format(class_list=class_list)
             case DetectionCoordinateFormat.YXYX_ABSOLUTE_ORIGINAL_IMAGE:
                 return _PIXEL_YXYX_PROMPT_TEMPLATE.format(
                     width=sample.image_width,
@@ -428,7 +438,10 @@ def parse_prediction(
                     *resolution_wh, max_edge, max_tokens
                 )
             parser = partial(_parse_pixel_json, uploaded_wh=uploaded_wh)
-        case DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE:
+        case (
+            DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE
+            | DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE_BBOX_2D
+        ):
             parser = _parse_pixel_native_json
         case DetectionCoordinateFormat.YXYX_ABSOLUTE_ORIGINAL_IMAGE:
             parser = _parse_pixel_yxyx_native_json
@@ -633,7 +646,7 @@ def _parse_absolute_pixel_json(
     for entry in entries:
         if not isinstance(entry, dict):
             continue
-        box = entry.get("box_2d")
+        box = entry.get("box_2d", entry.get("bbox_2d"))
         label = entry.get("label")
         if (
             not isinstance(box, list)
