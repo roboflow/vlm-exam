@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T15:42:43Z",
+  "generated_at": "2026-08-26T16:12:50Z",
   "efforts": [
     "low",
     "high"
@@ -1214,12 +1214,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 68.65
+            "value": 70.24
           },
           "metrics": {
-            "map50": 68.65,
-            "map75": 55.76,
-            "map50_95": 52.96
+            "map50": 70.24,
+            "map75": 56.37,
+            "map50_95": 53.74
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -1459,12 +1459,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 55.98
+            "value": 58.34
           },
           "metrics": {
-            "map50": 55.98,
-            "map75": 46.4,
-            "map50_95": 44.5
+            "map50": 58.34,
+            "map75": 48.41,
+            "map50_95": 46.36
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -1704,12 +1704,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 69.37
+            "value": 69.81
           },
           "metrics": {
-            "map50": 69.37,
-            "map75": 59.81,
-            "map50_95": 56.2
+            "map50": 69.81,
+            "map75": 60.01,
+            "map50_95": 56.46
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -1949,12 +1949,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 57.51
+            "value": 58.06
           },
           "metrics": {
-            "map50": 57.51,
-            "map75": 46.58,
-            "map50_95": 44.55
+            "map50": 58.06,
+            "map75": 46.96,
+            "map50_95": 44.92
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -2194,12 +2194,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 38.6
+            "value": 42.61
           },
           "metrics": {
-            "map50": 38.6,
-            "map75": 29.18,
-            "map50_95": 27.94
+            "map50": 42.61,
+            "map75": 32.37,
+            "map50_95": 30.9
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -2439,12 +2439,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 33.73
+            "value": 33.86
           },
           "metrics": {
-            "map50": 33.73,
-            "map75": 25.08,
-            "map50_95": 24.74
+            "map50": 33.86,
+            "map75": 25.2,
+            "map50_95": 24.82
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -2684,12 +2684,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 67.43
+            "value": 67.57
           },
           "metrics": {
-            "map50": 67.43,
-            "map75": 55.78,
-            "map50_95": 52.39
+            "map50": 67.57,
+            "map75": 55.84,
+            "map50_95": 52.44
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -5970,6 +5970,251 @@
       }
     },
     {
+      "id": "glm-5.3-flash:low",
+      "key": "glm-5.3-flash",
+      "name": "GLM 5.3 Flash",
+      "lab": "zai",
+      "effort": "low",
+      "tasks": {
+        "ocr": {
+          "primary_metric": {
+            "name": "similarity",
+            "value": 90.62
+          },
+          "metrics": {
+            "similarity": 90.62
+          },
+          "sample_count": 37,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 50747,
+            "output": 12324,
+            "total": 63071,
+            "average_per_sample": 1704.6
+          },
+          "cost": {
+            "total_usd": 0.006887,
+            "average_per_sample_usd": 0.000186
+          },
+          "speed": {
+            "total_seconds": 274.053,
+            "average_seconds_per_sample": 7.407
+          },
+          "timestamp": "2026-08-26T16:12:50Z"
+        },
+        "extraction": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 83.51
+          },
+          "metrics": {
+            "accuracy": 83.51
+          },
+          "sample_count": 97,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 141993,
+            "output": 1509,
+            "total": 143502,
+            "average_per_sample": 1479.4
+          },
+          "cost": {
+            "total_usd": 0.011027,
+            "average_per_sample_usd": 0.000114
+          },
+          "speed": {
+            "total_seconds": 463.526,
+            "average_seconds_per_sample": 4.779
+          },
+          "timestamp": "2026-08-26T16:12:50Z"
+        },
+        "counting": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 55.41
+          },
+          "metrics": {
+            "accuracy": 55.41
+          },
+          "sample_count": 74,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 109169,
+            "output": 3354,
+            "total": 112523,
+            "average_per_sample": 1520.6
+          },
+          "cost": {
+            "total_usd": 0.009026,
+            "average_per_sample_usd": 0.000122
+          },
+          "speed": {
+            "total_seconds": 458.698,
+            "average_seconds_per_sample": 6.199
+          },
+          "timestamp": "2026-08-26T16:12:50Z"
+        },
+        "identification": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 84.38
+          },
+          "metrics": {
+            "accuracy": 84.38
+          },
+          "sample_count": 32,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 40969,
+            "output": 478,
+            "total": 41447,
+            "average_per_sample": 1295.2
+          },
+          "cost": {
+            "total_usd": 0.003192,
+            "average_per_sample_usd": 0.0001
+          },
+          "speed": {
+            "total_seconds": 206.443,
+            "average_seconds_per_sample": 6.451
+          },
+          "timestamp": "2026-08-26T16:12:50Z"
+        },
+        "reasoning": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 50.99
+          },
+          "metrics": {
+            "accuracy": 50.99
+          },
+          "sample_count": 151,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 210404,
+            "output": 11239,
+            "total": 221643,
+            "average_per_sample": 1467.8
+          },
+          "cost": {
+            "total_usd": 0.01859,
+            "average_per_sample_usd": 0.000123
+          },
+          "speed": {
+            "total_seconds": 670.766,
+            "average_seconds_per_sample": 4.442
+          },
+          "timestamp": "2026-08-26T16:12:50Z"
+        },
+        "detection": {
+          "primary_metric": {
+            "name": "map50",
+            "value": 33.09
+          },
+          "metrics": {
+            "map50": 33.09,
+            "map75": 17.92,
+            "map50_95": 18.97
+          },
+          "sample_count": 250,
+          "evaluated_sample_count": 250,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 801166,
+            "output": 177188,
+            "total": 978354,
+            "average_per_sample": 3913.4
+          },
+          "cost": {
+            "total_usd": 0.104384,
+            "average_per_sample_usd": 0.000418
+          },
+          "speed": {
+            "total_seconds": 2275.008,
+            "average_seconds_per_sample": 9.1
+          },
+          "timestamp": "2026-08-26T16:12:50Z"
+        }
+      },
+      "overall": {
+        "task_count": 6,
+        "sample_count": 641,
+        "tokens": {
+          "input": 1354448,
+          "output": 206092,
+          "total": 1560540,
+          "average_per_sample": 2434.5
+        },
+        "cost": {
+          "total_usd": 0.153107,
+          "average_per_sample_usd": 0.000239
+        },
+        "speed": {
+          "total_seconds": 4348.495,
+          "average_seconds_per_sample": 6.784
+        }
+      }
+    },
+    {
+      "id": "glm-5.3-flash:high",
+      "key": "glm-5.3-flash",
+      "name": "GLM 5.3 Flash",
+      "lab": "zai",
+      "effort": "high",
+      "tasks": {
+        "reasoning": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 59.6
+          },
+          "metrics": {
+            "accuracy": 59.6
+          },
+          "sample_count": 151,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 210404,
+            "output": 26654,
+            "total": 237058,
+            "average_per_sample": 1569.9
+          },
+          "cost": {
+            "total_usd": 0.022444,
+            "average_per_sample_usd": 0.000149
+          },
+          "speed": {
+            "total_seconds": 812.293,
+            "average_seconds_per_sample": 5.379
+          },
+          "timestamp": "2026-08-26T16:12:50Z"
+        }
+      },
+      "overall": {
+        "task_count": 1,
+        "sample_count": 151,
+        "tokens": {
+          "input": 210404,
+          "output": 26654,
+          "total": 237058,
+          "average_per_sample": 1569.9
+        },
+        "cost": {
+          "total_usd": 0.022444,
+          "average_per_sample_usd": 0.000149
+        },
+        "speed": {
+          "total_seconds": 812.293,
+          "average_seconds_per_sample": 5.379
+        }
+      }
+    },
+    {
       "id": "kimi-k2.6:low",
       "key": "kimi-k2.6",
       "name": "Kimi K2.6",
@@ -6114,12 +6359,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 35.66
+            "value": 36.46
           },
           "metrics": {
-            "map50": 35.66,
-            "map75": 26.7,
-            "map50_95": 26.82
+            "map50": 36.46,
+            "map75": 27.25,
+            "map50_95": 27.28
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
