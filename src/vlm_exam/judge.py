@@ -17,6 +17,9 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
+import tempfile
+import threading
 from pathlib import Path
 
 from google import genai
@@ -80,6 +83,7 @@ class Judge:
         self._model = model
         self._client = genai.Client(api_key=api_key)
         self._cache_path = cache_path or _DEFAULT_CACHE_PATH
+        self._cache_lock = threading.Lock()
         self._cache: dict[str, bool] = self._load_cache()
 
     @property
@@ -89,14 +93,41 @@ class Judge:
 
     def _load_cache(self) -> dict[str, bool]:
         if self._cache_path.exists():
-            with open(self._cache_path) as file:
-                return json.load(file)
+            try:
+                with open(self._cache_path) as file:
+                    loaded = json.load(file)
+            except json.JSONDecodeError:
+                loaded = None
+            if isinstance(loaded, dict):
+                return loaded
+            _logger.warning(
+                "Judge cache %s is corrupt; starting with an empty cache.",
+                self._cache_path,
+            )
         return {}
 
     def _save_cache(self) -> None:
+        # Must be called holding _cache_lock. Re-reading and merging the
+        # on-disk cache first keeps verdicts written by parallel benchmark
+        # processes sharing the cache file; the atomic rename keeps readers
+        # from ever observing partial JSON.
+        merged = self._load_cache()
+        merged.update(self._cache)
+        self._cache = merged
         self._cache_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self._cache_path, "w") as file:
-            json.dump(self._cache, file, indent=2)
+        descriptor, temp_path = tempfile.mkstemp(
+            dir=str(self._cache_path.parent),
+            prefix=self._cache_path.name,
+            suffix=".tmp",
+        )
+        try:
+            with os.fdopen(descriptor, "w") as file:
+                json.dump(self._cache, file, indent=2)
+            os.replace(temp_path, self._cache_path)
+        except BaseException:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+            raise
 
     def evaluate(
         self, *, question: str, expected: str, predicted: str, guidance: str = ""
@@ -115,8 +146,9 @@ class Judge:
         """
         key = _cache_key(question, expected, predicted, self._model, guidance)
 
-        if key in self._cache:
-            return self._cache[key]
+        with self._cache_lock:
+            if key in self._cache:
+                return self._cache[key]
 
         guidance_block = f"\nTask-specific guidance:\n{guidance}\n" if guidance else ""
         prompt = _JUDGE_PROMPT.format(
@@ -161,6 +193,7 @@ class Judge:
             return False
 
         verdict = cleaned == "YES"
-        self._cache[key] = verdict
-        self._save_cache()
+        with self._cache_lock:
+            self._cache[key] = verdict
+            self._save_cache()
         return verdict
