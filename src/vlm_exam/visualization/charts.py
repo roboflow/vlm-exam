@@ -142,7 +142,7 @@ def plot_accuracy_chart(
     bar_max = 100
 
     figure_height = max(4.0, count * row_spacing + 2.8)
-    figure, axes = plt.subplots(figsize=(13, figure_height))
+    figure, axes = plt.subplots(figsize=(14, figure_height))
     figure.patch.set_facecolor(BACKGROUND_COLOR)
     axes.set_facecolor(BACKGROUND_COLOR)
     add_top_accent(figure)
@@ -253,7 +253,7 @@ def plot_metric_chart(
     bar_max = 100
 
     figure_height = max(4.0, count * row_spacing + 2.8)
-    figure, axes = plt.subplots(figsize=(13, figure_height))
+    figure, axes = plt.subplots(figsize=(14, figure_height))
     figure.patch.set_facecolor(BACKGROUND_COLOR)
     axes.set_facecolor(BACKGROUND_COLOR)
     add_top_accent(figure)
@@ -375,7 +375,7 @@ def plot_dual_effort_chart(
     bar_max = 100
 
     figure_height = max(4.5, count * row_spacing + 3.2)
-    figure, axes = plt.subplots(figsize=(13, figure_height))
+    figure, axes = plt.subplots(figsize=(14, figure_height))
     figure.patch.set_facecolor(BACKGROUND_COLOR)
     axes.set_facecolor(BACKGROUND_COLOR)
     add_top_accent(figure)
@@ -727,7 +727,7 @@ def plot_combined_metrics_chart(
         scales.append(column_width / max_value if max_value > 0 else 1.0)
 
     figure_height = max(5.0, count * row_spacing + 3.5)
-    figure, axes = plt.subplots(figsize=(16, figure_height))
+    figure, axes = plt.subplots(figsize=(17, figure_height))
     figure.patch.set_facecolor(BACKGROUND_COLOR)
     axes.set_facecolor(BACKGROUND_COLOR)
     add_top_accent(figure)

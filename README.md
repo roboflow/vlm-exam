@@ -46,7 +46,7 @@ Stricter IoU thresholds:
 - Anthropic (Claude)
 - Google (Gemini)
 - OpenAI (GPT)
-- OpenRouter (any OpenAI-compatible vision model, e.g. Qwen 3.7 Plus,
+- OpenRouter (any OpenAI-compatible vision model, e.g. Qwen3.7 Plus,
   GLM 5V Turbo)
 
 ## Installation

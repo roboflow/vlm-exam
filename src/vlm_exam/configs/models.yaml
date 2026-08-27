@@ -180,7 +180,7 @@ models:
       input_per_million_tokens: 1.00
       output_per_million_tokens: 6.00
   qwen-3.8-max:
-    name: Qwen3.8-Max
+    name: Qwen3.8 Max
     lab: qwen
     detection_coordinate_format: xyxy_normalized_0_to_1000
     routes:
@@ -192,7 +192,7 @@ models:
       input_per_million_tokens: 2.00
       output_per_million_tokens: 6.00
   qwen-3.7-plus:
-    name: Qwen 3.7 Plus
+    name: Qwen3.7 Plus
     lab: qwen
     provider: openrouter
     provider_model_id: qwen/qwen3.7-plus
@@ -201,7 +201,7 @@ models:
       input_per_million_tokens: 0.32
       output_per_million_tokens: 1.28
   qwen-3.7-flash:
-    name: Qwen 3.7 Flash
+    name: Qwen3.7 Flash
     lab: qwen
     provider: openrouter
     provider_model_id: qwen/qwen3.7-flash
@@ -210,7 +210,7 @@ models:
       input_per_million_tokens: 0.03
       output_per_million_tokens: 0.13
   qwen-3.8-flash:
-    name: Qwen3.8-Flash
+    name: Qwen3.8 Flash
     lab: qwen
     provider: openrouter
     provider_model_id: qwen/qwen3.8-flash
@@ -219,7 +219,7 @@ models:
       input_per_million_tokens: 0.15
       output_per_million_tokens: 0.47
   qwen-3-vl-235b:
-    name: Qwen3-VL 235B
+    name: Qwen3 VL 235B A22B Instruct
     lab: qwen
     provider: openrouter
     provider_model_id: qwen/qwen3-vl-235b-a22b-instruct
@@ -228,7 +228,7 @@ models:
       input_per_million_tokens: 0.20
       output_per_million_tokens: 0.88
   qwen-3.5-27b:
-    name: Qwen3.5 27B
+    name: Qwen3.5-27B
     lab: qwen
     provider: openrouter
     provider_model_id: qwen/qwen3.5-27b
