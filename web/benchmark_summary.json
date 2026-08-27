@@ -4012,7 +4012,7 @@
     {
       "id": "qwen-3.8-max:low",
       "key": "qwen-3.8-max",
-      "name": "Qwen3.8-Max",
+      "name": "Qwen3.8 Max",
       "lab": "qwen",
       "effort": "low",
       "tasks": {
@@ -4203,7 +4203,7 @@
     {
       "id": "qwen-3.8-max:high",
       "key": "qwen-3.8-max",
-      "name": "Qwen3.8-Max",
+      "name": "Qwen3.8 Max",
       "lab": "qwen",
       "effort": "high",
       "tasks": {
@@ -4257,7 +4257,7 @@
     {
       "id": "qwen-3.7-plus:low",
       "key": "qwen-3.7-plus",
-      "name": "Qwen 3.7 Plus",
+      "name": "Qwen3.7 Plus",
       "lab": "qwen",
       "effort": "low",
       "tasks": {
@@ -4448,7 +4448,7 @@
     {
       "id": "qwen-3.7-plus:high",
       "key": "qwen-3.7-plus",
-      "name": "Qwen 3.7 Plus",
+      "name": "Qwen3.7 Plus",
       "lab": "qwen",
       "effort": "high",
       "tasks": {
@@ -4502,7 +4502,7 @@
     {
       "id": "qwen-3.7-flash:low",
       "key": "qwen-3.7-flash",
-      "name": "Qwen 3.7 Flash",
+      "name": "Qwen3.7 Flash",
       "lab": "qwen",
       "effort": "low",
       "tasks": {
@@ -4693,7 +4693,7 @@
     {
       "id": "qwen-3.7-flash:high",
       "key": "qwen-3.7-flash",
-      "name": "Qwen 3.7 Flash",
+      "name": "Qwen3.7 Flash",
       "lab": "qwen",
       "effort": "high",
       "tasks": {
@@ -4747,7 +4747,7 @@
     {
       "id": "qwen-3.8-flash:low",
       "key": "qwen-3.8-flash",
-      "name": "Qwen3.8-Flash",
+      "name": "Qwen3.8 Flash",
       "lab": "qwen",
       "effort": "low",
       "tasks": {
@@ -4938,7 +4938,7 @@
     {
       "id": "qwen-3.8-flash:high",
       "key": "qwen-3.8-flash",
-      "name": "Qwen3.8-Flash",
+      "name": "Qwen3.8 Flash",
       "lab": "qwen",
       "effort": "high",
       "tasks": {
@@ -4992,7 +4992,7 @@
     {
       "id": "qwen-3-vl-235b:low",
       "key": "qwen-3-vl-235b",
-      "name": "Qwen3-VL 235B",
+      "name": "Qwen3 VL 235B A22B Instruct",
       "lab": "qwen",
       "effort": "low",
       "tasks": {
@@ -5183,7 +5183,7 @@
     {
       "id": "qwen-3-vl-235b:high",
       "key": "qwen-3-vl-235b",
-      "name": "Qwen3-VL 235B",
+      "name": "Qwen3 VL 235B A22B Instruct",
       "lab": "qwen",
       "effort": "high",
       "tasks": {
@@ -5237,7 +5237,7 @@
     {
       "id": "qwen-3.5-27b:low",
       "key": "qwen-3.5-27b",
-      "name": "Qwen3.5 27B",
+      "name": "Qwen3.5-27B",
       "lab": "qwen",
       "effort": "low",
       "tasks": {
@@ -5428,7 +5428,7 @@
     {
       "id": "qwen-3.5-27b:high",
       "key": "qwen-3.5-27b",
-      "name": "Qwen3.5 27B",
+      "name": "Qwen3.5-27B",
       "lab": "qwen",
       "effort": "high",
       "tasks": {

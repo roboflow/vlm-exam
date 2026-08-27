@@ -121,7 +121,7 @@ class DashScopeProvider(Provider):
                 # bloats latency and truncates the answer inside the
                 # reasoning trace; disabling it keeps low-effort runs fast
                 # and well-formed (mirrors the OpenRouter Qwen behavior).
-                # Qwen3.8-Max is the exception: its OpenRouter endpoint
+                # Qwen3.8 Max is the exception: its OpenRouter endpoint
                 # mandates reasoning, so this fallback keeps thinking on to
                 # match the primary route's behavior within a run.
                 extra_body={
