@@ -120,6 +120,30 @@ place without re-running the model:
 vlm-exam rescore results/reasoning_gpt-5.5_low_20260725_101010.jsonl
 ```
 
+### Repeat runs and average them
+
+Every committed configuration is run three times and the leaderboards,
+reports, and web summary report the mean over those runs. Repeats are just
+result files: every file in `results/` with the same `(task, model, effort)`
+counts as one run, so there is nothing to register. `--repeats` runs a
+configuration back to back, `--concurrency` evaluates samples in parallel
+within a run:
+
+```bash
+vlm-exam run \
+    --task reasoning \
+    --models claude-fable-5-1 \
+    --effort low \
+    --dataset-directory data/reasoning/train \
+    --repeats 3 \
+    --concurrency 4
+```
+
+Repeats may also be launched as separate processes writing to the same
+directory; filenames are made unique on collision. `--resume-file <file>`
+re-runs only the failed samples of a run, writes the merged complete file,
+and deletes the source so the partial run is not counted as a repeat.
+
 ### Run a detection benchmark
 
 Expects a COCO-format dataset directory containing an
@@ -141,13 +165,17 @@ Useful options:
 
 ### Summarize results
 
-Accuracy, token usage, and cost tables across all saved runs:
+Accuracy, token usage, and cost tables across all saved runs. Each row is
+one `(task, model, effort)` configuration with its run count; metrics are
+the mean over runs with half the min-max spread after `+/-`, and cost is
+per run:
 
 ```bash
 vlm-exam report --results-directory results
 ```
 
-Dataset-level mAP@50, mAP@75, and mAP@50:95 for detection runs:
+Dataset-level mAP@50, mAP@75, and mAP@50:95 for every detection run, with
+the mean per configuration:
 
 ```bash
 vlm-exam detection-report \
@@ -175,8 +203,10 @@ still map to class names when per-box labels would be too crowded), and `auto`
 ### Generate leaderboards
 
 Regenerates leaderboard charts for all locally saved runs (VQA accuracy plus
-detection mAP@50 / mAP@75 / mAP@50:95 per effort level). Use
-`--group <name>` or `--models` to filter to a subset.
+detection mAP@50 / mAP@75 / mAP@50:95 per effort level). Bars show the mean
+over a model's repeated runs; models with more than one run get a whisker
+spanning their lowest and highest run. Use `--group <name>` or `--models`
+to filter to a subset.
 
 ```bash
 vlm-exam leaderboard \
@@ -187,10 +217,11 @@ vlm-exam leaderboard \
 
 ### Compile a summary for the web
 
-Compiles the newest run per `(task, effort, model)` in `results/` (older
-runs are ignored) into a single JSON payload for the benchmark website. It
-carries per-task metadata and, for each model, its per-task quality plus
-token spend, cost, and inference speed. Each entry is one `(model, effort)`
+Compiles every run in `results/` into a single JSON payload for the
+benchmark website, averaging the repeats of each `(task, effort, model)`
+configuration. It carries per-task metadata and, for each model, its
+per-task quality plus token spend, cost, and inference speed of one run.
+Each entry is one `(model, effort)`
 pair with a unique `id`, so the same model appears once per effort; the
 top-level `efforts` array lists every effort present. Pass
 `--dataset-directory` to include detection mAP (otherwise detection quality
@@ -214,6 +245,12 @@ The output has this shape (abbreviated):
 {
   "generated_at": "2026-07-10T08:11:31Z",
   "efforts": ["low"],
+  "scoring": {
+    "judge_model": "gemini-3.5-flash",
+    "judge_metric": "accuracy_judge",
+    "strict_metric": "accuracy_strict"
+  },
+  "protocol": { "repeats": 3 },
   "tasks": [
     {
       "key": "ocr",
@@ -245,6 +282,9 @@ The output has this shape (abbreviated):
         "ocr": {
           "primary_metric": { "name": "similarity", "value": 90.73 },
           "metrics": { "similarity": 90.73 },
+          "metric_runs": { "similarity": [90.1, 91.4, 90.69] },
+          "run_count": 3,
+          "timestamps": ["2026-07-10T06:02:10Z", "2026-07-10T06:48:57Z", "2026-07-10T07:33:33Z"],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -256,6 +296,9 @@ The output has this shape (abbreviated):
         "detection": {
           "primary_metric": { "name": "map50", "value": 46.23 },
           "metrics": { "map50": 46.23, "map75": 20.85, "map50_95": 23.26 },
+          "metric_runs": { "map50": [46.23], "map75": [20.85], "map50_95": [23.26] },
+          "run_count": 1,
+          "timestamps": ["2026-07-09T21:50:44Z"],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -277,9 +320,15 @@ The output has this shape (abbreviated):
 }
 ```
 
-All quality metrics are percentages (0-100). QA tasks report `accuracy`,
-OCR reports `similarity`, and detection reports `map50` (primary), `map75`,
-and `map50_95`. No-data contract: a task absent from a model's `tasks`
+All quality metrics are percentages (0-100). QA tasks report
+`accuracy_judge` (primary) and `accuracy_strict`, OCR reports `similarity`,
+and detection reports `map50` (primary), `map75`, and `map50_95`. `metrics`
+holds the mean over the configuration's runs, `metric_runs` the per-run
+values behind each mean (oldest first, matching `timestamps`), and
+`run_count` how many runs were averaged; `protocol.repeats` is the number
+every committed configuration is expected to reach. Tokens, cost, and speed
+describe one run (the mean over repeats); `failed_sample_count` is summed
+over repeats. No-data contract: a task absent from a model's `tasks`
 means the model was not benchmarked on it; `primary_metric: null` with
 empty `metrics` means quality could not be computed (e.g. detection without
 `--dataset-directory`) while efficiency numbers remain valid.

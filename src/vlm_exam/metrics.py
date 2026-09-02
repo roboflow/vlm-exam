@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -24,10 +25,54 @@ from vlm_exam.tasks import QA_TASK_NAMES
 BENCHMARK_TASK_NAMES: tuple[str, ...] = (*QA_TASK_NAMES, "detection")
 """Registered benchmark tasks included in cross-task efficiency rollups."""
 
+REPEATS_PER_CONFIGURATION = 3
+"""Number of full runs every committed (task, model, effort) should have."""
+
+RunGroups = dict[tuple[str, str, str], list[RunResult]]
+"""Runs keyed by ``(task, effort, model)``, oldest first."""
+
+
+@dataclass(frozen=True)
+class RepeatedMetric:
+    """One metric measured on several repeats of the same configuration."""
+
+    values: tuple[float, ...]
+
+    @property
+    def mean(self) -> float:
+        """Arithmetic mean of the per-run values."""
+        return sum(self.values) / len(self.values)
+
+    @property
+    def run_count(self) -> int:
+        """Number of runs the metric was measured on."""
+        return len(self.values)
+
+    @property
+    def minimum(self) -> float:
+        """Lowest per-run value."""
+        return min(self.values)
+
+    @property
+    def maximum(self) -> float:
+        """Highest per-run value."""
+        return max(self.values)
+
+    @property
+    def spread(self) -> float:
+        """Difference between the highest and lowest per-run value."""
+        return self.maximum - self.minimum
+
 
 @dataclass(frozen=True)
 class ModelEfficiency:
-    """Pooled efficiency metrics for one model across benchmark tasks."""
+    """Efficiency metrics for one model, averaged over repeated runs.
+
+    Per-sample averages pool every sample of every run. Totals are the
+    mean cost and time of one complete pass over each benchmarked task,
+    so a model with three repeats is not reported as three times more
+    expensive than a model with one.
+    """
 
     model: str
     task_count: int
@@ -226,39 +271,64 @@ def build_latest_runs_index(
     return latest
 
 
-def latest_runs_by_task_model(
+def group_runs(
     runs: list[RunResult],
     config: BenchmarkConfig,
-    effort: str,
     *,
     models: set[str] | None = None,
-) -> dict[tuple[str, str], RunResult]:
-    """Keep the newest run per registered task and model at a given effort.
+    effort: str | None = None,
+    tasks: tuple[str, ...] | None = None,
+) -> RunGroups:
+    """Group every run by configuration so repeats can be averaged.
+
+    Every file in the results directory is one repeat of its
+    ``(task, effort, model)`` configuration; nothing is deduplicated.
 
     Args:
         runs: All loaded run results.
         config: Benchmark config used to filter unknown models.
-        effort: Effort level to include (e.g. ``"low"``).
         models: Optional set of model keys to include.
+        effort: Optional effort level to include.
+        tasks: Optional task names to include.
 
     Returns:
-        Mapping from ``(task, model)`` to the latest matching run.
+        Mapping from ``(task, effort, model)`` to its runs, oldest first.
     """
-    latest: dict[tuple[str, str], RunResult] = {}
+    groups: RunGroups = {}
     for run in runs:
-        if run.effort != effort:
-            continue
-        if run.task not in BENCHMARK_TASK_NAMES:
-            continue
         if run.model not in config.models:
             continue
         if models is not None and run.model not in models:
             continue
-        key = (run.task, run.model)
-        existing = latest.get(key)
-        if existing is None or run.timestamp > existing.timestamp:
-            latest[key] = run
-    return latest
+        if effort is not None and run.effort != effort:
+            continue
+        if tasks is not None and run.task not in tasks:
+            continue
+        groups.setdefault((run.task, run.effort, run.model), []).append(run)
+    for group in groups.values():
+        group.sort(key=lambda run: run.timestamp)
+    return groups
+
+
+def aggregate_metric(
+    runs: list[RunResult],
+    metric: Callable[[RunResult], float | None],
+) -> RepeatedMetric | None:
+    """Measure a per-run metric on each repeat and collect the values.
+
+    Args:
+        runs: Repeats of one configuration.
+        metric: Per-run scoring function; ``None`` skips that run.
+
+    Returns:
+        The collected values, or ``None`` when no run produced a value.
+    """
+    values = tuple(
+        value for value in (metric(run) for run in runs) if value is not None
+    )
+    if not values:
+        return None
+    return RepeatedMetric(values=values)
 
 
 def aggregate_efficiency_by_model(
@@ -268,7 +338,7 @@ def aggregate_efficiency_by_model(
     *,
     models: set[str] | None = None,
 ) -> list[ModelEfficiency]:
-    """Pool per-sample metrics across latest benchmark runs for each model.
+    """Average per-sample and per-run efficiency over every repeat.
 
     Args:
         results_directory: Directory containing result JSONL files.
@@ -280,43 +350,71 @@ def aggregate_efficiency_by_model(
         Efficiency rows sorted by model identifier.
     """
     runs = load_results_directory(results_directory)
-    latest = latest_runs_by_task_model(runs, config, effort, models=models)
+    groups = group_runs(
+        runs, config, models=models, effort=effort, tasks=BENCHMARK_TASK_NAMES
+    )
 
     samples_by_model: dict[str, list[SampleResult]] = {}
     tasks_by_model: dict[str, set[str]] = {}
-    for (task, model), run in latest.items():
-        samples_by_model.setdefault(model, []).extend(run.samples)
+    run_sample_count_by_model: dict[str, float] = {}
+    run_cost_by_model: dict[str, float] = {}
+    run_time_by_model: dict[str, float] = {}
+    for (task, _, model), group in groups.items():
+        pricing = config.models[model]
         tasks_by_model.setdefault(model, set()).add(task)
+        for run in group:
+            samples_by_model.setdefault(model, []).extend(run.samples)
+        run_sample_count_by_model[model] = run_sample_count_by_model.get(
+            model, 0.0
+        ) + _mean(len(run.samples) for run in group)
+        run_cost_by_model[model] = run_cost_by_model.get(model, 0.0) + _mean(
+            sum(sample_cost(sample, pricing) for sample in run.samples) for run in group
+        )
+        run_time_by_model[model] = run_time_by_model.get(model, 0.0) + _mean(
+            _elapsed_total(run.samples) for run in group
+        )
 
     rows: list[ModelEfficiency] = []
     for model in sorted(samples_by_model):
         samples = samples_by_model[model]
         pricing = config.models[model]
-        sample_count = len(samples)
-        if sample_count == 0:
+        if not samples:
             continue
 
-        total_input = sum(sample.input_tokens for sample in samples)
-        total_output = sum(sample.output_tokens for sample in samples)
-        total_cost = sum(sample_cost(sample, pricing) for sample in samples)
+        total_tokens = sum(
+            sample.input_tokens + sample.output_tokens for sample in samples
+        )
+        pooled_cost = sum(sample_cost(sample, pricing) for sample in samples)
         timed = [
             sample.elapsed_seconds
             for sample in samples
             if sample.elapsed_seconds is not None
         ]
-        total_time = sum(timed)
 
         rows.append(
             ModelEfficiency(
                 model=model,
                 task_count=len(tasks_by_model[model]),
-                sample_count=sample_count,
-                average_tokens=(total_input + total_output) / sample_count,
-                average_cost=total_cost / sample_count,
-                average_time_seconds=total_time / len(timed) if timed else 0.0,
-                total_cost=total_cost,
-                total_time_seconds=total_time,
+                sample_count=round(run_sample_count_by_model[model]),
+                average_tokens=total_tokens / len(samples),
+                average_cost=pooled_cost / len(samples),
+                average_time_seconds=sum(timed) / len(timed) if timed else 0.0,
+                total_cost=run_cost_by_model[model],
+                total_time_seconds=run_time_by_model[model],
             )
         )
 
     return rows
+
+
+def _elapsed_total(samples: list[SampleResult]) -> float:
+    return sum(
+        sample.elapsed_seconds
+        for sample in samples
+        if sample.elapsed_seconds is not None
+    )
+
+
+def _mean(values: Iterable[float]) -> float:
+    collected = list(values)
+    return sum(collected) / len(collected) if collected else 0.0

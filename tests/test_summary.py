@@ -125,28 +125,69 @@ class TestBuildSummary:
         assert [model.id for model in summary.models] == ["alpha:high"]
         assert summary.efforts == ("high",)
 
-    def test_newest_run_wins(self, tmp_path: Path) -> None:
+    def test_repeats_are_averaged(self, tmp_path: Path) -> None:
         config = _config("alpha")
-        old = _run(
+        first = _run(
             "alpha",
             "counting",
             timestamp="20260701_000000",
-            samples=[_sample(correct=False)],
+            samples=[_sample(index=0, correct=False), _sample(index=1, correct=True)],
         )
-        new = _run(
+        second = _run(
             "alpha",
             "counting",
             timestamp="20260702_000000",
-            samples=[_sample(correct=True)],
+            samples=[_sample(index=0, correct=True), _sample(index=1, correct=True)],
         )
-        _save(old, tmp_path)
-        _save(new, tmp_path)
+        third = _run(
+            "alpha",
+            "counting",
+            timestamp="20260703_000000",
+            samples=[_sample(index=0, correct=True), _sample(index=1, correct=True)],
+        )
+        _save(third, tmp_path)
+        _save(first, tmp_path)
+        _save(second, tmp_path)
 
         summary = build_summary(tmp_path, config)
 
         counting = summary.models[0].tasks["counting"]
-        assert counting.metrics == {"accuracy_judge": 100.0, "accuracy_strict": 100.0}
-        assert counting.timestamp == "20260702_000000"
+        assert counting.run_count == 3
+        assert counting.metrics["accuracy_judge"] == pytest.approx(250 / 3)
+        assert counting.metric_runs["accuracy_judge"] == (50.0, 100.0, 100.0)
+        assert counting.timestamps == (
+            "20260701_000000",
+            "20260702_000000",
+            "20260703_000000",
+        )
+        assert counting.timestamp == "20260703_000000"
+        assert counting.sample_count == 2
+        assert counting.tokens.total == 300
+        assert counting.cost.total_usd == pytest.approx(2 * (100 * 1 + 50 * 2) / 1e6)
+        assert summary.models[0].overall.sample_count == 2
+        assert summary.generated_at == "2026-07-03T00:00:00Z"
+
+    def test_failed_samples_emit_warning(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        config = _config("alpha")
+        failed = SampleResult(
+            index=0,
+            image="a.jpg",
+            expected="4",
+            predicted="ERROR: boom",
+            correct=False,
+            input_tokens=0,
+            output_tokens=0,
+            elapsed_seconds=None,
+            metadata={"strict_correct": False, "judge_correct": False},
+        )
+        _save(_run("alpha", "counting", samples=[failed]), tmp_path)
+
+        summary = build_summary(tmp_path, config)
+
+        assert summary.models[0].tasks["counting"].failed_sample_count == 1
+        assert "--resume-file" in capsys.readouterr().out
 
     def test_qa_reports_judge_and_strict_accuracy(self, tmp_path: Path) -> None:
         config = _config("alpha")
@@ -273,6 +314,7 @@ class TestSummaryToDict:
             "generated_at",
             "efforts",
             "scoring",
+            "protocol",
             "tasks",
             "models",
         ]
@@ -283,6 +325,7 @@ class TestSummaryToDict:
             "judge_metric": "accuracy_judge",
             "strict_metric": "accuracy_strict",
         }
+        assert payload["protocol"] == {"repeats": 3}
 
         (task,) = payload["tasks"]
         assert list(task) == ["key", "name", "primary_metric", "metrics"]
@@ -312,6 +355,12 @@ class TestSummaryToDict:
             "accuracy_strict": 66.67,
         }
         assert counting["primary_metric"] == {"name": "accuracy_judge", "value": 66.67}
+        assert counting["metric_runs"] == {
+            "accuracy_judge": [66.67],
+            "accuracy_strict": [66.67],
+        }
+        assert counting["run_count"] == 1
+        assert counting["timestamps"] == ["2026-07-10T07:33:33Z"]
         assert counting["evaluated_sample_count"] is None
         assert counting["timestamp"] == "2026-07-10T07:33:33Z"
         assert model["overall"]["sample_count"] == 3

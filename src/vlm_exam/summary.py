@@ -23,7 +23,9 @@ from vlm_exam.config import BenchmarkConfig, ModelConfig
 from vlm_exam.judge import DEFAULT_JUDGE_MODEL
 from vlm_exam.metrics import (
     BENCHMARK_TASK_NAMES,
-    build_latest_runs_index,
+    REPEATS_PER_CONFIGURATION,
+    RepeatedMetric,
+    group_runs,
     run_judge_accuracy,
     run_mean_similarity,
     run_strict_accuracy,
@@ -146,22 +148,31 @@ class MetricValue:
 
 @dataclass(frozen=True)
 class ModelTaskResult:
-    """One model's result on one task, with quality and efficiency."""
+    """One model's result on one task, averaged over its repeated runs.
+
+    ``metrics`` holds the mean of each quality metric across runs and
+    ``metric_runs`` the per-run values behind it. Token, cost, and speed
+    figures describe one complete run (the mean over repeats); the failed
+    sample count is summed over every run.
+    """
 
     primary_metric: MetricValue | None
     metrics: dict[str, float]
+    metric_runs: dict[str, tuple[float, ...]]
+    run_count: int
     sample_count: int
     failed_sample_count: int
     tokens: TokenSummary
     cost: CostSummary
     speed: SpeedSummary
     timestamp: str
+    timestamps: tuple[str, ...]
     evaluated_sample_count: int | None = None
 
 
 @dataclass(frozen=True)
 class ModelOverall:
-    """A model's efficiency pooled across all its benchmarked tasks."""
+    """A model's per-run efficiency summed across all its benchmarked tasks."""
 
     task_count: int
     sample_count: int
@@ -203,6 +214,13 @@ class ScoringSummary:
 
 
 @dataclass(frozen=True)
+class ProtocolSummary:
+    """How many repeats a committed configuration is expected to have."""
+
+    repeats: int
+
+
+@dataclass(frozen=True)
 class BenchmarkSummary:
     """Frontend-facing rollup of all benchmark results."""
 
@@ -215,6 +233,7 @@ class BenchmarkSummary:
         judge_metric=_JUDGE_ACCURACY_METRIC,
         strict_metric=_STRICT_ACCURACY_METRIC,
     )
+    protocol: ProtocolSummary = ProtocolSummary(repeats=REPEATS_PER_CONFIGURATION)
 
 
 def _iso_timestamp(raw: str) -> str:
@@ -306,31 +325,130 @@ def _quality_metrics(
     }, None
 
 
+def _mean(values: list[float]) -> float:
+    return sum(values) / len(values) if values else 0.0
+
+
+def _mean_tokens(runs: list[RunResult]) -> TokenSummary:
+    summaries = [_token_summary(run.samples) for run in runs]
+    return TokenSummary(
+        input=round(_mean([summary.input for summary in summaries])),
+        output=round(_mean([summary.output for summary in summaries])),
+        total=round(_mean([summary.total for summary in summaries])),
+        average_per_sample=_mean([summary.average_per_sample for summary in summaries]),
+    )
+
+
+def _mean_cost(runs: list[RunResult], pricing: ModelConfig) -> CostSummary:
+    summaries = [_cost_summary(run.samples, pricing) for run in runs]
+    return CostSummary(
+        total_usd=_mean([summary.total_usd for summary in summaries]),
+        average_per_sample_usd=_mean(
+            [summary.average_per_sample_usd for summary in summaries]
+        ),
+    )
+
+
+def _mean_speed(runs: list[RunResult]) -> SpeedSummary:
+    summaries = [_speed_summary(run.samples) for run in runs]
+    return SpeedSummary(
+        total_seconds=_mean([summary.total_seconds for summary in summaries]),
+        average_seconds_per_sample=_mean(
+            [summary.average_seconds_per_sample for summary in summaries]
+        ),
+    )
+
+
+def _repeated_quality(
+    runs: list[RunResult],
+    detection_index: dict[str, DetectionSample] | None,
+) -> tuple[dict[str, RepeatedMetric], int | None]:
+    values_by_metric: dict[str, list[float]] = {}
+    evaluated_counts: list[int] = []
+    for run in runs:
+        metrics, evaluated = _quality_metrics(run, detection_index)
+        for name, value in metrics.items():
+            values_by_metric.setdefault(name, []).append(value)
+        if evaluated is not None:
+            evaluated_counts.append(evaluated)
+    repeated = {
+        name: RepeatedMetric(values=tuple(values))
+        for name, values in values_by_metric.items()
+    }
+    return repeated, min(evaluated_counts) if evaluated_counts else None
+
+
 def _model_task_result(
-    run: RunResult,
+    runs: list[RunResult],
     pricing: ModelConfig,
     detection_index: dict[str, DetectionSample] | None,
 ) -> ModelTaskResult:
-    metrics, evaluated_sample_count = _quality_metrics(run, detection_index)
-    primary_name = _TASK_DEFINITIONS[run.task].primary_metric
+    task = runs[0].task
+    repeated, evaluated_sample_count = _repeated_quality(runs, detection_index)
+    primary_name = _TASK_DEFINITIONS[task].primary_metric
     primary = (
-        MetricValue(name=primary_name, value=metrics[primary_name])
-        if primary_name in metrics
+        MetricValue(name=primary_name, value=repeated[primary_name].mean)
+        if primary_name in repeated
         else None
     )
     return ModelTaskResult(
         primary_metric=primary,
-        metrics=metrics,
-        sample_count=len(run.samples),
+        metrics={name: metric.mean for name, metric in repeated.items()},
+        metric_runs={name: metric.values for name, metric in repeated.items()},
+        run_count=len(runs),
+        sample_count=max(len(run.samples) for run in runs),
         failed_sample_count=sum(
-            1 for sample in run.samples if is_failed_sample(sample)
+            1 for run in runs for sample in run.samples if is_failed_sample(sample)
         ),
-        tokens=_token_summary(run.samples),
-        cost=_cost_summary(run.samples, pricing),
-        speed=_speed_summary(run.samples),
-        timestamp=run.timestamp,
+        tokens=_mean_tokens(runs),
+        cost=_mean_cost(runs, pricing),
+        speed=_mean_speed(runs),
+        timestamp=runs[-1].timestamp,
+        timestamps=tuple(run.timestamp for run in runs),
         evaluated_sample_count=evaluated_sample_count,
     )
+
+
+def _overall(task_results: dict[str, ModelTaskResult]) -> ModelOverall:
+    results = list(task_results.values())
+    sample_count = sum(result.sample_count for result in results)
+    total_input = sum(result.tokens.input for result in results)
+    total_output = sum(result.tokens.output for result in results)
+    total_cost = sum(result.cost.total_usd for result in results)
+    total_seconds = sum(result.speed.total_seconds for result in results)
+    return ModelOverall(
+        task_count=len(results),
+        sample_count=sample_count,
+        tokens=TokenSummary(
+            input=total_input,
+            output=total_output,
+            total=total_input + total_output,
+            average_per_sample=(
+                (total_input + total_output) / sample_count if sample_count else 0.0
+            ),
+        ),
+        cost=CostSummary(
+            total_usd=total_cost,
+            average_per_sample_usd=total_cost / sample_count if sample_count else 0.0,
+        ),
+        speed=SpeedSummary(
+            total_seconds=total_seconds,
+            average_seconds_per_sample=(
+                total_seconds / sample_count if sample_count else 0.0
+            ),
+        ),
+    )
+
+
+def _warn_on_failed_samples(runs: list[RunResult]) -> None:
+    for run in runs:
+        failed = sum(1 for sample in run.samples if is_failed_sample(sample))
+        if failed:
+            print(
+                f"Warning: {run.task} run for {run.model} ({run.effort}, "
+                f"{run.timestamp}) has {failed} failed samples; resume it with "
+                "`vlm-exam run --resume-file` so the average is not dragged down."
+            )
 
 
 def _load_detection_index(
@@ -353,9 +471,9 @@ def build_summary(
 ) -> BenchmarkSummary:
     """Compile all result files into a single frontend-facing summary.
 
-    Only the newest run per (task, effort, model) is included. Runs for
-    tasks outside the registered benchmark tasks are skipped with a
-    warning.
+    Every run per (task, effort, model) is treated as one repeat and the
+    reported metrics are means across repeats. Runs for tasks outside the
+    registered benchmark tasks are skipped with a warning.
 
     Args:
         results_directory: Directory containing result JSONL files.
@@ -371,24 +489,22 @@ def build_summary(
         The assembled benchmark summary.
     """
     runs = load_results_directory(results_directory)
-    latest = build_latest_runs_index(runs, config, models=models)
+    groups = group_runs(runs, config, models=models, effort=effort)
 
     detection_index: dict[str, DetectionSample] | None = None
     if detection_dataset_directory is not None and any(
-        task == "detection" and (effort is None or run_effort == effort)
-        for task, run_effort, _ in latest
+        task == "detection" for task, _, _ in groups
     ):
         detection_index = _load_detection_index(detection_dataset_directory)
 
-    runs_by_model_effort: dict[tuple[str, str], dict[str, RunResult]] = {}
+    runs_by_model_effort: dict[tuple[str, str], dict[str, list[RunResult]]] = {}
     skipped_tasks: set[str] = set()
-    for (task, run_effort, model), run in latest.items():
+    for (task, run_effort, model), group in groups.items():
         if task not in BENCHMARK_TASK_NAMES:
             skipped_tasks.add(task)
             continue
-        if effort is not None and run_effort != effort:
-            continue
-        runs_by_model_effort.setdefault((model, run_effort), {})[task] = run
+        _warn_on_failed_samples(group)
+        runs_by_model_effort.setdefault((model, run_effort), {})[task] = group
 
     if skipped_tasks:
         print(
@@ -411,28 +527,21 @@ def build_summary(
             task_runs = runs_by_model_effort[(model_key, run_effort)]
 
             ordered_tasks: dict[str, ModelTaskResult] = {}
-            pooled_samples: list[SampleResult] = []
             for task in BENCHMARK_TASK_NAMES:
-                run = task_runs.get(task)
-                if run is None:
+                group = task_runs.get(task)
+                if group is None:
                     continue
                 ordered_tasks[task] = _model_task_result(
-                    run, model_config, detection_index
+                    group, model_config, detection_index
                 )
-                pooled_samples.extend(run.samples)
                 included_tasks.add(task)
-                latest_run_timestamp = max(latest_run_timestamp, run.timestamp)
+                latest_run_timestamp = max(
+                    latest_run_timestamp, ordered_tasks[task].timestamp
+                )
 
             if not ordered_tasks:
                 continue
 
-            overall = ModelOverall(
-                task_count=len(ordered_tasks),
-                sample_count=len(pooled_samples),
-                tokens=_token_summary(pooled_samples),
-                cost=_cost_summary(pooled_samples, model_config),
-                speed=_speed_summary(pooled_samples),
-            )
             model_summaries.append(
                 ModelSummary(
                     id=f"{model_key}:{run_effort}",
@@ -441,7 +550,7 @@ def build_summary(
                     lab=model_config.lab,
                     effort=run_effort,
                     tasks=ordered_tasks,
-                    overall=overall,
+                    overall=_overall(ordered_tasks),
                 )
             )
 
@@ -517,6 +626,12 @@ def _task_result_dict(result: ModelTaskResult) -> dict[str, Any]:
         "metrics": {
             name: _round_percent(value) for name, value in result.metrics.items()
         },
+        "metric_runs": {
+            name: [_round_percent(value) for value in values]
+            for name, values in result.metric_runs.items()
+        },
+        "run_count": result.run_count,
+        "timestamps": [_iso_timestamp(stamp) for stamp in result.timestamps],
         "sample_count": result.sample_count,
         "evaluated_sample_count": result.evaluated_sample_count,
         "failed_sample_count": result.failed_sample_count,
@@ -544,6 +659,7 @@ def summary_to_dict(summary: BenchmarkSummary) -> dict[str, Any]:
             "judge_metric": summary.scoring.judge_metric,
             "strict_metric": summary.scoring.strict_metric,
         },
+        "protocol": {"repeats": summary.protocol.repeats},
         "tasks": [
             {
                 "key": task.key,

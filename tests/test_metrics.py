@@ -26,10 +26,14 @@ from vlm_exam.config import (
     load_leaderboard_groups,
 )
 from vlm_exam.metrics import (
+    RepeatedMetric,
     aggregate_efficiency_by_model,
+    aggregate_metric,
     build_latest_runs_index,
+    group_runs,
     parse_model_filter,
     resolve_leaderboard_model_list,
+    run_accuracy,
 )
 from vlm_exam.results import RunResult, SampleResult, save_results
 from vlm_exam.tasks.detection import DetectionCoordinateFormat
@@ -143,7 +147,84 @@ class TestBuildLatestRunsIndex:
         assert list(index) == [("counting", "low", "alpha")]
 
 
+class TestGroupRuns:
+    def test_groups_repeats_oldest_first(self) -> None:
+        config = _config("alpha", "beta")
+        runs = [
+            _run("alpha", "counting", "20260707_120000"),
+            _run("alpha", "counting", "20260707_000000"),
+            _run("alpha", "counting", "20260707_060000", effort="high"),
+            _run("beta", "counting", "20260707_000000"),
+            _run("gamma", "counting", "20260707_000000"),
+        ]
+        groups = group_runs(runs, config)
+        assert set(groups) == {
+            ("counting", "low", "alpha"),
+            ("counting", "high", "alpha"),
+            ("counting", "low", "beta"),
+        }
+        assert [run.timestamp for run in groups[("counting", "low", "alpha")]] == [
+            "20260707_000000",
+            "20260707_120000",
+        ]
+
+    def test_filters_by_model_effort_and_task(self) -> None:
+        config = _config("alpha", "beta")
+        runs = [
+            _run("alpha", "counting", "20260707_000000"),
+            _run("alpha", "ocr", "20260707_000000"),
+            _run("alpha", "counting", "20260707_000000", effort="high"),
+            _run("beta", "counting", "20260707_000000"),
+        ]
+        groups = group_runs(
+            runs, config, models={"alpha"}, effort="low", tasks=("counting",)
+        )
+        assert list(groups) == [("counting", "low", "alpha")]
+
+
+class TestRepeatedMetric:
+    def test_mean_and_spread(self) -> None:
+        metric = RepeatedMetric(values=(40.0, 50.0, 60.0))
+        assert metric.mean == pytest.approx(50.0)
+        assert metric.run_count == 3
+        assert metric.minimum == 40.0
+        assert metric.maximum == 60.0
+        assert metric.spread == pytest.approx(20.0)
+
+    def test_single_run_has_zero_spread(self) -> None:
+        metric = RepeatedMetric(values=(72.5,))
+        assert metric.mean == 72.5
+        assert metric.spread == 0.0
+
+    def test_aggregate_metric_skips_missing_values(self) -> None:
+        runs = [
+            _run("alpha", "counting", "20260707_000000"),
+            _run("alpha", "counting", "20260707_010000"),
+        ]
+        assert aggregate_metric(runs, run_accuracy) == RepeatedMetric((100.0, 100.0))
+        assert aggregate_metric(runs, lambda run: None) is None
+
+
 class TestAggregateEfficiencyByModel:
+    def test_totals_are_per_run_means(self, tmp_path: Path) -> None:
+        config = _config("alpha", "beta")
+        for stamp in ("20260707_000000", "20260707_010000", "20260707_020000"):
+            save_results(
+                _run("alpha", "counting", stamp),
+                tmp_path / f"counting_alpha_low_{stamp}.jsonl",
+            )
+        save_results(
+            _run("beta", "counting", "20260707_000000"),
+            tmp_path / "counting_beta_low_20260707_000000.jsonl",
+        )
+
+        alpha, beta = aggregate_efficiency_by_model(tmp_path, config)
+
+        assert alpha.sample_count == beta.sample_count == 1
+        assert alpha.total_cost == pytest.approx(beta.total_cost)
+        assert alpha.total_time_seconds == pytest.approx(beta.total_time_seconds)
+        assert alpha.average_tokens == beta.average_tokens == 150
+
     def test_respects_model_filter(self, tmp_path: Path) -> None:
         config = _config("alpha", "beta")
         save_results(

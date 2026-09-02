@@ -74,6 +74,53 @@ avoid a loop"). Never narrate what the code does.
   runs that are not comparable to runs made before this behavior existed;
   re-run all models on such a dataset rather than mixing old and new runs.
 
+## Repeated runs: three per configuration, report the mean
+
+- Every new model is benchmarked three times per `(task, effort)`
+  configuration and all three result files are committed to `results/`.
+  A single run is not a benchmark entry; model output is stochastic and
+  one file cannot tell a real gap from run-to-run noise.
+- Repeats are plain result files. There is no repeat field or manifest:
+  every file under `results/` sharing a `(task, model, effort)` triple is
+  one repeat, and `report`, `leaderboard`, `efficiency-report`,
+  `detection-report`, and `summary` average across all of them. Never
+  delete or cherry-pick repeats to move a number; if a run is broken, fix
+  the cause, re-run it, and remove only the broken file.
+- Reported numbers: quality metrics (judge and strict accuracy, OCR
+  similarity, mAP) are the arithmetic mean of the per-run values. Token,
+  cost, and time totals are the mean of one complete run, so a model with
+  three repeats is not reported as three times more expensive. Failed
+  sample counts are summed over repeats.
+- `web/benchmark_summary.json` keeps `metrics` as the flat mean so the
+  site keeps working, and adds `metric_runs` (the per-run values behind
+  each mean), `run_count`, and `timestamps` per task entry, plus a
+  top-level `protocol.repeats` block. Leaderboard PNGs draw a min-max
+  whisker on bars backed by more than one run and note the run count in a
+  footnote; `report` shows a `Runs` column and `mean +/- half-spread`.
+- Models benchmarked before this rule have one run per configuration.
+  They stay in the leaderboards with `run_count: 1` until re-run; do not
+  drop them, and prefer adding their missing repeats over re-running the
+  existing file.
+- Only average runs produced under one protocol. A change to prompts,
+  coordinate formats, judge settings, or image preprocessing invalidates
+  the existing repeats of the affected configurations; re-run all three.
+- Run repeats with `vlm-exam run --repeats 3` (sequential) or as separate
+  parallel processes writing to the same `--output-directory`; filenames
+  carry a second-resolution timestamp and the CLI suffixes `_2`, `_3` on
+  collision, so parallel launches are safe. Use `--concurrency` to evaluate
+  samples in parallel within one run; size it by task length so long tasks
+  finish alongside short ones. With Claude-class latency (5-25 s per
+  request), detection (250 images) at 6, reasoning (151) at 3-4, OCR and
+  extraction at 2-3, counting and identification at 1-2 keeps a full
+  effort level (six tasks, two repeats) under 15 minutes while staying
+  near 30 in-flight requests. Drop detection to 4 if the provider starts
+  returning 429s.
+- `vlm-exam run --resume-file <file>` re-runs only the failed samples,
+  writes the merged complete file, and deletes the source file, so a
+  partial run and its completion are never both counted as repeats.
+  `summary` warns about any run with failed samples; resume it before
+  committing.
+
 ## Scoring: strict and judge are two independent metrics
 
 - Counting, extraction, identification, and reasoning report two accuracy
@@ -142,6 +189,8 @@ vlm-exam summary --dataset-directory data/detection/train
 
 - The command compiles all efforts by default, emitting one entry per
   `(model, effort)` pair; pass `--effort` only to restrict to one level.
+  Each task entry averages every repeat of that configuration (see
+  "Repeated runs" above).
 - The output is deterministic given `results/`: `generated_at` derives
   from the newest included run, so an unchanged diff after regeneration
   means the results did not change.

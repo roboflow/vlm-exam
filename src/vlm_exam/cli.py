@@ -16,8 +16,9 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import click
 from dotenv import load_dotenv
@@ -224,7 +225,26 @@ def download(
     type=click.Path(exists=True),
     help=(
         "Prior result JSONL to resume: only its failed samples are "
-        "re-run and merged into a new complete result file."
+        "re-run and merged into a new complete result file. The prior "
+        "file is deleted once the merged file is saved so the directory "
+        "never holds two copies of the same run."
+    ),
+)
+@click.option(
+    "--concurrency",
+    default=1,
+    show_default=True,
+    type=click.IntRange(min=1),
+    help="Number of samples evaluated in parallel per model.",
+)
+@click.option(
+    "--repeats",
+    default=1,
+    show_default=True,
+    type=click.IntRange(min=1),
+    help=(
+        "Run the whole configuration this many times, writing one result "
+        "file per repeat. Committed models use three repeats."
     ),
 )
 def run(
@@ -238,8 +258,12 @@ def run(
     max_samples: int | None,
     prompt_classes: str,
     resume_file: str | None,
+    concurrency: int,
+    repeats: int,
 ) -> None:
     """Run a benchmark for one or more models."""
+    if resume_file is not None and repeats != 1:
+        raise click.UsageError("--resume-file cannot be combined with --repeats.")
     config = load_config(Path(config_path) if config_path else None)
     task_args: dict[str, str] = {}
     if task_name == "detection":
@@ -302,22 +326,48 @@ def run(
                 **task_args,
             )
 
-        result = run_benchmark(
-            task=model_task,
-            provider=provider,
-            samples=samples,
-            effort=effort,
-            task_name=task_name,
-            judge=judge,
-        )
+        for repeat in range(1, repeats + 1):
+            if repeats > 1:
+                click.echo(f"Repeat {repeat}/{repeats} for {model_id}")
+            result = run_benchmark(
+                task=model_task,
+                provider=provider,
+                samples=samples,
+                effort=effort,
+                task_name=task_name,
+                judge=judge,
+                concurrency=concurrency,
+            )
 
-        if previous_run is not None:
-            result = merge_resumed_runs(previous_run, result)
+            if previous_run is not None:
+                result = merge_resumed_runs(previous_run, result)
 
-        filename = f"{task_name}_{model_id}_{effort}_{result.timestamp}.jsonl"
-        result_path = output_path / filename
-        save_results(result, result_path)
-        click.echo(f"Results saved to {result_path}")
+            result_path = _unique_result_path(
+                output_path, task_name, model_id, effort, result.timestamp
+            )
+            save_results(result, result_path)
+            click.echo(f"Results saved to {result_path}")
+            if resume_file is not None:
+                source = Path(resume_file)
+                if source.resolve() != result_path.resolve():
+                    source.unlink()
+                    click.echo(f"Removed resumed file {source}")
+
+
+def _unique_result_path(
+    output_path: Path,
+    task_name: str,
+    model_id: str,
+    effort: str,
+    timestamp: str,
+) -> Path:
+    stem = f"{task_name}_{model_id}_{effort}_{timestamp}"
+    candidate = output_path / f"{stem}.jsonl"
+    suffix = 2
+    while candidate.exists():
+        candidate = output_path / f"{stem}_{suffix}.jsonl"
+        suffix += 1
+    return candidate
 
 
 def _format_accuracy(count: int | None, total: int) -> str:
@@ -455,12 +505,14 @@ def report(
         return
 
     click.echo(
-        f"\n{'Task':<15} {'Model':<25} {'Effort':>6} "
-        f"{'Correct':>8} {'Total':>6} {'Judge':>10} {'Strict':>10}"
+        f"\n{'Task':<15} {'Model':<25} {'Effort':>6} {'Runs':>4} "
+        f"{'Total':>6} {'Judge':>16} {'Strict':>16}"
     )
-    click.echo("-" * 87)
+    click.echo("-" * 93)
 
     from vlm_exam.metrics import (
+        RepeatedMetric,
+        aggregate_metric,
         run_accuracy,
         run_judge_accuracy,
         run_mean_similarity,
@@ -468,52 +520,88 @@ def report(
     )
     from vlm_exam.rescore import JUDGE_TASK_NAMES
 
-    for run_result in sorted(runs, key=lambda run: (run.task, run.model)):
-        correct = sum(sample.correct for sample in run_result.samples)
-        total = len(run_result.samples)
+    def format_repeated(metric: RepeatedMetric | None, suffix: str = "%") -> str:
+        if metric is None:
+            return "-"
+        if metric.run_count == 1:
+            return f"{metric.mean:.1f}{suffix}"
+        return f"{metric.mean:.1f}{suffix} \u00b1{metric.spread / 2:.1f}"
 
+    unknown_models = sorted({run.model for run in runs} - set(config.models))
+    if unknown_models:
+        click.echo(
+            f"Warning: skipping runs for models missing from config: "
+            f"{', '.join(unknown_models)}"
+        )
+
+    from vlm_exam.metrics import group_runs
+
+    groups = group_runs(runs, config)
+    for (task_name, effort, model), group in sorted(groups.items()):
+        total = max(len(run.samples) for run in group)
         strict = ""
-        if run_result.task == "ocr":
-            metric = f"{run_mean_similarity(run_result):.1f}% sim"
-        elif run_result.task in JUDGE_TASK_NAMES:
-            metric = f"{run_judge_accuracy(run_result):.1f}%"
-            strict = f"{run_strict_accuracy(run_result):.1f}%"
+        if task_name == "ocr":
+            metric = format_repeated(
+                aggregate_metric(group, run_mean_similarity), "% sim"
+            )
+        elif task_name in JUDGE_TASK_NAMES:
+            metric = format_repeated(aggregate_metric(group, run_judge_accuracy))
+            strict = format_repeated(aggregate_metric(group, run_strict_accuracy))
         else:
-            metric = f"{run_accuracy(run_result):.1f}%"
+            metric = format_repeated(aggregate_metric(group, run_accuracy))
 
         click.echo(
-            f"{run_result.task:<15} {run_result.model:<25} {run_result.effort:>6} "
-            f"{correct:>8} {total:>6} {metric:>10} {strict:>10}"
+            f"{task_name:<15} {model:<25} {effort:>6} {len(group):>4} "
+            f"{total:>6} {metric:>16} {strict:>16}"
         )
 
     click.echo()
 
     click.echo(
-        f"{'Model':<25} {'Effort':>6} {'Input Tok':>10} {'Output Tok':>11} {'Cost':>9}"
+        f"{'Model':<25} {'Effort':>6} {'Runs':>4} "
+        f"{'Input Tok':>10} {'Output Tok':>11} {'Cost/run':>9}"
     )
-    click.echo("-" * 67)
+    click.echo("-" * 70)
 
     from vlm_exam.metrics import sample_cost
 
     grand_cost = 0.0
-    for run_result in runs:
-        total_input = sum(sample.input_tokens for sample in run_result.samples)
-        total_output = sum(sample.output_tokens for sample in run_result.samples)
-
-        pricing = config.models.get(run_result.model)
-        if pricing:
-            cost = sum(sample_cost(sample, pricing) for sample in run_result.samples)
-        else:
-            cost = 0.0
+    for (model, effort), model_groups in sorted(
+        _groups_by_model_effort(groups).items()
+    ):
+        pricing = config.models[model]
+        run_count = max(len(group) for group in model_groups)
+        total_input = 0.0
+        total_output = 0.0
+        cost = 0.0
+        for group in model_groups:
+            total_input += sum(
+                sample.input_tokens for run in group for sample in run.samples
+            ) / len(group)
+            total_output += sum(
+                sample.output_tokens for run in group for sample in run.samples
+            ) / len(group)
+            cost += sum(
+                sample_cost(sample, pricing) for run in group for sample in run.samples
+            ) / len(group)
         grand_cost += cost
 
         click.echo(
-            f"{run_result.model:<25} {run_result.effort:>6} "
-            f"{total_input:>10,} {total_output:>11,} "
+            f"{model:<25} {effort:>6} {run_count:>4} "
+            f"{round(total_input):>10,} {round(total_output):>11,} "
             f"${cost:>8.4f}"
         )
 
-    click.echo(f"\nTotal benchmark cost: ${grand_cost:.4f}")
+    click.echo(f"\nTotal benchmark cost per run: ${grand_cost:.4f}")
+
+
+def _groups_by_model_effort(
+    groups: dict[tuple[str, str, str], list[RunResult]],
+) -> dict[tuple[str, str], list[list[RunResult]]]:
+    by_model_effort: dict[tuple[str, str], list[list[RunResult]]] = {}
+    for (_, effort, model), group in groups.items():
+        by_model_effort.setdefault((model, effort), []).append(group)
+    return by_model_effort
 
 
 @main.command()
@@ -797,20 +885,39 @@ def detection_report(
         click.echo(f"No detection result files found in {results_directory}")
         return
 
+    groups: dict[tuple[str, str], list[RunResult]] = {}
     for run_result in runs:
+        groups.setdefault((run_result.model, run_result.effort), []).append(run_result)
+
+    for (model, effort), group in sorted(groups.items()):
         click.echo(f"\n{'=' * 60}")
-        click.echo(f"  {run_result.model}  effort={run_result.effort}")
+        click.echo(f"  {model}  effort={effort}  runs={len(group)}")
         click.echo(f"{'=' * 60}")
 
-        map_result = compute_dataset_map(run_result, sample_by_image)
-        if map_result is None:
-            click.echo("  No valid predictions found.")
+        map_results = []
+        for run_result in sorted(group, key=lambda run: run.timestamp):
+            map_result = compute_dataset_map(run_result, sample_by_image)
+            if map_result is None:
+                click.echo(f"  {run_result.timestamp}: no valid predictions found.")
+                continue
+            map_results.append(map_result)
+            click.echo(
+                f"  {run_result.timestamp}: mAP@50={map_result.map50:.4f} "
+                f"mAP@75={map_result.map75:.4f} "
+                f"mAP@50:95={map_result.map50_95:.4f} "
+                f"images={map_result.image_count}"
+            )
+        if not map_results:
             continue
 
-        click.echo(f"\n  mAP@50:    {map_result.map50:.4f}")
-        click.echo(f"  mAP@75:    {map_result.map75:.4f}")
-        click.echo(f"  mAP@50:95: {map_result.map50_95:.4f}")
-        click.echo(f"  Images:    {map_result.image_count}")
+        count = len(map_results)
+        click.echo(
+            f"\n  mean mAP@50:    {sum(r.map50 for r in map_results) / count:.4f}"
+        )
+        click.echo(f"  mean mAP@75:    {sum(r.map75 for r in map_results) / count:.4f}")
+        click.echo(
+            f"  mean mAP@50:95: {sum(r.map50_95 for r in map_results) / count:.4f}"
+        )
         click.echo()
 
 
@@ -866,7 +973,7 @@ def leaderboard(
 
     import matplotlib.pyplot as plt
 
-    from vlm_exam.metrics import build_latest_runs_index
+    from vlm_exam.metrics import RepeatedMetric, aggregate_metric, group_runs
     from vlm_exam.visualization import plot_accuracy_chart, plot_metric_chart
 
     config = load_config(Path(config_path) if config_path else None)
@@ -878,15 +985,42 @@ def leaderboard(
         click.echo(f"No usable .jsonl files found in {results_directory}")
         return
 
-    latest_runs = build_latest_runs_index(runs, config, models=model_filter)
+    groups = group_runs(runs, config, models=model_filter)
 
-    if not latest_runs:
+    if not groups:
         click.echo("No usable runs found.")
         return
 
-    runs_by_task_effort: dict[tuple[str, str], list[RunResult]] = {}
-    for (task_name, effort, _), run_result in latest_runs.items():
-        runs_by_task_effort.setdefault((task_name, effort), []).append(run_result)
+    groups_by_task_effort: dict[tuple[str, str], dict[str, list[RunResult]]] = {}
+    for (task_name, effort, model), model_runs in groups.items():
+        groups_by_task_effort.setdefault((task_name, effort), {})[model] = model_runs
+
+    def measure(
+        model_runs: dict[str, list[RunResult]],
+        metric: Callable[[RunResult], float | None],
+    ) -> dict[str, RepeatedMetric]:
+        measured = {
+            model: aggregate_metric(group, metric)
+            for model, group in model_runs.items()
+        }
+        return {model: value for model, value in measured.items() if value is not None}
+
+    def chart_inputs(
+        measured: dict[str, RepeatedMetric],
+    ) -> dict[str, Any]:
+        return {
+            "spread": {
+                model: (metric.minimum, metric.maximum)
+                for model, metric in measured.items()
+                if metric.run_count > 1
+            },
+            "run_counts": {
+                model: metric.run_count for model, metric in measured.items()
+            },
+        }
+
+    def means(measured: dict[str, RepeatedMetric]) -> dict[str, float]:
+        return {model: metric.mean for model, metric in measured.items()}
 
     output_path = Path(output_directory)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -899,7 +1033,7 @@ def leaderboard(
         saved.append(file_path)
 
     detection_index = None
-    if any(task_name == "detection" for task_name, _ in runs_by_task_effort):
+    if any(task_name == "detection" for task_name, _ in groups_by_task_effort):
         if dataset_directory is None:
             click.echo(
                 "Detection runs found but --dataset-directory not given; "
@@ -920,44 +1054,48 @@ def leaderboard(
     )
 
     efforts_by_task: dict[str, set[str]] = {}
-    for task_name, effort in runs_by_task_effort:
+    for task_name, effort in groups_by_task_effort:
         efforts_by_task.setdefault(task_name, set()).add(effort)
 
-    for (task_name, effort), runs in sorted(runs_by_task_effort.items()):
+    for (task_name, effort), model_runs in sorted(groups_by_task_effort.items()):
         effort_suffix = (
             f" \u2014 {effort.title()} Effort"
             if len(efforts_by_task[task_name]) > 1
             else ""
         )
         if task_name == "ocr":
-            accuracy = {run.model: run_accuracy(run) for run in runs}
-            similarity = {run.model: run_mean_similarity(run) for run in runs}
+            accuracy = measure(model_runs, run_accuracy)
             figure = plot_accuracy_chart(
-                accuracy,
+                means(accuracy),
                 config,
                 f"OCR Benchmark \u2014 Accuracy{effort_suffix}",
+                **chart_inputs(accuracy),
             )
             save_figure(figure, f"ocr_accuracy_{effort}.png")
+            similarity = measure(model_runs, run_mean_similarity)
             figure = plot_accuracy_chart(
-                similarity,
+                means(similarity),
                 config,
                 f"OCR Benchmark \u2014 Mean Similarity{effort_suffix}",
+                **chart_inputs(similarity),
             )
             save_figure(figure, f"ocr_similarity_{effort}.png")
 
         elif task_name in QA_TASK_NAMES:
-            judge_accuracy = {run.model: run_judge_accuracy(run) for run in runs}
+            judge_accuracy = measure(model_runs, run_judge_accuracy)
             figure = plot_accuracy_chart(
-                judge_accuracy,
+                means(judge_accuracy),
                 config,
                 f"{task_name.title()} Benchmark \u2014 LLM Judge{effort_suffix}",
+                **chart_inputs(judge_accuracy),
             )
             save_figure(figure, f"{task_name}_accuracy_{effort}.png")
-            strict_accuracy = {run.model: run_strict_accuracy(run) for run in runs}
+            strict_accuracy = measure(model_runs, run_strict_accuracy)
             figure = plot_accuracy_chart(
-                strict_accuracy,
+                means(strict_accuracy),
                 config,
                 f"{task_name.title()} Benchmark \u2014 Strict Match{effort_suffix}",
+                **chart_inputs(strict_accuracy),
             )
             save_figure(figure, f"{task_name}_accuracy_strict_{effort}.png")
 
@@ -967,38 +1105,36 @@ def leaderboard(
 
             from vlm_exam.tasks.detection import compute_dataset_map
 
-            metrics: dict[str, dict[str, float]] = {
-                "map50": {},
-                "map75": {},
-                "map50_95": {},
-            }
-            for run in runs:
+            def dataset_map(run: RunResult, attribute: str) -> float | None:
                 map_result = compute_dataset_map(run, detection_index)
                 if map_result is None:
                     click.echo(
-                        f"No valid predictions for {run.model} ({effort}); skipping."
+                        f"No valid predictions for {run.model} ({run.effort}, "
+                        f"{run.timestamp}); skipping that run."
                     )
-                    continue
-                metrics["map50"][run.model] = map_result.map50
-                metrics["map75"][run.model] = map_result.map75
-                metrics["map50_95"][run.model] = map_result.map50_95
+                    return None
+                return getattr(map_result, attribute)
 
             metric_titles = {
                 "map50": "mAP@50",
                 "map75": "mAP@75",
                 "map50_95": "mAP@50:95",
             }
-            for metric_key, values in metrics.items():
-                if not values:
+            for metric_key, metric_title in metric_titles.items():
+                measured = measure(
+                    model_runs,
+                    lambda run, attribute=metric_key: dataset_map(run, attribute),
+                )
+                if not measured:
                     continue
-                metric_title = metric_titles[metric_key]
                 figure = plot_metric_chart(
-                    values,
+                    means(measured),
                     config,
                     f"Object Detection \u2014 {metric_title}{effort_suffix}",
                     format_value=lambda value: f"{value * 100:.1f}%",
                     sort_ascending=False,
                     full_scale=1.0,
+                    **chart_inputs(measured),
                 )
                 save_figure(figure, f"detection_{metric_key}_{effort}.png")
 
