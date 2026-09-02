@@ -93,7 +93,6 @@ models:
   gemini-3.5-flash:
     name: Gemini 3.5 Flash
     lab: google
-    benchmark_protocol: legacy
     provider: google
     detection_coordinate_format: yxyx_normalized_0_to_1000
     pricing:
@@ -102,7 +101,6 @@ models:
   gemini-3.6-flash:
     name: Gemini 3.6 Flash
     lab: google
-    benchmark_protocol: legacy
     provider: google
     detection_coordinate_format: yxyx_normalized_0_to_1000
     pricing:
@@ -111,7 +109,6 @@ models:
   gemini-3.7-flash:
     name: Gemini 3.7 Flash
     lab: google
-    benchmark_protocol: legacy
     provider: google
     detection_coordinate_format: yxyx_normalized_0_to_1000
     pricing:

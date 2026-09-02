@@ -200,7 +200,13 @@ class TestBenchmarkProtocolField:
     def test_bundled_config_marks_only_pre_protocol_models_legacy(self) -> None:
         config = load_config()
         full = [key for key, model in config.models.items() if not model.is_legacy]
-        assert full == ["claude-fable-5-1", "gemini-3.8-flash"]
+        assert full == [
+            "claude-fable-5-1",
+            "gemini-3.5-flash",
+            "gemini-3.6-flash",
+            "gemini-3.7-flash",
+            "gemini-3.8-flash",
+        ]
 
 
 class TestProviderUploadRouteGuard:
