@@ -44,6 +44,7 @@ models:
   claude-fable-5:
     name: Claude Fable 5
     lab: anthropic
+    benchmark_protocol: legacy
     provider: anthropic
     detection_coordinate_format: xyxy_absolute_resized_image
     resolution_tier: high
@@ -62,6 +63,7 @@ models:
   claude-sonnet-5:
     name: Claude Sonnet 5
     lab: anthropic
+    benchmark_protocol: legacy
     provider: anthropic
     detection_coordinate_format: xyxy_absolute_resized_image
     resolution_tier: high
@@ -71,6 +73,7 @@ models:
   claude-opus-4-8:
     name: Claude Opus 4.8
     lab: anthropic
+    benchmark_protocol: legacy
     provider: anthropic
     detection_coordinate_format: xyxy_absolute_resized_image
     resolution_tier: high
@@ -80,6 +83,7 @@ models:
   claude-opus-5:
     name: Claude Opus 5
     lab: anthropic
+    benchmark_protocol: legacy
     provider: anthropic
     detection_coordinate_format: xyxy_absolute_resized_image
     resolution_tier: high
@@ -89,6 +93,7 @@ models:
   gemini-3.5-flash:
     name: Gemini 3.5 Flash
     lab: google
+    benchmark_protocol: legacy
     provider: google
     detection_coordinate_format: yxyx_normalized_0_to_1000
     pricing:
@@ -97,6 +102,7 @@ models:
   gemini-3.6-flash:
     name: Gemini 3.6 Flash
     lab: google
+    benchmark_protocol: legacy
     provider: google
     detection_coordinate_format: yxyx_normalized_0_to_1000
     pricing:
@@ -105,6 +111,7 @@ models:
   gemini-3.7-flash:
     name: Gemini 3.7 Flash
     lab: google
+    benchmark_protocol: legacy
     provider: google
     detection_coordinate_format: yxyx_normalized_0_to_1000
     pricing:
@@ -113,6 +120,7 @@ models:
   gemini-3.5-flash-lite:
     name: Gemini 3.5 Flash-Lite
     lab: google
+    benchmark_protocol: legacy
     provider: google
     detection_coordinate_format: yxyx_normalized_0_to_1000
     pricing:
@@ -121,6 +129,7 @@ models:
   gemini-3-flash-preview:
     name: Gemini 3 Flash
     lab: google
+    benchmark_protocol: legacy
     provider: google
     detection_coordinate_format: yxyx_normalized_0_to_1000
     pricing:
@@ -129,6 +138,7 @@ models:
   gemini-2.5-pro:
     name: Gemini 2.5 Pro
     lab: google
+    benchmark_protocol: legacy
     provider: google
     detection_coordinate_format: yxyx_normalized_0_to_1000
     pricing:
@@ -137,6 +147,7 @@ models:
   gemini-3.1-pro-preview:
     name: Gemini 3.1 Pro
     lab: google
+    benchmark_protocol: legacy
     detection_coordinate_format: yxyx_normalized_0_to_1000
     routes:
       - provider: google
@@ -148,6 +159,7 @@ models:
   gpt-5.5:
     name: GPT-5.5
     lab: openai
+    benchmark_protocol: legacy
     provider: openai
     detection_coordinate_format: xyxy_absolute_resized_image
     pricing:
@@ -156,6 +168,7 @@ models:
   gpt-5.4-mini:
     name: GPT-5.4 mini
     lab: openai
+    benchmark_protocol: legacy
     provider: openai
     detection_coordinate_format: xyxy_absolute_resized_image
     pricing:
@@ -164,6 +177,7 @@ models:
   gpt-5.6-sol:
     name: GPT-5.6 Sol
     lab: openai
+    benchmark_protocol: legacy
     provider: openai
     provider_model_id: gpt-5.6-sol
     detection_coordinate_format: xyxy_absolute_resized_image
@@ -173,6 +187,7 @@ models:
   gpt-5.6-terra:
     name: GPT-5.6 Terra
     lab: openai
+    benchmark_protocol: legacy
     provider: openai
     provider_model_id: gpt-5.6-terra
     detection_coordinate_format: xyxy_absolute_resized_image
@@ -182,6 +197,7 @@ models:
   gpt-5.6-luna:
     name: GPT-5.6 Luna
     lab: openai
+    benchmark_protocol: legacy
     provider: openai
     provider_model_id: gpt-5.6-luna
     detection_coordinate_format: xyxy_absolute_resized_image
@@ -191,6 +207,7 @@ models:
   qwen-3.8-max:
     name: Qwen3.8 Max
     lab: qwen
+    benchmark_protocol: legacy
     detection_coordinate_format: xyxy_normalized_0_to_1000
     routes:
       - provider: openrouter
@@ -203,6 +220,7 @@ models:
   qwen-3.7-plus:
     name: Qwen3.7 Plus
     lab: qwen
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: qwen/qwen3.7-plus
     detection_coordinate_format: xyxy_normalized_0_to_1000
@@ -212,6 +230,7 @@ models:
   qwen-3.7-flash:
     name: Qwen3.7 Flash
     lab: qwen
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: qwen/qwen3.7-flash
     detection_coordinate_format: xyxy_normalized_0_to_1000
@@ -221,6 +240,7 @@ models:
   qwen-3.8-flash:
     name: Qwen3.8 Flash
     lab: qwen
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: qwen/qwen3.8-flash
     detection_coordinate_format: xyxy_normalized_0_to_1000
@@ -230,6 +250,7 @@ models:
   qwen-3-vl-235b:
     name: Qwen3 VL 235B A22B Instruct
     lab: qwen
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: qwen/qwen3-vl-235b-a22b-instruct
     detection_coordinate_format: xyxy_normalized_0_to_1000
@@ -239,6 +260,7 @@ models:
   qwen-3.5-27b:
     name: Qwen3.5-27B
     lab: qwen
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: qwen/qwen3.5-27b
     detection_coordinate_format: xyxy_normalized_0_to_1000
@@ -248,6 +270,7 @@ models:
   qwen-3.8-27b:
     name: Qwen3.8 27B
     lab: qwen
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: qwen/qwen3.8-27b
     detection_coordinate_format: xyxy_normalized_0_to_1000
@@ -257,6 +280,7 @@ models:
   qwen-3.6-27b:
     name: Qwen3.6 27B
     lab: qwen
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: qwen/qwen3.6-27b
     detection_coordinate_format: xyxy_normalized_0_to_1000
@@ -266,6 +290,7 @@ models:
   glm-5v-turbo:
     name: GLM 5V Turbo
     lab: zai
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: z-ai/glm-5v-turbo
     detection_coordinate_format: xyxy_normalized_0_to_1000
@@ -275,6 +300,7 @@ models:
   glm-5.3-flash:
     name: GLM 5.3 Flash
     lab: zai
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: z-ai/glm-5.3-flash
     detection_coordinate_format: yxyx_normalized_0_to_1000
@@ -284,6 +310,7 @@ models:
   kimi-k2.6:
     name: Kimi K2.6
     lab: moonshot
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: moonshotai/kimi-k2.6
     detection_coordinate_format: yxyx_normalized_0_to_1000
@@ -293,6 +320,7 @@ models:
   kimi-k3:
     name: Kimi K3
     lab: moonshot
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: moonshotai/kimi-k3
     detection_coordinate_format: xyxy_absolute_original_image
@@ -302,6 +330,7 @@ models:
   muse-spark-1.1:
     name: Muse Spark 1.1
     lab: meta
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: meta/muse-spark-1.1
     detection_coordinate_format: xyxy_normalized_0_to_1000_meta_flat
@@ -311,6 +340,7 @@ models:
   muse-spark-1.2:
     name: Muse Spark 1.2
     lab: meta
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: meta/muse-spark-1.2
     detection_coordinate_format: xyxy_normalized_0_to_1000_meta_flat
@@ -320,6 +350,7 @@ models:
   muse-glimmer-30b:
     name: Muse Glimmer 30B
     lab: meta
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: meta/muse-glimmer-30b
     detection_coordinate_format: xyxy_normalized_0_to_1000_meta_flat
@@ -329,6 +360,7 @@ models:
   grok-4.5:
     name: Grok 4.5
     lab: xai
+    benchmark_protocol: legacy
     provider: xai
     provider_model_id: grok-4.5
     detection_coordinate_format: xyxy_normalized_0_to_100
@@ -338,6 +370,7 @@ models:
   grok-4.6:
     name: Grok 4.6
     lab: xai
+    benchmark_protocol: legacy
     provider: xai
     provider_model_id: grok-4.6
     detection_coordinate_format: xyxy_normalized_0_to_100
@@ -347,6 +380,7 @@ models:
   deepseek-v4-flash-vision-exp:
     name: DeepSeek V4 Flash
     lab: deepseek
+    benchmark_protocol: legacy
     provider: openrouter
     provider_model_id: deepseek/deepseek-v4-flash-vision-exp
     detection_coordinate_format: xyxy_normalized_0_to_1000

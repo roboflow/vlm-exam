@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-01T21:09:49Z",
+  "generated_at": "2026-09-02T12:50:49Z",
   "efforts": [
     "low",
     "high"
@@ -8,6 +8,22 @@
     "judge_model": "gemini-3.5-flash",
     "judge_metric": "accuracy_judge",
     "strict_metric": "accuracy_strict"
+  },
+  "protocol": {
+    "repeats": 3,
+    "efforts": [
+      "low",
+      "high"
+    ],
+    "tasks": [
+      "ocr",
+      "extraction",
+      "counting",
+      "identification",
+      "reasoning",
+      "detection"
+    ],
+    "runs_per_model": 36
   },
   "tasks": [
     {
@@ -129,6 +145,15 @@
           "metrics": {
             "similarity": 94.03
           },
+          "metric_runs": {
+            "similarity": [
+              94.03
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T06:53:34Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -157,6 +182,18 @@
             "accuracy_judge": 91.75,
             "accuracy_strict": 91.75
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              91.75
+            ],
+            "accuracy_strict": [
+              91.75
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T17:31:46Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -185,6 +222,18 @@
             "accuracy_judge": 63.51,
             "accuracy_strict": 63.51
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              63.51
+            ],
+            "accuracy_strict": [
+              63.51
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T08:05:05Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -213,6 +262,18 @@
             "accuracy_judge": 100.0,
             "accuracy_strict": 96.88
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              100.0
+            ],
+            "accuracy_strict": [
+              96.88
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T08:13:57Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -241,6 +302,18 @@
             "accuracy_judge": 66.23,
             "accuracy_strict": 66.23
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              66.23
+            ],
+            "accuracy_strict": [
+              66.23
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-24T14:56:23Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -270,6 +343,21 @@
             "map75": 31.02,
             "map50_95": 31.45
           },
+          "metric_runs": {
+            "map50": [
+              56.41
+            ],
+            "map75": [
+              31.02
+            ],
+            "map50_95": [
+              31.45
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T15:17:57Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -307,6 +395,12 @@
           "total_seconds": 5580.644,
           "average_seconds_per_sample": 8.706
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -325,6 +419,18 @@
             "accuracy_judge": 66.23,
             "accuracy_strict": 66.23
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              66.23
+            ],
+            "accuracy_strict": [
+              66.23
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T21:28:07Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -362,6 +468,12 @@
           "total_seconds": 1038.21,
           "average_seconds_per_sample": 6.876
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -374,170 +486,278 @@
         "ocr": {
           "primary_metric": {
             "name": "similarity",
-            "value": 93.58
+            "value": 94.0
           },
           "metrics": {
-            "similarity": 93.58
+            "similarity": 94.0
           },
+          "metric_runs": {
+            "similarity": [
+              93.58,
+              93.98,
+              94.44
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-09-01T18:55:48Z",
+            "2026-09-02T12:16:47Z",
+            "2026-09-02T12:16:49Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
           "tokens": {
             "input": 51923,
-            "output": 18406,
-            "total": 70329,
-            "average_per_sample": 1900.8
+            "output": 18392,
+            "total": 70315,
+            "average_per_sample": 1900.4
           },
           "cost": {
-            "total_usd": 1.43953,
-            "average_per_sample_usd": 0.038906
+            "total_usd": 1.438813,
+            "average_per_sample_usd": 0.038887
           },
           "speed": {
-            "total_seconds": 333.035,
-            "average_seconds_per_sample": 9.001
+            "total_seconds": 361.114,
+            "average_seconds_per_sample": 9.76
           },
-          "timestamp": "2026-09-01T18:55:48Z"
+          "timestamp": "2026-09-02T12:16:49Z"
         },
         "extraction": {
           "primary_metric": {
             "name": "accuracy_judge",
-            "value": 93.81
+            "value": 93.13
           },
           "metrics": {
-            "accuracy_judge": 93.81,
+            "accuracy_judge": 93.13,
             "accuracy_strict": 89.69
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              93.81,
+              92.78,
+              92.78
+            ],
+            "accuracy_strict": [
+              89.69,
+              90.72,
+              88.66
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-09-01T18:55:44Z",
+            "2026-09-02T12:16:51Z",
+            "2026-09-02T12:16:53Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
           "tokens": {
             "input": 144337,
-            "output": 1236,
-            "total": 145573,
-            "average_per_sample": 1500.8
+            "output": 1307,
+            "total": 145644,
+            "average_per_sample": 1501.5
           },
           "cost": {
-            "total_usd": 1.50517,
-            "average_per_sample_usd": 0.015517
+            "total_usd": 1.508703,
+            "average_per_sample_usd": 0.015554
           },
           "speed": {
-            "total_seconds": 413.856,
-            "average_seconds_per_sample": 4.267
+            "total_seconds": 468.951,
+            "average_seconds_per_sample": 4.835
           },
-          "timestamp": "2026-09-01T18:55:44Z"
+          "timestamp": "2026-09-02T12:16:53Z"
         },
         "counting": {
           "primary_metric": {
             "name": "accuracy_judge",
-            "value": 71.62
+            "value": 69.37
           },
           "metrics": {
-            "accuracy_judge": 71.62,
-            "accuracy_strict": 43.24
+            "accuracy_judge": 69.37,
+            "accuracy_strict": 41.44
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              71.62,
+              66.22,
+              70.27
+            ],
+            "accuracy_strict": [
+              43.24,
+              39.19,
+              41.89
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-09-01T18:55:41Z",
+            "2026-09-02T12:16:55Z",
+            "2026-09-02T12:16:57Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
           "tokens": {
             "input": 110682,
-            "output": 5556,
-            "total": 116238,
-            "average_per_sample": 1570.8
+            "output": 5934,
+            "total": 116616,
+            "average_per_sample": 1575.9
           },
           "cost": {
-            "total_usd": 1.38462,
-            "average_per_sample_usd": 0.018711
+            "total_usd": 1.403537,
+            "average_per_sample_usd": 0.018967
           },
           "speed": {
-            "total_seconds": 382.336,
-            "average_seconds_per_sample": 5.167
+            "total_seconds": 425.716,
+            "average_seconds_per_sample": 5.753
           },
-          "timestamp": "2026-09-01T18:55:41Z"
+          "timestamp": "2026-09-02T12:16:57Z"
         },
         "identification": {
           "primary_metric": {
             "name": "accuracy_judge",
-            "value": 96.88
+            "value": 97.92
           },
           "metrics": {
-            "accuracy_judge": 96.88,
-            "accuracy_strict": 90.62
+            "accuracy_judge": 97.92,
+            "accuracy_strict": 93.75
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              96.88,
+              100.0,
+              96.88
+            ],
+            "accuracy_strict": [
+              90.62,
+              96.88,
+              93.75
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-09-01T18:55:46Z",
+            "2026-09-02T12:16:59Z",
+            "2026-09-02T12:17:01Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
           "tokens": {
             "input": 41809,
-            "output": 251,
-            "total": 42060,
-            "average_per_sample": 1314.4
+            "output": 222,
+            "total": 42031,
+            "average_per_sample": 1313.5
           },
           "cost": {
-            "total_usd": 0.43064,
-            "average_per_sample_usd": 0.013457
+            "total_usd": 0.42919,
+            "average_per_sample_usd": 0.013412
           },
           "speed": {
-            "total_seconds": 140.327,
-            "average_seconds_per_sample": 4.385
+            "total_seconds": 160.458,
+            "average_seconds_per_sample": 5.014
           },
-          "timestamp": "2026-09-01T18:55:46Z"
+          "timestamp": "2026-09-02T12:17:01Z"
         },
         "reasoning": {
           "primary_metric": {
             "name": "accuracy_judge",
-            "value": 70.86
+            "value": 71.96
           },
           "metrics": {
-            "accuracy_judge": 70.86,
-            "accuracy_strict": 17.88
+            "accuracy_judge": 71.96,
+            "accuracy_strict": 18.32
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              70.86,
+              73.51,
+              71.52
+            ],
+            "accuracy_strict": [
+              17.88,
+              17.88,
+              19.21
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-09-01T18:55:50Z",
+            "2026-09-02T12:16:43Z",
+            "2026-09-02T12:16:45Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
           "tokens": {
             "input": 214304,
-            "output": 15343,
-            "total": 229647,
-            "average_per_sample": 1520.8
+            "output": 15792,
+            "total": 230096,
+            "average_per_sample": 1523.8
           },
           "cost": {
-            "total_usd": 2.91019,
-            "average_per_sample_usd": 0.019273
+            "total_usd": 2.932657,
+            "average_per_sample_usd": 0.019422
           },
           "speed": {
-            "total_seconds": 820.871,
-            "average_seconds_per_sample": 5.436
+            "total_seconds": 896.996,
+            "average_seconds_per_sample": 5.94
           },
-          "timestamp": "2026-09-01T18:55:50Z"
+          "timestamp": "2026-09-02T12:16:45Z"
         },
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 61.97
+            "value": 61.37
           },
           "metrics": {
-            "map50": 61.97,
-            "map75": 41.03,
-            "map50_95": 39.14
+            "map50": 61.37,
+            "map75": 40.2,
+            "map50_95": 38.03
           },
+          "metric_runs": {
+            "map50": [
+              61.97,
+              60.99,
+              61.14
+            ],
+            "map75": [
+              41.03,
+              39.29,
+              40.27
+            ],
+            "map50_95": [
+              39.14,
+              37.3,
+              37.65
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-09-01T18:55:42Z",
+            "2026-09-02T12:16:41Z",
+            "2026-09-02T12:38:12Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
           "tokens": {
             "input": 619976,
-            "output": 175599,
-            "total": 795575,
-            "average_per_sample": 3182.3
+            "output": 175357,
+            "total": 795333,
+            "average_per_sample": 3181.3
           },
           "cost": {
-            "total_usd": 14.97971,
-            "average_per_sample_usd": 0.059919
+            "total_usd": 14.967593,
+            "average_per_sample_usd": 0.05987
           },
           "speed": {
-            "total_seconds": 2854.748,
-            "average_seconds_per_sample": 11.419
+            "total_seconds": 2994.628,
+            "average_seconds_per_sample": 11.979
           },
-          "timestamp": "2026-09-01T18:55:42Z"
+          "timestamp": "2026-09-02T12:38:12Z"
         }
       },
       "overall": {
@@ -545,18 +765,24 @@
         "sample_count": 641,
         "tokens": {
           "input": 1183031,
-          "output": 216391,
-          "total": 1399422,
-          "average_per_sample": 2183.2
+          "output": 217004,
+          "total": 1400035,
+          "average_per_sample": 2184.1
         },
         "cost": {
-          "total_usd": 22.64986,
-          "average_per_sample_usd": 0.035335
+          "total_usd": 22.680493,
+          "average_per_sample_usd": 0.035383
         },
         "speed": {
-          "total_seconds": 4945.173,
-          "average_seconds_per_sample": 7.715
+          "total_seconds": 5307.864,
+          "average_seconds_per_sample": 8.281
         }
+      },
+      "protocol": {
+        "name": "full",
+        "status": "complete",
+        "runs_present": 36,
+        "runs_required": 36
       }
     },
     {
@@ -566,52 +792,306 @@
       "lab": "anthropic",
       "effort": "high",
       "tasks": {
+        "ocr": {
+          "primary_metric": {
+            "name": "similarity",
+            "value": 93.62
+          },
+          "metrics": {
+            "similarity": 93.62
+          },
+          "metric_runs": {
+            "similarity": [
+              93.48,
+              93.49,
+              93.88
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-09-01T21:09:49Z",
+            "2026-09-02T12:23:34Z",
+            "2026-09-02T12:23:36Z"
+          ],
+          "sample_count": 37,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 51923,
+            "output": 18671,
+            "total": 70594,
+            "average_per_sample": 1908.0
+          },
+          "cost": {
+            "total_usd": 1.452797,
+            "average_per_sample_usd": 0.039265
+          },
+          "speed": {
+            "total_seconds": 357.302,
+            "average_seconds_per_sample": 9.657
+          },
+          "timestamp": "2026-09-02T12:23:36Z"
+        },
+        "extraction": {
+          "primary_metric": {
+            "name": "accuracy_judge",
+            "value": 93.47
+          },
+          "metrics": {
+            "accuracy_judge": 93.47,
+            "accuracy_strict": 92.1
+          },
+          "metric_runs": {
+            "accuracy_judge": [
+              93.81,
+              93.81,
+              92.78
+            ],
+            "accuracy_strict": [
+              90.72,
+              92.78,
+              92.78
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-09-01T21:09:46Z",
+            "2026-09-02T12:23:38Z",
+            "2026-09-02T12:23:40Z"
+          ],
+          "sample_count": 97,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 144337,
+            "output": 2639,
+            "total": 146976,
+            "average_per_sample": 1515.2
+          },
+          "cost": {
+            "total_usd": 1.575337,
+            "average_per_sample_usd": 0.016241
+          },
+          "speed": {
+            "total_seconds": 468.977,
+            "average_seconds_per_sample": 4.835
+          },
+          "timestamp": "2026-09-02T12:23:40Z"
+        },
+        "counting": {
+          "primary_metric": {
+            "name": "accuracy_judge",
+            "value": 72.97
+          },
+          "metrics": {
+            "accuracy_judge": 72.97,
+            "accuracy_strict": 48.65
+          },
+          "metric_runs": {
+            "accuracy_judge": [
+              77.03,
+              74.32,
+              67.57
+            ],
+            "accuracy_strict": [
+              52.7,
+              51.35,
+              41.89
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-09-01T21:09:43Z",
+            "2026-09-02T12:23:42Z",
+            "2026-09-02T12:23:44Z"
+          ],
+          "sample_count": 74,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 110682,
+            "output": 12233,
+            "total": 122915,
+            "average_per_sample": 1661.0
+          },
+          "cost": {
+            "total_usd": 1.718453,
+            "average_per_sample_usd": 0.023222
+          },
+          "speed": {
+            "total_seconds": 483.203,
+            "average_seconds_per_sample": 6.53
+          },
+          "timestamp": "2026-09-02T12:23:44Z"
+        },
+        "identification": {
+          "primary_metric": {
+            "name": "accuracy_judge",
+            "value": 96.88
+          },
+          "metrics": {
+            "accuracy_judge": 96.88,
+            "accuracy_strict": 92.71
+          },
+          "metric_runs": {
+            "accuracy_judge": [
+              93.75,
+              100.0,
+              96.88
+            ],
+            "accuracy_strict": [
+              87.5,
+              96.88,
+              93.75
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-09-01T21:09:48Z",
+            "2026-09-02T12:23:46Z",
+            "2026-09-02T12:23:48Z"
+          ],
+          "sample_count": 32,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 41809,
+            "output": 811,
+            "total": 42620,
+            "average_per_sample": 1331.9
+          },
+          "cost": {
+            "total_usd": 0.458623,
+            "average_per_sample_usd": 0.014332
+          },
+          "speed": {
+            "total_seconds": 158.381,
+            "average_seconds_per_sample": 4.949
+          },
+          "timestamp": "2026-09-02T12:23:48Z"
+        },
         "reasoning": {
           "primary_metric": {
             "name": "accuracy_judge",
-            "value": 72.19
+            "value": 73.07
           },
           "metrics": {
-            "accuracy_judge": 72.19,
-            "accuracy_strict": 35.1
+            "accuracy_judge": 73.07,
+            "accuracy_strict": 36.2
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              72.19,
+              75.5,
+              71.52
+            ],
+            "accuracy_strict": [
+              35.1,
+              37.75,
+              35.76
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-09-01T21:09:49Z",
+            "2026-09-02T12:23:30Z",
+            "2026-09-02T12:23:32Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
           "tokens": {
             "input": 214304,
-            "output": 41289,
-            "total": 255593,
-            "average_per_sample": 1692.7
+            "output": 43206,
+            "total": 257510,
+            "average_per_sample": 1705.4
           },
           "cost": {
-            "total_usd": 4.20749,
-            "average_per_sample_usd": 0.027864
+            "total_usd": 4.30334,
+            "average_per_sample_usd": 0.028499
           },
           "speed": {
-            "total_seconds": 1128.784,
-            "average_seconds_per_sample": 7.475
+            "total_seconds": 1215.569,
+            "average_seconds_per_sample": 8.05
           },
-          "timestamp": "2026-09-01T21:09:49Z"
+          "timestamp": "2026-09-02T12:23:32Z"
+        },
+        "detection": {
+          "primary_metric": {
+            "name": "map50",
+            "value": 64.95
+          },
+          "metrics": {
+            "map50": 64.95,
+            "map75": 40.43,
+            "map50_95": 39.59
+          },
+          "metric_runs": {
+            "map50": [
+              65.35,
+              64.57,
+              64.93
+            ],
+            "map75": [
+              41.69,
+              40.15,
+              39.46
+            ],
+            "map50_95": [
+              40.08,
+              39.52,
+              39.16
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-09-02T12:42:49Z",
+            "2026-09-02T12:50:47Z",
+            "2026-09-02T12:50:49Z"
+          ],
+          "sample_count": 250,
+          "evaluated_sample_count": 250,
+          "failed_sample_count": 10,
+          "tokens": {
+            "input": 603596,
+            "output": 270251,
+            "total": 873847,
+            "average_per_sample": 3495.4
+          },
+          "cost": {
+            "total_usd": 19.54851,
+            "average_per_sample_usd": 0.078194
+          },
+          "speed": {
+            "total_seconds": 4224.562,
+            "average_seconds_per_sample": 17.125
+          },
+          "timestamp": "2026-09-02T12:50:49Z"
         }
       },
       "overall": {
-        "task_count": 1,
-        "sample_count": 151,
+        "task_count": 6,
+        "sample_count": 641,
         "tokens": {
-          "input": 214304,
-          "output": 41289,
-          "total": 255593,
-          "average_per_sample": 1692.7
+          "input": 1166651,
+          "output": 347811,
+          "total": 1514462,
+          "average_per_sample": 2362.7
         },
         "cost": {
-          "total_usd": 4.20749,
-          "average_per_sample_usd": 0.027864
+          "total_usd": 29.05706,
+          "average_per_sample_usd": 0.045331
         },
         "speed": {
-          "total_seconds": 1128.784,
-          "average_seconds_per_sample": 7.475
+          "total_seconds": 6907.993,
+          "average_seconds_per_sample": 10.777
         }
+      },
+      "protocol": {
+        "name": "full",
+        "status": "complete",
+        "runs_present": 36,
+        "runs_required": 36
       }
     },
     {
@@ -629,6 +1109,15 @@
           "metrics": {
             "similarity": 91.67
           },
+          "metric_runs": {
+            "similarity": [
+              91.67
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:00:16Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -657,6 +1146,18 @@
             "accuracy_judge": 89.69,
             "accuracy_strict": 88.66
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              89.69
+            ],
+            "accuracy_strict": [
+              88.66
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T17:39:52Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -685,6 +1186,18 @@
             "accuracy_judge": 56.76,
             "accuracy_strict": 56.76
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              56.76
+            ],
+            "accuracy_strict": [
+              56.76
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T16:00:37Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -713,6 +1226,18 @@
             "accuracy_judge": 81.25,
             "accuracy_strict": 81.25
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              81.25
+            ],
+            "accuracy_strict": [
+              81.25
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T21:54:37Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -741,6 +1266,18 @@
             "accuracy_judge": 43.05,
             "accuracy_strict": 43.05
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              43.05
+            ],
+            "accuracy_strict": [
+              43.05
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T06:36:17Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -770,6 +1307,21 @@
             "map75": 15.78,
             "map50_95": 18.05
           },
+          "metric_runs": {
+            "map50": [
+              36.08
+            ],
+            "map75": [
+              15.78
+            ],
+            "map50_95": [
+              18.05
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T16:36:08Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -807,6 +1359,12 @@
           "total_seconds": 3100.625,
           "average_seconds_per_sample": 4.837
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -825,6 +1383,18 @@
             "accuracy_judge": 43.05,
             "accuracy_strict": 42.38
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              43.05
+            ],
+            "accuracy_strict": [
+              42.38
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T21:45:45Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -862,6 +1432,12 @@
           "total_seconds": 622.683,
           "average_seconds_per_sample": 4.124
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -879,6 +1455,15 @@
           "metrics": {
             "similarity": 93.79
           },
+          "metric_runs": {
+            "similarity": [
+              93.79
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:04:44Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -907,6 +1492,18 @@
             "accuracy_judge": 88.66,
             "accuracy_strict": 87.63
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              88.66
+            ],
+            "accuracy_strict": [
+              87.63
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T10:43:47Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -935,6 +1532,18 @@
             "accuracy_judge": 54.05,
             "accuracy_strict": 52.7
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              54.05
+            ],
+            "accuracy_strict": [
+              52.7
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T10:26:55Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -963,6 +1572,18 @@
             "accuracy_judge": 84.38,
             "accuracy_strict": 75.0
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.38
+            ],
+            "accuracy_strict": [
+              75.0
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T10:55:36Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -991,6 +1612,18 @@
             "accuracy_judge": 52.98,
             "accuracy_strict": 44.37
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              52.98
+            ],
+            "accuracy_strict": [
+              44.37
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T06:45:24Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1020,6 +1653,21 @@
             "map75": 13.28,
             "map50_95": 16.84
           },
+          "metric_runs": {
+            "map50": [
+              38.58
+            ],
+            "map75": [
+              13.28
+            ],
+            "map50_95": [
+              16.84
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T17:13:33Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -1057,6 +1705,12 @@
           "total_seconds": 3330.234,
           "average_seconds_per_sample": 5.195
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -1075,6 +1729,18 @@
             "accuracy_judge": 52.32,
             "accuracy_strict": 43.71
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              52.32
+            ],
+            "accuracy_strict": [
+              43.71
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T21:56:56Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1112,6 +1778,12 @@
           "total_seconds": 370.596,
           "average_seconds_per_sample": 2.454
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -1129,6 +1801,15 @@
           "metrics": {
             "similarity": 93.22
           },
+          "metric_runs": {
+            "similarity": [
+              93.22
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-24T21:15:32Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1157,6 +1838,18 @@
             "accuracy_judge": 89.69,
             "accuracy_strict": 88.66
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              89.69
+            ],
+            "accuracy_strict": [
+              88.66
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-24T21:21:00Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1185,6 +1878,18 @@
             "accuracy_judge": 70.27,
             "accuracy_strict": 70.27
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              70.27
+            ],
+            "accuracy_strict": [
+              70.27
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-24T21:27:53Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1213,6 +1918,18 @@
             "accuracy_judge": 90.62,
             "accuracy_strict": 84.38
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              90.62
+            ],
+            "accuracy_strict": [
+              84.38
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-24T21:33:28Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1241,6 +1958,18 @@
             "accuracy_judge": 71.52,
             "accuracy_strict": 68.87
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              71.52
+            ],
+            "accuracy_strict": [
+              68.87
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T06:54:24Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1270,6 +1999,21 @@
             "map75": 30.19,
             "map50_95": 30.53
           },
+          "metric_runs": {
+            "map50": [
+              54.36
+            ],
+            "map75": [
+              30.19
+            ],
+            "map50_95": [
+              30.53
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-24T21:37:09Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -1307,6 +2051,12 @@
           "total_seconds": 4728.14,
           "average_seconds_per_sample": 7.376
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -1325,6 +2075,18 @@
             "accuracy_judge": 74.17,
             "accuracy_strict": 67.55
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              74.17
+            ],
+            "accuracy_strict": [
+              67.55
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T22:04:12Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1362,6 +2124,12 @@
           "total_seconds": 1297.54,
           "average_seconds_per_sample": 8.593
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -1379,6 +2147,15 @@
           "metrics": {
             "similarity": 91.11
           },
+          "metric_runs": {
+            "similarity": [
+              91.11
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:09:50Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1407,6 +2184,18 @@
             "accuracy_judge": 94.85,
             "accuracy_strict": 93.81
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              94.85
+            ],
+            "accuracy_strict": [
+              93.81
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T17:44:40Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1435,6 +2224,18 @@
             "accuracy_judge": 81.08,
             "accuracy_strict": 81.08
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              81.08
+            ],
+            "accuracy_strict": [
+              81.08
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T08:00:14Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1463,6 +2264,18 @@
             "accuracy_judge": 100.0,
             "accuracy_strict": 100.0
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              100.0
+            ],
+            "accuracy_strict": [
+              100.0
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T08:12:30Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1491,6 +2304,18 @@
             "accuracy_judge": 84.11,
             "accuracy_strict": 83.44
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.11
+            ],
+            "accuracy_strict": [
+              83.44
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-24T14:42:55Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1520,6 +2345,21 @@
             "map75": 55.76,
             "map50_95": 52.96
           },
+          "metric_runs": {
+            "map50": [
+              68.65
+            ],
+            "map75": [
+              55.76
+            ],
+            "map50_95": [
+              52.96
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T11:40:44Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -1557,6 +2397,12 @@
           "total_seconds": 3727.204,
           "average_seconds_per_sample": 5.815
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -1575,6 +2421,18 @@
             "accuracy_judge": 82.78,
             "accuracy_strict": 82.78
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              82.78
+            ],
+            "accuracy_strict": [
+              82.78
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T22:26:45Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1612,6 +2470,12 @@
           "total_seconds": 1325.089,
           "average_seconds_per_sample": 8.775
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -1629,6 +2493,15 @@
           "metrics": {
             "similarity": 88.41
           },
+          "metric_runs": {
+            "similarity": [
+              88.41
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-22T12:52:02Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1657,6 +2530,18 @@
             "accuracy_judge": 96.91,
             "accuracy_strict": 94.85
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              96.91
+            ],
+            "accuracy_strict": [
+              94.85
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T18:16:20Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1685,6 +2570,18 @@
             "accuracy_judge": 82.43,
             "accuracy_strict": 82.43
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              82.43
+            ],
+            "accuracy_strict": [
+              82.43
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T18:22:45Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1713,6 +2610,18 @@
             "accuracy_judge": 100.0,
             "accuracy_strict": 96.88
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              100.0
+            ],
+            "accuracy_strict": [
+              96.88
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T18:30:34Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1741,6 +2650,18 @@
             "accuracy_judge": 80.13,
             "accuracy_strict": 80.13
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              80.13
+            ],
+            "accuracy_strict": [
+              80.13
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T07:07:27Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1770,6 +2691,21 @@
             "map75": 46.4,
             "map50_95": 44.5
           },
+          "metric_runs": {
+            "map50": [
+              55.98
+            ],
+            "map75": [
+              46.4
+            ],
+            "map50_95": [
+              44.5
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T16:12:48Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -1807,6 +2743,12 @@
           "total_seconds": 3033.227,
           "average_seconds_per_sample": 4.732
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -1825,6 +2767,18 @@
             "accuracy_judge": 80.13,
             "accuracy_strict": 80.13
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              80.13
+            ],
+            "accuracy_strict": [
+              80.13
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T22:49:00Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1862,6 +2816,12 @@
           "total_seconds": 1462.054,
           "average_seconds_per_sample": 9.682
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -1879,6 +2839,15 @@
           "metrics": {
             "similarity": 86.9
           },
+          "metric_runs": {
+            "similarity": [
+              86.9
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-13T17:42:24Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1907,6 +2876,18 @@
             "accuracy_judge": 95.88,
             "accuracy_strict": 94.85
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              95.88
+            ],
+            "accuracy_strict": [
+              94.85
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-13T17:42:25Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1935,6 +2916,18 @@
             "accuracy_judge": 77.03,
             "accuracy_strict": 77.03
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              77.03
+            ],
+            "accuracy_strict": [
+              77.03
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-13T17:42:26Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1963,6 +2956,18 @@
             "accuracy_judge": 96.88,
             "accuracy_strict": 96.88
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              96.88
+            ],
+            "accuracy_strict": [
+              96.88
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-13T17:42:28Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -1991,6 +2996,18 @@
             "accuracy_judge": 82.78,
             "accuracy_strict": 82.78
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              82.78
+            ],
+            "accuracy_strict": [
+              82.78
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-13T17:42:30Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2020,6 +3037,21 @@
             "map75": 59.81,
             "map50_95": 56.2
           },
+          "metric_runs": {
+            "map50": [
+              69.37
+            ],
+            "map75": [
+              59.81
+            ],
+            "map50_95": [
+              56.2
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-13T17:42:32Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -2057,6 +3089,12 @@
           "total_seconds": 6389.649,
           "average_seconds_per_sample": 9.968
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2075,6 +3113,18 @@
             "accuracy_judge": 82.78,
             "accuracy_strict": 82.12
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              82.78
+            ],
+            "accuracy_strict": [
+              82.12
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-13T17:42:31Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2112,6 +3162,12 @@
           "total_seconds": 1395.874,
           "average_seconds_per_sample": 9.244
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2129,6 +3185,15 @@
           "metrics": {
             "similarity": 87.36
           },
+          "metric_runs": {
+            "similarity": [
+              87.36
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-22T12:52:12Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2157,6 +3222,18 @@
             "accuracy_judge": 91.75,
             "accuracy_strict": 90.72
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              91.75
+            ],
+            "accuracy_strict": [
+              90.72
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T18:20:27Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2185,6 +3262,18 @@
             "accuracy_judge": 52.7,
             "accuracy_strict": 52.7
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              52.7
+            ],
+            "accuracy_strict": [
+              52.7
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T18:28:22Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2213,6 +3302,18 @@
             "accuracy_judge": 84.38,
             "accuracy_strict": 81.25
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.38
+            ],
+            "accuracy_strict": [
+              81.25
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T18:31:49Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2241,6 +3342,18 @@
             "accuracy_judge": 48.34,
             "accuracy_strict": 47.02
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              48.34
+            ],
+            "accuracy_strict": [
+              47.02
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T07:19:04Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2270,6 +3383,21 @@
             "map75": 46.58,
             "map50_95": 44.55
           },
+          "metric_runs": {
+            "map50": [
+              57.51
+            ],
+            "map75": [
+              46.58
+            ],
+            "map50_95": [
+              44.55
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T16:39:48Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -2307,6 +3435,12 @@
           "total_seconds": 1732.982,
           "average_seconds_per_sample": 2.704
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2325,6 +3459,18 @@
             "accuracy_judge": 68.87,
             "accuracy_strict": 68.87
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              68.87
+            ],
+            "accuracy_strict": [
+              68.87
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T23:14:33Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2362,6 +3508,12 @@
           "total_seconds": 879.349,
           "average_seconds_per_sample": 5.824
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2379,6 +3531,15 @@
           "metrics": {
             "similarity": 87.56
           },
+          "metric_runs": {
+            "similarity": [
+              87.56
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:14:24Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2407,6 +3568,18 @@
             "accuracy_judge": 96.91,
             "accuracy_strict": 95.88
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              96.91
+            ],
+            "accuracy_strict": [
+              95.88
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T17:49:05Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2435,6 +3608,18 @@
             "accuracy_judge": 67.57,
             "accuracy_strict": 67.57
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              67.57
+            ],
+            "accuracy_strict": [
+              67.57
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T16:04:19Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2463,6 +3648,18 @@
             "accuracy_judge": 93.75,
             "accuracy_strict": 90.62
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              93.75
+            ],
+            "accuracy_strict": [
+              90.62
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T21:56:01Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2491,6 +3688,18 @@
             "accuracy_judge": 64.9,
             "accuracy_strict": 64.9
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              64.9
+            ],
+            "accuracy_strict": [
+              64.9
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T07:26:04Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2520,6 +3729,21 @@
             "map75": 29.18,
             "map50_95": 27.94
           },
+          "metric_runs": {
+            "map50": [
+              38.6
+            ],
+            "map75": [
+              29.18
+            ],
+            "map50_95": [
+              27.94
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T12:15:25Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -2557,6 +3781,12 @@
           "total_seconds": 2625.584,
           "average_seconds_per_sample": 4.096
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2575,6 +3805,18 @@
             "accuracy_judge": 74.17,
             "accuracy_strict": 74.17
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              74.17
+            ],
+            "accuracy_strict": [
+              74.17
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T23:29:34Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2612,6 +3854,12 @@
           "total_seconds": 967.864,
           "average_seconds_per_sample": 6.41
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2629,6 +3877,15 @@
           "metrics": {
             "similarity": 88.82
           },
+          "metric_runs": {
+            "similarity": [
+              88.82
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:17:00Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2657,6 +3914,18 @@
             "accuracy_judge": 84.54,
             "accuracy_strict": 83.51
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.54
+            ],
+            "accuracy_strict": [
+              83.51
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T17:52:20Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2685,6 +3954,18 @@
             "accuracy_judge": 52.7,
             "accuracy_strict": 52.7
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              52.7
+            ],
+            "accuracy_strict": [
+              52.7
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T16:07:56Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2713,6 +3994,18 @@
             "accuracy_judge": 93.75,
             "accuracy_strict": 87.5
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              93.75
+            ],
+            "accuracy_strict": [
+              87.5
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T21:57:19Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2741,6 +4034,18 @@
             "accuracy_judge": 42.38,
             "accuracy_strict": 41.72
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              42.38
+            ],
+            "accuracy_strict": [
+              41.72
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T07:35:16Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2770,6 +4075,21 @@
             "map75": 25.08,
             "map50_95": 24.74
           },
+          "metric_runs": {
+            "map50": [
+              33.73
+            ],
+            "map75": [
+              25.08
+            ],
+            "map50_95": [
+              24.74
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T12:40:31Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -2807,6 +4127,12 @@
           "total_seconds": 3918.71,
           "average_seconds_per_sample": 6.113
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2825,6 +4151,18 @@
             "accuracy_judge": 62.25,
             "accuracy_strict": 62.25
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              62.25
+            ],
+            "accuracy_strict": [
+              62.25
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-26T05:47:43Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2862,6 +4200,12 @@
           "total_seconds": 1404.323,
           "average_seconds_per_sample": 9.3
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2879,6 +4223,15 @@
           "metrics": {
             "similarity": 92.62
           },
+          "metric_runs": {
+            "similarity": [
+              92.62
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:20:11Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2907,6 +4260,18 @@
             "accuracy_judge": 95.88,
             "accuracy_strict": 94.85
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              95.88
+            ],
+            "accuracy_strict": [
+              94.85
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T10:34:39Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2935,6 +4300,18 @@
             "accuracy_judge": 71.62,
             "accuracy_strict": 71.62
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              71.62
+            ],
+            "accuracy_strict": [
+              71.62
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T10:19:15Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2963,6 +4340,18 @@
             "accuracy_judge": 100.0,
             "accuracy_strict": 100.0
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              100.0
+            ],
+            "accuracy_strict": [
+              100.0
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T10:52:26Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -2991,6 +4380,18 @@
             "accuracy_judge": 72.19,
             "accuracy_strict": 72.19
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              72.19
+            ],
+            "accuracy_strict": [
+              72.19
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-24T13:01:48Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3020,6 +4421,21 @@
             "map75": 55.78,
             "map50_95": 52.39
           },
+          "metric_runs": {
+            "map50": [
+              67.43
+            ],
+            "map75": [
+              55.78
+            ],
+            "map50_95": [
+              52.39
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-21T13:33:22Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -3057,6 +4473,12 @@
           "total_seconds": 5007.561,
           "average_seconds_per_sample": 7.812
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3075,6 +4497,18 @@
             "accuracy_judge": 74.83,
             "accuracy_strict": 74.83
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              74.83
+            ],
+            "accuracy_strict": [
+              74.83
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-26T06:11:29Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3112,6 +4546,12 @@
           "total_seconds": 2011.676,
           "average_seconds_per_sample": 13.322
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3129,6 +4569,15 @@
           "metrics": {
             "similarity": 91.19
           },
+          "metric_runs": {
+            "similarity": [
+              91.19
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:23:53Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3157,6 +4606,18 @@
             "accuracy_judge": 87.63,
             "accuracy_strict": 86.6
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              87.63
+            ],
+            "accuracy_strict": [
+              86.6
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T17:57:31Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3185,6 +4646,18 @@
             "accuracy_judge": 64.86,
             "accuracy_strict": 64.86
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              64.86
+            ],
+            "accuracy_strict": [
+              64.86
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T16:11:44Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3213,6 +4686,18 @@
             "accuracy_judge": 90.62,
             "accuracy_strict": 87.5
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              90.62
+            ],
+            "accuracy_strict": [
+              87.5
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T21:58:57Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3241,6 +4726,18 @@
             "accuracy_judge": 67.55,
             "accuracy_strict": 67.55
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              67.55
+            ],
+            "accuracy_strict": [
+              67.55
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T07:46:23Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 5,
@@ -3270,6 +4767,21 @@
             "map75": 21.09,
             "map50_95": 22.21
           },
+          "metric_runs": {
+            "map50": [
+              41.66
+            ],
+            "map75": [
+              21.09
+            ],
+            "map50_95": [
+              22.21
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-22T12:50:59Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -3305,8 +4817,14 @@
         },
         "speed": {
           "total_seconds": 5945.75,
-          "average_seconds_per_sample": 9.349
+          "average_seconds_per_sample": 9.276
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3325,6 +4843,18 @@
             "accuracy_judge": 69.54,
             "accuracy_strict": 69.54
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              69.54
+            ],
+            "accuracy_strict": [
+              69.54
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-27T21:19:50Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 11,
@@ -3360,8 +4890,14 @@
         },
         "speed": {
           "total_seconds": 2156.615,
-          "average_seconds_per_sample": 15.404
+          "average_seconds_per_sample": 14.282
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3379,6 +4915,15 @@
           "metrics": {
             "similarity": 88.07
           },
+          "metric_runs": {
+            "similarity": [
+              88.07
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:29:45Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3407,6 +4952,18 @@
             "accuracy_judge": 83.51,
             "accuracy_strict": 82.47
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              83.51
+            ],
+            "accuracy_strict": [
+              82.47
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T16:59:13Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3435,6 +4992,18 @@
             "accuracy_judge": 60.81,
             "accuracy_strict": 60.81
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              60.81
+            ],
+            "accuracy_strict": [
+              60.81
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T15:05:35Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3463,6 +5032,18 @@
             "accuracy_judge": 84.38,
             "accuracy_strict": 78.12
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.38
+            ],
+            "accuracy_strict": [
+              78.12
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T17:06:35Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3491,6 +5072,18 @@
             "accuracy_judge": 55.63,
             "accuracy_strict": 55.63
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              55.63
+            ],
+            "accuracy_strict": [
+              55.63
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T18:06:03Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3520,6 +5113,21 @@
             "map75": 3.48,
             "map50_95": 5.89
           },
+          "metric_runs": {
+            "map50": [
+              16.08
+            ],
+            "map75": [
+              3.48
+            ],
+            "map50_95": [
+              5.89
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-22T13:46:18Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -3557,6 +5165,12 @@
           "total_seconds": 3428.2,
           "average_seconds_per_sample": 5.348
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3575,6 +5189,18 @@
             "accuracy_judge": 62.91,
             "accuracy_strict": 62.91
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              62.91
+            ],
+            "accuracy_strict": [
+              62.91
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-26T16:23:29Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 2,
@@ -3610,8 +5236,14 @@
         },
         "speed": {
           "total_seconds": 1974.662,
-          "average_seconds_per_sample": 13.253
+          "average_seconds_per_sample": 13.077
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3629,6 +5261,15 @@
           "metrics": {
             "similarity": 90.73
           },
+          "metric_runs": {
+            "similarity": [
+              90.73
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:33:33Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3657,6 +5298,18 @@
             "accuracy_judge": 83.51,
             "accuracy_strict": 82.47
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              83.51
+            ],
+            "accuracy_strict": [
+              82.47
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T19:32:52Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3685,6 +5338,18 @@
             "accuracy_judge": 72.97,
             "accuracy_strict": 72.97
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              72.97
+            ],
+            "accuracy_strict": [
+              72.97
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T19:15:33Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3713,6 +5378,18 @@
             "accuracy_judge": 84.38,
             "accuracy_strict": 81.25
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.38
+            ],
+            "accuracy_strict": [
+              81.25
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T22:55:36Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3741,6 +5418,18 @@
             "accuracy_judge": 65.56,
             "accuracy_strict": 65.56
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              65.56
+            ],
+            "accuracy_strict": [
+              65.56
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T18:17:01Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3770,6 +5459,21 @@
             "map75": 46.58,
             "map50_95": 45.23
           },
+          "metric_runs": {
+            "map50": [
+              68.19
+            ],
+            "map75": [
+              46.58
+            ],
+            "map50_95": [
+              45.23
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-22T14:18:48Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -3807,6 +5511,12 @@
           "total_seconds": 7510.906,
           "average_seconds_per_sample": 11.717
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3825,6 +5535,18 @@
             "accuracy_judge": 72.19,
             "accuracy_strict": 72.19
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              72.19
+            ],
+            "accuracy_strict": [
+              72.19
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-26T19:08:19Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3862,6 +5584,12 @@
           "total_seconds": 1209.427,
           "average_seconds_per_sample": 8.009
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3879,6 +5607,15 @@
           "metrics": {
             "similarity": 88.77
           },
+          "metric_runs": {
+            "similarity": [
+              88.77
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:41:50Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3907,6 +5644,18 @@
             "accuracy_judge": 80.41,
             "accuracy_strict": 79.38
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              80.41
+            ],
+            "accuracy_strict": [
+              79.38
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T19:27:54Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3935,6 +5684,18 @@
             "accuracy_judge": 67.57,
             "accuracy_strict": 67.57
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              67.57
+            ],
+            "accuracy_strict": [
+              67.57
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T19:09:09Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3963,6 +5724,18 @@
             "accuracy_judge": 87.5,
             "accuracy_strict": 78.12
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              87.5
+            ],
+            "accuracy_strict": [
+              78.12
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T22:53:43Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -3991,6 +5764,18 @@
             "accuracy_judge": 59.6,
             "accuracy_strict": 59.6
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              59.6
+            ],
+            "accuracy_strict": [
+              59.6
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T18:30:36Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4020,6 +5805,21 @@
             "map75": 40.44,
             "map50_95": 39.59
           },
+          "metric_runs": {
+            "map50": [
+              60.66
+            ],
+            "map75": [
+              40.44
+            ],
+            "map50_95": [
+              39.59
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-22T15:49:32Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -4057,6 +5857,12 @@
           "total_seconds": 4585.285,
           "average_seconds_per_sample": 7.153
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4075,6 +5881,18 @@
             "accuracy_judge": 64.24,
             "accuracy_strict": 64.24
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              64.24
+            ],
+            "accuracy_strict": [
+              64.24
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-26T19:36:15Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4112,6 +5930,12 @@
           "total_seconds": 811.913,
           "average_seconds_per_sample": 5.377
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4129,6 +5953,15 @@
           "metrics": {
             "similarity": 88.36
           },
+          "metric_runs": {
+            "similarity": [
+              88.36
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:47:48Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4157,6 +5990,18 @@
             "accuracy_judge": 82.47,
             "accuracy_strict": 81.44
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              82.47
+            ],
+            "accuracy_strict": [
+              81.44
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T19:23:08Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4185,6 +6030,18 @@
             "accuracy_judge": 66.22,
             "accuracy_strict": 66.22
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              66.22
+            ],
+            "accuracy_strict": [
+              66.22
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T19:03:59Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4213,6 +6070,18 @@
             "accuracy_judge": 84.38,
             "accuracy_strict": 78.12
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.38
+            ],
+            "accuracy_strict": [
+              78.12
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T22:51:53Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4241,6 +6110,18 @@
             "accuracy_judge": 54.97,
             "accuracy_strict": 54.3
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              54.97
+            ],
+            "accuracy_strict": [
+              54.3
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-24T13:26:37Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4270,6 +6151,21 @@
             "map75": 41.41,
             "map50_95": 41.06
           },
+          "metric_runs": {
+            "map50": [
+              59.87
+            ],
+            "map75": [
+              41.41
+            ],
+            "map50_95": [
+              41.06
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-22T16:31:05Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -4307,6 +6203,12 @@
           "total_seconds": 4196.667,
           "average_seconds_per_sample": 6.547
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4325,6 +6227,18 @@
             "accuracy_judge": 60.93,
             "accuracy_strict": 60.93
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              60.93
+            ],
+            "accuracy_strict": [
+              60.93
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-26T20:41:02Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 1,
@@ -4360,8 +6274,14 @@
         },
         "speed": {
           "total_seconds": 1272.83,
-          "average_seconds_per_sample": 8.486
+          "average_seconds_per_sample": 8.429
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4379,6 +6299,15 @@
           "metrics": {
             "similarity": 92.84
           },
+          "metric_runs": {
+            "similarity": [
+              92.84
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-03T17:30:19Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4407,6 +6336,18 @@
             "accuracy_judge": 87.63,
             "accuracy_strict": 86.6
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              87.63
+            ],
+            "accuracy_strict": [
+              86.6
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-03T17:30:20Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4435,6 +6376,18 @@
             "accuracy_judge": 82.43,
             "accuracy_strict": 82.43
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              82.43
+            ],
+            "accuracy_strict": [
+              82.43
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-03T17:30:19Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4463,6 +6416,18 @@
             "accuracy_judge": 90.62,
             "accuracy_strict": 90.62
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              90.62
+            ],
+            "accuracy_strict": [
+              90.62
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-03T17:30:22Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4491,6 +6456,18 @@
             "accuracy_judge": 73.51,
             "accuracy_strict": 73.51
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              73.51
+            ],
+            "accuracy_strict": [
+              73.51
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-03T17:30:23Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4520,6 +6497,21 @@
             "map75": 61.44,
             "map50_95": 60.25
           },
+          "metric_runs": {
+            "map50": [
+              77.1
+            ],
+            "map75": [
+              61.44
+            ],
+            "map50_95": [
+              60.25
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-03T17:18:42Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -4557,6 +6549,12 @@
           "total_seconds": 11554.077,
           "average_seconds_per_sample": 18.025
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4575,6 +6573,18 @@
             "accuracy_judge": 80.79,
             "accuracy_strict": 80.13
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              80.79
+            ],
+            "accuracy_strict": [
+              80.13
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-03T17:30:24Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4612,6 +6622,12 @@
           "total_seconds": 4974.788,
           "average_seconds_per_sample": 32.946
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4629,6 +6645,15 @@
           "metrics": {
             "similarity": 86.52
           },
+          "metric_runs": {
+            "similarity": [
+              86.52
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:50:55Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4657,6 +6682,18 @@
             "accuracy_judge": 83.51,
             "accuracy_strict": 82.47
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              83.51
+            ],
+            "accuracy_strict": [
+              82.47
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T18:05:27Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4685,6 +6722,18 @@
             "accuracy_judge": 50.0,
             "accuracy_strict": 50.0
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              50.0
+            ],
+            "accuracy_strict": [
+              50.0
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T16:30:29Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4713,6 +6762,18 @@
             "accuracy_judge": 84.38,
             "accuracy_strict": 84.38
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.38
+            ],
+            "accuracy_strict": [
+              84.38
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T22:01:14Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4741,6 +6802,18 @@
             "accuracy_judge": 39.74,
             "accuracy_strict": 39.74
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              39.74
+            ],
+            "accuracy_strict": [
+              39.74
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T18:47:40Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4770,6 +6843,21 @@
             "map75": 48.43,
             "map50_95": 45.14
           },
+          "metric_runs": {
+            "map50": [
+              60.09
+            ],
+            "map75": [
+              48.43
+            ],
+            "map50_95": [
+              45.14
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-22T18:24:40Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -4807,6 +6895,12 @@
           "total_seconds": 4494.202,
           "average_seconds_per_sample": 7.011
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4825,6 +6919,18 @@
             "accuracy_judge": 68.21,
             "accuracy_strict": 66.23
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              68.21
+            ],
+            "accuracy_strict": [
+              66.23
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-26T21:11:06Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 2,
@@ -4860,8 +6966,14 @@
         },
         "speed": {
           "total_seconds": 8703.863,
-          "average_seconds_per_sample": 58.415
+          "average_seconds_per_sample": 57.641
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4879,6 +6991,15 @@
           "metrics": {
             "similarity": 84.13
           },
+          "metric_runs": {
+            "similarity": [
+              84.13
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-28T12:07:00Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4907,6 +7028,18 @@
             "accuracy_judge": 77.32,
             "accuracy_strict": 78.35
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              77.32
+            ],
+            "accuracy_strict": [
+              78.35
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-28T11:59:28Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 2,
@@ -4935,6 +7068,18 @@
             "accuracy_judge": 45.95,
             "accuracy_strict": 45.95
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              45.95
+            ],
+            "accuracy_strict": [
+              45.95
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-28T11:15:43Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4963,6 +7108,18 @@
             "accuracy_judge": 84.38,
             "accuracy_strict": 84.38
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.38
+            ],
+            "accuracy_strict": [
+              84.38
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-28T12:05:04Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -4991,6 +7148,18 @@
             "accuracy_judge": 34.44,
             "accuracy_strict": 34.44
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              34.44
+            ],
+            "accuracy_strict": [
+              34.44
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-28T12:14:04Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5020,6 +7189,21 @@
             "map75": 32.91,
             "map50_95": 31.07
           },
+          "metric_runs": {
+            "map50": [
+              42.83
+            ],
+            "map75": [
+              32.91
+            ],
+            "map50_95": [
+              31.07
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-28T11:19:41Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 2,
@@ -5055,8 +7239,14 @@
         },
         "speed": {
           "total_seconds": 4025.9,
-          "average_seconds_per_sample": 6.32
+          "average_seconds_per_sample": 6.281
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5075,6 +7265,18 @@
             "accuracy_judge": 61.59,
             "accuracy_strict": 60.93
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              61.59
+            ],
+            "accuracy_strict": [
+              60.93
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-28T14:29:53Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 7,
@@ -5110,8 +7312,14 @@
         },
         "speed": {
           "total_seconds": 8537.349,
-          "average_seconds_per_sample": 59.287
+          "average_seconds_per_sample": 56.539
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5129,6 +7337,15 @@
           "metrics": {
             "similarity": 88.87
           },
+          "metric_runs": {
+            "similarity": [
+              88.87
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-27T08:20:47Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5157,6 +7374,18 @@
             "accuracy_judge": 86.6,
             "accuracy_strict": 85.57
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              86.6
+            ],
+            "accuracy_strict": [
+              85.57
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-27T08:26:11Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5185,6 +7414,18 @@
             "accuracy_judge": 59.46,
             "accuracy_strict": 59.46
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              59.46
+            ],
+            "accuracy_strict": [
+              59.46
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-27T08:21:59Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5213,6 +7454,18 @@
             "accuracy_judge": 90.62,
             "accuracy_strict": 87.5
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              90.62
+            ],
+            "accuracy_strict": [
+              87.5
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-27T08:21:38Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5241,6 +7494,18 @@
             "accuracy_judge": 37.75,
             "accuracy_strict": 37.75
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              37.75
+            ],
+            "accuracy_strict": [
+              37.75
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-27T08:50:20Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5270,6 +7535,21 @@
             "map75": 46.98,
             "map50_95": 45.02
           },
+          "metric_runs": {
+            "map50": [
+              58.54
+            ],
+            "map75": [
+              46.98
+            ],
+            "map50_95": [
+              45.02
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-27T08:45:55Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -5307,6 +7587,12 @@
           "total_seconds": 5283.268,
           "average_seconds_per_sample": 8.242
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5325,6 +7611,18 @@
             "accuracy_judge": 68.87,
             "accuracy_strict": 68.87
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              68.87
+            ],
+            "accuracy_strict": [
+              68.87
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-27T09:07:51Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5362,6 +7660,12 @@
           "total_seconds": 4628.052,
           "average_seconds_per_sample": 30.649
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5379,6 +7683,15 @@
           "metrics": {
             "similarity": 88.1
           },
+          "metric_runs": {
+            "similarity": [
+              88.1
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T07:57:20Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5407,6 +7720,18 @@
             "accuracy_judge": 87.63,
             "accuracy_strict": 86.6
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              87.63
+            ],
+            "accuracy_strict": [
+              86.6
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T10:47:49Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5435,6 +7760,18 @@
             "accuracy_judge": 47.3,
             "accuracy_strict": 47.3
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              47.3
+            ],
+            "accuracy_strict": [
+              47.3
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T10:29:48Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5463,6 +7800,18 @@
             "accuracy_judge": 90.62,
             "accuracy_strict": 90.62
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              90.62
+            ],
+            "accuracy_strict": [
+              90.62
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T10:56:50Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5491,6 +7840,18 @@
             "accuracy_judge": 29.8,
             "accuracy_strict": 29.8
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              29.8
+            ],
+            "accuracy_strict": [
+              29.8
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T19:18:55Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5520,6 +7881,21 @@
             "map75": 42.91,
             "map50_95": 40.31
           },
+          "metric_runs": {
+            "map50": [
+              52.14
+            ],
+            "map75": [
+              42.91
+            ],
+            "map50_95": [
+              40.31
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-22T19:19:54Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -5557,6 +7933,12 @@
           "total_seconds": 5878.532,
           "average_seconds_per_sample": 9.171
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5575,6 +7957,18 @@
             "accuracy_judge": 33.77,
             "accuracy_strict": 33.77
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              33.77
+            ],
+            "accuracy_strict": [
+              33.77
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-27T06:01:28Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5612,6 +8006,12 @@
           "total_seconds": 296.454,
           "average_seconds_per_sample": 1.963
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5629,6 +8029,15 @@
           "metrics": {
             "similarity": 84.45
           },
+          "metric_runs": {
+            "similarity": [
+              84.45
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T18:22:11Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5657,6 +8066,18 @@
             "accuracy_judge": 79.38,
             "accuracy_strict": 78.35
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              79.38
+            ],
+            "accuracy_strict": [
+              78.35
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T18:17:28Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5685,6 +8106,18 @@
             "accuracy_judge": 54.05,
             "accuracy_strict": 54.05
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              54.05
+            ],
+            "accuracy_strict": [
+              54.05
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T17:13:13Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5713,6 +8146,18 @@
             "accuracy_judge": 78.12,
             "accuracy_strict": 78.12
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              78.12
+            ],
+            "accuracy_strict": [
+              78.12
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T18:21:05Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5741,6 +8186,18 @@
             "accuracy_judge": 31.79,
             "accuracy_strict": 31.79
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              31.79
+            ],
+            "accuracy_strict": [
+              31.79
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T19:24:09Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5770,6 +8227,21 @@
             "map75": 46.4,
             "map50_95": 45.08
           },
+          "metric_runs": {
+            "map50": [
+              58.75
+            ],
+            "map75": [
+              46.4
+            ],
+            "map50_95": [
+              45.08
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T17:15:41Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -5807,6 +8279,12 @@
           "total_seconds": 4727.643,
           "average_seconds_per_sample": 7.375
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5825,6 +8303,18 @@
             "accuracy_judge": 61.59,
             "accuracy_strict": 61.59
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              61.59
+            ],
+            "accuracy_strict": [
+              61.59
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-27T06:06:48Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5862,6 +8352,12 @@
           "total_seconds": 9458.923,
           "average_seconds_per_sample": 62.642
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5879,6 +8375,15 @@
           "metrics": {
             "similarity": 81.42
           },
+          "metric_runs": {
+            "similarity": [
+              81.42
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-14T16:43:35Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5907,6 +8412,18 @@
             "accuracy_judge": 79.38,
             "accuracy_strict": 79.38
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              79.38
+            ],
+            "accuracy_strict": [
+              79.38
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-14T16:40:16Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5935,6 +8452,18 @@
             "accuracy_judge": 41.89,
             "accuracy_strict": 41.89
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              41.89
+            ],
+            "accuracy_strict": [
+              41.89
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-14T16:38:55Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5963,6 +8492,18 @@
             "accuracy_judge": 78.12,
             "accuracy_strict": 75.0
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              78.12
+            ],
+            "accuracy_strict": [
+              75.0
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-14T16:42:47Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -5991,6 +8532,18 @@
             "accuracy_judge": 31.79,
             "accuracy_strict": 31.13
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              31.79
+            ],
+            "accuracy_strict": [
+              31.13
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-14T16:50:07Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6020,6 +8573,21 @@
             "map75": 43.18,
             "map50_95": 41.19
           },
+          "metric_runs": {
+            "map50": [
+              54.51
+            ],
+            "map75": [
+              43.18
+            ],
+            "map50_95": [
+              41.19
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-14T16:34:12Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -6057,6 +8625,12 @@
           "total_seconds": 4698.999,
           "average_seconds_per_sample": 7.331
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6075,6 +8649,18 @@
             "accuracy_judge": 62.25,
             "accuracy_strict": 62.25
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              62.25
+            ],
+            "accuracy_strict": [
+              62.25
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-14T19:52:27Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6112,6 +8698,12 @@
           "total_seconds": 8132.13,
           "average_seconds_per_sample": 53.855
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6129,6 +8721,15 @@
           "metrics": {
             "similarity": 82.8
           },
+          "metric_runs": {
+            "similarity": [
+              82.8
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-19T19:39:20Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6157,6 +8758,18 @@
             "accuracy_judge": 85.57,
             "accuracy_strict": 85.57
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              85.57
+            ],
+            "accuracy_strict": [
+              85.57
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-19T19:39:21Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6185,6 +8798,18 @@
             "accuracy_judge": 44.59,
             "accuracy_strict": 44.59
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              44.59
+            ],
+            "accuracy_strict": [
+              44.59
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-19T19:39:22Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6213,6 +8838,18 @@
             "accuracy_judge": 78.12,
             "accuracy_strict": 78.12
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              78.12
+            ],
+            "accuracy_strict": [
+              78.12
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-19T19:39:22Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6241,6 +8878,18 @@
             "accuracy_judge": 31.13,
             "accuracy_strict": 29.8
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              31.13
+            ],
+            "accuracy_strict": [
+              29.8
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-19T19:39:23Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6270,6 +8919,21 @@
             "map75": 44.21,
             "map50_95": 41.73
           },
+          "metric_runs": {
+            "map50": [
+              53.88
+            ],
+            "map75": [
+              44.21
+            ],
+            "map50_95": [
+              41.73
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-19T19:39:24Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -6307,6 +8971,12 @@
           "total_seconds": 5682.771,
           "average_seconds_per_sample": 8.865
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6325,6 +8995,18 @@
             "accuracy_judge": 54.3,
             "accuracy_strict": 46.36
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              54.3
+            ],
+            "accuracy_strict": [
+              46.36
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-20T16:25:23Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6362,6 +9044,12 @@
           "total_seconds": 21042.141,
           "average_seconds_per_sample": 139.352
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6379,6 +9067,15 @@
           "metrics": {
             "similarity": 89.31
           },
+          "metric_runs": {
+            "similarity": [
+              89.31
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T08:03:48Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6407,6 +9104,18 @@
             "accuracy_judge": 81.44,
             "accuracy_strict": 79.38
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              81.44
+            ],
+            "accuracy_strict": [
+              79.38
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T18:09:42Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6435,6 +9144,18 @@
             "accuracy_judge": 48.65,
             "accuracy_strict": 48.65
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              48.65
+            ],
+            "accuracy_strict": [
+              48.65
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T16:33:22Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6463,6 +9184,18 @@
             "accuracy_judge": 84.38,
             "accuracy_strict": 84.38
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.38
+            ],
+            "accuracy_strict": [
+              84.38
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-08T22:02:29Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6491,6 +9224,18 @@
             "accuracy_judge": 31.79,
             "accuracy_strict": 31.79
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              31.79
+            ],
+            "accuracy_strict": [
+              31.79
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T19:30:28Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6520,6 +9265,21 @@
             "map75": 39.86,
             "map50_95": 39.22
           },
+          "metric_runs": {
+            "map50": [
+              56.47
+            ],
+            "map75": [
+              39.86
+            ],
+            "map50_95": [
+              39.22
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-22T20:37:19Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -6557,6 +9317,12 @@
           "total_seconds": 4070.563,
           "average_seconds_per_sample": 6.35
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6575,6 +9341,18 @@
             "accuracy_judge": 49.67,
             "accuracy_strict": 49.67
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              49.67
+            ],
+            "accuracy_strict": [
+              49.67
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-27T08:44:50Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6612,6 +9390,12 @@
           "total_seconds": 4382.145,
           "average_seconds_per_sample": 29.021
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6629,6 +9413,15 @@
           "metrics": {
             "similarity": 90.62
           },
+          "metric_runs": {
+            "similarity": [
+              90.62
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-26T16:12:50Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6657,6 +9450,18 @@
             "accuracy_judge": 83.51,
             "accuracy_strict": 81.44
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              83.51
+            ],
+            "accuracy_strict": [
+              81.44
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-26T16:12:50Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6685,6 +9490,18 @@
             "accuracy_judge": 55.41,
             "accuracy_strict": 55.41
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              55.41
+            ],
+            "accuracy_strict": [
+              55.41
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-26T16:12:50Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6713,6 +9530,18 @@
             "accuracy_judge": 84.38,
             "accuracy_strict": 78.12
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.38
+            ],
+            "accuracy_strict": [
+              78.12
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-26T16:12:50Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6741,6 +9570,18 @@
             "accuracy_judge": 50.99,
             "accuracy_strict": 42.38
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              50.99
+            ],
+            "accuracy_strict": [
+              42.38
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-26T16:12:50Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6770,6 +9611,21 @@
             "map75": 17.92,
             "map50_95": 18.97
           },
+          "metric_runs": {
+            "map50": [
+              33.09
+            ],
+            "map75": [
+              17.92
+            ],
+            "map50_95": [
+              18.97
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-26T16:12:50Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -6807,6 +9663,12 @@
           "total_seconds": 4348.495,
           "average_seconds_per_sample": 6.784
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6825,6 +9687,18 @@
             "accuracy_judge": 59.6,
             "accuracy_strict": 51.66
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              59.6
+            ],
+            "accuracy_strict": [
+              51.66
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-26T16:12:50Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6862,6 +9736,12 @@
           "total_seconds": 812.293,
           "average_seconds_per_sample": 5.379
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6879,6 +9759,15 @@
           "metrics": {
             "similarity": 88.49
           },
+          "metric_runs": {
+            "similarity": [
+              88.49
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-10T08:11:31Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6907,6 +9796,18 @@
             "accuracy_judge": 79.38,
             "accuracy_strict": 78.35
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              79.38
+            ],
+            "accuracy_strict": [
+              78.35
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T16:47:40Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6935,6 +9836,18 @@
             "accuracy_judge": 56.76,
             "accuracy_strict": 50.0
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              56.76
+            ],
+            "accuracy_strict": [
+              50.0
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T14:52:04Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6963,6 +9876,18 @@
             "accuracy_judge": 78.12,
             "accuracy_strict": 62.5
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              78.12
+            ],
+            "accuracy_strict": [
+              62.5
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-09T17:03:50Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -6991,6 +9916,18 @@
             "accuracy_judge": 39.07,
             "accuracy_strict": 24.5
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              39.07
+            ],
+            "accuracy_strict": [
+              24.5
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T19:40:45Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7020,6 +9957,21 @@
             "map75": 26.7,
             "map50_95": 26.82
           },
+          "metric_runs": {
+            "map50": [
+              35.66
+            ],
+            "map75": [
+              26.7
+            ],
+            "map50_95": [
+              26.82
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-22T18:25:00Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -7057,6 +10009,12 @@
           "total_seconds": 18953.617,
           "average_seconds_per_sample": 29.569
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7075,6 +10033,18 @@
             "accuracy_judge": 58.94,
             "accuracy_strict": 57.62
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              58.94
+            ],
+            "accuracy_strict": [
+              57.62
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-27T09:58:14Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 2,
@@ -7110,8 +10080,14 @@
         },
         "speed": {
           "total_seconds": 16567.259,
-          "average_seconds_per_sample": 111.19
+          "average_seconds_per_sample": 109.717
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7129,6 +10105,15 @@
           "metrics": {
             "similarity": 93.0
           },
+          "metric_runs": {
+            "similarity": [
+              93.0
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T23:46:57Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7157,6 +10142,18 @@
             "accuracy_judge": 84.54,
             "accuracy_strict": 84.54
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.54
+            ],
+            "accuracy_strict": [
+              84.54
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T23:34:58Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7185,6 +10182,18 @@
             "accuracy_judge": 45.95,
             "accuracy_strict": 45.95
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              45.95
+            ],
+            "accuracy_strict": [
+              45.95
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T23:27:22Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7213,6 +10222,18 @@
             "accuracy_judge": 81.25,
             "accuracy_strict": 81.25
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              81.25
+            ],
+            "accuracy_strict": [
+              81.25
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T23:44:08Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7241,6 +10262,18 @@
             "accuracy_judge": 42.38,
             "accuracy_strict": 42.38
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              42.38
+            ],
+            "accuracy_strict": [
+              42.38
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T19:51:00Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7270,6 +10303,21 @@
             "map75": 41.54,
             "map50_95": 40.4
           },
+          "metric_runs": {
+            "map50": [
+              51.92
+            ],
+            "map75": [
+              41.54
+            ],
+            "map50_95": [
+              40.4
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-24T06:44:34Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -7307,6 +10355,12 @@
           "total_seconds": 8143.968,
           "average_seconds_per_sample": 12.705
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7325,6 +10379,18 @@
             "accuracy_judge": 74.17,
             "accuracy_strict": 74.17
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              74.17
+            ],
+            "accuracy_strict": [
+              74.17
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-27T14:42:03Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7362,6 +10428,12 @@
           "total_seconds": 12068.609,
           "average_seconds_per_sample": 79.925
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7379,6 +10451,15 @@
           "metrics": {
             "similarity": 92.53
           },
+          "metric_runs": {
+            "similarity": [
+              92.53
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T11:18:01Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7407,6 +10488,18 @@
             "accuracy_judge": 87.63,
             "accuracy_strict": 86.6
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              87.63
+            ],
+            "accuracy_strict": [
+              86.6
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T11:06:49Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 1,
@@ -7435,6 +10528,18 @@
             "accuracy_judge": 75.68,
             "accuracy_strict": 75.68
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              75.68
+            ],
+            "accuracy_strict": [
+              75.68
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T10:57:18Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7463,6 +10568,18 @@
             "accuracy_judge": 90.62,
             "accuracy_strict": 87.5
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              90.62
+            ],
+            "accuracy_strict": [
+              87.5
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T11:14:20Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 1,
@@ -7491,6 +10608,18 @@
             "accuracy_judge": 74.83,
             "accuracy_strict": 73.51
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              74.83
+            ],
+            "accuracy_strict": [
+              73.51
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-25T20:50:01Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7520,6 +10649,21 @@
             "map75": 40.69,
             "map50_95": 38.63
           },
+          "metric_runs": {
+            "map50": [
+              58.42
+            ],
+            "map75": [
+              40.69
+            ],
+            "map50_95": [
+              38.63
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-23T13:21:31Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -7555,8 +10699,14 @@
         },
         "speed": {
           "total_seconds": 7284.744,
-          "average_seconds_per_sample": 11.4
+          "average_seconds_per_sample": 11.365
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7575,6 +10725,18 @@
             "accuracy_judge": 76.16,
             "accuracy_strict": 75.5
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              76.16
+            ],
+            "accuracy_strict": [
+              75.5
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-07-27T18:52:20Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7612,6 +10774,12 @@
           "total_seconds": 3317.156,
           "average_seconds_per_sample": 21.968
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7629,6 +10797,15 @@
           "metrics": {
             "similarity": 93.79
           },
+          "metric_runs": {
+            "similarity": [
+              93.79
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-05T23:08:10Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7657,6 +10834,18 @@
             "accuracy_judge": 89.69,
             "accuracy_strict": 88.66
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              89.69
+            ],
+            "accuracy_strict": [
+              88.66
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-05T22:58:35Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7685,6 +10874,18 @@
             "accuracy_judge": 74.32,
             "accuracy_strict": 74.32
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              74.32
+            ],
+            "accuracy_strict": [
+              74.32
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-06T06:58:36Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7713,6 +10914,18 @@
             "accuracy_judge": 90.62,
             "accuracy_strict": 90.62
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              90.62
+            ],
+            "accuracy_strict": [
+              90.62
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-06T06:58:38Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7741,6 +10954,18 @@
             "accuracy_judge": 74.83,
             "accuracy_strict": 74.17
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              74.83
+            ],
+            "accuracy_strict": [
+              74.17
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-06T06:58:40Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7770,6 +10995,21 @@
             "map75": 43.45,
             "map50_95": 40.69
           },
+          "metric_runs": {
+            "map50": [
+              60.17
+            ],
+            "map75": [
+              43.45
+            ],
+            "map50_95": [
+              40.69
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-06T06:58:36Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -7807,6 +11047,12 @@
           "total_seconds": 4984.283,
           "average_seconds_per_sample": 7.776
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7825,6 +11071,18 @@
             "accuracy_judge": 76.16,
             "accuracy_strict": 74.17
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              76.16
+            ],
+            "accuracy_strict": [
+              74.17
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-06T07:42:38Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7862,6 +11120,12 @@
           "total_seconds": 2462.744,
           "average_seconds_per_sample": 16.31
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7879,6 +11143,15 @@
           "metrics": {
             "similarity": 92.14
           },
+          "metric_runs": {
+            "similarity": [
+              92.14
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-12T07:53:47Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7907,6 +11180,18 @@
             "accuracy_judge": 86.6,
             "accuracy_strict": 85.57
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              86.6
+            ],
+            "accuracy_strict": [
+              85.57
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-12T07:49:02Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7935,6 +11220,18 @@
             "accuracy_judge": 66.22,
             "accuracy_strict": 66.22
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              66.22
+            ],
+            "accuracy_strict": [
+              66.22
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-12T07:44:25Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7963,6 +11260,18 @@
             "accuracy_judge": 81.25,
             "accuracy_strict": 78.12
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              81.25
+            ],
+            "accuracy_strict": [
+              78.12
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-12T07:52:42Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -7991,6 +11300,18 @@
             "accuracy_judge": 57.62,
             "accuracy_strict": 57.62
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              57.62
+            ],
+            "accuracy_strict": [
+              57.62
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-12T07:58:33Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8020,6 +11341,21 @@
             "map75": 22.3,
             "map50_95": 23.02
           },
+          "metric_runs": {
+            "map50": [
+              40.98
+            ],
+            "map75": [
+              22.3
+            ],
+            "map50_95": [
+              23.02
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-12T08:15:11Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -8057,6 +11393,12 @@
           "total_seconds": 5573.773,
           "average_seconds_per_sample": 8.695
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8075,6 +11417,18 @@
             "accuracy_judge": 62.91,
             "accuracy_strict": 62.91
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              62.91
+            ],
+            "accuracy_strict": [
+              62.91
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-14T16:23:07Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8112,6 +11466,12 @@
           "total_seconds": 3794.985,
           "average_seconds_per_sample": 25.132
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8129,6 +11489,15 @@
           "metrics": {
             "similarity": 92.51
           },
+          "metric_runs": {
+            "similarity": [
+              92.51
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-11T23:24:09Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8157,6 +11526,18 @@
             "accuracy_judge": 84.54,
             "accuracy_strict": 83.51
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              84.54
+            ],
+            "accuracy_strict": [
+              83.51
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-11T23:08:16Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8185,6 +11566,18 @@
             "accuracy_judge": 55.41,
             "accuracy_strict": 55.41
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              55.41
+            ],
+            "accuracy_strict": [
+              55.41
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-11T22:42:04Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8213,6 +11606,18 @@
             "accuracy_judge": 81.25,
             "accuracy_strict": 78.12
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              81.25
+            ],
+            "accuracy_strict": [
+              78.12
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-11T22:35:28Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8241,6 +11646,18 @@
             "accuracy_judge": 58.28,
             "accuracy_strict": 58.28
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              58.28
+            ],
+            "accuracy_strict": [
+              58.28
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-11T23:35:44Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 1,
@@ -8270,6 +11687,21 @@
             "map75": 4.61,
             "map50_95": 7.46
           },
+          "metric_runs": {
+            "map50": [
+              17.99
+            ],
+            "map75": [
+              4.61
+            ],
+            "map50_95": [
+              7.46
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-12T22:09:14Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -8305,8 +11737,14 @@
         },
         "speed": {
           "total_seconds": 9170.656,
-          "average_seconds_per_sample": 14.329
+          "average_seconds_per_sample": 14.307
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8325,6 +11763,18 @@
             "accuracy_judge": 59.6,
             "accuracy_strict": 59.6
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              59.6
+            ],
+            "accuracy_strict": [
+              59.6
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-12T00:55:29Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 5,
@@ -8360,8 +11810,14 @@
         },
         "speed": {
           "total_seconds": 4185.963,
-          "average_seconds_per_sample": 28.671
+          "average_seconds_per_sample": 27.722
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8379,6 +11835,15 @@
           "metrics": {
             "similarity": 91.96
           },
+          "metric_runs": {
+            "similarity": [
+              91.96
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-11T23:30:26Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8407,6 +11872,18 @@
             "accuracy_judge": 85.57,
             "accuracy_strict": 84.54
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              85.57
+            ],
+            "accuracy_strict": [
+              84.54
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-11T23:16:44Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8435,6 +11912,18 @@
             "accuracy_judge": 70.27,
             "accuracy_strict": 70.27
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              70.27
+            ],
+            "accuracy_strict": [
+              70.27
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-11T22:57:27Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8463,6 +11952,18 @@
             "accuracy_judge": 87.5,
             "accuracy_strict": 78.12
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              87.5
+            ],
+            "accuracy_strict": [
+              78.12
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-11T22:39:09Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8491,6 +11992,18 @@
             "accuracy_judge": 61.59,
             "accuracy_strict": 61.59
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              61.59
+            ],
+            "accuracy_strict": [
+              61.59
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-12T00:29:24Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8520,6 +12033,21 @@
             "map75": 4.62,
             "map50_95": 8.03
           },
+          "metric_runs": {
+            "map50": [
+              20.16
+            ],
+            "map75": [
+              4.62
+            ],
+            "map50_95": [
+              8.03
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-12T22:09:15Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -8557,6 +12085,12 @@
           "total_seconds": 4737.419,
           "average_seconds_per_sample": 7.391
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8575,6 +12109,18 @@
             "accuracy_judge": 61.59,
             "accuracy_strict": 61.59
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              61.59
+            ],
+            "accuracy_strict": [
+              61.59
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-12T03:27:51Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 4,
@@ -8610,8 +12156,14 @@
         },
         "speed": {
           "total_seconds": 5561.263,
-          "average_seconds_per_sample": 37.832
+          "average_seconds_per_sample": 36.83
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8629,6 +12181,15 @@
           "metrics": {
             "similarity": 86.67
           },
+          "metric_runs": {
+            "similarity": [
+              86.67
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-21T15:36:39Z"
+          ],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8657,6 +12218,18 @@
             "accuracy_judge": 65.98,
             "accuracy_strict": 64.95
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              65.98
+            ],
+            "accuracy_strict": [
+              64.95
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-21T15:36:40Z"
+          ],
           "sample_count": 97,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8685,6 +12258,18 @@
             "accuracy_judge": 45.95,
             "accuracy_strict": 45.95
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              45.95
+            ],
+            "accuracy_strict": [
+              45.95
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-21T15:36:40Z"
+          ],
           "sample_count": 74,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8713,6 +12298,18 @@
             "accuracy_judge": 68.75,
             "accuracy_strict": 68.75
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              68.75
+            ],
+            "accuracy_strict": [
+              68.75
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-21T15:36:41Z"
+          ],
           "sample_count": 32,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8741,6 +12338,18 @@
             "accuracy_judge": 31.79,
             "accuracy_strict": 30.46
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              31.79
+            ],
+            "accuracy_strict": [
+              30.46
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-21T15:36:42Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8770,6 +12379,21 @@
             "map75": 28.79,
             "map50_95": 29.87
           },
+          "metric_runs": {
+            "map50": [
+              45.32
+            ],
+            "map75": [
+              28.79
+            ],
+            "map50_95": [
+              29.87
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-21T15:42:43Z"
+          ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -8807,6 +12431,12 @@
           "total_seconds": 2367.637,
           "average_seconds_per_sample": 3.694
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8825,6 +12455,18 @@
             "accuracy_judge": 49.01,
             "accuracy_strict": 48.34
           },
+          "metric_runs": {
+            "accuracy_judge": [
+              49.01
+            ],
+            "accuracy_strict": [
+              48.34
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-08-21T15:36:42Z"
+          ],
           "sample_count": 151,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -8862,6 +12504,12 @@
           "total_seconds": 2476.102,
           "average_seconds_per_sample": 16.398
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     }
   ]

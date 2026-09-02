@@ -16,7 +16,10 @@ charts at any time with `vlm-exam leaderboard`.
 
 The QA charts show LLM-judge accuracy; each links to the strict-match
 variant of the same leaderboard. See "Run a VQA benchmark" below for how
-the two metrics differ.
+the two metrics differ. Charts below are at `--effort low`; every chart also
+has a `_high.png` counterpart in `visualizations/leaderboards/`. Models
+benchmarked under the three-run protocol (see "Benchmark a model end to
+end") show a min-max whisker over their runs.
 
 ### Counting
 
@@ -120,6 +123,65 @@ place without re-running the model:
 vlm-exam rescore results/reasoning_gpt-5.5_low_20260725_101010.jsonl
 ```
 
+### Benchmark a model end to end
+
+Every model is benchmarked under one protocol: six tasks, two effort
+levels (`low` and `high`), three runs each, 36 result files in total. The
+leaderboards, reports, and web summary report the mean over the runs of
+each configuration. Repeats are just result files: every file in
+`results/` with the same `(task, model, effort)` counts as one run, so
+there is nothing to register.
+
+`vlm-exam benchmark` launches the whole protocol for a model as parallel
+processes, one per run, each with a task-sized `--concurrency` and its own
+log under `logs/`:
+
+```bash
+vlm-exam benchmark --models claude-fable-5-1
+```
+
+Narrow it with `--tasks`, `--efforts`, `--repeats`, and `--first-repeat`
+(for example, `--tasks detection --efforts high --repeats 2 --first-repeat 2`
+adds two missing detection repeats), and cap simultaneous processes with
+`--max-parallel`. A single configuration can also be repeated by hand;
+`--repeats` runs it back to back and `--concurrency` evaluates samples in
+parallel within a run:
+
+```bash
+vlm-exam run \
+    --task reasoning \
+    --models claude-fable-5-1 \
+    --effort low \
+    --dataset-directory data/reasoning/train \
+    --repeats 3 \
+    --concurrency 4
+```
+
+Repeats may also be launched as separate processes writing to the same
+directory; filenames are made unique on collision. `--resume-file <file>`
+re-runs only the failed samples of a run, writes the merged complete file,
+and deletes the source so the partial run is not counted as a repeat.
+
+### Validate the results directory
+
+`vlm-exam validate` checks `results/` against the protocol and exits 1 on
+violations. It prints a coverage table for every model in `models.yaml`,
+then each problem with the command that fixes it: missing or surplus runs,
+missing effort levels, partial runs, missing strict/judge verdicts, failed
+samples, and files for unknown models.
+
+```bash
+vlm-exam validate
+```
+
+Models benchmarked before the protocol are marked
+`benchmark_protocol: legacy` in `models.yaml`; their gaps are reported as
+warnings rather than failures until they are backfilled (`--strict` fails on
+them too, `--verbose` lists every missing configuration). `--format github`
+adds workflow annotations and a step summary; the repository's GitHub
+Action runs it, together with `vlm-exam summary --check`, on every pull
+request.
+
 ### Run a detection benchmark
 
 Expects a COCO-format dataset directory containing an
@@ -141,13 +203,17 @@ Useful options:
 
 ### Summarize results
 
-Accuracy, token usage, and cost tables across all saved runs:
+Accuracy, token usage, and cost tables across all saved runs. Each row is
+one `(task, model, effort)` configuration with its run count; metrics are
+the mean over runs with half the min-max spread after `+/-`, and cost is
+per run:
 
 ```bash
 vlm-exam report --results-directory results
 ```
 
-Dataset-level mAP@50, mAP@75, and mAP@50:95 for detection runs:
+Dataset-level mAP@50, mAP@75, and mAP@50:95 for every detection run, with
+the mean per configuration:
 
 ```bash
 vlm-exam detection-report \
@@ -175,8 +241,10 @@ still map to class names when per-box labels would be too crowded), and `auto`
 ### Generate leaderboards
 
 Regenerates leaderboard charts for all locally saved runs (VQA accuracy plus
-detection mAP@50 / mAP@75 / mAP@50:95 per effort level). Use
-`--group <name>` or `--models` to filter to a subset.
+detection mAP@50 / mAP@75 / mAP@50:95 per effort level). Bars show the mean
+over a model's repeated runs; models with more than one run get a whisker
+spanning their lowest and highest run. Use `--group <name>` or `--models`
+to filter to a subset.
 
 ```bash
 vlm-exam leaderboard \
@@ -187,10 +255,11 @@ vlm-exam leaderboard \
 
 ### Compile a summary for the web
 
-Compiles the newest run per `(task, effort, model)` in `results/` (older
-runs are ignored) into a single JSON payload for the benchmark website. It
-carries per-task metadata and, for each model, its per-task quality plus
-token spend, cost, and inference speed. Each entry is one `(model, effort)`
+Compiles every run in `results/` into a single JSON payload for the
+benchmark website, averaging the repeats of each `(task, effort, model)`
+configuration. It carries per-task metadata and, for each model, its
+per-task quality plus token spend, cost, and inference speed of one run.
+Each entry is one `(model, effort)`
 pair with a unique `id`, so the same model appears once per effort; the
 top-level `efforts` array lists every effort present. Pass
 `--dataset-directory` to include detection mAP (otherwise detection quality
@@ -208,12 +277,27 @@ vlm-exam summary \
     --output-file web/benchmark_summary.json
 ```
 
+`vlm-exam summary --check` rebuilds the payload without writing and exits 1
+if the committed file is out of date (detection mAP fields are excluded from
+the comparison when no `--dataset-directory` is given).
+
 The output has this shape (abbreviated):
 
 ```json
 {
   "generated_at": "2026-07-10T08:11:31Z",
   "efforts": ["low"],
+  "scoring": {
+    "judge_model": "gemini-3.5-flash",
+    "judge_metric": "accuracy_judge",
+    "strict_metric": "accuracy_strict"
+  },
+  "protocol": {
+    "repeats": 3,
+    "efforts": ["low", "high"],
+    "tasks": ["ocr", "extraction", "counting", "identification", "reasoning", "detection"],
+    "runs_per_model": 36
+  },
   "tasks": [
     {
       "key": "ocr",
@@ -245,6 +329,9 @@ The output has this shape (abbreviated):
         "ocr": {
           "primary_metric": { "name": "similarity", "value": 90.73 },
           "metrics": { "similarity": 90.73 },
+          "metric_runs": { "similarity": [90.1, 91.4, 90.69] },
+          "run_count": 3,
+          "timestamps": ["2026-07-10T06:02:10Z", "2026-07-10T06:48:57Z", "2026-07-10T07:33:33Z"],
           "sample_count": 37,
           "evaluated_sample_count": null,
           "failed_sample_count": 0,
@@ -256,6 +343,9 @@ The output has this shape (abbreviated):
         "detection": {
           "primary_metric": { "name": "map50", "value": 46.23 },
           "metrics": { "map50": 46.23, "map75": 20.85, "map50_95": 23.26 },
+          "metric_runs": { "map50": [46.23], "map75": [20.85], "map50_95": [23.26] },
+          "run_count": 1,
+          "timestamps": ["2026-07-09T21:50:44Z"],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
@@ -271,15 +361,32 @@ The output has this shape (abbreviated):
         "tokens": { "input": 976102, "output": 237183, "total": 1213285, "average_per_sample": 2365.1 },
         "cost": { "total_usd": 11.996, "average_per_sample_usd": 0.023384 },
         "speed": { "total_seconds": 5094.531, "average_seconds_per_sample": 9.931 }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     }
   ]
 }
 ```
 
-All quality metrics are percentages (0-100). QA tasks report `accuracy`,
-OCR reports `similarity`, and detection reports `map50` (primary), `map75`,
-and `map50_95`. No-data contract: a task absent from a model's `tasks`
+All quality metrics are percentages (0-100). QA tasks report
+`accuracy_judge` (primary) and `accuracy_strict`, OCR reports `similarity`,
+and detection reports `map50` (primary), `map75`, and `map50_95`. `metrics`
+holds the mean over the configuration's runs, `metric_runs` the per-run
+values behind each mean (oldest first, matching `timestamps`), and
+`run_count` how many runs were averaged. The top-level `protocol` block
+states what a complete model has (`repeats` runs of every task in `tasks`
+at every effort in `efforts`, `runs_per_model` files in total), and each
+model entry's `protocol` block reports where that model stands across all
+efforts: `name` is `full` or `legacy` (the `benchmark_protocol` field in
+`models.yaml`), `status` is `complete`, `incomplete`, or `legacy`, and
+`runs_present`/`runs_required` count result files. Tokens, cost, and speed
+describe one run (the mean over repeats); `failed_sample_count` is summed
+over repeats. No-data contract: a task absent from a model's `tasks`
 means the model was not benchmarked on it; `primary_metric: null` with
 empty `metrics` means quality could not be computed (e.g. detection without
 `--dataset-directory`) while efficiency numbers remain valid.

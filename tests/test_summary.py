@@ -29,25 +29,30 @@ from vlm_exam.results import RunResult, SampleResult, save_results
 from vlm_exam.summary import (
     _TASK_DEFINITIONS,
     build_summary,
+    summary_drift,
     summary_to_dict,
 )
 from vlm_exam.tasks.detection import DetectionCoordinateFormat
 
 
-def _model(model_id: str) -> ModelConfig:
+def _model(model_id: str, benchmark_protocol: str = "full") -> ModelConfig:
     return ModelConfig(
         name=model_id,
         lab="openai",
         routes=(RouteConfig("openai"),),
         pricing=PricingConfig(1.0, 2.0),
         detection_coordinate_format=DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE,
+        benchmark_protocol=benchmark_protocol,
     )
 
 
-def _config(*model_ids: str) -> BenchmarkConfig:
+def _config(*model_ids: str, legacy: tuple[str, ...] = ()) -> BenchmarkConfig:
     return BenchmarkConfig(
         labs={"openai": LabConfig("OpenAI", "#000", "https://example.com/logo.svg")},
-        models={model_id: _model(model_id) for model_id in model_ids},
+        models={
+            model_id: _model(model_id, "legacy" if model_id in legacy else "full")
+            for model_id in model_ids
+        },
     )
 
 
@@ -102,6 +107,31 @@ class TestTaskRegistry:
 
 
 class TestBuildSummary:
+    def test_protocol_status_counts_runs_across_efforts(self, tmp_path: Path) -> None:
+        config = _config("alpha", "old", legacy=("old",))
+        for task in BENCHMARK_TASK_NAMES:
+            for effort in ("low", "high"):
+                for repeat in range(3):
+                    _save(
+                        _run(
+                            "alpha",
+                            task,
+                            effort=effort,
+                            timestamp=f"2026070{repeat + 1}_000000",
+                        ),
+                        tmp_path,
+                    )
+        _save(_run("old", "counting"), tmp_path)
+
+        summary = build_summary(tmp_path, config, effort="low")
+
+        by_key = {model.key: model for model in summary.models}
+        assert by_key["alpha"].protocol.status == "complete"
+        assert by_key["alpha"].protocol.runs_present == 36
+        assert by_key["old"].protocol.status == "legacy"
+        assert by_key["old"].protocol.runs_present == 1
+        assert by_key["old"].protocol.name == "legacy"
+
     def test_one_entry_per_model_effort(self, tmp_path: Path) -> None:
         config = _config("alpha")
         _save(_run("alpha", "counting", effort="low"), tmp_path)
@@ -125,28 +155,69 @@ class TestBuildSummary:
         assert [model.id for model in summary.models] == ["alpha:high"]
         assert summary.efforts == ("high",)
 
-    def test_newest_run_wins(self, tmp_path: Path) -> None:
+    def test_repeats_are_averaged(self, tmp_path: Path) -> None:
         config = _config("alpha")
-        old = _run(
+        first = _run(
             "alpha",
             "counting",
             timestamp="20260701_000000",
-            samples=[_sample(correct=False)],
+            samples=[_sample(index=0, correct=False), _sample(index=1, correct=True)],
         )
-        new = _run(
+        second = _run(
             "alpha",
             "counting",
             timestamp="20260702_000000",
-            samples=[_sample(correct=True)],
+            samples=[_sample(index=0, correct=True), _sample(index=1, correct=True)],
         )
-        _save(old, tmp_path)
-        _save(new, tmp_path)
+        third = _run(
+            "alpha",
+            "counting",
+            timestamp="20260703_000000",
+            samples=[_sample(index=0, correct=True), _sample(index=1, correct=True)],
+        )
+        _save(third, tmp_path)
+        _save(first, tmp_path)
+        _save(second, tmp_path)
 
         summary = build_summary(tmp_path, config)
 
         counting = summary.models[0].tasks["counting"]
-        assert counting.metrics == {"accuracy_judge": 100.0, "accuracy_strict": 100.0}
-        assert counting.timestamp == "20260702_000000"
+        assert counting.run_count == 3
+        assert counting.metrics["accuracy_judge"] == pytest.approx(250 / 3)
+        assert counting.metric_runs["accuracy_judge"] == (50.0, 100.0, 100.0)
+        assert counting.timestamps == (
+            "20260701_000000",
+            "20260702_000000",
+            "20260703_000000",
+        )
+        assert counting.timestamp == "20260703_000000"
+        assert counting.sample_count == 2
+        assert counting.tokens.total == 300
+        assert counting.cost.total_usd == pytest.approx(2 * (100 * 1 + 50 * 2) / 1e6)
+        assert summary.models[0].overall.sample_count == 2
+        assert summary.generated_at == "2026-07-03T00:00:00Z"
+
+    def test_failed_samples_emit_warning(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        config = _config("alpha")
+        failed = SampleResult(
+            index=0,
+            image="a.jpg",
+            expected="4",
+            predicted="ERROR: boom",
+            correct=False,
+            input_tokens=0,
+            output_tokens=0,
+            elapsed_seconds=None,
+            metadata={"strict_correct": False, "judge_correct": False},
+        )
+        _save(_run("alpha", "counting", samples=[failed]), tmp_path)
+
+        summary = build_summary(tmp_path, config)
+
+        assert summary.models[0].tasks["counting"].failed_sample_count == 1
+        assert "--resume-file" in capsys.readouterr().out
 
     def test_qa_reports_judge_and_strict_accuracy(self, tmp_path: Path) -> None:
         config = _config("alpha")
@@ -273,6 +344,7 @@ class TestSummaryToDict:
             "generated_at",
             "efforts",
             "scoring",
+            "protocol",
             "tasks",
             "models",
         ]
@@ -282,6 +354,19 @@ class TestSummaryToDict:
             "judge_model": "gemini-3.5-flash",
             "judge_metric": "accuracy_judge",
             "strict_metric": "accuracy_strict",
+        }
+        assert payload["protocol"] == {
+            "repeats": 3,
+            "efforts": ["low", "high"],
+            "tasks": [
+                "ocr",
+                "extraction",
+                "counting",
+                "identification",
+                "reasoning",
+                "detection",
+            ],
+            "runs_per_model": 36,
         }
 
         (task,) = payload["tasks"]
@@ -312,6 +397,65 @@ class TestSummaryToDict:
             "accuracy_strict": 66.67,
         }
         assert counting["primary_metric"] == {"name": "accuracy_judge", "value": 66.67}
+        assert counting["metric_runs"] == {
+            "accuracy_judge": [66.67],
+            "accuracy_strict": [66.67],
+        }
+        assert counting["run_count"] == 1
+        assert counting["timestamps"] == ["2026-07-10T07:33:33Z"]
         assert counting["evaluated_sample_count"] is None
         assert counting["timestamp"] == "2026-07-10T07:33:33Z"
         assert model["overall"]["sample_count"] == 3
+        assert model["protocol"] == {
+            "name": "full",
+            "status": "incomplete",
+            "runs_present": 1,
+            "runs_required": 36,
+        }
+
+
+class TestSummaryDrift:
+    def _payload(self, map50: float, cost: float) -> dict[str, Any]:
+        return {
+            "models": [
+                {
+                    "key": "alpha",
+                    "tasks": {
+                        "detection": {
+                            "primary_metric": {"name": "map50", "value": map50},
+                            "metrics": {"map50": map50},
+                            "metric_runs": {"map50": [map50]},
+                            "evaluated_sample_count": 250,
+                            "cost": {"total_usd": cost},
+                        },
+                        "ocr": {"metrics": {"similarity": 90.0}},
+                    },
+                }
+            ]
+        }
+
+    def test_identical_payloads_have_no_drift(self) -> None:
+        assert (
+            summary_drift(
+                self._payload(60.0, 1.0),
+                self._payload(60.0, 1.0),
+                ignore_detection_quality=False,
+            )
+            == []
+        )
+
+    def test_detection_quality_is_ignored_only_when_requested(self) -> None:
+        committed = self._payload(60.0, 1.0)
+        fresh = self._payload(0.0, 1.0)
+
+        assert summary_drift(committed, fresh, ignore_detection_quality=True) == []
+        assert summary_drift(committed, fresh, ignore_detection_quality=False)
+
+    def test_other_changes_still_drift(self) -> None:
+        drift = summary_drift(
+            self._payload(60.0, 1.0),
+            self._payload(60.0, 2.0),
+            ignore_detection_quality=True,
+        )
+
+        assert any(line.startswith("+") and "2.0" in line for line in drift)

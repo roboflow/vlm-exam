@@ -114,23 +114,82 @@ def _configure_clean_axes(
         spine.set_visible(False)
 
 
+def _draw_spread_whisker(
+    axes: plt.Axes,
+    low: float,
+    high: float,
+    y: float,
+    bar_height: float,
+) -> None:
+    if high <= low:
+        return
+    cap = bar_height * 0.28
+    axes.plot(
+        [low, high],
+        [y, y],
+        color=TEXT_PRIMARY,
+        linewidth=1.4,
+        solid_capstyle="butt",
+        zorder=5,
+    )
+    for x in (low, high):
+        axes.plot(
+            [x, x],
+            [y - cap, y + cap],
+            color=TEXT_PRIMARY,
+            linewidth=1.4,
+            zorder=5,
+        )
+
+
+def _add_spread_footnote(
+    axes: plt.Axes,
+    x: float,
+    y: float,
+    run_counts: dict[str, int],
+) -> None:
+    repeated = {count for count in run_counts.values() if count > 1}
+    if not repeated:
+        return
+    fonts = load_fonts()
+    counts = ", ".join(str(count) for count in sorted(repeated))
+    axes.text(
+        x,
+        y,
+        f"Bars show the mean over {counts} runs where available; "
+        "whiskers span the lowest and highest run.",
+        fontsize=11,
+        color=TEXT_SECONDARY,
+        font=fonts.medium,
+        va="top",
+        ha="left",
+    )
+
+
 def plot_accuracy_chart(
     accuracy: dict[str, float],
     config: BenchmarkConfig,
     title: str,
+    spread: dict[str, tuple[float, float]] | None = None,
+    run_counts: dict[str, int] | None = None,
 ) -> plt.Figure:
     """Horizontal bar chart showing accuracy per model.
 
     Args:
         accuracy: Mapping of model identifier to accuracy percentage
-            (0-100 scale).
+            (0-100 scale), the mean over repeated runs.
         config: Benchmark config for model/lab display info.
         title: Chart title.
+        spread: Optional mapping of model identifier to the lowest and
+            highest per-run value; drawn as a whisker on the bar.
+        run_counts: Optional mapping of model identifier to the number of
+            runs behind its bar, used for the footnote.
 
     Returns:
         Matplotlib figure.
     """
     fonts = load_fonts()
+    spread = spread or {}
     sorted_models = sorted(
         accuracy.keys(), key=lambda model: accuracy[model], reverse=True
     )
@@ -181,6 +240,9 @@ def plot_accuracy_chart(
             edgecolor="none",
             zorder=3,
         )
+        if model_id in spread:
+            low, high = spread[model_id]
+            _draw_spread_whisker(axes, low, high, y, bar_height)
 
         axes.text(
             bar_max + 2.0,
@@ -207,6 +269,7 @@ def plot_accuracy_chart(
         va="bottom",
         ha="left",
     )
+    _add_spread_footnote(axes, -LABEL_AREA_WIDTH - 2, -0.55, run_counts or {})
 
     plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
     return figure
@@ -220,11 +283,14 @@ def plot_metric_chart(
     sort_ascending: bool = True,
     full_scale: float | None = None,
     label_area_width: float = LABEL_AREA_WIDTH,
+    spread: dict[str, tuple[float, float]] | None = None,
+    run_counts: dict[str, int] | None = None,
 ) -> plt.Figure:
     """Single-bar horizontal chart for one metric across models.
 
     Args:
-        metric: Mapping of model identifier to metric value.
+        metric: Mapping of model identifier to metric value, the mean over
+            repeated runs.
         config: Benchmark config for model/lab display info.
         title: Chart title.
         format_value: Callable to format the metric value as a string.
@@ -232,11 +298,16 @@ def plot_metric_chart(
         full_scale: Value that corresponds to a full-length bar. When
             ``None``, bars are scaled relative to the highest value.
         label_area_width: Horizontal space reserved for model labels.
+        spread: Optional mapping of model identifier to the lowest and
+            highest per-run value, in metric units; drawn as a whisker.
+        run_counts: Optional mapping of model identifier to the number of
+            runs behind its bar, used for the footnote.
 
     Returns:
         Matplotlib figure.
     """
     fonts = load_fonts()
+    spread = spread or {}
     sorted_models = sorted(
         metric.keys(),
         key=lambda model: metric[model],
@@ -293,6 +364,9 @@ def plot_metric_chart(
             edgecolor="none",
             zorder=3,
         )
+        if model_id in spread:
+            low, high = spread[model_id]
+            _draw_spread_whisker(axes, low * scale, high * scale, y, bar_height)
 
         axes.text(
             bar_max + 2.0,
@@ -331,6 +405,7 @@ def plot_metric_chart(
         va="bottom",
         ha="left",
     )
+    _add_spread_footnote(axes, -label_area_width - 2, -0.55, run_counts or {})
 
     plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
     return figure
