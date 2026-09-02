@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import json
-import logging
 import os
 import re
 from dataclasses import dataclass
@@ -25,8 +24,6 @@ from vlm_exam.tasks.base import EvaluationResult, Sample, Task
 
 if TYPE_CHECKING:
     from vlm_exam.judge import Judge
-
-_logger = logging.getLogger(__name__)
 
 _ARTICLES_PATTERN = re.compile(r"^(a|an|the)\s+", re.IGNORECASE)
 _MARKDOWN_PATTERN = re.compile(r"(\*{1,2}|`{1,3}|_{1,2})")
@@ -131,51 +128,35 @@ def strict_match(expected: str, predicted: str) -> bool:
     return False
 
 
-def answers_match(
+def judge_answer(
     expected: str,
     predicted: str,
     *,
-    question: str = "",
-    match_mode: str = "strict",
-    judge: Judge | None = None,
+    question: str,
+    judge: Judge,
     guidance: str = "",
-) -> tuple[bool, str]:
-    """Check whether two answers are equivalent.
+) -> bool:
+    """Ask the LLM judge whether a prediction is correct.
 
-    In ``"strict"`` mode only deterministic normalization rules are used.
-    In ``"judge"`` mode an LLM judge is consulted when strict rules fail.
+    The judge is consulted for every prediction, independently of any
+    deterministic rule, so its verdicts form a metric of their own.
 
     Args:
         expected: Ground-truth answer.
         predicted: Model-produced answer.
-        question: Original question text (used by judge for context).
-        match_mode: ``"strict"`` or ``"judge"``.
-        judge: A :class:`~vlm_exam.judge.Judge` instance (required when
-            *match_mode* is ``"judge"``).
-        guidance: Optional task-specific instructions for the judge.
+        question: Original question text, given to the judge for context.
+        judge: The judge instance.
+        guidance: Task-specific instructions for the judge.
 
     Returns:
-        A tuple of (correct, match_method) where match_method is
-        ``"strict"`` or ``"judge"``.
+        ``True`` if the judge deems the prediction correct.
     """
-    if strict_match(expected, predicted):
-        return True, "strict"
-
-    if match_mode == "judge" and judge is not None:
-        return judge.evaluate(
-            question=question,
-            expected=expected,
-            predicted=predicted,
-            guidance=guidance,
-        ), "judge"
-
-    if match_mode == "judge" and judge is None:
-        _logger.warning(
-            "Judge mode requested but no judge instance provided; "
-            "falling back to strict."
-        )
-
-    return False, "strict"
+    return judge.evaluate(
+        question=question,
+        expected=expected,
+        predicted=predicted,
+        guidance=guidance,
+    )
 
 
 def _words_to_int(text: str) -> int | None:
@@ -277,7 +258,14 @@ def transcription_similarity(expected: str, predicted: str) -> float:
 
 
 class QATask(Task):
-    """Base class for question-answering benchmark tasks."""
+    """Base class for question-answering tasks scored by strict and judge.
+
+    Every prediction receives two independent verdicts: a deterministic
+    strict verdict from :meth:`strict_correct` and an LLM judge verdict.
+    The judge verdict is the headline ``correct`` value.
+    """
+
+    requires_judge = True
 
     judge_guidance = ""
     """Task-specific instructions forwarded to the LLM judge."""
@@ -286,6 +274,18 @@ class QATask(Task):
     def _qa_sample(sample: Sample) -> QASample:
         assert isinstance(sample, QASample)
         return sample
+
+    def strict_correct(self, expected: str, predicted: str) -> bool:
+        """Apply the task's deterministic matching rule.
+
+        Args:
+            expected: Ground-truth answer.
+            predicted: Model-produced answer.
+
+        Returns:
+            ``True`` if the answers match under the strict rule.
+        """
+        return strict_match(expected, predicted)
 
     def expected_text(self, sample: Sample) -> str:
         """Return the sample's ground-truth answer.
@@ -362,36 +362,49 @@ class QATask(Task):
         sample: Sample,
         prediction: str,
         *,
-        match_mode: str = "strict",
         judge: Judge | None = None,
         uploaded_size: tuple[int, int] | None = None,
     ) -> EvaluationResult:
-        """Evaluate a prediction against the expected answer.
+        """Score a prediction with the strict rule and the LLM judge.
 
         Args:
             sample: A ``QASample`` with the ground-truth answer.
             prediction: Raw model output text.
-            match_mode: ``"strict"`` or ``"judge"``.
-            judge: Optional LLM judge for non-strict matching.
+            judge: LLM judge; required.
             uploaded_size: Unused; QA scoring does not use coordinates.
 
         Returns:
-            Evaluation result with correctness flag.
+            Evaluation result carrying both verdicts, with the judge
+            verdict as ``correct``.
+
+        Raises:
+            ValueError: If no judge is provided.
         """
+        if judge is None:
+            raise ValueError(
+                f"{type(self).__name__} reports strict and judge accuracy; "
+                "a judge instance is required."
+            )
         qa_sample = self._qa_sample(sample)
-        correct, match_method = answers_match(
+        strict = self.strict_correct(qa_sample.expected_answer, prediction)
+        judged = judge_answer(
             qa_sample.expected_answer,
             prediction,
             question=qa_sample.question,
-            match_mode=match_mode,
             judge=judge,
             guidance=self.judge_guidance,
         )
-        return EvaluationResult(correct=correct, match_method=match_method)
+        return EvaluationResult(
+            correct=judged,
+            strict_correct=strict,
+            judge_correct=judged,
+        )
 
 
 class OCRTask(QATask):
     """Full-text transcription task scored by character similarity."""
+
+    requires_judge = False
 
     def build_prompt(
         self,
@@ -419,7 +432,6 @@ class OCRTask(QATask):
         sample: Sample,
         prediction: str,
         *,
-        match_mode: str = "strict",
         judge: Judge | None = None,
         uploaded_size: tuple[int, int] | None = None,
     ) -> EvaluationResult:
@@ -428,7 +440,6 @@ class OCRTask(QATask):
         Args:
             sample: A ``QASample`` with the ground-truth transcription.
             prediction: Raw model output text.
-            match_mode: Ignored; OCR is always scored by similarity.
             judge: Ignored; OCR is always scored by similarity.
             uploaded_size: Unused; OCR scoring does not use coordinates.
 
@@ -459,37 +470,32 @@ class ExtractionTask(QATask):
 class CountingTask(QATask):
     """Object counting task requiring an exact integer answer."""
 
-    def evaluate(
-        self,
-        sample: Sample,
-        prediction: str,
-        *,
-        match_mode: str = "strict",
-        judge: Judge | None = None,
-        uploaded_size: tuple[int, int] | None = None,
-    ) -> EvaluationResult:
+    judge_guidance = (
+        "This is a counting task: the answer is an integer count. Treat "
+        "answers as equivalent only when they denote the same integer; "
+        "accept digits, spelled-out numbers, and units or object names "
+        "around the number, but reject ranges, approximations, and any "
+        "answer whose final count differs."
+    )
+
+    def strict_correct(self, expected: str, predicted: str) -> bool:
         """Compare parsed integer counts; the count must be exact.
 
+        Falls back to text matching when the expected answer is not an
+        integer.
+
         Args:
-            sample: A ``QASample`` with the ground-truth count.
-            prediction: Raw model output text.
-            match_mode: Ignored unless the expected answer is not an
-                integer, in which case strict matching applies.
-            judge: Ignored; counts are compared deterministically.
-            uploaded_size: Unused; counting does not use coordinates.
+            expected: Ground-truth count.
+            predicted: Model-produced answer.
 
         Returns:
-            Evaluation result with correctness flag.
+            ``True`` if both parse to the same integer.
         """
-        qa_sample = self._qa_sample(sample)
-        expected_count = parse_count(qa_sample.expected_answer)
+        expected_count = parse_count(expected)
         if expected_count is None:
-            correct = strict_match(qa_sample.expected_answer, prediction)
-            return EvaluationResult(correct=correct, match_method="strict")
-
-        predicted_count = parse_count(prediction)
-        correct = predicted_count is not None and predicted_count == expected_count
-        return EvaluationResult(correct=correct, match_method="count")
+            return strict_match(expected, predicted)
+        predicted_count = parse_count(predicted)
+        return predicted_count is not None and predicted_count == expected_count
 
 
 class IdentificationTask(QATask):

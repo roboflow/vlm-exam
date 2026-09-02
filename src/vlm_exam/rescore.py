@@ -21,66 +21,101 @@ from vlm_exam.judge import Judge
 from vlm_exam.providers.base import EMPTY_RESPONSE_TEXT
 from vlm_exam.results import RunResult, SampleResult, is_failed_sample
 from vlm_exam.tasks import create_task
-from vlm_exam.tasks.qa import QATask, answers_match
+from vlm_exam.tasks.qa import QATask, judge_answer
 
-JUDGE_TASK_NAMES: tuple[str, ...] = ("extraction", "identification", "reasoning")
-"""Tasks scored with strict matching plus an LLM judge fallback."""
+JUDGE_TASK_NAMES: tuple[str, ...] = (
+    "counting",
+    "extraction",
+    "identification",
+    "reasoning",
+)
+"""Tasks that report strict accuracy and LLM judge accuracy side by side."""
+
+_LEGACY_METADATA_KEYS = ("match_method",)
 
 
 @dataclass(frozen=True)
 class RescoreSummary:
-    """Outcome of re-judging one stored run.
+    """Outcome of re-scoring one stored run.
 
     Attributes:
-        judged: Samples sent to the judge (strict failures that had not
-            been judged before).
-        rescued: Judged samples the judge marked correct.
-        correct_before: Correct samples before re-judging.
-        correct_after: Correct samples after re-judging.
+        scored: Samples that were (re)scored.
+        judge_calls: Samples sent to the judge (real model output only).
+        strict_before: Strict-correct samples before re-scoring, when the
+            run already carried strict verdicts.
+        strict_after: Strict-correct samples after re-scoring.
+        judge_before: Judge-correct samples before re-scoring, when the
+            run already carried judge verdicts.
+        judge_after: Judge-correct samples after re-scoring.
         total: Samples in the run.
     """
 
-    judged: int
-    rescued: int
-    correct_before: int
-    correct_after: int
+    scored: int
+    judge_calls: int
+    strict_before: int | None
+    strict_after: int
+    judge_before: int | None
+    judge_after: int
     total: int
 
 
-def needs_judge(sample: SampleResult) -> bool:
-    """Report whether a stored sample still awaits a judge verdict.
-
-    A sample needs the judge when strict matching failed, it has not
-    been judged before, and its prediction is real model output rather
-    than a provider error or empty-content marker.
+def has_both_verdicts(sample: SampleResult) -> bool:
+    """Report whether a stored sample already carries both verdicts.
 
     Args:
         sample: A sample loaded from a run file.
 
     Returns:
-        True when the judge should be consulted for this sample.
+        True when ``strict_correct`` and ``judge_correct`` are both
+        recorded and no legacy scoring metadata remains.
     """
-    if sample.correct or is_failed_sample(sample):
+    metadata = sample.metadata
+    if any(key in metadata for key in _LEGACY_METADATA_KEYS):
         return False
-    if sample.predicted == EMPTY_RESPONSE_TEXT:
-        return False
-    return sample.metadata.get("match_method") != "judge"
+    return isinstance(metadata.get("strict_correct"), bool) and isinstance(
+        metadata.get("judge_correct"), bool
+    )
+
+
+def is_scorable(sample: SampleResult) -> bool:
+    """Report whether a sample holds real model output worth judging.
+
+    Args:
+        sample: A sample loaded from a run file.
+
+    Returns:
+        False for provider errors and empty-content markers.
+    """
+    return not is_failed_sample(sample) and sample.predicted != EMPTY_RESPONSE_TEXT
+
+
+def _count(samples: list[SampleResult], key: str) -> int | None:
+    values = [sample.metadata.get(key) for sample in samples]
+    if not all(isinstance(value, bool) for value in values):
+        return None
+    return sum(1 for value in values if value)
 
 
 def rescore_run(
     run: RunResult,
     judge: Judge,
+    *,
     concurrency: int = 1,
+    force: bool = False,
 ) -> tuple[RunResult, RescoreSummary]:
-    """Apply the judge fallback to every unjudged strict failure in a run.
+    """Score every sample of a stored run with the strict rule and the judge.
 
-    Samples already judged, already correct, or holding provider errors
-    are left untouched, so re-running on a judge-mode file is a no-op.
+    The strict verdict is recomputed offline from the stored prediction;
+    the judge is asked about every real prediction. Samples that already
+    carry both verdicts are skipped unless ``force`` is set. Provider
+    errors and empty responses get both verdicts set to false without a
+    judge call. Legacy ``match_method`` metadata is dropped.
 
     Args:
         run: A stored run for one of the ``JUDGE_TASK_NAMES`` tasks.
-        judge: Judge used for the fallback verdicts.
+        judge: Judge producing the LLM verdicts.
         concurrency: Number of in-flight judge calls.
+        force: Re-score samples that already carry both verdicts.
 
     Returns:
         The rescored run and a summary of what changed.
@@ -95,39 +130,46 @@ def rescore_run(
         )
     task = create_task(run.task)
     assert isinstance(task, QATask)
-    guidance = task.judge_guidance
 
-    def judge_sample(sample: SampleResult) -> SampleResult:
-        correct, match_method = answers_match(
-            sample.expected,
-            sample.predicted,
-            question=str(sample.metadata.get("question", "")),
-            match_mode="judge",
-            judge=judge,
-            guidance=guidance,
-        )
-        return replace(
-            sample,
-            correct=correct,
-            metadata={**sample.metadata, "match_method": match_method},
-        )
+    def score(sample: SampleResult) -> SampleResult:
+        strict = False
+        judged = False
+        if is_scorable(sample):
+            strict = task.strict_correct(sample.expected, sample.predicted)
+            judged = judge_answer(
+                sample.expected,
+                sample.predicted,
+                question=str(sample.metadata.get("question", "")),
+                judge=judge,
+                guidance=task.judge_guidance,
+            )
+        metadata = {
+            key: value
+            for key, value in sample.metadata.items()
+            if key not in _LEGACY_METADATA_KEYS
+        }
+        metadata["strict_correct"] = strict
+        metadata["judge_correct"] = judged
+        return replace(sample, correct=judged, metadata=metadata)
 
-    pending_positions = [
-        position for position, sample in enumerate(run.samples) if needs_judge(sample)
+    positions = [
+        position
+        for position, sample in enumerate(run.samples)
+        if force or not has_both_verdicts(sample)
     ]
     samples = list(run.samples)
     with ThreadPoolExecutor(max_workers=max(1, concurrency)) as executor:
-        judged = executor.map(judge_sample, (run.samples[p] for p in pending_positions))
-        for position, sample in zip(pending_positions, judged):
+        scored = executor.map(score, (run.samples[p] for p in positions))
+        for position, sample in zip(positions, scored):
             samples[position] = sample
 
-    correct_before = sum(1 for sample in run.samples if sample.correct)
-    correct_after = sum(1 for sample in samples if sample.correct)
     summary = RescoreSummary(
-        judged=len(pending_positions),
-        rescued=correct_after - correct_before,
-        correct_before=correct_before,
-        correct_after=correct_after,
+        scored=len(positions),
+        judge_calls=sum(1 for p in positions if is_scorable(run.samples[p])),
+        strict_before=_count(run.samples, "strict_correct"),
+        strict_after=_count(samples, "strict_correct") or 0,
+        judge_before=_count(run.samples, "judge_correct"),
+        judge_after=_count(samples, "judge_correct") or 0,
         total=len(samples),
     )
     return replace(run, samples=samples), summary

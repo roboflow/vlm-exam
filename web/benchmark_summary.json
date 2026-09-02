@@ -4,6 +4,11 @@
     "low",
     "high"
   ],
+  "scoring": {
+    "judge_model": "gemini-3.5-flash",
+    "judge_metric": "accuracy_judge",
+    "strict_metric": "accuracy_strict"
+  },
   "tasks": [
     {
       "key": "ocr",
@@ -20,11 +25,16 @@
     {
       "key": "extraction",
       "name": "Data Extraction",
-      "primary_metric": "accuracy",
+      "primary_metric": "accuracy_judge",
       "metrics": [
         {
-          "key": "accuracy",
-          "label": "Accuracy",
+          "key": "accuracy_judge",
+          "label": "Accuracy (LLM judge)",
+          "unit": "percent"
+        },
+        {
+          "key": "accuracy_strict",
+          "label": "Accuracy (strict match)",
           "unit": "percent"
         }
       ]
@@ -32,11 +42,16 @@
     {
       "key": "counting",
       "name": "Counting",
-      "primary_metric": "accuracy",
+      "primary_metric": "accuracy_judge",
       "metrics": [
         {
-          "key": "accuracy",
-          "label": "Accuracy",
+          "key": "accuracy_judge",
+          "label": "Accuracy (LLM judge)",
+          "unit": "percent"
+        },
+        {
+          "key": "accuracy_strict",
+          "label": "Accuracy (strict match)",
           "unit": "percent"
         }
       ]
@@ -44,11 +59,16 @@
     {
       "key": "identification",
       "name": "Identification",
-      "primary_metric": "accuracy",
+      "primary_metric": "accuracy_judge",
       "metrics": [
         {
-          "key": "accuracy",
-          "label": "Accuracy",
+          "key": "accuracy_judge",
+          "label": "Accuracy (LLM judge)",
+          "unit": "percent"
+        },
+        {
+          "key": "accuracy_strict",
+          "label": "Accuracy (strict match)",
           "unit": "percent"
         }
       ]
@@ -56,11 +76,16 @@
     {
       "key": "reasoning",
       "name": "Reasoning",
-      "primary_metric": "accuracy",
+      "primary_metric": "accuracy_judge",
       "metrics": [
         {
-          "key": "accuracy",
-          "label": "Accuracy",
+          "key": "accuracy_judge",
+          "label": "Accuracy (LLM judge)",
+          "unit": "percent"
+        },
+        {
+          "key": "accuracy_strict",
+          "label": "Accuracy (strict match)",
           "unit": "percent"
         }
       ]
@@ -125,11 +150,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
-            "value": 92.78
+            "name": "accuracy_judge",
+            "value": 91.75
           },
           "metrics": {
-            "accuracy": 92.78
+            "accuracy_judge": 91.75,
+            "accuracy_strict": 91.75
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -152,11 +178,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 63.51
           },
           "metrics": {
-            "accuracy": 63.51
+            "accuracy_judge": 63.51,
+            "accuracy_strict": 63.51
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -179,11 +206,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 100.0
           },
           "metrics": {
-            "accuracy": 100.0
+            "accuracy_judge": 100.0,
+            "accuracy_strict": 96.88
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -206,11 +234,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 66.23
           },
           "metrics": {
-            "accuracy": 66.23
+            "accuracy_judge": 66.23,
+            "accuracy_strict": 66.23
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -289,11 +318,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 66.23
           },
           "metrics": {
-            "accuracy": 66.23
+            "accuracy_judge": 66.23,
+            "accuracy_strict": 66.23
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -370,11 +400,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 93.81
           },
           "metrics": {
-            "accuracy": 93.81
+            "accuracy_judge": 93.81,
+            "accuracy_strict": 89.69
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -397,11 +428,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
-            "value": 43.24
+            "name": "accuracy_judge",
+            "value": 71.62
           },
           "metrics": {
-            "accuracy": 43.24
+            "accuracy_judge": 71.62,
+            "accuracy_strict": 43.24
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -424,11 +456,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 96.88
           },
           "metrics": {
-            "accuracy": 96.88
+            "accuracy_judge": 96.88,
+            "accuracy_strict": 90.62
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -451,11 +484,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 70.86
           },
           "metrics": {
-            "accuracy": 70.86
+            "accuracy_judge": 70.86,
+            "accuracy_strict": 17.88
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -534,11 +568,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 72.19
           },
           "metrics": {
-            "accuracy": 72.19
+            "accuracy_judge": 72.19,
+            "accuracy_strict": 35.1
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -615,11 +650,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 89.69
           },
           "metrics": {
-            "accuracy": 89.69
+            "accuracy_judge": 89.69,
+            "accuracy_strict": 88.66
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -642,11 +678,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 56.76
           },
           "metrics": {
-            "accuracy": 56.76
+            "accuracy_judge": 56.76,
+            "accuracy_strict": 56.76
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -669,11 +706,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 81.25
           },
           "metrics": {
-            "accuracy": 81.25
+            "accuracy_judge": 81.25,
+            "accuracy_strict": 81.25
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -696,11 +734,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 43.05
           },
           "metrics": {
-            "accuracy": 43.05
+            "accuracy_judge": 43.05,
+            "accuracy_strict": 43.05
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -779,11 +818,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 43.05
           },
           "metrics": {
-            "accuracy": 43.05
+            "accuracy_judge": 43.05,
+            "accuracy_strict": 42.38
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -860,11 +900,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 88.66
           },
           "metrics": {
-            "accuracy": 88.66
+            "accuracy_judge": 88.66,
+            "accuracy_strict": 87.63
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -887,11 +928,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
-            "value": 52.7
+            "name": "accuracy_judge",
+            "value": 54.05
           },
           "metrics": {
-            "accuracy": 52.7
+            "accuracy_judge": 54.05,
+            "accuracy_strict": 52.7
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -914,11 +956,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.38
           },
           "metrics": {
-            "accuracy": 84.38
+            "accuracy_judge": 84.38,
+            "accuracy_strict": 75.0
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -941,11 +984,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 52.98
           },
           "metrics": {
-            "accuracy": 52.98
+            "accuracy_judge": 52.98,
+            "accuracy_strict": 44.37
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -1024,11 +1068,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 52.32
           },
           "metrics": {
-            "accuracy": 52.32
+            "accuracy_judge": 52.32,
+            "accuracy_strict": 43.71
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -1105,11 +1150,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 89.69
           },
           "metrics": {
-            "accuracy": 89.69
+            "accuracy_judge": 89.69,
+            "accuracy_strict": 88.66
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -1132,11 +1178,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 70.27
           },
           "metrics": {
-            "accuracy": 70.27
+            "accuracy_judge": 70.27,
+            "accuracy_strict": 70.27
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -1159,11 +1206,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 90.62
           },
           "metrics": {
-            "accuracy": 90.62
+            "accuracy_judge": 90.62,
+            "accuracy_strict": 84.38
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -1186,11 +1234,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 71.52
           },
           "metrics": {
-            "accuracy": 71.52
+            "accuracy_judge": 71.52,
+            "accuracy_strict": 68.87
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -1269,11 +1318,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 74.17
           },
           "metrics": {
-            "accuracy": 74.17
+            "accuracy_judge": 74.17,
+            "accuracy_strict": 67.55
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -1350,11 +1400,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 94.85
           },
           "metrics": {
-            "accuracy": 94.85
+            "accuracy_judge": 94.85,
+            "accuracy_strict": 93.81
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -1377,11 +1428,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 81.08
           },
           "metrics": {
-            "accuracy": 81.08
+            "accuracy_judge": 81.08,
+            "accuracy_strict": 81.08
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -1404,11 +1456,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 100.0
           },
           "metrics": {
-            "accuracy": 100.0
+            "accuracy_judge": 100.0,
+            "accuracy_strict": 100.0
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -1431,11 +1484,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.11
           },
           "metrics": {
-            "accuracy": 84.11
+            "accuracy_judge": 84.11,
+            "accuracy_strict": 83.44
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -1514,11 +1568,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 82.78
           },
           "metrics": {
-            "accuracy": 82.78
+            "accuracy_judge": 82.78,
+            "accuracy_strict": 82.78
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -1595,11 +1650,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 96.91
           },
           "metrics": {
-            "accuracy": 96.91
+            "accuracy_judge": 96.91,
+            "accuracy_strict": 94.85
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -1622,11 +1678,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 82.43
           },
           "metrics": {
-            "accuracy": 82.43
+            "accuracy_judge": 82.43,
+            "accuracy_strict": 82.43
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -1649,11 +1706,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 100.0
           },
           "metrics": {
-            "accuracy": 100.0
+            "accuracy_judge": 100.0,
+            "accuracy_strict": 96.88
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -1676,11 +1734,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 80.13
           },
           "metrics": {
-            "accuracy": 80.13
+            "accuracy_judge": 80.13,
+            "accuracy_strict": 80.13
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -1759,11 +1818,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 80.13
           },
           "metrics": {
-            "accuracy": 80.13
+            "accuracy_judge": 80.13,
+            "accuracy_strict": 80.13
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -1840,11 +1900,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 95.88
           },
           "metrics": {
-            "accuracy": 95.88
+            "accuracy_judge": 95.88,
+            "accuracy_strict": 94.85
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -1867,11 +1928,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 77.03
           },
           "metrics": {
-            "accuracy": 77.03
+            "accuracy_judge": 77.03,
+            "accuracy_strict": 77.03
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -1894,11 +1956,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 96.88
           },
           "metrics": {
-            "accuracy": 96.88
+            "accuracy_judge": 96.88,
+            "accuracy_strict": 96.88
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -1921,11 +1984,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 82.78
           },
           "metrics": {
-            "accuracy": 82.78
+            "accuracy_judge": 82.78,
+            "accuracy_strict": 82.78
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -2004,11 +2068,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 82.78
           },
           "metrics": {
-            "accuracy": 82.78
+            "accuracy_judge": 82.78,
+            "accuracy_strict": 82.12
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -2085,11 +2150,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 91.75
           },
           "metrics": {
-            "accuracy": 91.75
+            "accuracy_judge": 91.75,
+            "accuracy_strict": 90.72
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -2112,11 +2178,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 52.7
           },
           "metrics": {
-            "accuracy": 52.7
+            "accuracy_judge": 52.7,
+            "accuracy_strict": 52.7
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -2139,11 +2206,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.38
           },
           "metrics": {
-            "accuracy": 84.38
+            "accuracy_judge": 84.38,
+            "accuracy_strict": 81.25
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -2166,11 +2234,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 48.34
           },
           "metrics": {
-            "accuracy": 48.34
+            "accuracy_judge": 48.34,
+            "accuracy_strict": 47.02
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -2249,11 +2318,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 68.87
           },
           "metrics": {
-            "accuracy": 68.87
+            "accuracy_judge": 68.87,
+            "accuracy_strict": 68.87
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -2330,11 +2400,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 96.91
           },
           "metrics": {
-            "accuracy": 96.91
+            "accuracy_judge": 96.91,
+            "accuracy_strict": 95.88
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -2357,11 +2428,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 67.57
           },
           "metrics": {
-            "accuracy": 67.57
+            "accuracy_judge": 67.57,
+            "accuracy_strict": 67.57
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -2384,11 +2456,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 93.75
           },
           "metrics": {
-            "accuracy": 93.75
+            "accuracy_judge": 93.75,
+            "accuracy_strict": 90.62
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -2411,11 +2484,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 64.9
           },
           "metrics": {
-            "accuracy": 64.9
+            "accuracy_judge": 64.9,
+            "accuracy_strict": 64.9
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -2494,11 +2568,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 74.17
           },
           "metrics": {
-            "accuracy": 74.17
+            "accuracy_judge": 74.17,
+            "accuracy_strict": 74.17
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -2575,11 +2650,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.54
           },
           "metrics": {
-            "accuracy": 84.54
+            "accuracy_judge": 84.54,
+            "accuracy_strict": 83.51
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -2602,11 +2678,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 52.7
           },
           "metrics": {
-            "accuracy": 52.7
+            "accuracy_judge": 52.7,
+            "accuracy_strict": 52.7
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -2629,11 +2706,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 93.75
           },
           "metrics": {
-            "accuracy": 93.75
+            "accuracy_judge": 93.75,
+            "accuracy_strict": 87.5
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -2656,11 +2734,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 42.38
           },
           "metrics": {
-            "accuracy": 42.38
+            "accuracy_judge": 42.38,
+            "accuracy_strict": 41.72
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -2739,11 +2818,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 62.25
           },
           "metrics": {
-            "accuracy": 62.25
+            "accuracy_judge": 62.25,
+            "accuracy_strict": 62.25
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -2820,11 +2900,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 95.88
           },
           "metrics": {
-            "accuracy": 95.88
+            "accuracy_judge": 95.88,
+            "accuracy_strict": 94.85
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -2847,11 +2928,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 71.62
           },
           "metrics": {
-            "accuracy": 71.62
+            "accuracy_judge": 71.62,
+            "accuracy_strict": 71.62
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -2874,11 +2956,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 100.0
           },
           "metrics": {
-            "accuracy": 100.0
+            "accuracy_judge": 100.0,
+            "accuracy_strict": 100.0
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -2901,11 +2984,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 72.19
           },
           "metrics": {
-            "accuracy": 72.19
+            "accuracy_judge": 72.19,
+            "accuracy_strict": 72.19
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -2984,11 +3068,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 74.83
           },
           "metrics": {
-            "accuracy": 74.83
+            "accuracy_judge": 74.83,
+            "accuracy_strict": 74.83
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -3065,11 +3150,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 87.63
           },
           "metrics": {
-            "accuracy": 87.63
+            "accuracy_judge": 87.63,
+            "accuracy_strict": 86.6
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -3092,11 +3178,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 64.86
           },
           "metrics": {
-            "accuracy": 64.86
+            "accuracy_judge": 64.86,
+            "accuracy_strict": 64.86
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -3119,11 +3206,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 90.62
           },
           "metrics": {
-            "accuracy": 90.62
+            "accuracy_judge": 90.62,
+            "accuracy_strict": 87.5
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -3146,11 +3234,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 67.55
           },
           "metrics": {
-            "accuracy": 67.55
+            "accuracy_judge": 67.55,
+            "accuracy_strict": 67.55
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -3229,11 +3318,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 69.54
           },
           "metrics": {
-            "accuracy": 69.54
+            "accuracy_judge": 69.54,
+            "accuracy_strict": 69.54
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -3310,11 +3400,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 83.51
           },
           "metrics": {
-            "accuracy": 83.51
+            "accuracy_judge": 83.51,
+            "accuracy_strict": 82.47
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -3337,11 +3428,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 60.81
           },
           "metrics": {
-            "accuracy": 60.81
+            "accuracy_judge": 60.81,
+            "accuracy_strict": 60.81
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -3364,11 +3456,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.38
           },
           "metrics": {
-            "accuracy": 84.38
+            "accuracy_judge": 84.38,
+            "accuracy_strict": 78.12
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -3391,11 +3484,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 55.63
           },
           "metrics": {
-            "accuracy": 55.63
+            "accuracy_judge": 55.63,
+            "accuracy_strict": 55.63
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -3474,11 +3568,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 62.91
           },
           "metrics": {
-            "accuracy": 62.91
+            "accuracy_judge": 62.91,
+            "accuracy_strict": 62.91
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -3555,11 +3650,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 83.51
           },
           "metrics": {
-            "accuracy": 83.51
+            "accuracy_judge": 83.51,
+            "accuracy_strict": 82.47
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -3582,11 +3678,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 72.97
           },
           "metrics": {
-            "accuracy": 72.97
+            "accuracy_judge": 72.97,
+            "accuracy_strict": 72.97
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -3609,11 +3706,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.38
           },
           "metrics": {
-            "accuracy": 84.38
+            "accuracy_judge": 84.38,
+            "accuracy_strict": 81.25
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -3636,11 +3734,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 65.56
           },
           "metrics": {
-            "accuracy": 65.56
+            "accuracy_judge": 65.56,
+            "accuracy_strict": 65.56
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -3719,11 +3818,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 72.19
           },
           "metrics": {
-            "accuracy": 72.19
+            "accuracy_judge": 72.19,
+            "accuracy_strict": 72.19
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -3800,11 +3900,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 80.41
           },
           "metrics": {
-            "accuracy": 80.41
+            "accuracy_judge": 80.41,
+            "accuracy_strict": 79.38
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -3827,11 +3928,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 67.57
           },
           "metrics": {
-            "accuracy": 67.57
+            "accuracy_judge": 67.57,
+            "accuracy_strict": 67.57
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -3854,11 +3956,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 87.5
           },
           "metrics": {
-            "accuracy": 87.5
+            "accuracy_judge": 87.5,
+            "accuracy_strict": 78.12
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -3881,11 +3984,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 59.6
           },
           "metrics": {
-            "accuracy": 59.6
+            "accuracy_judge": 59.6,
+            "accuracy_strict": 59.6
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -3964,11 +4068,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 64.24
           },
           "metrics": {
-            "accuracy": 64.24
+            "accuracy_judge": 64.24,
+            "accuracy_strict": 64.24
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -4045,11 +4150,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 82.47
           },
           "metrics": {
-            "accuracy": 82.47
+            "accuracy_judge": 82.47,
+            "accuracy_strict": 81.44
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -4072,11 +4178,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 66.22
           },
           "metrics": {
-            "accuracy": 66.22
+            "accuracy_judge": 66.22,
+            "accuracy_strict": 66.22
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -4099,11 +4206,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.38
           },
           "metrics": {
-            "accuracy": 84.38
+            "accuracy_judge": 84.38,
+            "accuracy_strict": 78.12
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -4126,11 +4234,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 54.97
           },
           "metrics": {
-            "accuracy": 54.97
+            "accuracy_judge": 54.97,
+            "accuracy_strict": 54.3
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -4209,11 +4318,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 60.93
           },
           "metrics": {
-            "accuracy": 60.93
+            "accuracy_judge": 60.93,
+            "accuracy_strict": 60.93
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -4290,11 +4400,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 87.63
           },
           "metrics": {
-            "accuracy": 87.63
+            "accuracy_judge": 87.63,
+            "accuracy_strict": 86.6
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -4317,11 +4428,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 82.43
           },
           "metrics": {
-            "accuracy": 82.43
+            "accuracy_judge": 82.43,
+            "accuracy_strict": 82.43
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -4344,11 +4456,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 90.62
           },
           "metrics": {
-            "accuracy": 90.62
+            "accuracy_judge": 90.62,
+            "accuracy_strict": 90.62
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -4371,11 +4484,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 73.51
           },
           "metrics": {
-            "accuracy": 73.51
+            "accuracy_judge": 73.51,
+            "accuracy_strict": 73.51
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -4454,11 +4568,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 80.79
           },
           "metrics": {
-            "accuracy": 80.79
+            "accuracy_judge": 80.79,
+            "accuracy_strict": 80.13
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -4535,11 +4650,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 83.51
           },
           "metrics": {
-            "accuracy": 83.51
+            "accuracy_judge": 83.51,
+            "accuracy_strict": 82.47
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -4562,11 +4678,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 50.0
           },
           "metrics": {
-            "accuracy": 50.0
+            "accuracy_judge": 50.0,
+            "accuracy_strict": 50.0
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -4589,11 +4706,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.38
           },
           "metrics": {
-            "accuracy": 84.38
+            "accuracy_judge": 84.38,
+            "accuracy_strict": 84.38
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -4616,11 +4734,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 39.74
           },
           "metrics": {
-            "accuracy": 39.74
+            "accuracy_judge": 39.74,
+            "accuracy_strict": 39.74
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -4699,11 +4818,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 68.21
           },
           "metrics": {
-            "accuracy": 68.21
+            "accuracy_judge": 68.21,
+            "accuracy_strict": 66.23
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -4780,11 +4900,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
-            "value": 78.35
+            "name": "accuracy_judge",
+            "value": 77.32
           },
           "metrics": {
-            "accuracy": 78.35
+            "accuracy_judge": 77.32,
+            "accuracy_strict": 78.35
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -4807,11 +4928,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 45.95
           },
           "metrics": {
-            "accuracy": 45.95
+            "accuracy_judge": 45.95,
+            "accuracy_strict": 45.95
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -4834,11 +4956,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.38
           },
           "metrics": {
-            "accuracy": 84.38
+            "accuracy_judge": 84.38,
+            "accuracy_strict": 84.38
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -4861,11 +4984,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 34.44
           },
           "metrics": {
-            "accuracy": 34.44
+            "accuracy_judge": 34.44,
+            "accuracy_strict": 34.44
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -4944,11 +5068,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 61.59
           },
           "metrics": {
-            "accuracy": 61.59
+            "accuracy_judge": 61.59,
+            "accuracy_strict": 60.93
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -5025,11 +5150,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 86.6
           },
           "metrics": {
-            "accuracy": 86.6
+            "accuracy_judge": 86.6,
+            "accuracy_strict": 85.57
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -5052,11 +5178,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 59.46
           },
           "metrics": {
-            "accuracy": 59.46
+            "accuracy_judge": 59.46,
+            "accuracy_strict": 59.46
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -5079,11 +5206,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 90.62
           },
           "metrics": {
-            "accuracy": 90.62
+            "accuracy_judge": 90.62,
+            "accuracy_strict": 87.5
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -5106,11 +5234,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 37.75
           },
           "metrics": {
-            "accuracy": 37.75
+            "accuracy_judge": 37.75,
+            "accuracy_strict": 37.75
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -5189,11 +5318,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 68.87
           },
           "metrics": {
-            "accuracy": 68.87
+            "accuracy_judge": 68.87,
+            "accuracy_strict": 68.87
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -5270,11 +5400,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 87.63
           },
           "metrics": {
-            "accuracy": 87.63
+            "accuracy_judge": 87.63,
+            "accuracy_strict": 86.6
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -5297,11 +5428,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 47.3
           },
           "metrics": {
-            "accuracy": 47.3
+            "accuracy_judge": 47.3,
+            "accuracy_strict": 47.3
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -5324,11 +5456,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 90.62
           },
           "metrics": {
-            "accuracy": 90.62
+            "accuracy_judge": 90.62,
+            "accuracy_strict": 90.62
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -5351,11 +5484,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 29.8
           },
           "metrics": {
-            "accuracy": 29.8
+            "accuracy_judge": 29.8,
+            "accuracy_strict": 29.8
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -5434,11 +5568,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 33.77
           },
           "metrics": {
-            "accuracy": 33.77
+            "accuracy_judge": 33.77,
+            "accuracy_strict": 33.77
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -5515,11 +5650,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 79.38
           },
           "metrics": {
-            "accuracy": 79.38
+            "accuracy_judge": 79.38,
+            "accuracy_strict": 78.35
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -5542,11 +5678,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 54.05
           },
           "metrics": {
-            "accuracy": 54.05
+            "accuracy_judge": 54.05,
+            "accuracy_strict": 54.05
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -5569,11 +5706,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 78.12
           },
           "metrics": {
-            "accuracy": 78.12
+            "accuracy_judge": 78.12,
+            "accuracy_strict": 78.12
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -5596,11 +5734,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 31.79
           },
           "metrics": {
-            "accuracy": 31.79
+            "accuracy_judge": 31.79,
+            "accuracy_strict": 31.79
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -5679,11 +5818,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 61.59
           },
           "metrics": {
-            "accuracy": 61.59
+            "accuracy_judge": 61.59,
+            "accuracy_strict": 61.59
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -5760,11 +5900,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 79.38
           },
           "metrics": {
-            "accuracy": 79.38
+            "accuracy_judge": 79.38,
+            "accuracy_strict": 79.38
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -5787,11 +5928,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 41.89
           },
           "metrics": {
-            "accuracy": 41.89
+            "accuracy_judge": 41.89,
+            "accuracy_strict": 41.89
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -5814,11 +5956,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 78.12
           },
           "metrics": {
-            "accuracy": 78.12
+            "accuracy_judge": 78.12,
+            "accuracy_strict": 75.0
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -5841,11 +5984,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 31.79
           },
           "metrics": {
-            "accuracy": 31.79
+            "accuracy_judge": 31.79,
+            "accuracy_strict": 31.13
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -5924,11 +6068,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 62.25
           },
           "metrics": {
-            "accuracy": 62.25
+            "accuracy_judge": 62.25,
+            "accuracy_strict": 62.25
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -6005,11 +6150,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 85.57
           },
           "metrics": {
-            "accuracy": 85.57
+            "accuracy_judge": 85.57,
+            "accuracy_strict": 85.57
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -6032,11 +6178,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 44.59
           },
           "metrics": {
-            "accuracy": 44.59
+            "accuracy_judge": 44.59,
+            "accuracy_strict": 44.59
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -6059,11 +6206,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 78.12
           },
           "metrics": {
-            "accuracy": 78.12
+            "accuracy_judge": 78.12,
+            "accuracy_strict": 78.12
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -6086,11 +6234,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 31.13
           },
           "metrics": {
-            "accuracy": 31.13
+            "accuracy_judge": 31.13,
+            "accuracy_strict": 29.8
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -6169,11 +6318,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 54.3
           },
           "metrics": {
-            "accuracy": 54.3
+            "accuracy_judge": 54.3,
+            "accuracy_strict": 46.36
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -6250,11 +6400,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 81.44
           },
           "metrics": {
-            "accuracy": 81.44
+            "accuracy_judge": 81.44,
+            "accuracy_strict": 79.38
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -6277,11 +6428,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 48.65
           },
           "metrics": {
-            "accuracy": 48.65
+            "accuracy_judge": 48.65,
+            "accuracy_strict": 48.65
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -6304,11 +6456,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.38
           },
           "metrics": {
-            "accuracy": 84.38
+            "accuracy_judge": 84.38,
+            "accuracy_strict": 84.38
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -6331,11 +6484,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 31.79
           },
           "metrics": {
-            "accuracy": 31.79
+            "accuracy_judge": 31.79,
+            "accuracy_strict": 31.79
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -6414,11 +6568,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 49.67
           },
           "metrics": {
-            "accuracy": 49.67
+            "accuracy_judge": 49.67,
+            "accuracy_strict": 49.67
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -6495,11 +6650,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 83.51
           },
           "metrics": {
-            "accuracy": 83.51
+            "accuracy_judge": 83.51,
+            "accuracy_strict": 81.44
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -6522,11 +6678,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 55.41
           },
           "metrics": {
-            "accuracy": 55.41
+            "accuracy_judge": 55.41,
+            "accuracy_strict": 55.41
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -6549,11 +6706,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.38
           },
           "metrics": {
-            "accuracy": 84.38
+            "accuracy_judge": 84.38,
+            "accuracy_strict": 78.12
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -6576,11 +6734,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 50.99
           },
           "metrics": {
-            "accuracy": 50.99
+            "accuracy_judge": 50.99,
+            "accuracy_strict": 42.38
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -6659,11 +6818,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 59.6
           },
           "metrics": {
-            "accuracy": 59.6
+            "accuracy_judge": 59.6,
+            "accuracy_strict": 51.66
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -6740,11 +6900,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 79.38
           },
           "metrics": {
-            "accuracy": 79.38
+            "accuracy_judge": 79.38,
+            "accuracy_strict": 78.35
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -6767,11 +6928,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
-            "value": 50.0
+            "name": "accuracy_judge",
+            "value": 56.76
           },
           "metrics": {
-            "accuracy": 50.0
+            "accuracy_judge": 56.76,
+            "accuracy_strict": 50.0
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -6794,11 +6956,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 78.12
           },
           "metrics": {
-            "accuracy": 78.12
+            "accuracy_judge": 78.12,
+            "accuracy_strict": 62.5
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -6821,11 +6984,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 39.07
           },
           "metrics": {
-            "accuracy": 39.07
+            "accuracy_judge": 39.07,
+            "accuracy_strict": 24.5
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -6904,11 +7068,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 58.94
           },
           "metrics": {
-            "accuracy": 58.94
+            "accuracy_judge": 58.94,
+            "accuracy_strict": 57.62
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -6985,11 +7150,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.54
           },
           "metrics": {
-            "accuracy": 84.54
+            "accuracy_judge": 84.54,
+            "accuracy_strict": 84.54
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -7012,11 +7178,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 45.95
           },
           "metrics": {
-            "accuracy": 45.95
+            "accuracy_judge": 45.95,
+            "accuracy_strict": 45.95
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -7039,11 +7206,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 81.25
           },
           "metrics": {
-            "accuracy": 81.25
+            "accuracy_judge": 81.25,
+            "accuracy_strict": 81.25
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -7066,11 +7234,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 42.38
           },
           "metrics": {
-            "accuracy": 42.38
+            "accuracy_judge": 42.38,
+            "accuracy_strict": 42.38
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -7149,11 +7318,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 74.17
           },
           "metrics": {
-            "accuracy": 74.17
+            "accuracy_judge": 74.17,
+            "accuracy_strict": 74.17
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -7230,11 +7400,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 87.63
           },
           "metrics": {
-            "accuracy": 87.63
+            "accuracy_judge": 87.63,
+            "accuracy_strict": 86.6
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -7257,11 +7428,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 75.68
           },
           "metrics": {
-            "accuracy": 75.68
+            "accuracy_judge": 75.68,
+            "accuracy_strict": 75.68
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -7284,11 +7456,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 90.62
           },
           "metrics": {
-            "accuracy": 90.62
+            "accuracy_judge": 90.62,
+            "accuracy_strict": 87.5
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -7311,11 +7484,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 74.83
           },
           "metrics": {
-            "accuracy": 74.83
+            "accuracy_judge": 74.83,
+            "accuracy_strict": 73.51
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -7394,11 +7568,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 76.16
           },
           "metrics": {
-            "accuracy": 76.16
+            "accuracy_judge": 76.16,
+            "accuracy_strict": 75.5
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -7475,11 +7650,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 89.69
           },
           "metrics": {
-            "accuracy": 89.69
+            "accuracy_judge": 89.69,
+            "accuracy_strict": 88.66
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -7502,11 +7678,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 74.32
           },
           "metrics": {
-            "accuracy": 74.32
+            "accuracy_judge": 74.32,
+            "accuracy_strict": 74.32
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -7529,11 +7706,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 90.62
           },
           "metrics": {
-            "accuracy": 90.62
+            "accuracy_judge": 90.62,
+            "accuracy_strict": 90.62
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -7556,11 +7734,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 74.83
           },
           "metrics": {
-            "accuracy": 74.83
+            "accuracy_judge": 74.83,
+            "accuracy_strict": 74.17
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -7639,11 +7818,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 76.16
           },
           "metrics": {
-            "accuracy": 76.16
+            "accuracy_judge": 76.16,
+            "accuracy_strict": 74.17
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -7720,11 +7900,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 86.6
           },
           "metrics": {
-            "accuracy": 86.6
+            "accuracy_judge": 86.6,
+            "accuracy_strict": 85.57
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -7747,11 +7928,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 66.22
           },
           "metrics": {
-            "accuracy": 66.22
+            "accuracy_judge": 66.22,
+            "accuracy_strict": 66.22
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -7774,11 +7956,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 81.25
           },
           "metrics": {
-            "accuracy": 81.25
+            "accuracy_judge": 81.25,
+            "accuracy_strict": 78.12
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -7801,11 +7984,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 57.62
           },
           "metrics": {
-            "accuracy": 57.62
+            "accuracy_judge": 57.62,
+            "accuracy_strict": 57.62
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -7884,11 +8068,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 62.91
           },
           "metrics": {
-            "accuracy": 62.91
+            "accuracy_judge": 62.91,
+            "accuracy_strict": 62.91
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -7965,11 +8150,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 84.54
           },
           "metrics": {
-            "accuracy": 84.54
+            "accuracy_judge": 84.54,
+            "accuracy_strict": 83.51
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -7992,11 +8178,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 55.41
           },
           "metrics": {
-            "accuracy": 55.41
+            "accuracy_judge": 55.41,
+            "accuracy_strict": 55.41
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -8019,11 +8206,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 81.25
           },
           "metrics": {
-            "accuracy": 81.25
+            "accuracy_judge": 81.25,
+            "accuracy_strict": 78.12
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -8046,11 +8234,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 58.28
           },
           "metrics": {
-            "accuracy": 58.28
+            "accuracy_judge": 58.28,
+            "accuracy_strict": 58.28
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -8129,11 +8318,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 59.6
           },
           "metrics": {
-            "accuracy": 59.6
+            "accuracy_judge": 59.6,
+            "accuracy_strict": 59.6
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -8210,11 +8400,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 85.57
           },
           "metrics": {
-            "accuracy": 85.57
+            "accuracy_judge": 85.57,
+            "accuracy_strict": 84.54
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -8237,11 +8428,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 70.27
           },
           "metrics": {
-            "accuracy": 70.27
+            "accuracy_judge": 70.27,
+            "accuracy_strict": 70.27
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -8264,11 +8456,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 87.5
           },
           "metrics": {
-            "accuracy": 87.5
+            "accuracy_judge": 87.5,
+            "accuracy_strict": 78.12
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -8291,11 +8484,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 61.59
           },
           "metrics": {
-            "accuracy": 61.59
+            "accuracy_judge": 61.59,
+            "accuracy_strict": 61.59
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -8374,11 +8568,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 61.59
           },
           "metrics": {
-            "accuracy": 61.59
+            "accuracy_judge": 61.59,
+            "accuracy_strict": 61.59
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -8455,11 +8650,12 @@
         },
         "extraction": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 65.98
           },
           "metrics": {
-            "accuracy": 65.98
+            "accuracy_judge": 65.98,
+            "accuracy_strict": 64.95
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -8482,11 +8678,12 @@
         },
         "counting": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 45.95
           },
           "metrics": {
-            "accuracy": 45.95
+            "accuracy_judge": 45.95,
+            "accuracy_strict": 45.95
           },
           "sample_count": 74,
           "evaluated_sample_count": null,
@@ -8509,11 +8706,12 @@
         },
         "identification": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 68.75
           },
           "metrics": {
-            "accuracy": 68.75
+            "accuracy_judge": 68.75,
+            "accuracy_strict": 68.75
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -8536,11 +8734,12 @@
         },
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 31.79
           },
           "metrics": {
-            "accuracy": 31.79
+            "accuracy_judge": 31.79,
+            "accuracy_strict": 30.46
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -8619,11 +8818,12 @@
       "tasks": {
         "reasoning": {
           "primary_metric": {
-            "name": "accuracy",
+            "name": "accuracy_judge",
             "value": 49.01
           },
           "metrics": {
-            "accuracy": 49.01
+            "accuracy_judge": 49.01,
+            "accuracy_strict": 48.34
           },
           "sample_count": 151,
           "evaluated_sample_count": null,

@@ -55,7 +55,13 @@ def _sample(
     index: int = 0,
     correct: bool = True,
     metadata: dict[str, Any] | None = None,
+    strict_correct: bool | None = None,
 ) -> SampleResult:
+    if metadata is None:
+        metadata = {
+            "strict_correct": correct if strict_correct is None else strict_correct,
+            "judge_correct": correct,
+        }
     return SampleResult(
         index=index,
         image=f"{index}.jpg",
@@ -65,7 +71,7 @@ def _sample(
         input_tokens=100,
         output_tokens=50,
         elapsed_seconds=1.0,
-        metadata=metadata or {},
+        metadata=metadata,
     )
 
 
@@ -139,14 +145,14 @@ class TestBuildSummary:
         summary = build_summary(tmp_path, config)
 
         counting = summary.models[0].tasks["counting"]
-        assert counting.metrics == {"accuracy": 100.0}
+        assert counting.metrics == {"accuracy_judge": 100.0, "accuracy_strict": 100.0}
         assert counting.timestamp == "20260702_000000"
 
-    def test_qa_reports_accuracy(self, tmp_path: Path) -> None:
+    def test_qa_reports_judge_and_strict_accuracy(self, tmp_path: Path) -> None:
         config = _config("alpha")
         samples = [
             _sample(index=0, correct=True),
-            _sample(index=1, correct=True),
+            _sample(index=1, correct=True, strict_correct=False),
             _sample(index=2, correct=False),
         ]
         _save(_run("alpha", "reasoning", samples=samples), tmp_path)
@@ -154,10 +160,22 @@ class TestBuildSummary:
         summary = build_summary(tmp_path, config)
 
         result = summary.models[0].tasks["reasoning"]
-        assert result.metrics == {"accuracy": pytest.approx(200 / 3)}
+        assert result.metrics == {
+            "accuracy_judge": pytest.approx(200 / 3),
+            "accuracy_strict": pytest.approx(100 / 3),
+        }
         assert result.primary_metric is not None
-        assert result.primary_metric.name == "accuracy"
+        assert result.primary_metric.name == "accuracy_judge"
+        assert result.primary_metric.value == pytest.approx(200 / 3)
         assert result.evaluated_sample_count is None
+
+    def test_qa_run_without_verdicts_is_rejected(self, tmp_path: Path) -> None:
+        config = _config("alpha")
+        legacy = _sample(index=0, correct=True, metadata={"match_method": "strict"})
+        _save(_run("alpha", "reasoning", samples=[legacy]), tmp_path)
+
+        with pytest.raises(ValueError, match="vlm-exam rescore"):
+            build_summary(tmp_path, config)
 
     def test_ocr_reports_only_similarity(self, tmp_path: Path) -> None:
         config = _config("alpha")
@@ -251,14 +269,35 @@ class TestSummaryToDict:
 
         payload = summary_to_dict(build_summary(tmp_path, config))
 
-        assert list(payload) == ["generated_at", "efforts", "tasks", "models"]
+        assert list(payload) == [
+            "generated_at",
+            "efforts",
+            "scoring",
+            "tasks",
+            "models",
+        ]
         assert payload["generated_at"] == "2026-07-10T07:33:33Z"
         assert payload["efforts"] == ["low"]
+        assert payload["scoring"] == {
+            "judge_model": "gemini-3.5-flash",
+            "judge_metric": "accuracy_judge",
+            "strict_metric": "accuracy_strict",
+        }
 
         (task,) = payload["tasks"]
         assert list(task) == ["key", "name", "primary_metric", "metrics"]
+        assert task["primary_metric"] == "accuracy_judge"
         assert task["metrics"] == [
-            {"key": "accuracy", "label": "Accuracy", "unit": "percent"}
+            {
+                "key": "accuracy_judge",
+                "label": "Accuracy (LLM judge)",
+                "unit": "percent",
+            },
+            {
+                "key": "accuracy_strict",
+                "label": "Accuracy (strict match)",
+                "unit": "percent",
+            },
         ]
 
         (model,) = payload["models"]
@@ -268,8 +307,11 @@ class TestSummaryToDict:
         assert "pricing" not in model
 
         counting = model["tasks"]["counting"]
-        assert counting["metrics"] == {"accuracy": 66.67}
-        assert counting["primary_metric"] == {"name": "accuracy", "value": 66.67}
+        assert counting["metrics"] == {
+            "accuracy_judge": 66.67,
+            "accuracy_strict": 66.67,
+        }
+        assert counting["primary_metric"] == {"name": "accuracy_judge", "value": 66.67}
         assert counting["evaluated_sample_count"] is None
         assert counting["timestamp"] == "2026-07-10T07:33:33Z"
         assert model["overall"]["sample_count"] == 3

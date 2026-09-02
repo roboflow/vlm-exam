@@ -14,21 +14,33 @@ The `results/` directory holds the raw benchmark outputs (one JSONL file per
 run) and is the single source of truth for the numbers below. Regenerate the
 charts at any time with `vlm-exam leaderboard`.
 
+The QA charts show LLM-judge accuracy; each links to the strict-match
+variant of the same leaderboard. See "Run a VQA benchmark" below for how
+the two metrics differ.
+
 ### Counting
 
 ![Counting accuracy leaderboard](visualizations/leaderboards/counting_accuracy_low.png)
+
+[Strict-match variant](visualizations/leaderboards/counting_accuracy_strict_low.png)
 
 ### Extraction
 
 ![Extraction accuracy leaderboard](visualizations/leaderboards/extraction_accuracy_low.png)
 
+[Strict-match variant](visualizations/leaderboards/extraction_accuracy_strict_low.png)
+
 ### Identification
 
 ![Identification accuracy leaderboard](visualizations/leaderboards/identification_accuracy_low.png)
 
+[Strict-match variant](visualizations/leaderboards/identification_accuracy_strict_low.png)
+
 ### Reasoning
 
 ![Reasoning accuracy leaderboard](visualizations/leaderboards/reasoning_accuracy_low.png)
+
+[Strict-match variant](visualizations/leaderboards/reasoning_accuracy_strict_low.png)
 
 ### Object Detection
 
@@ -89,21 +101,20 @@ vlm-exam run \
     --dataset-directory data/vqa/train
 ```
 
-Use an LLM judge as a fallback when strict answer matching fails:
+Counting, extraction, identification, and reasoning are scored two ways at
+once, and both numbers are reported for every model:
 
-```bash
-vlm-exam run \
-    --task vqa \
-    --models gpt-5.5 \
-    --effort low \
-    --dataset-directory data/vqa/train \
-    --match-mode judge \
-    --judge-model gemini-3.5-flash
-```
+- **strict**: a deterministic rule (normalized exact match, or integer
+  equality for counting). Measures correctness and format compliance.
+- **judge**: an LLM judge (`gemini-3.5-flash`, temperature 0) scores every
+  sample independently of the strict rule. Measures correctness while
+  tolerating phrasing.
 
-All committed extraction, identification, and reasoning runs are
-judge-scored. A run produced without the judge can be backfilled in place
-from its stored predictions, without re-running the model:
+The judge runs automatically and needs `GOOGLE_API_KEY`; pick a different
+judge model with `--judge-model`. The judge number is the headline on the
+leaderboard charts and the website; the strict number is exported next to
+it. A run whose stored predictions lack either verdict can be backfilled in
+place without re-running the model:
 
 ```bash
 vlm-exam rescore results/reasoning_gpt-5.5_low_20260725_101010.jsonl

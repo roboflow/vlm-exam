@@ -65,7 +65,6 @@ def run_benchmark(
     effort: str,
     task_name: str,
     verbose: bool = True,
-    match_mode: str = "strict",
     judge: Judge | None = None,
 ) -> RunResult:
     """Run a benchmark across all samples with a single provider.
@@ -77,12 +76,19 @@ def run_benchmark(
         effort: Effort level (e.g. ``"low"``, ``"high"``).
         task_name: Name of the task for result metadata.
         verbose: Whether to print progress to stdout.
-        match_mode: ``"strict"`` or ``"judge"``.
-        judge: Optional LLM judge instance for ``"judge"`` mode.
+        judge: LLM judge instance; required when ``task.requires_judge``.
 
     Returns:
         A complete run result with per-sample outcomes.
+
+    Raises:
+        ValueError: If the task requires a judge and none is given.
     """
+    if task.requires_judge and judge is None:
+        raise ValueError(
+            f"Task {task_name!r} reports strict and judge accuracy; "
+            "a judge instance is required."
+        )
     total = len(samples)
     sample_results: list[SampleResult] = []
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -117,7 +123,6 @@ def run_benchmark(
         evaluation = task.evaluate(
             sample,
             prediction,
-            match_mode=match_mode,
             judge=judge,
             uploaded_size=uploaded_size,
         )
@@ -126,6 +131,10 @@ def run_benchmark(
         metadata: dict[str, Any] = task.sample_metadata(sample)
         if evaluation.match_method is not None:
             metadata["match_method"] = evaluation.match_method
+        if evaluation.strict_correct is not None:
+            metadata["strict_correct"] = evaluation.strict_correct
+        if evaluation.judge_correct is not None:
+            metadata["judge_correct"] = evaluation.judge_correct
         if evaluation.score is not None:
             metadata["score"] = round(evaluation.score, 4)
         if evaluation.details:
@@ -158,6 +167,9 @@ def run_benchmark(
 
         if verbose:
             status = "\u2705" if evaluation.correct else "\u274c"
+            if evaluation.strict_correct is not None:
+                strict_mark = "\u2705" if evaluation.strict_correct else "\u274c"
+                status = f"judge {status} strict {strict_mark}"
             if elapsed_seconds is None:
                 time_string = "N/A"
             elif retry_stats is not None and retry_stats.attempts > 1:

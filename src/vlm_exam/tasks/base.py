@@ -31,12 +31,25 @@ class Sample:
 
 @dataclass(frozen=True)
 class EvaluationResult:
-    """Outcome of evaluating a model prediction against ground truth."""
+    """Outcome of evaluating a model prediction against ground truth.
+
+    Attributes:
+        correct: Headline verdict recorded in the ``correct`` column.
+        match_method: How ``correct`` was decided for single-metric tasks
+            (``"similarity"``, ``"map"``); ``None`` for tasks that report
+            strict and judge verdicts separately.
+        details: Task-specific extras merged into sample metadata.
+        score: Continuous score for similarity-based tasks.
+        strict_correct: Deterministic verdict, when the task reports one.
+        judge_correct: LLM judge verdict, when the task reports one.
+    """
 
     correct: bool
     match_method: str | None = None
     details: dict[str, Any] | None = None
     score: float | None = None
+    strict_correct: bool | None = None
+    judge_correct: bool | None = None
 
 
 class Task(ABC):
@@ -99,13 +112,15 @@ class Task(ABC):
         """
         ...
 
+    requires_judge: bool = False
+    """Whether ``evaluate`` needs an LLM judge to produce its verdicts."""
+
     @abstractmethod
     def evaluate(
         self,
         sample: Sample,
         prediction: str,
         *,
-        match_mode: str = "strict",
         judge: Judge | None = None,
         uploaded_size: tuple[int, int] | None = None,
     ) -> EvaluationResult:
@@ -114,8 +129,7 @@ class Task(ABC):
         Args:
             sample: The original sample with expected answer.
             prediction: Raw text output from the model.
-            match_mode: ``"strict"`` or ``"judge"``.
-            judge: Optional LLM judge instance for non-strict matching.
+            judge: LLM judge instance; required when ``requires_judge``.
             uploaded_size: The ``(width, height)`` the provider uploaded
                 for this sample, used to rescale pixel coordinates that
                 the model returns in the uploaded image's space.
