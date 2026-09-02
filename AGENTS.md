@@ -272,7 +272,9 @@ vlm-exam efficiency-report --effort high
 - Do not assume an existing `box_2d` prompt variant matches a provider's
   documented schema (e.g. separate `x_min`/`y_min`/`x_max`/`y_max` keys
   versus a four-number `box_2d` array). Map to an enum value only after a
-  local format probe confirms mAP on a ~20-image detection subset.
+  local format probe confirms mAP on a 50-image detection subset
+  (`--max-samples 50`, written outside `results/`), compared against an
+  already-benchmarked model of the same family on the same images.
 - Set the required `detection_coordinate_format` per model after that
   research and probe. Valid values are the `DetectionCoordinateFormat` enum
   strings in `src/vlm_exam/tasks/detection.py`: `yxyx_normalized_0_to_1000`,
