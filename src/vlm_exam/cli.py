@@ -370,6 +370,194 @@ def _unique_result_path(
     return candidate
 
 
+@main.command()
+@click.option(
+    "--models",
+    required=True,
+    help="Comma-separated model identifiers to benchmark end to end.",
+)
+@click.option(
+    "--tasks",
+    default=None,
+    help="Comma-separated tasks (default: every protocol task).",
+)
+@click.option(
+    "--efforts",
+    default=None,
+    help="Comma-separated efforts (default: every protocol effort).",
+)
+@click.option(
+    "--repeats",
+    default=None,
+    type=click.IntRange(min=1),
+    help="Runs per configuration (default: the protocol's repeats).",
+)
+@click.option(
+    "--first-repeat",
+    default=1,
+    show_default=True,
+    type=click.IntRange(min=1),
+    help="Repeat number of the first run, for log names when topping up.",
+)
+@click.option(
+    "--dataset-root",
+    default="data",
+    show_default=True,
+    type=click.Path(exists=True, file_okay=False),
+    help="Directory holding one <task>/train dataset per task.",
+)
+@click.option(
+    "--output-directory",
+    default="results",
+    show_default=True,
+    type=click.Path(file_okay=False),
+    help="Directory result files are written to.",
+)
+@click.option(
+    "--log-directory",
+    default="logs",
+    show_default=True,
+    type=click.Path(file_okay=False),
+    help="Directory receiving one log per run.",
+)
+@click.option(
+    "--max-parallel",
+    default=18,
+    show_default=True,
+    type=click.IntRange(min=1),
+    help=(
+        "Maximum runs alive at once; the default fits one effort level of one "
+        "model, so high starts as low runs finish."
+    ),
+)
+@click.option(
+    "--max-samples",
+    default=None,
+    type=int,
+    help="Smoke tests only: cap samples per run. Never commit such runs.",
+)
+@click.option(
+    "--config",
+    "config_path",
+    default=None,
+    type=click.Path(exists=True),
+    help="Path to custom models.yaml config.",
+)
+def benchmark(
+    models: str,
+    tasks: str | None,
+    efforts: str | None,
+    repeats: int | None,
+    first_repeat: int,
+    dataset_root: str,
+    output_directory: str,
+    log_directory: str,
+    max_parallel: int,
+    max_samples: int | None,
+    config_path: str | None,
+) -> None:
+    """Run the full benchmark protocol for one or more models in parallel."""
+    from vlm_exam.metrics import parse_model_filter
+    from vlm_exam.orchestrate import format_outcomes, plan_jobs, run_jobs
+
+    config = load_config(Path(config_path) if config_path else None)
+    model_ids = parse_model_filter(models, config)
+    jobs = plan_jobs(
+        model_ids,
+        tasks=_split_option(tasks),
+        efforts=_split_option(efforts),
+        repeats=repeats,
+        first_repeat=first_repeat,
+        dataset_root=Path(dataset_root),
+        output_directory=Path(output_directory),
+        log_directory=Path(log_directory),
+        max_samples=max_samples,
+    )
+    outcomes = run_jobs(jobs, max_parallel=max_parallel, echo=click.echo)
+    click.echo("")
+    click.echo(format_outcomes(outcomes))
+    click.echo("")
+    click.echo(
+        "Next: vlm-exam validate, then vlm-exam summary --dataset-directory "
+        f"{Path(dataset_root) / 'detection' / 'train'} and vlm-exam leaderboard."
+    )
+    if any(not outcome.ok for outcome in outcomes):
+        raise SystemExit(1)
+
+
+def _split_option(value: str | None) -> tuple[str, ...] | None:
+    if value is None:
+        return None
+    return tuple(part.strip() for part in value.split(",") if part.strip())
+
+
+@main.command()
+@click.option(
+    "--results-directory",
+    default="results",
+    type=click.Path(exists=True),
+    help="Directory containing result JSONL files.",
+)
+@click.option(
+    "--config",
+    "config_path",
+    default=None,
+    type=click.Path(exists=True),
+    help="Path to custom models.yaml config.",
+)
+@click.option(
+    "--strict",
+    is_flag=True,
+    help="Treat legacy models' missing runs as errors too.",
+)
+@click.option(
+    "--verbose",
+    is_flag=True,
+    help="List every missing configuration of legacy models instead of a summary.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    default="text",
+    show_default=True,
+    type=click.Choice(["text", "github"]),
+    help=(
+        "github prints the text report, emits ::error/::warning annotations, "
+        "and appends a Markdown table to $GITHUB_STEP_SUMMARY when set."
+    ),
+)
+def validate(
+    results_directory: str,
+    config_path: str | None,
+    strict: bool,
+    verbose: bool,
+    output_format: str,
+) -> None:
+    """Check results/ against the benchmark protocol; exit 1 on violations."""
+    from vlm_exam.validation import (
+        format_github_annotations,
+        format_github_summary,
+        format_report,
+        validate_results,
+    )
+
+    config = load_config(Path(config_path) if config_path else None)
+    report = validate_results(Path(results_directory), config, strict=strict)
+
+    click.echo(format_report(report, verbose=verbose))
+    if output_format == "github":
+        annotations = format_github_annotations(report)
+        if annotations:
+            click.echo(annotations)
+        summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary_path:
+            with open(summary_path, "a", encoding="utf-8") as file:
+                file.write(format_github_summary(report) + "\n")
+
+    if not report.ok:
+        raise SystemExit(1)
+
+
 def _format_accuracy(count: int | None, total: int) -> str:
     if count is None or total == 0:
         return "-"
@@ -646,6 +834,14 @@ def _groups_by_model_effort(
     default=None,
     help="Named leaderboard model group (e.g. alternative). Overrides --models.",
 )
+@click.option(
+    "--check",
+    is_flag=True,
+    help=(
+        "Do not write; exit 1 if --output-file differs from a fresh build. "
+        "Detection mAP fields are ignored when no --dataset-directory is given."
+    ),
+)
 def summary(
     results_directory: str,
     dataset_directory: str | None,
@@ -654,9 +850,10 @@ def summary(
     config_path: str | None,
     models: str | None,
     group: str | None,
+    check: bool,
 ) -> None:
     """Compile all result files into a single frontend-facing JSON."""
-    from vlm_exam.summary import build_summary, summary_to_dict
+    from vlm_exam.summary import build_summary, summary_drift, summary_to_dict
 
     config = load_config(Path(config_path) if config_path else None)
     model_filter = _resolve_model_filter(config, models, group)
@@ -679,9 +876,28 @@ def summary(
     )
 
     output_path = Path(output_file)
+    payload = summary_to_dict(benchmark_summary)
+    if check:
+        if not output_path.exists():
+            raise click.ClickException(f"{output_path} does not exist.")
+        with open(output_path) as file:
+            committed = json.load(file)
+        drift = summary_drift(
+            committed, payload, ignore_detection_quality=detection_dataset is None
+        )
+        if drift:
+            click.echo("\n".join(drift))
+            raise click.ClickException(
+                f"{output_path} is out of date. Regenerate it with "
+                "`vlm-exam summary --dataset-directory data/detection/train` "
+                "and commit the result."
+            )
+        click.echo(f"{output_path} matches results/ and models.yaml.")
+        return
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as file:
-        json.dump(summary_to_dict(benchmark_summary), file, indent=2)
+        json.dump(payload, file, indent=2)
         file.write("\n")
 
     if not benchmark_summary.models:
@@ -1416,3 +1632,7 @@ def detection_visualize(
 
 
 register_reference_commands(main)
+
+
+if __name__ == "__main__":
+    main()

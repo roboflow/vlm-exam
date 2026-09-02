@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+import difflib
+import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -23,14 +25,15 @@ from vlm_exam.config import BenchmarkConfig, ModelConfig
 from vlm_exam.judge import DEFAULT_JUDGE_MODEL
 from vlm_exam.metrics import (
     BENCHMARK_TASK_NAMES,
-    REPEATS_PER_CONFIGURATION,
     RepeatedMetric,
+    RunGroups,
     group_runs,
     run_judge_accuracy,
     run_mean_similarity,
     run_strict_accuracy,
     sample_cost,
 )
+from vlm_exam.protocol import PROTOCOL
 from vlm_exam.results import (
     RunResult,
     SampleResult,
@@ -181,6 +184,26 @@ class ModelOverall:
     speed: SpeedSummary
 
 
+PROTOCOL_COMPLETE = "complete"
+"""Every required configuration has exactly the required repeats."""
+
+PROTOCOL_INCOMPLETE = "incomplete"
+"""A full-protocol model still missing runs; CI fails until fixed."""
+
+PROTOCOL_LEGACY = "legacy"
+"""A pre-protocol model with gaps that are reported but not enforced."""
+
+
+@dataclass(frozen=True)
+class ModelProtocolSummary:
+    """How a model stands against the benchmark protocol, across all efforts."""
+
+    name: str
+    status: str
+    runs_present: int
+    runs_required: int
+
+
 @dataclass(frozen=True)
 class ModelSummary:
     """A single model's complete summary at one effort level."""
@@ -192,6 +215,7 @@ class ModelSummary:
     effort: str
     tasks: dict[str, ModelTaskResult]
     overall: ModelOverall
+    protocol: ModelProtocolSummary
 
 
 @dataclass(frozen=True)
@@ -215,9 +239,16 @@ class ScoringSummary:
 
 @dataclass(frozen=True)
 class ProtocolSummary:
-    """How many repeats a committed configuration is expected to have."""
+    """What every fully benchmarked model is expected to have."""
 
     repeats: int
+    efforts: tuple[str, ...]
+    tasks: tuple[str, ...]
+
+    @property
+    def runs_per_model(self) -> int:
+        """Total result files a complete model has."""
+        return self.repeats * len(self.efforts) * len(self.tasks)
 
 
 @dataclass(frozen=True)
@@ -233,7 +264,11 @@ class BenchmarkSummary:
         judge_metric=_JUDGE_ACCURACY_METRIC,
         strict_metric=_STRICT_ACCURACY_METRIC,
     )
-    protocol: ProtocolSummary = ProtocolSummary(repeats=REPEATS_PER_CONFIGURATION)
+    protocol: ProtocolSummary = ProtocolSummary(
+        repeats=PROTOCOL.repeats,
+        efforts=PROTOCOL.efforts,
+        tasks=PROTOCOL.tasks,
+    )
 
 
 def _iso_timestamp(raw: str) -> str:
@@ -440,6 +475,30 @@ def _overall(task_results: dict[str, ModelTaskResult]) -> ModelOverall:
     )
 
 
+def _model_protocol(
+    model_key: str,
+    model_config: ModelConfig,
+    all_groups: RunGroups,
+) -> ModelProtocolSummary:
+    counts = [
+        len(all_groups.get((task, effort, model_key), ()))
+        for task, effort in PROTOCOL.configurations
+    ]
+    complete = all(count == PROTOCOL.repeats for count in counts)
+    if complete:
+        status = PROTOCOL_COMPLETE
+    elif model_config.is_legacy:
+        status = PROTOCOL_LEGACY
+    else:
+        status = PROTOCOL_INCOMPLETE
+    return ModelProtocolSummary(
+        name=model_config.benchmark_protocol,
+        status=status,
+        runs_present=sum(counts),
+        runs_required=PROTOCOL.required_runs,
+    )
+
+
 def _warn_on_failed_samples(runs: list[RunResult]) -> None:
     for run in runs:
         failed = sum(1 for sample in run.samples if is_failed_sample(sample))
@@ -489,7 +548,12 @@ def build_summary(
         The assembled benchmark summary.
     """
     runs = load_results_directory(results_directory)
-    groups = group_runs(runs, config, models=models, effort=effort)
+    all_groups = group_runs(runs, config, models=models)
+    groups = (
+        all_groups
+        if effort is None
+        else {key: group for key, group in all_groups.items() if key[1] == effort}
+    )
 
     detection_index: dict[str, DetectionSample] | None = None
     if detection_dataset_directory is not None and any(
@@ -551,6 +615,7 @@ def build_summary(
                     effort=run_effort,
                     tasks=ordered_tasks,
                     overall=_overall(ordered_tasks),
+                    protocol=_model_protocol(model_key, model_config, all_groups),
                 )
             )
 
@@ -642,6 +707,54 @@ def _task_result_dict(result: ModelTaskResult) -> dict[str, Any]:
     }
 
 
+_DATASET_DEPENDENT_KEYS = ("primary_metric", "metrics", "metric_runs")
+
+
+def _without_detection_quality(payload: dict[str, Any]) -> dict[str, Any]:
+    stripped = json.loads(json.dumps(payload))
+    for model in stripped.get("models", []):
+        detection = model.get("tasks", {}).get("detection")
+        if detection is None:
+            continue
+        for key in _DATASET_DEPENDENT_KEYS:
+            detection.pop(key, None)
+        detection.pop("evaluated_sample_count", None)
+    return stripped
+
+
+def summary_drift(
+    committed: dict[str, Any],
+    fresh: dict[str, Any],
+    *,
+    ignore_detection_quality: bool,
+) -> list[str]:
+    """Diff a committed summary payload against a freshly built one.
+
+    Args:
+        committed: Payload loaded from ``web/benchmark_summary.json``.
+        fresh: Payload just produced by :func:`summary_to_dict`.
+        ignore_detection_quality: Drop detection mAP fields from both sides,
+            for environments without the detection dataset.
+
+    Returns:
+        Unified diff lines; empty when the payloads agree.
+    """
+    if ignore_detection_quality:
+        committed = _without_detection_quality(committed)
+        fresh = _without_detection_quality(fresh)
+    committed_text = json.dumps(committed, indent=2, sort_keys=True).splitlines()
+    fresh_text = json.dumps(fresh, indent=2, sort_keys=True).splitlines()
+    return list(
+        difflib.unified_diff(
+            committed_text,
+            fresh_text,
+            fromfile="committed",
+            tofile="regenerated",
+            lineterm="",
+        )
+    )
+
+
 def summary_to_dict(summary: BenchmarkSummary) -> dict[str, Any]:
     """Serialize a benchmark summary into a JSON-ready dictionary.
 
@@ -659,7 +772,12 @@ def summary_to_dict(summary: BenchmarkSummary) -> dict[str, Any]:
             "judge_metric": summary.scoring.judge_metric,
             "strict_metric": summary.scoring.strict_metric,
         },
-        "protocol": {"repeats": summary.protocol.repeats},
+        "protocol": {
+            "repeats": summary.protocol.repeats,
+            "efforts": list(summary.protocol.efforts),
+            "tasks": list(summary.protocol.tasks),
+            "runs_per_model": summary.protocol.runs_per_model,
+        },
         "tasks": [
             {
                 "key": task.key,
@@ -693,6 +811,12 @@ def summary_to_dict(summary: BenchmarkSummary) -> dict[str, Any]:
                     "tokens": _token_dict(model.overall.tokens),
                     "cost": _cost_dict(model.overall.cost),
                     "speed": _speed_dict(model.overall.speed),
+                },
+                "protocol": {
+                    "name": model.protocol.name,
+                    "status": model.protocol.status,
+                    "runs_present": model.protocol.runs_present,
+                    "runs_required": model.protocol.runs_required,
                 },
             }
             for model in summary.models

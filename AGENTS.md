@@ -57,69 +57,112 @@ avoid a loop"). Never narrate what the code does.
 - Run `ruff check` and `ruff format` before committing.
 - Keep imports sorted (enforced by ruff `I` rules).
 
-## Benchmark results
+## Benchmark protocol
 
-- Only commit full-dataset benchmark runs to `results/`. It is the single
-  source of truth aggregated by `report`, `leaderboard`, and
-  `detection-report`, which glob every file in the directory.
-- Never commit partial or smoke runs (e.g. any run produced with
-  `--max-samples`). Their noisy, non-comparable numbers would corrupt the
-  leaderboards. Keep such runs local or write them elsewhere.
-- Keep `--effort` consistent with existing runs when adding a model to a
-  task, so results stay comparable on shared leaderboards. All committed
-  runs currently use `--effort low`; do not mix effort levels within a
-  task's leaderboard unless the run is explicitly an effort comparison.
+Every model in `results/` is measured against one protocol, defined once
+as `PROTOCOL` in `src/vlm_exam/protocol.py` and read by `validate`,
+`benchmark`, `summary`, and the leaderboards:
+
+1. **Three runs per configuration.** Each `(task, effort)` is run three
+   times and all three result files are committed. A single run is not a
+   benchmark entry; model output is stochastic and one file cannot tell a
+   real gap from run-to-run noise.
+2. **Report the mean.** Quality metrics (judge and strict accuracy, OCR
+   similarity, mAP) are the arithmetic mean of the per-run values. Token,
+   cost, and time totals are the mean of one complete run, so three
+   repeats are not reported as three times the cost. Failed sample counts
+   are summed.
+3. **Low and high on every task.** Every task (OCR, extraction, counting,
+   identification, reasoning, detection) is run at both `--effort low` and
+   `--effort high`. That is 6 tasks x 2 efforts x 3 runs = 36 result files
+   per model. Both effort levels have their own leaderboard PNGs.
+4. **All of it in the web JSON.** `web/benchmark_summary.json` carries the
+   protocol (`protocol.repeats`, `protocol.efforts`, `protocol.tasks`,
+   `protocol.runs_per_model`), one entry per `(model, effort)`, per-task
+   `metrics` (means), `metric_runs` (the per-run values), `run_count`, and
+   `timestamps`, and per model a `protocol` block with `name`
+   (`full` or `legacy`), `status` (`complete`, `incomplete`, `legacy`),
+   `runs_present`, and `runs_required`.
+
+### Rules for `results/`
+
+- `results/` is the single source of truth; every command globs every
+  file in it. Repeats are plain files: every file sharing a
+  `(task, model, effort)` triple is one repeat. There is no repeat field or
+  manifest. Never delete or cherry-pick repeats to move a number; if a run
+  is broken, fix the cause, re-run it, and remove only the broken file.
+- Only commit full-dataset runs. Never commit partial or smoke runs (any
+  run produced with `--max-samples`); `validate` flags a file with fewer
+  samples than the largest run of its task as a partial run.
+- Only average runs produced under one protocol. A change to prompts,
+  coordinate formats, judge settings, or image preprocessing invalidates
+  the existing repeats of the affected configurations; re-run all three.
 - Images are EXIF-transposed on load before being sent to any provider.
   Datasets whose images carry EXIF orientation tags will therefore produce
   runs that are not comparable to runs made before this behavior existed;
   re-run all models on such a dataset rather than mixing old and new runs.
-
-## Repeated runs: three per configuration, report the mean
-
-- Every new model is benchmarked three times per `(task, effort)`
-  configuration and all three result files are committed to `results/`.
-  A single run is not a benchmark entry; model output is stochastic and
-  one file cannot tell a real gap from run-to-run noise.
-- Repeats are plain result files. There is no repeat field or manifest:
-  every file under `results/` sharing a `(task, model, effort)` triple is
-  one repeat, and `report`, `leaderboard`, `efficiency-report`,
-  `detection-report`, and `summary` average across all of them. Never
-  delete or cherry-pick repeats to move a number; if a run is broken, fix
-  the cause, re-run it, and remove only the broken file.
-- Reported numbers: quality metrics (judge and strict accuracy, OCR
-  similarity, mAP) are the arithmetic mean of the per-run values. Token,
-  cost, and time totals are the mean of one complete run, so a model with
-  three repeats is not reported as three times more expensive. Failed
-  sample counts are summed over repeats.
-- `web/benchmark_summary.json` keeps `metrics` as the flat mean so the
-  site keeps working, and adds `metric_runs` (the per-run values behind
-  each mean), `run_count`, and `timestamps` per task entry, plus a
-  top-level `protocol.repeats` block. Leaderboard PNGs draw a min-max
-  whisker on bars backed by more than one run and note the run count in a
-  footnote; `report` shows a `Runs` column and `mean +/- half-spread`.
-- Models benchmarked before this rule have one run per configuration.
-  They stay in the leaderboards with `run_count: 1` until re-run; do not
-  drop them, and prefer adding their missing repeats over re-running the
-  existing file.
-- Only average runs produced under one protocol. A change to prompts,
-  coordinate formats, judge settings, or image preprocessing invalidates
-  the existing repeats of the affected configurations; re-run all three.
-- Run repeats with `vlm-exam run --repeats 3` (sequential) or as separate
-  parallel processes writing to the same `--output-directory`; filenames
-  carry a second-resolution timestamp and the CLI suffixes `_2`, `_3` on
-  collision, so parallel launches are safe. Use `--concurrency` to evaluate
-  samples in parallel within one run; size it by task length so long tasks
-  finish alongside short ones. With Claude-class latency (5-25 s per
-  request), detection (250 images) at 6, reasoning (151) at 3-4, OCR and
-  extraction at 2-3, counting and identification at 1-2 keeps a full
-  effort level (six tasks, two repeats) under 15 minutes while staying
-  near 30 in-flight requests. Drop detection to 4 if the provider starts
-  returning 429s.
 - `vlm-exam run --resume-file <file>` re-runs only the failed samples,
   writes the merged complete file, and deletes the source file, so a
   partial run and its completion are never both counted as repeats.
-  `summary` warns about any run with failed samples; resume it before
-  committing.
+  `validate` and `summary` warn about any run with failed samples and
+  print the resume command; resume it before committing.
+
+### Legacy models (`benchmark_protocol: legacy`)
+
+- Models benchmarked before this protocol have one low run per task and
+  one high run for reasoning (7 of 36 files). They are marked
+  `benchmark_protocol: legacy` in `configs/models.yaml`. The field is
+  temporary: it is a backlog of models to backfill, not a second tier.
+- `validate` reports coverage for every model, legacy or not, and emits
+  GitHub warnings for legacy gaps so they stay visible on every PR. It
+  fails only for models without the marker. `--strict` fails on legacy
+  gaps too, for the day the backfill is done.
+- Never add `benchmark_protocol: legacy` to a new model. A new model must
+  ship all 36 files (or not be added yet). To backfill a legacy model, run
+  its missing files with `vlm-exam benchmark --models <key>`, then delete
+  the `benchmark_protocol` line.
+- Legacy rows stay in the leaderboards with their `run_count` and
+  `protocol.status: legacy` until re-run; do not drop them.
+
+### Commands
+
+- Run the whole protocol for a new model (36 processes, parallel,
+  staggered 2 s so timestamps never collide, one log each under `logs/`,
+  low first and high as low finishes):
+
+```bash
+vlm-exam benchmark --models <key>
+```
+
+  `--tasks`, `--efforts`, `--repeats`, and `--first-repeat` narrow it
+  (e.g. top up two missing high repeats of detection with
+  `--tasks detection --efforts high --repeats 2 --first-repeat 2`).
+  `--max-samples` exists for smoke tests only. The command prints every
+  log path up front and a per-run status table at the end. Under the
+  hood each process is `vlm-exam run --concurrency <n>` with the per-task
+  table in `TASK_CONCURRENCY` (detection 6, reasoning 4, OCR 3,
+  extraction, counting, identification 2), which keeps a full effort
+  level under 15 minutes with Claude-class latency; drop detection to 4
+  if the provider returns 429s. Running `vlm-exam run --repeats 3` by
+  hand is equivalent; filenames carry a second-resolution timestamp and
+  the CLI suffixes `_2`, `_3` on collision, so parallel launches are safe.
+- Check the repository before committing:
+
+```bash
+vlm-exam validate
+```
+
+  It prints a coverage table (`36/36`, `7/36 legacy`, ...) followed by
+  every problem with the exact command that fixes it: missing or surplus
+  runs, missing effort levels, partial runs, missing strict/judge
+  verdicts, failed samples, and files for models absent from
+  `models.yaml`. Exit code 1 on any violation. `--verbose` expands legacy
+  gaps; `--format github` adds annotations and a step summary.
+- CI (`.github/workflows/ci.yml`) runs `vlm-exam validate --format github`
+  and `vlm-exam summary --check` on every pull request and push to `main`,
+  plus `ruff check`, `ruff format --check`, and `pytest`. A PR that adds a
+  model without all 36 files, or that changes `results/` without
+  regenerating `web/benchmark_summary.json`, fails.
 
 ## Scoring: strict and judge are two independent metrics
 
@@ -190,22 +233,31 @@ vlm-exam summary --dataset-directory data/detection/train
 - The command compiles all efforts by default, emitting one entry per
   `(model, effort)` pair; pass `--effort` only to restrict to one level.
   Each task entry averages every repeat of that configuration (see
-  "Repeated runs" above).
+  "Benchmark protocol" above).
 - The output is deterministic given `results/`: `generated_at` derives
   from the newest included run, so an unchanged diff after regeneration
   means the results did not change.
+- `vlm-exam summary --check` rebuilds the payload in memory and exits 1 if
+  the committed file differs. CI runs it without the detection dataset, so
+  detection mAP fields are excluded from that comparison; everything else
+  must match.
 - The file is a generated artifact; never hand-edit it.
 
 ## Leaderboard charts
 
 - Regenerate the leaderboard charts in `visualizations/leaderboards/` and
   commit them in every PR that changes `results/`, so the tracked PNGs
-  never drift from the underlying runs:
+  never drift from the underlying runs. Both effort levels are tracked
+  (`*_low.png` and `*_high.png`):
 
 ```bash
 vlm-exam leaderboard --dataset-directory data/detection/train
-vlm-exam efficiency-report
+vlm-exam efficiency-report --effort low
+vlm-exam efficiency-report --effort high
 ```
+
+  `leaderboard` renders every effort present in `results/`;
+  `efficiency-report` renders one effort per call.
 
 ## Adding and benchmarking models
 

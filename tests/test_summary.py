@@ -29,25 +29,30 @@ from vlm_exam.results import RunResult, SampleResult, save_results
 from vlm_exam.summary import (
     _TASK_DEFINITIONS,
     build_summary,
+    summary_drift,
     summary_to_dict,
 )
 from vlm_exam.tasks.detection import DetectionCoordinateFormat
 
 
-def _model(model_id: str) -> ModelConfig:
+def _model(model_id: str, benchmark_protocol: str = "full") -> ModelConfig:
     return ModelConfig(
         name=model_id,
         lab="openai",
         routes=(RouteConfig("openai"),),
         pricing=PricingConfig(1.0, 2.0),
         detection_coordinate_format=DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE,
+        benchmark_protocol=benchmark_protocol,
     )
 
 
-def _config(*model_ids: str) -> BenchmarkConfig:
+def _config(*model_ids: str, legacy: tuple[str, ...] = ()) -> BenchmarkConfig:
     return BenchmarkConfig(
         labs={"openai": LabConfig("OpenAI", "#000", "https://example.com/logo.svg")},
-        models={model_id: _model(model_id) for model_id in model_ids},
+        models={
+            model_id: _model(model_id, "legacy" if model_id in legacy else "full")
+            for model_id in model_ids
+        },
     )
 
 
@@ -102,6 +107,31 @@ class TestTaskRegistry:
 
 
 class TestBuildSummary:
+    def test_protocol_status_counts_runs_across_efforts(self, tmp_path: Path) -> None:
+        config = _config("alpha", "old", legacy=("old",))
+        for task in BENCHMARK_TASK_NAMES:
+            for effort in ("low", "high"):
+                for repeat in range(3):
+                    _save(
+                        _run(
+                            "alpha",
+                            task,
+                            effort=effort,
+                            timestamp=f"2026070{repeat + 1}_000000",
+                        ),
+                        tmp_path,
+                    )
+        _save(_run("old", "counting"), tmp_path)
+
+        summary = build_summary(tmp_path, config, effort="low")
+
+        by_key = {model.key: model for model in summary.models}
+        assert by_key["alpha"].protocol.status == "complete"
+        assert by_key["alpha"].protocol.runs_present == 36
+        assert by_key["old"].protocol.status == "legacy"
+        assert by_key["old"].protocol.runs_present == 1
+        assert by_key["old"].protocol.name == "legacy"
+
     def test_one_entry_per_model_effort(self, tmp_path: Path) -> None:
         config = _config("alpha")
         _save(_run("alpha", "counting", effort="low"), tmp_path)
@@ -325,7 +355,19 @@ class TestSummaryToDict:
             "judge_metric": "accuracy_judge",
             "strict_metric": "accuracy_strict",
         }
-        assert payload["protocol"] == {"repeats": 3}
+        assert payload["protocol"] == {
+            "repeats": 3,
+            "efforts": ["low", "high"],
+            "tasks": [
+                "ocr",
+                "extraction",
+                "counting",
+                "identification",
+                "reasoning",
+                "detection",
+            ],
+            "runs_per_model": 36,
+        }
 
         (task,) = payload["tasks"]
         assert list(task) == ["key", "name", "primary_metric", "metrics"]
@@ -364,3 +406,56 @@ class TestSummaryToDict:
         assert counting["evaluated_sample_count"] is None
         assert counting["timestamp"] == "2026-07-10T07:33:33Z"
         assert model["overall"]["sample_count"] == 3
+        assert model["protocol"] == {
+            "name": "full",
+            "status": "incomplete",
+            "runs_present": 1,
+            "runs_required": 36,
+        }
+
+
+class TestSummaryDrift:
+    def _payload(self, map50: float, cost: float) -> dict[str, Any]:
+        return {
+            "models": [
+                {
+                    "key": "alpha",
+                    "tasks": {
+                        "detection": {
+                            "primary_metric": {"name": "map50", "value": map50},
+                            "metrics": {"map50": map50},
+                            "metric_runs": {"map50": [map50]},
+                            "evaluated_sample_count": 250,
+                            "cost": {"total_usd": cost},
+                        },
+                        "ocr": {"metrics": {"similarity": 90.0}},
+                    },
+                }
+            ]
+        }
+
+    def test_identical_payloads_have_no_drift(self) -> None:
+        assert (
+            summary_drift(
+                self._payload(60.0, 1.0),
+                self._payload(60.0, 1.0),
+                ignore_detection_quality=False,
+            )
+            == []
+        )
+
+    def test_detection_quality_is_ignored_only_when_requested(self) -> None:
+        committed = self._payload(60.0, 1.0)
+        fresh = self._payload(0.0, 1.0)
+
+        assert summary_drift(committed, fresh, ignore_detection_quality=True) == []
+        assert summary_drift(committed, fresh, ignore_detection_quality=False)
+
+    def test_other_changes_still_drift(self) -> None:
+        drift = summary_drift(
+            self._payload(60.0, 1.0),
+            self._payload(60.0, 2.0),
+            ignore_detection_quality=True,
+        )
+
+        assert any(line.startswith("+") and "2.0" in line for line in drift)

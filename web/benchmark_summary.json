@@ -10,7 +10,20 @@
     "strict_metric": "accuracy_strict"
   },
   "protocol": {
-    "repeats": 3
+    "repeats": 3,
+    "efforts": [
+      "low",
+      "high"
+    ],
+    "tasks": [
+      "ocr",
+      "extraction",
+      "counting",
+      "identification",
+      "reasoning",
+      "detection"
+    ],
+    "runs_per_model": 36
   },
   "tasks": [
     {
@@ -382,6 +395,12 @@
           "total_seconds": 5580.644,
           "average_seconds_per_sample": 8.706
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -449,6 +468,12 @@
           "total_seconds": 1038.21,
           "average_seconds_per_sample": 6.876
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -752,6 +777,12 @@
           "total_seconds": 5307.864,
           "average_seconds_per_sample": 8.281
         }
+      },
+      "protocol": {
+        "name": "full",
+        "status": "complete",
+        "runs_present": 36,
+        "runs_required": 36
       }
     },
     {
@@ -1055,6 +1086,12 @@
           "total_seconds": 6907.993,
           "average_seconds_per_sample": 10.777
         }
+      },
+      "protocol": {
+        "name": "full",
+        "status": "complete",
+        "runs_present": 36,
+        "runs_required": 36
       }
     },
     {
@@ -1322,6 +1359,12 @@
           "total_seconds": 3100.625,
           "average_seconds_per_sample": 4.837
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -1389,6 +1432,12 @@
           "total_seconds": 622.683,
           "average_seconds_per_sample": 4.124
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -1656,6 +1705,12 @@
           "total_seconds": 3330.234,
           "average_seconds_per_sample": 5.195
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -1723,6 +1778,12 @@
           "total_seconds": 370.596,
           "average_seconds_per_sample": 2.454
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -1990,6 +2051,12 @@
           "total_seconds": 4728.14,
           "average_seconds_per_sample": 7.376
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2057,6 +2124,12 @@
           "total_seconds": 1297.54,
           "average_seconds_per_sample": 8.593
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2324,6 +2397,12 @@
           "total_seconds": 3727.204,
           "average_seconds_per_sample": 5.815
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2391,6 +2470,12 @@
           "total_seconds": 1325.089,
           "average_seconds_per_sample": 8.775
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2658,6 +2743,12 @@
           "total_seconds": 3033.227,
           "average_seconds_per_sample": 4.732
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2725,6 +2816,12 @@
           "total_seconds": 1462.054,
           "average_seconds_per_sample": 9.682
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -2992,6 +3089,12 @@
           "total_seconds": 6389.649,
           "average_seconds_per_sample": 9.968
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3059,6 +3162,12 @@
           "total_seconds": 1395.874,
           "average_seconds_per_sample": 9.244
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3326,6 +3435,12 @@
           "total_seconds": 1732.982,
           "average_seconds_per_sample": 2.704
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3393,6 +3508,12 @@
           "total_seconds": 879.349,
           "average_seconds_per_sample": 5.824
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3660,6 +3781,12 @@
           "total_seconds": 2625.584,
           "average_seconds_per_sample": 4.096
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3727,6 +3854,12 @@
           "total_seconds": 967.864,
           "average_seconds_per_sample": 6.41
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -3994,6 +4127,12 @@
           "total_seconds": 3918.71,
           "average_seconds_per_sample": 6.113
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4061,6 +4200,12 @@
           "total_seconds": 1404.323,
           "average_seconds_per_sample": 9.3
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4328,6 +4473,12 @@
           "total_seconds": 5007.561,
           "average_seconds_per_sample": 7.812
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4395,6 +4546,12 @@
           "total_seconds": 2011.676,
           "average_seconds_per_sample": 13.322
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4662,6 +4819,12 @@
           "total_seconds": 5945.75,
           "average_seconds_per_sample": 9.276
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4729,6 +4892,12 @@
           "total_seconds": 2156.615,
           "average_seconds_per_sample": 14.282
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -4996,6 +5165,12 @@
           "total_seconds": 3428.2,
           "average_seconds_per_sample": 5.348
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5063,6 +5238,12 @@
           "total_seconds": 1974.662,
           "average_seconds_per_sample": 13.077
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5330,6 +5511,12 @@
           "total_seconds": 7510.906,
           "average_seconds_per_sample": 11.717
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5397,6 +5584,12 @@
           "total_seconds": 1209.427,
           "average_seconds_per_sample": 8.009
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5664,6 +5857,12 @@
           "total_seconds": 4585.285,
           "average_seconds_per_sample": 7.153
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5731,6 +5930,12 @@
           "total_seconds": 811.913,
           "average_seconds_per_sample": 5.377
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -5998,6 +6203,12 @@
           "total_seconds": 4196.667,
           "average_seconds_per_sample": 6.547
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6065,6 +6276,12 @@
           "total_seconds": 1272.83,
           "average_seconds_per_sample": 8.429
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6332,6 +6549,12 @@
           "total_seconds": 11554.077,
           "average_seconds_per_sample": 18.025
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6399,6 +6622,12 @@
           "total_seconds": 4974.788,
           "average_seconds_per_sample": 32.946
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6666,6 +6895,12 @@
           "total_seconds": 4494.202,
           "average_seconds_per_sample": 7.011
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -6733,6 +6968,12 @@
           "total_seconds": 8703.863,
           "average_seconds_per_sample": 57.641
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7000,6 +7241,12 @@
           "total_seconds": 4025.9,
           "average_seconds_per_sample": 6.281
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7067,6 +7314,12 @@
           "total_seconds": 8537.349,
           "average_seconds_per_sample": 56.539
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7334,6 +7587,12 @@
           "total_seconds": 5283.268,
           "average_seconds_per_sample": 8.242
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7401,6 +7660,12 @@
           "total_seconds": 4628.052,
           "average_seconds_per_sample": 30.649
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7668,6 +7933,12 @@
           "total_seconds": 5878.532,
           "average_seconds_per_sample": 9.171
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -7735,6 +8006,12 @@
           "total_seconds": 296.454,
           "average_seconds_per_sample": 1.963
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8002,6 +8279,12 @@
           "total_seconds": 4727.643,
           "average_seconds_per_sample": 7.375
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8069,6 +8352,12 @@
           "total_seconds": 9458.923,
           "average_seconds_per_sample": 62.642
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8336,6 +8625,12 @@
           "total_seconds": 4698.999,
           "average_seconds_per_sample": 7.331
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8403,6 +8698,12 @@
           "total_seconds": 8132.13,
           "average_seconds_per_sample": 53.855
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8670,6 +8971,12 @@
           "total_seconds": 5682.771,
           "average_seconds_per_sample": 8.865
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -8737,6 +9044,12 @@
           "total_seconds": 21042.141,
           "average_seconds_per_sample": 139.352
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -9004,6 +9317,12 @@
           "total_seconds": 4070.563,
           "average_seconds_per_sample": 6.35
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -9071,6 +9390,12 @@
           "total_seconds": 4382.145,
           "average_seconds_per_sample": 29.021
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -9338,6 +9663,12 @@
           "total_seconds": 4348.495,
           "average_seconds_per_sample": 6.784
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -9405,6 +9736,12 @@
           "total_seconds": 812.293,
           "average_seconds_per_sample": 5.379
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -9672,6 +10009,12 @@
           "total_seconds": 18953.617,
           "average_seconds_per_sample": 29.569
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -9739,6 +10082,12 @@
           "total_seconds": 16567.259,
           "average_seconds_per_sample": 109.717
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -10006,6 +10355,12 @@
           "total_seconds": 8143.968,
           "average_seconds_per_sample": 12.705
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -10073,6 +10428,12 @@
           "total_seconds": 12068.609,
           "average_seconds_per_sample": 79.925
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -10340,6 +10701,12 @@
           "total_seconds": 7284.744,
           "average_seconds_per_sample": 11.365
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -10407,6 +10774,12 @@
           "total_seconds": 3317.156,
           "average_seconds_per_sample": 21.968
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -10674,6 +11047,12 @@
           "total_seconds": 4984.283,
           "average_seconds_per_sample": 7.776
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -10741,6 +11120,12 @@
           "total_seconds": 2462.744,
           "average_seconds_per_sample": 16.31
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -11008,6 +11393,12 @@
           "total_seconds": 5573.773,
           "average_seconds_per_sample": 8.695
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -11075,6 +11466,12 @@
           "total_seconds": 3794.985,
           "average_seconds_per_sample": 25.132
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -11342,6 +11739,12 @@
           "total_seconds": 9170.656,
           "average_seconds_per_sample": 14.307
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -11409,6 +11812,12 @@
           "total_seconds": 4185.963,
           "average_seconds_per_sample": 27.722
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -11676,6 +12085,12 @@
           "total_seconds": 4737.419,
           "average_seconds_per_sample": 7.391
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -11743,6 +12158,12 @@
           "total_seconds": 5561.263,
           "average_seconds_per_sample": 36.83
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -12010,6 +12431,12 @@
           "total_seconds": 2367.637,
           "average_seconds_per_sample": 3.694
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     },
     {
@@ -12077,6 +12504,12 @@
           "total_seconds": 2476.102,
           "average_seconds_per_sample": 16.398
         }
+      },
+      "protocol": {
+        "name": "legacy",
+        "status": "legacy",
+        "runs_present": 7,
+        "runs_required": 36
       }
     }
   ]

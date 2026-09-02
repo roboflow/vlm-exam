@@ -171,6 +171,38 @@ class TestResolutionTier:
             )
 
 
+def _protocol_model(**overrides: object) -> dict[str, object]:
+    raw: dict[str, object] = {
+        "name": "Any Model",
+        "lab": "anthropic",
+        "provider": "anthropic",
+        "detection_coordinate_format": "xyxy_absolute_resized_image",
+        "pricing": {"input_per_million_tokens": 1.0, "output_per_million_tokens": 5.0},
+    }
+    raw.update(overrides)
+    return raw
+
+
+class TestBenchmarkProtocolField:
+    def test_defaults_to_full_protocol(self) -> None:
+        model = _parse_model(_protocol_model())
+        assert model.benchmark_protocol == "full"
+        assert not model.is_legacy
+
+    def test_reads_legacy(self) -> None:
+        model = _parse_model(_protocol_model(benchmark_protocol="legacy"))
+        assert model.is_legacy
+
+    def test_rejects_unknown_value(self) -> None:
+        with pytest.raises(ValueError, match="benchmark_protocol"):
+            _parse_model(_protocol_model(benchmark_protocol="three-run"))
+
+    def test_bundled_config_marks_only_pre_protocol_models_legacy(self) -> None:
+        config = load_config()
+        full = [key for key, model in config.models.items() if not model.is_legacy]
+        assert full == ["claude-fable-5-1"]
+
+
 class TestProviderUploadRouteGuard:
     def test_rejects_resized_format_on_non_resizing_provider(self) -> None:
         with pytest.raises(ValueError, match="pre-resize"):

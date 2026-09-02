@@ -19,13 +19,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from vlm_exam.config import BenchmarkConfig, ModelConfig, load_leaderboard_groups
+from vlm_exam.protocol import PROTOCOL
 from vlm_exam.results import RunResult, SampleResult, load_results_directory
-from vlm_exam.tasks import QA_TASK_NAMES
 
-BENCHMARK_TASK_NAMES: tuple[str, ...] = (*QA_TASK_NAMES, "detection")
+BENCHMARK_TASK_NAMES: tuple[str, ...] = PROTOCOL.tasks
 """Registered benchmark tasks included in cross-task efficiency rollups."""
 
-REPEATS_PER_CONFIGURATION = 3
+REPEATS_PER_CONFIGURATION = PROTOCOL.repeats
 """Number of full runs every committed (task, model, effort) should have."""
 
 RunGroups = dict[tuple[str, str, str], list[RunResult]]

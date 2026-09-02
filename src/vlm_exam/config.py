@@ -55,6 +55,16 @@ class RouteConfig:
     provider_model_id: str | None = None
 
 
+FULL_PROTOCOL = "full"
+"""Model must have every task at every effort with the required repeats."""
+
+LEGACY_PROTOCOL = "legacy"
+"""Model predates the repeated-run protocol; gaps are reported, not enforced."""
+
+BENCHMARK_PROTOCOLS: tuple[str, ...] = (FULL_PROTOCOL, LEGACY_PROTOCOL)
+"""Accepted values of a model's ``benchmark_protocol`` field."""
+
+
 @dataclass(frozen=True)
 class ModelConfig:
     """Single model definition with lab affiliation, routes, and pricing."""
@@ -65,6 +75,7 @@ class ModelConfig:
     pricing: PricingConfig
     detection_coordinate_format: DetectionCoordinateFormat
     resolution_tier: str = "high"
+    benchmark_protocol: str = FULL_PROTOCOL
 
     @property
     def provider(self) -> str:
@@ -75,6 +86,11 @@ class ModelConfig:
     def provider_model_id(self) -> str | None:
         """Primary route's upstream model identifier."""
         return self.routes[0].provider_model_id
+
+    @property
+    def is_legacy(self) -> bool:
+        """Whether the model is exempt from protocol enforcement."""
+        return self.benchmark_protocol == LEGACY_PROTOCOL
 
 
 @dataclass(frozen=True)
@@ -117,7 +133,9 @@ def _parse_model(raw: dict[str, Any]) -> ModelConfig:
     routes = _parse_routes(raw)
     coordinate_format = DetectionCoordinateFormat(raw["detection_coordinate_format"])
     resolution_tier = raw.get("resolution_tier", "high")
+    benchmark_protocol = raw.get("benchmark_protocol", FULL_PROTOCOL)
     _validate_resolution_tier(raw["name"], resolution_tier)
+    _validate_benchmark_protocol(raw["name"], benchmark_protocol)
     _validate_provider_upload_routes(raw["name"], coordinate_format, routes)
     return ModelConfig(
         name=raw["name"],
@@ -129,7 +147,17 @@ def _parse_model(raw: dict[str, Any]) -> ModelConfig:
         ),
         detection_coordinate_format=coordinate_format,
         resolution_tier=resolution_tier,
+        benchmark_protocol=benchmark_protocol,
     )
+
+
+def _validate_benchmark_protocol(model_name: str, benchmark_protocol: str) -> None:
+    if benchmark_protocol not in BENCHMARK_PROTOCOLS:
+        valid = ", ".join(BENCHMARK_PROTOCOLS)
+        raise ValueError(
+            f"Model {model_name!r} has unknown benchmark_protocol "
+            f"{benchmark_protocol!r}. Valid values: {valid}."
+        )
 
 
 def _validate_resolution_tier(model_name: str, resolution_tier: str) -> None:

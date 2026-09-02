@@ -380,6 +380,7 @@ class TestParseNormalizedPercentPrediction:
         assert "floats between 0 and 100" in prompt
         assert "[x_min, y_min, x_max, y_max]" in prompt
 
+
 class TestParsePixelPrediction:
     def test_parses_pixel_coordinates_directly(self) -> None:
         prediction = '[{"box_2d": [10, 20, 30, 40], "label": "cat"}]'
