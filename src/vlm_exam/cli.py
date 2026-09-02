@@ -23,7 +23,7 @@ import click
 from dotenv import load_dotenv
 
 from vlm_exam.config import BenchmarkConfig, load_config
-from vlm_exam.judge import Judge
+from vlm_exam.judge import DEFAULT_JUDGE_MODEL, Judge
 from vlm_exam.providers import build_model_provider
 from vlm_exam.reference.cli import register_reference_commands
 from vlm_exam.results import (
@@ -57,6 +57,16 @@ _QA_DATASET_VERSIONS = {
     "identification": 1,
     "reasoning": 2,
 }
+
+
+def _build_judge(judge_model: str) -> Judge:
+    if not os.environ.get("GOOGLE_API_KEY"):
+        raise click.UsageError(
+            "GOOGLE_API_KEY is not set. Counting, extraction, identification, "
+            "and reasoning are scored by an LLM judge in addition to the strict "
+            "rule, so the judge credentials are required."
+        )
+    return Judge(model=judge_model)
 
 
 def _resolve_model_filter(
@@ -183,17 +193,12 @@ def download(
     help="Path to custom models.yaml config.",
 )
 @click.option(
-    "--match-mode",
-    "match_mode",
-    default="strict",
-    type=click.Choice(["strict", "judge"]),
-    help="Answer matching mode: strict (exact) or judge (LLM fallback).",
-)
-@click.option(
     "--judge-model",
     "judge_model",
-    default="gemini-3.5-flash",
-    help="Model to use as LLM judge (only used with --match-mode=judge).",
+    default=DEFAULT_JUDGE_MODEL,
+    show_default=True,
+    help="LLM judge scoring every counting, extraction, identification, "
+    "and reasoning sample alongside the strict rule.",
 )
 @click.option(
     "--max-samples",
@@ -229,7 +234,6 @@ def run(
     dataset_directory: str,
     output_directory: str,
     config_path: str | None,
-    match_mode: str,
     judge_model: str,
     max_samples: int | None,
     prompt_classes: str,
@@ -276,15 +280,11 @@ def run(
             f"re-running {len(samples)} failed samples."
         )
 
-    judge: Judge | None = None
-    if match_mode == "judge":
-        judge = Judge(model=judge_model)
+    judge = _build_judge(judge_model) if task.requires_judge else None
 
     click.echo(f"Loaded {len(samples)} samples from {dataset_directory}")
-    if judge:
-        click.echo(f"Match mode: {match_mode} (judge: {judge_model})")
-    else:
-        click.echo(f"Match mode: {match_mode}")
+    if judge is not None:
+        click.echo(f"Scoring: strict rule and LLM judge ({judge_model})")
 
     for model_id in model_ids:
         if model_id not in config.models:
@@ -308,7 +308,6 @@ def run(
             samples=samples,
             effort=effort,
             task_name=task_name,
-            match_mode=match_mode,
             judge=judge,
         )
 
@@ -321,13 +320,20 @@ def run(
         click.echo(f"Results saved to {result_path}")
 
 
+def _format_accuracy(count: int | None, total: int) -> str:
+    if count is None or total == 0:
+        return "-"
+    return f"{count / total * 100:.1f}%"
+
+
 @main.command()
 @click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True))
 @click.option(
     "--judge-model",
     "judge_model",
-    default="gemini-3.5-flash",
-    help="Model to use as LLM judge.",
+    default=DEFAULT_JUDGE_MODEL,
+    show_default=True,
+    help="LLM judge model.",
 )
 @click.option(
     "--concurrency",
@@ -337,24 +343,33 @@ def run(
     help="In-flight judge calls.",
 )
 @click.option(
+    "--force",
+    "force",
+    is_flag=True,
+    help="Re-score samples that already carry both verdicts.",
+)
+@click.option(
     "--dry-run",
     "dry_run",
     is_flag=True,
-    help="Report how many samples would be judged without calling the judge.",
+    help="Report how many samples would be scored without calling the judge.",
 )
 def rescore(
     paths: tuple[str, ...],
     judge_model: str,
     concurrency: int,
+    force: bool,
     dry_run: bool,
 ) -> None:
-    """Apply the LLM judge fallback to stored strict-only QA runs in place.
+    """Backfill strict and judge verdicts on stored QA runs in place.
 
-    Accepts result files or directories. Only extraction, identification,
-    and reasoning runs are touched; samples already judged are left as-is,
-    so the command is idempotent.
+    Accepts result files or directories. Only counting, extraction,
+    identification, and reasoning runs are touched. The strict verdict is
+    recomputed from the stored prediction; the judge scores every real
+    prediction. Samples already carrying both verdicts are skipped unless
+    --force is given, so the command is idempotent.
     """
-    from vlm_exam.rescore import JUDGE_TASK_NAMES, needs_judge, rescore_run
+    from vlm_exam.rescore import JUDGE_TASK_NAMES, has_both_verdicts, rescore_run
 
     files: list[Path] = []
     for raw_path in paths:
@@ -363,6 +378,11 @@ def rescore(
             files.extend(sorted(path.glob("*.jsonl")))
         else:
             files.append(path)
+
+    def pending_count(run_result: RunResult) -> int:
+        return sum(
+            1 for sample in run_result.samples if force or not has_both_verdicts(sample)
+        )
 
     runs: list[tuple[Path, RunResult]] = []
     for path in files:
@@ -373,7 +393,7 @@ def rescore(
             continue
         if run_result.task not in JUDGE_TASK_NAMES:
             continue
-        if not any(needs_judge(sample) for sample in run_result.samples):
+        if pending_count(run_result) == 0:
             continue
         runs.append((path, run_result))
 
@@ -381,30 +401,30 @@ def rescore(
         click.echo("Nothing to rescore.")
         return
 
-    pending_total = sum(
-        sum(1 for sample in run_result.samples if needs_judge(sample))
-        for _, run_result in runs
-    )
-    click.echo(f"{len(runs)} runs, {pending_total} samples to judge ({judge_model})")
+    pending_total = sum(pending_count(run_result) for _, run_result in runs)
+    click.echo(f"{len(runs)} runs, {pending_total} samples to score ({judge_model})")
     if dry_run:
         for path, run_result in runs:
-            pending = sum(1 for sample in run_result.samples if needs_judge(sample))
-            click.echo(f"  {path.name}: {pending} to judge")
+            click.echo(f"  {path.name}: {pending_count(run_result)} to score")
         return
 
-    judge = Judge(model=judge_model)
-    header = (
-        f"{'file':<62}{'judged':>7}{'rescued':>8}{'before':>8}{'after':>7}{'delta':>8}"
+    judge = _build_judge(judge_model)
+    click.echo(
+        f"{'file':<62}{'scored':>7}{'strict before':>14}{'strict after':>13}"
+        f"{'judge before':>13}{'judge after':>12}"
     )
-    click.echo(header)
     for path, run_result in runs:
-        rescored, summary = rescore_run(run_result, judge, concurrency=concurrency)
+        rescored, summary = rescore_run(
+            run_result, judge, concurrency=concurrency, force=force
+        )
         save_results(rescored, path)
-        before = summary.correct_before / summary.total * 100
-        after = summary.correct_after / summary.total * 100
+        total = summary.total
         click.echo(
-            f"{path.name:<62}{summary.judged:>7}{summary.rescued:>8}"
-            f"{before:>7.1f}%{after:>6.1f}%{after - before:>+7.1f}"
+            f"{path.name:<62}{summary.scored:>7}"
+            f"{_format_accuracy(summary.strict_before, total):>14}"
+            f"{_format_accuracy(summary.strict_after, total):>13}"
+            f"{_format_accuracy(summary.judge_before, total):>13}"
+            f"{_format_accuracy(summary.judge_after, total):>12}"
         )
 
 
@@ -436,24 +456,34 @@ def report(
 
     click.echo(
         f"\n{'Task':<15} {'Model':<25} {'Effort':>6} "
-        f"{'Correct':>8} {'Total':>6} {'Metric':>10}"
+        f"{'Correct':>8} {'Total':>6} {'Judge':>10} {'Strict':>10}"
     )
-    click.echo("-" * 76)
+    click.echo("-" * 87)
 
-    from vlm_exam.metrics import run_accuracy, run_mean_similarity
+    from vlm_exam.metrics import (
+        run_accuracy,
+        run_judge_accuracy,
+        run_mean_similarity,
+        run_strict_accuracy,
+    )
+    from vlm_exam.rescore import JUDGE_TASK_NAMES
 
     for run_result in sorted(runs, key=lambda run: (run.task, run.model)):
         correct = sum(sample.correct for sample in run_result.samples)
         total = len(run_result.samples)
 
+        strict = ""
         if run_result.task == "ocr":
             metric = f"{run_mean_similarity(run_result):.1f}% sim"
+        elif run_result.task in JUDGE_TASK_NAMES:
+            metric = f"{run_judge_accuracy(run_result):.1f}%"
+            strict = f"{run_strict_accuracy(run_result):.1f}%"
         else:
             metric = f"{run_accuracy(run_result):.1f}%"
 
         click.echo(
             f"{run_result.task:<15} {run_result.model:<25} {run_result.effort:>6} "
-            f"{correct:>8} {total:>6} {metric:>10}"
+            f"{correct:>8} {total:>6} {metric:>10} {strict:>10}"
         )
 
     click.echo()
@@ -882,7 +912,12 @@ def leaderboard(
             detection_samples = detection_task.load_samples(dataset_directory)
             detection_index = build_sample_index(detection_samples)
 
-    from vlm_exam.metrics import run_accuracy, run_mean_similarity
+    from vlm_exam.metrics import (
+        run_accuracy,
+        run_judge_accuracy,
+        run_mean_similarity,
+        run_strict_accuracy,
+    )
 
     efforts_by_task: dict[str, set[str]] = {}
     for task_name, effort in runs_by_task_effort:
@@ -911,13 +946,20 @@ def leaderboard(
             save_figure(figure, f"ocr_similarity_{effort}.png")
 
         elif task_name in QA_TASK_NAMES:
-            accuracy = {run.model: run_accuracy(run) for run in runs}
+            judge_accuracy = {run.model: run_judge_accuracy(run) for run in runs}
             figure = plot_accuracy_chart(
-                accuracy,
+                judge_accuracy,
                 config,
-                f"{task_name.title()} Benchmark{effort_suffix}",
+                f"{task_name.title()} Benchmark \u2014 LLM Judge{effort_suffix}",
             )
             save_figure(figure, f"{task_name}_accuracy_{effort}.png")
+            strict_accuracy = {run.model: run_strict_accuracy(run) for run in runs}
+            figure = plot_accuracy_chart(
+                strict_accuracy,
+                config,
+                f"{task_name.title()} Benchmark \u2014 Strict Match{effort_suffix}",
+            )
+            save_figure(figure, f"{task_name}_accuracy_strict_{effort}.png")
 
         elif task_name == "detection":
             if detection_index is None:

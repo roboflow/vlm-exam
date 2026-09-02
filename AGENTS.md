@@ -69,18 +69,45 @@ avoid a loop"). Never narrate what the code does.
   task, so results stay comparable on shared leaderboards. All committed
   runs currently use `--effort low`; do not mix effort levels within a
   task's leaderboard unless the run is explicitly an effort comparison.
-- Run extraction, identification, and reasoning with
-  `--match-mode judge --judge-model gemini-3.5-flash`. Every committed run
-  for those tasks is judge-scored; a strict-only run is not comparable
-  because the judge can only add points. If a run was produced without the
-  judge, backfill it before committing with
-  `vlm-exam rescore <file-or-directory>`, which re-judges the stored
-  predictions in place and is a no-op on already judged files. Counting,
-  detection, and OCR are scored deterministically and ignore the mode.
 - Images are EXIF-transposed on load before being sent to any provider.
   Datasets whose images carry EXIF orientation tags will therefore produce
   runs that are not comparable to runs made before this behavior existed;
   re-run all models on such a dataset rather than mixing old and new runs.
+
+## Scoring: strict and judge are two independent metrics
+
+- Counting, extraction, identification, and reasoning report two accuracy
+  numbers for every model, past and future. Both are always computed and
+  stored; neither is a fallback for the other.
+  - `strict`: the deterministic rule (`strict_match` normalization for
+    extraction, identification, reasoning; `parse_count` equality for
+    counting). It measures answer correctness and format compliance
+    together.
+  - `judge`: the LLM judge (`gemini-3.5-flash`, temperature 0, the prompt
+    in `src/vlm_exam/judge.py` plus the task's `judge_guidance`) scores
+    every sample, including ones that pass strict. It measures answer
+    correctness while tolerating phrasing.
+- Per sample, `metadata.strict_correct` and `metadata.judge_correct` are
+  both recorded; the `correct` column equals `judge_correct`. Provider
+  errors and empty responses are false under both rules and never reach
+  the judge. `metadata.match_method` is legacy and must not appear in
+  these four tasks' files.
+- `vlm-exam run` always produces both verdicts for these tasks and needs
+  `GOOGLE_API_KEY` for the judge; there is no strict-only mode. OCR
+  (similarity) and detection (mAP) are single-metric and ignore the judge.
+- Never commit a run for these tasks whose samples lack either flag.
+  `report`, `leaderboard`, and `summary` refuse such runs. Backfill with
+  `vlm-exam rescore <file-or-directory>`: it recomputes strict offline,
+  judges every stored prediction, and skips samples that already carry
+  both verdicts (use `--force` to re-judge).
+- Do not change the judge model, temperature, prompt, or task guidance
+  without re-scoring every committed run with `vlm-exam rescore --force`;
+  judge numbers are only comparable under one fixed protocol.
+- Headline versus secondary: `accuracy_judge` is the `primary_metric` in
+  `web/benchmark_summary.json` and the `{task}_accuracy_{effort}.png`
+  charts; `accuracy_strict` is exported alongside it in the same payload
+  and rendered as `{task}_accuracy_strict_{effort}.png`. The payload's
+  top-level `scoring` block names the judge model and both metric keys.
 
 ## Reference models
 

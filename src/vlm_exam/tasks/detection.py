@@ -327,7 +327,6 @@ class DetectionTask(Task):
         sample: Sample,
         prediction: str,
         *,
-        match_mode: str = "strict",
         judge: Judge | None = None,
         uploaded_size: tuple[int, int] | None = None,
     ) -> EvaluationResult:
@@ -339,7 +338,6 @@ class DetectionTask(Task):
         Args:
             sample: A ``DetectionSample`` with ground-truth boxes.
             prediction: Raw JSON output from the model.
-            match_mode: Unused for detection (kept for interface compat).
             judge: Unused for detection.
             uploaded_size: The ``(width, height)`` the provider uploaded,
                 used to rescale provider-upload pixel coordinates. When

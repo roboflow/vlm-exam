@@ -20,7 +20,7 @@ import pytest
 
 from vlm_exam.judge import Judge
 from vlm_exam.providers.base import EMPTY_RESPONSE_TEXT
-from vlm_exam.rescore import needs_judge, rescore_run
+from vlm_exam.rescore import has_both_verdicts, is_scorable, rescore_run
 from vlm_exam.results import RunResult, SampleResult
 
 
@@ -48,7 +48,6 @@ def _sample(
     expected: str,
     predicted: str,
     correct: bool,
-    match_method: str = "strict",
     **metadata: Any,
 ) -> SampleResult:
     return SampleResult(
@@ -59,7 +58,7 @@ def _sample(
         correct=correct,
         input_tokens=1,
         output_tokens=1,
-        metadata={"question": f"q{index}", "match_method": match_method, **metadata},
+        metadata={"question": f"q{index}", **metadata},
     )
 
 
@@ -69,24 +68,35 @@ def _run(task: str, samples: list[SampleResult]) -> RunResult:
     )
 
 
-def test_needs_judge_only_for_unjudged_strict_failures() -> None:
-    assert needs_judge(_sample(0, "7", "seven", False))
-    assert not needs_judge(_sample(1, "7", "7", True))
-    assert not needs_judge(_sample(2, "7", "eight", False, match_method="judge"))
-    assert not needs_judge(_sample(3, "7", "ERROR: boom", False))
-    assert not needs_judge(_sample(4, "7", EMPTY_RESPONSE_TEXT, False))
+def test_has_both_verdicts_requires_both_flags_and_no_legacy_keys() -> None:
+    assert has_both_verdicts(
+        _sample(0, "7", "7", True, strict_correct=True, judge_correct=True)
+    )
+    assert not has_both_verdicts(_sample(1, "7", "7", True, strict_correct=True))
+    assert not has_both_verdicts(_sample(2, "7", "7", True, match_method="strict"))
+    assert not has_both_verdicts(
+        _sample(
+            3, "7", "7", True, strict_correct=True, judge_correct=True, match_method="x"
+        )
+    )
 
 
-def test_rescore_run_rewrites_only_pending_samples() -> None:
-    judge = _StubJudge({"seven": True, "eight": False})
+def test_is_scorable_rejects_errors_and_empty_output() -> None:
+    assert is_scorable(_sample(0, "7", "seven", False))
+    assert not is_scorable(_sample(1, "7", "ERROR: boom", False))
+    assert not is_scorable(_sample(2, "7", EMPTY_RESPONSE_TEXT, False))
+
+
+def test_rescore_run_scores_every_legacy_sample_with_both_rules() -> None:
+    judge = _StubJudge({"7": True, "seven": True, "eight": False, "nine": False})
     run = _run(
         "reasoning",
         [
-            _sample(0, "7", "7", True),
-            _sample(1, "7", "seven", False),
-            _sample(2, "7", "eight", False),
-            _sample(3, "7", "nine", False, match_method="judge"),
-            _sample(4, "7", "ERROR: boom", False),
+            _sample(0, "7", "7", True, match_method="strict"),
+            _sample(1, "7", "seven", False, match_method="strict"),
+            _sample(2, "7", "eight", False, match_method="judge"),
+            _sample(3, "7", "nine", False, match_method="strict"),
+            _sample(4, "7", "ERROR: boom", False, match_method="strict"),
         ],
     )
 
@@ -99,41 +109,73 @@ def test_rescore_run_rewrites_only_pending_samples() -> None:
         False,
         False,
     ]
-    assert [sample.metadata["match_method"] for sample in rescored.samples] == [
-        "strict",
-        "judge",
-        "judge",
-        "judge",
-        "strict",
+    assert [sample.metadata["strict_correct"] for sample in rescored.samples] == [
+        True,
+        False,
+        False,
+        False,
+        False,
     ]
-    assert summary.judged == 2
-    assert summary.rescued == 1
-    assert summary.correct_before == 1
-    assert summary.correct_after == 2
+    assert [sample.metadata["judge_correct"] for sample in rescored.samples] == [
+        True,
+        True,
+        False,
+        False,
+        False,
+    ]
+    assert all("match_method" not in sample.metadata for sample in rescored.samples)
+    assert all(sample.metadata["question"] for sample in rescored.samples)
+    assert summary.scored == 5
+    assert summary.judge_calls == 4
+    assert summary.strict_before is None
+    assert summary.judge_before is None
+    assert summary.strict_after == 1
+    assert summary.judge_after == 2
     assert summary.total == 5
-    assert {call["predicted"] for call in judge.calls} == {"seven", "eight"}
+    assert {call["predicted"] for call in judge.calls} == {
+        "7",
+        "seven",
+        "eight",
+        "nine",
+    }
     assert all("reasoning task" in call["guidance"] for call in judge.calls)
-    assert judge.calls[0]["question"].startswith("q")
     assert run.samples[1].correct is False
 
 
-def test_rescore_run_is_noop_on_judge_mode_run() -> None:
-    judge = _StubJudge({})
+def test_rescore_run_uses_counting_rule_and_guidance() -> None:
+    judge = _StubJudge({"I see 4 or 5": True})
+    sample = _sample(0, "4", "I see 4 or 5", False, match_method="count")
+    run = _run("counting", [sample])
+
+    rescored, _ = rescore_run(run, judge)
+
+    assert rescored.samples[0].metadata["strict_correct"] is False
+    assert rescored.samples[0].metadata["judge_correct"] is True
+    assert rescored.samples[0].correct is True
+    assert judge.calls[0]["guidance"].startswith("This is a counting task")
+
+
+def test_rescore_run_skips_samples_with_both_verdicts_unless_forced() -> None:
+    judge = _StubJudge({"a": False})
     run = _run(
         "extraction",
-        [
-            _sample(0, "a", "a", True),
-            _sample(1, "a", "b", False, match_method="judge"),
-        ],
+        [_sample(0, "a", "a", True, strict_correct=True, judge_correct=True)],
     )
 
-    rescored, summary = rescore_run(run, judge)
-
-    assert rescored.samples == run.samples
-    assert summary.judged == 0
+    unchanged, summary = rescore_run(run, judge)
+    assert unchanged.samples == run.samples
+    assert summary.scored == 0
+    assert summary.strict_before == 1
+    assert summary.judge_before == 1
     assert judge.calls == []
+
+    forced, forced_summary = rescore_run(run, judge, force=True)
+    assert forced.samples[0].metadata["judge_correct"] is False
+    assert forced.samples[0].correct is False
+    assert forced_summary.scored == 1
+    assert forced_summary.judge_after == 0
 
 
 def test_rescore_run_rejects_non_judge_tasks() -> None:
     with pytest.raises(ValueError, match="not judge-scored"):
-        rescore_run(_run("counting", []), _StubJudge({}))
+        rescore_run(_run("ocr", []), _StubJudge({}))

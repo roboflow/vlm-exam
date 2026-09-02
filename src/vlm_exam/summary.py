@@ -20,11 +20,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from vlm_exam.config import BenchmarkConfig, ModelConfig
+from vlm_exam.judge import DEFAULT_JUDGE_MODEL
 from vlm_exam.metrics import (
     BENCHMARK_TASK_NAMES,
     build_latest_runs_index,
-    run_accuracy,
+    run_judge_accuracy,
     run_mean_similarity,
+    run_strict_accuracy,
     sample_cost,
 )
 from vlm_exam.results import (
@@ -56,6 +58,14 @@ class _TaskDefinition:
     metrics: tuple[MetricDefinition, ...]
 
 
+_JUDGE_ACCURACY_METRIC = "accuracy_judge"
+_STRICT_ACCURACY_METRIC = "accuracy_strict"
+
+_QA_ACCURACY_METRICS = (
+    MetricDefinition(_JUDGE_ACCURACY_METRIC, "Accuracy (LLM judge)"),
+    MetricDefinition(_STRICT_ACCURACY_METRIC, "Accuracy (strict match)"),
+)
+
 _TASK_DEFINITIONS: dict[str, _TaskDefinition] = {
     "ocr": _TaskDefinition(
         name="OCR",
@@ -64,23 +74,23 @@ _TASK_DEFINITIONS: dict[str, _TaskDefinition] = {
     ),
     "extraction": _TaskDefinition(
         name="Data Extraction",
-        primary_metric="accuracy",
-        metrics=(MetricDefinition("accuracy", "Accuracy"),),
+        primary_metric=_JUDGE_ACCURACY_METRIC,
+        metrics=_QA_ACCURACY_METRICS,
     ),
     "counting": _TaskDefinition(
         name="Counting",
-        primary_metric="accuracy",
-        metrics=(MetricDefinition("accuracy", "Accuracy"),),
+        primary_metric=_JUDGE_ACCURACY_METRIC,
+        metrics=_QA_ACCURACY_METRICS,
     ),
     "identification": _TaskDefinition(
         name="Identification",
-        primary_metric="accuracy",
-        metrics=(MetricDefinition("accuracy", "Accuracy"),),
+        primary_metric=_JUDGE_ACCURACY_METRIC,
+        metrics=_QA_ACCURACY_METRICS,
     ),
     "reasoning": _TaskDefinition(
         name="Reasoning",
-        primary_metric="accuracy",
-        metrics=(MetricDefinition("accuracy", "Accuracy"),),
+        primary_metric=_JUDGE_ACCURACY_METRIC,
+        metrics=_QA_ACCURACY_METRICS,
     ),
     "detection": _TaskDefinition(
         name="Detection",
@@ -184,6 +194,15 @@ class TaskSummary:
 
 
 @dataclass(frozen=True)
+class ScoringSummary:
+    """How the QA tasks' two accuracy metrics are produced."""
+
+    judge_model: str
+    judge_metric: str
+    strict_metric: str
+
+
+@dataclass(frozen=True)
 class BenchmarkSummary:
     """Frontend-facing rollup of all benchmark results."""
 
@@ -191,6 +210,11 @@ class BenchmarkSummary:
     efforts: tuple[str, ...]
     tasks: list[TaskSummary]
     models: list[ModelSummary]
+    scoring: ScoringSummary = ScoringSummary(
+        judge_model=DEFAULT_JUDGE_MODEL,
+        judge_metric=_JUDGE_ACCURACY_METRIC,
+        strict_metric=_STRICT_ACCURACY_METRIC,
+    )
 
 
 def _iso_timestamp(raw: str) -> str:
@@ -276,7 +300,10 @@ def _quality_metrics(
         return _detection_quality(run, detection_index)
     if run.task == "ocr":
         return {"similarity": run_mean_similarity(run)}, None
-    return {"accuracy": run_accuracy(run)}, None
+    return {
+        _JUDGE_ACCURACY_METRIC: run_judge_accuracy(run),
+        _STRICT_ACCURACY_METRIC: run_strict_accuracy(run),
+    }, None
 
 
 def _model_task_result(
@@ -512,6 +539,11 @@ def summary_to_dict(summary: BenchmarkSummary) -> dict[str, Any]:
     return {
         "generated_at": summary.generated_at,
         "efforts": list(summary.efforts),
+        "scoring": {
+            "judge_model": summary.scoring.judge_model,
+            "judge_metric": summary.scoring.judge_metric,
+            "strict_metric": summary.scoring.strict_metric,
+        },
         "tasks": [
             {
                 "key": task.key,

@@ -40,7 +40,9 @@ class ModelEfficiency:
 
 
 def run_accuracy(run: RunResult) -> float:
-    """Compute the percentage of correct samples in a run.
+    """Compute the headline accuracy of a run from its ``correct`` column.
+
+    For judge-scored tasks this equals :func:`run_judge_accuracy`.
 
     Args:
         run: A benchmark run loaded from disk.
@@ -51,6 +53,50 @@ def run_accuracy(run: RunResult) -> float:
     if not run.samples:
         return 0.0
     return sum(sample.correct for sample in run.samples) / len(run.samples) * 100
+
+
+def _verdict_accuracy(run: RunResult, key: str) -> float:
+    if not run.samples:
+        return 0.0
+    verdicts = [sample.metadata.get(key) for sample in run.samples]
+    missing = sum(1 for verdict in verdicts if not isinstance(verdict, bool))
+    if missing:
+        raise ValueError(
+            f"{run.task} run for {run.model} ({run.effort}) lacks {key!r} on "
+            f"{missing} of {len(verdicts)} samples; backfill it with "
+            "`vlm-exam rescore` before reporting."
+        )
+    return sum(1 for verdict in verdicts if verdict) / len(verdicts) * 100
+
+
+def run_strict_accuracy(run: RunResult) -> float:
+    """Compute the deterministic strict-match accuracy of a run.
+
+    Args:
+        run: A run whose samples carry ``strict_correct`` in metadata.
+
+    Returns:
+        Strict accuracy in percent (0-100), or 0.0 for an empty run.
+
+    Raises:
+        ValueError: If any sample lacks a strict verdict.
+    """
+    return _verdict_accuracy(run, "strict_correct")
+
+
+def run_judge_accuracy(run: RunResult) -> float:
+    """Compute the LLM judge accuracy of a run.
+
+    Args:
+        run: A run whose samples carry ``judge_correct`` in metadata.
+
+    Returns:
+        Judge accuracy in percent (0-100), or 0.0 for an empty run.
+
+    Raises:
+        ValueError: If any sample lacks a judge verdict.
+    """
+    return _verdict_accuracy(run, "judge_correct")
 
 
 def run_mean_similarity(run: RunResult) -> float:

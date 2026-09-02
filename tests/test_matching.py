@@ -17,7 +17,10 @@ from unittest.mock import MagicMock
 import pytest
 
 from vlm_exam.tasks.qa import (
-    answers_match,
+    CountingTask,
+    QASample,
+    ReasoningTask,
+    judge_answer,
     normalize_answer,
     parse_count,
     strict_match,
@@ -107,79 +110,96 @@ class TestStrictMatch:
         assert strict_match(expected, predicted) is True
 
 
-class TestAnswersMatchWithJudge:
-    def test_strict_mode_no_substring(self) -> None:
-        correct, method = answers_match("18", "8", match_mode="strict")
-        assert correct is False
-        assert method == "strict"
-
-    def test_strict_mode_exact(self) -> None:
-        correct, method = answers_match("red", "red", match_mode="strict")
-        assert correct is True
-        assert method == "strict"
-
-    def test_judge_mode_calls_judge_on_mismatch(self) -> None:
+class TestJudgeAnswer:
+    def test_forwards_context_to_judge(self) -> None:
         mock_judge = MagicMock()
         mock_judge.evaluate.return_value = True
 
-        correct, method = answers_match(
+        verdict = judge_answer(
             "checkered flag",
             "A checkered racing flag",
             question="What is the logo?",
-            match_mode="judge",
             judge=mock_judge,
+            guidance="be lenient",
         )
 
-        assert correct is True
-        assert method == "judge"
+        assert verdict is True
         mock_judge.evaluate.assert_called_once_with(
             question="What is the logo?",
             expected="checkered flag",
             predicted="A checkered racing flag",
-            guidance="",
+            guidance="be lenient",
         )
 
-    def test_judge_mode_skips_judge_on_exact_match(self) -> None:
-        mock_judge = MagicMock()
-
-        correct, method = answers_match(
-            "red",
-            "RED",
-            question="What color?",
-            match_mode="judge",
-            judge=mock_judge,
-        )
-
-        assert correct is True
-        assert method == "strict"
-        mock_judge.evaluate.assert_not_called()
-
-    def test_judge_mode_returns_false_when_judge_rejects(self) -> None:
+    def test_returns_judge_rejection(self) -> None:
         mock_judge = MagicMock()
         mock_judge.evaluate.return_value = False
 
-        correct, method = answers_match(
-            "18",
-            "8",
-            question="How many items?",
-            match_mode="judge",
-            judge=mock_judge,
+        assert judge_answer("18", "8", question="How many?", judge=mock_judge) is False
+
+
+class TestQATaskEvaluate:
+    def _sample(self, expected: str) -> QASample:
+        return QASample(image_path="x.jpg", question="Q?", expected_answer=expected)
+
+    def test_judge_is_consulted_even_when_strict_passes(self) -> None:
+        mock_judge = MagicMock()
+        mock_judge.evaluate.return_value = False
+
+        result = ReasoningTask().evaluate(self._sample("red"), "RED", judge=mock_judge)
+
+        assert result.strict_correct is True
+        assert result.judge_correct is False
+        assert result.correct is False
+        assert result.match_method is None
+        mock_judge.evaluate.assert_called_once()
+
+    def test_judge_verdict_is_headline(self) -> None:
+        mock_judge = MagicMock()
+        mock_judge.evaluate.return_value = True
+
+        result = ReasoningTask().evaluate(
+            self._sample("checkered flag"), "A racing flag", judge=mock_judge
         )
 
-        assert correct is False
-        assert method == "judge"
-
-    def test_judge_mode_without_judge_falls_back_to_strict(self) -> None:
-        correct, method = answers_match(
-            "phone",
-            "smartphone",
-            question="What device?",
-            match_mode="judge",
-            judge=None,
+        assert result.strict_correct is False
+        assert result.judge_correct is True
+        assert result.correct is True
+        assert mock_judge.evaluate.call_args.kwargs["guidance"].startswith(
+            "This is a reasoning task"
         )
 
-        assert correct is False
-        assert method == "strict"
+    def test_judge_is_required(self) -> None:
+        with pytest.raises(ValueError, match="judge instance is required"):
+            ReasoningTask().evaluate(self._sample("red"), "red")
+
+
+class TestCountingStrict:
+    def test_matches_parsed_counts(self) -> None:
+        task = CountingTask()
+        assert task.strict_correct("4", "There are 4 bars") is True
+        assert task.strict_correct("4", "four") is True
+        assert task.strict_correct("4", "between 4 and 5") is False
+        assert task.strict_correct("4", "5") is False
+
+    def test_non_integer_expected_falls_back_to_text(self) -> None:
+        task = CountingTask()
+        assert task.strict_correct("none", "None") is True
+        assert task.strict_correct("none", "0") is False
+
+    def test_evaluate_reports_both_verdicts(self) -> None:
+        mock_judge = MagicMock()
+        mock_judge.evaluate.return_value = True
+        sample = QASample(image_path="x.jpg", question="How many?", expected_answer="4")
+
+        result = CountingTask().evaluate(sample, "I see 4 or 5", judge=mock_judge)
+
+        assert result.strict_correct is False
+        assert result.judge_correct is True
+        assert result.correct is True
+        assert mock_judge.evaluate.call_args.kwargs["guidance"].startswith(
+            "This is a counting task"
+        )
 
 
 class TestParseCount:

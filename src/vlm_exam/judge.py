@@ -27,6 +27,9 @@ from google.genai import types
 
 _logger = logging.getLogger(__name__)
 
+DEFAULT_JUDGE_MODEL = "gemini-3.5-flash"
+"""Judge model every committed run is scored with; do not change casually."""
+
 _JUDGE_PROMPT = (
     "You are an evaluation judge. Given a visual question, an expected answer, "
     "and a predicted answer, determine if the predicted answer is correct.\n\n"
@@ -68,7 +71,7 @@ class Judge:
     """LLM-as-judge for evaluating answer equivalence.
 
     Args:
-        model: Gemini model identifier (e.g. ``"gemini-3.5-flash"``).
+        model: Gemini model identifier; defaults to ``DEFAULT_JUDGE_MODEL``.
         api_key: Optional Google API key. Falls back to the
             ``GOOGLE_API_KEY`` environment variable.
         cache_path: Path to the JSON cache file for storing verdicts.
@@ -76,7 +79,7 @@ class Judge:
 
     def __init__(
         self,
-        model: str = "gemini-3.5-flash",
+        model: str = DEFAULT_JUDGE_MODEL,
         api_key: str | None = None,
         cache_path: Path | None = None,
     ) -> None:
