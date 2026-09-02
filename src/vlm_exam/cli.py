@@ -322,6 +322,93 @@ def run(
 
 
 @main.command()
+@click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True))
+@click.option(
+    "--judge-model",
+    "judge_model",
+    default="gemini-3.5-flash",
+    help="Model to use as LLM judge.",
+)
+@click.option(
+    "--concurrency",
+    "concurrency",
+    default=8,
+    type=click.IntRange(min=1),
+    help="In-flight judge calls.",
+)
+@click.option(
+    "--dry-run",
+    "dry_run",
+    is_flag=True,
+    help="Report how many samples would be judged without calling the judge.",
+)
+def rescore(
+    paths: tuple[str, ...],
+    judge_model: str,
+    concurrency: int,
+    dry_run: bool,
+) -> None:
+    """Apply the LLM judge fallback to stored strict-only QA runs in place.
+
+    Accepts result files or directories. Only extraction, identification,
+    and reasoning runs are touched; samples already judged are left as-is,
+    so the command is idempotent.
+    """
+    from vlm_exam.rescore import JUDGE_TASK_NAMES, needs_judge, rescore_run
+
+    files: list[Path] = []
+    for raw_path in paths:
+        path = Path(raw_path)
+        if path.is_dir():
+            files.extend(sorted(path.glob("*.jsonl")))
+        else:
+            files.append(path)
+
+    runs: list[tuple[Path, RunResult]] = []
+    for path in files:
+        try:
+            run_result = load_results(path)
+        except ValueError:
+            click.echo(f"Skipping empty file: {path}")
+            continue
+        if run_result.task not in JUDGE_TASK_NAMES:
+            continue
+        if not any(needs_judge(sample) for sample in run_result.samples):
+            continue
+        runs.append((path, run_result))
+
+    if not runs:
+        click.echo("Nothing to rescore.")
+        return
+
+    pending_total = sum(
+        sum(1 for sample in run_result.samples if needs_judge(sample))
+        for _, run_result in runs
+    )
+    click.echo(f"{len(runs)} runs, {pending_total} samples to judge ({judge_model})")
+    if dry_run:
+        for path, run_result in runs:
+            pending = sum(1 for sample in run_result.samples if needs_judge(sample))
+            click.echo(f"  {path.name}: {pending} to judge")
+        return
+
+    judge = Judge(model=judge_model)
+    header = (
+        f"{'file':<62}{'judged':>7}{'rescued':>8}{'before':>8}{'after':>7}{'delta':>8}"
+    )
+    click.echo(header)
+    for path, run_result in runs:
+        rescored, summary = rescore_run(run_result, judge, concurrency=concurrency)
+        save_results(rescored, path)
+        before = summary.correct_before / summary.total * 100
+        after = summary.correct_after / summary.total * 100
+        click.echo(
+            f"{path.name:<62}{summary.judged:>7}{summary.rescued:>8}"
+            f"{before:>7.1f}%{after:>6.1f}%{after - before:>+7.1f}"
+        )
+
+
+@main.command()
 @click.option(
     "--results-directory",
     default="results",

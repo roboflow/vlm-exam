@@ -69,6 +69,14 @@ avoid a loop"). Never narrate what the code does.
   task, so results stay comparable on shared leaderboards. All committed
   runs currently use `--effort low`; do not mix effort levels within a
   task's leaderboard unless the run is explicitly an effort comparison.
+- Run extraction, identification, and reasoning with
+  `--match-mode judge --judge-model gemini-3.5-flash`. Every committed run
+  for those tasks is judge-scored; a strict-only run is not comparable
+  because the judge can only add points. If a run was produced without the
+  judge, backfill it before committing with
+  `vlm-exam rescore <file-or-directory>`, which re-judges the stored
+  predictions in place and is a no-op on already judged files. Counting,
+  detection, and OCR are scored deterministically and ignore the mode.
 - Images are EXIF-transposed on load before being sent to any provider.
   Datasets whose images carry EXIF orientation tags will therefore produce
   runs that are not comparable to runs made before this behavior existed;

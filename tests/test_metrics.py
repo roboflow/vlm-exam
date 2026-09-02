@@ -117,6 +117,7 @@ class TestResolveLeaderboardModelList:
             "gpt-5.6-terra",
             "gpt-5.6-luna",
             "claude-fable-5",
+            "claude-fable-5-1",
         ]
 
 

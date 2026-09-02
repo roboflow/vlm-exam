@@ -101,6 +101,14 @@ vlm-exam run \
     --judge-model gemini-3.5-flash
 ```
 
+All committed extraction, identification, and reasoning runs are
+judge-scored. A run produced without the judge can be backfilled in place
+from its stored predictions, without re-running the model:
+
+```bash
+vlm-exam rescore results/reasoning_gpt-5.5_low_20260725_101010.jsonl
+```
+
 ### Run a detection benchmark
 
 Expects a COCO-format dataset directory containing an

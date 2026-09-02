@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T09:07:51Z",
+  "generated_at": "2026-09-01T21:09:49Z",
   "efforts": [
     "low",
     "high"
@@ -335,6 +335,251 @@
       }
     },
     {
+      "id": "claude-fable-5-1:low",
+      "key": "claude-fable-5-1",
+      "name": "Claude Fable 5.1",
+      "lab": "anthropic",
+      "effort": "low",
+      "tasks": {
+        "ocr": {
+          "primary_metric": {
+            "name": "similarity",
+            "value": 93.58
+          },
+          "metrics": {
+            "similarity": 93.58
+          },
+          "sample_count": 37,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 51923,
+            "output": 18406,
+            "total": 70329,
+            "average_per_sample": 1900.8
+          },
+          "cost": {
+            "total_usd": 1.43953,
+            "average_per_sample_usd": 0.038906
+          },
+          "speed": {
+            "total_seconds": 333.035,
+            "average_seconds_per_sample": 9.001
+          },
+          "timestamp": "2026-09-01T18:55:48Z"
+        },
+        "extraction": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 93.81
+          },
+          "metrics": {
+            "accuracy": 93.81
+          },
+          "sample_count": 97,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 144337,
+            "output": 1236,
+            "total": 145573,
+            "average_per_sample": 1500.8
+          },
+          "cost": {
+            "total_usd": 1.50517,
+            "average_per_sample_usd": 0.015517
+          },
+          "speed": {
+            "total_seconds": 413.856,
+            "average_seconds_per_sample": 4.267
+          },
+          "timestamp": "2026-09-01T18:55:44Z"
+        },
+        "counting": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 43.24
+          },
+          "metrics": {
+            "accuracy": 43.24
+          },
+          "sample_count": 74,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 110682,
+            "output": 5556,
+            "total": 116238,
+            "average_per_sample": 1570.8
+          },
+          "cost": {
+            "total_usd": 1.38462,
+            "average_per_sample_usd": 0.018711
+          },
+          "speed": {
+            "total_seconds": 382.336,
+            "average_seconds_per_sample": 5.167
+          },
+          "timestamp": "2026-09-01T18:55:41Z"
+        },
+        "identification": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 96.88
+          },
+          "metrics": {
+            "accuracy": 96.88
+          },
+          "sample_count": 32,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 41809,
+            "output": 251,
+            "total": 42060,
+            "average_per_sample": 1314.4
+          },
+          "cost": {
+            "total_usd": 0.43064,
+            "average_per_sample_usd": 0.013457
+          },
+          "speed": {
+            "total_seconds": 140.327,
+            "average_seconds_per_sample": 4.385
+          },
+          "timestamp": "2026-09-01T18:55:46Z"
+        },
+        "reasoning": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 70.86
+          },
+          "metrics": {
+            "accuracy": 70.86
+          },
+          "sample_count": 151,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 214304,
+            "output": 15343,
+            "total": 229647,
+            "average_per_sample": 1520.8
+          },
+          "cost": {
+            "total_usd": 2.91019,
+            "average_per_sample_usd": 0.019273
+          },
+          "speed": {
+            "total_seconds": 820.871,
+            "average_seconds_per_sample": 5.436
+          },
+          "timestamp": "2026-09-01T18:55:50Z"
+        },
+        "detection": {
+          "primary_metric": {
+            "name": "map50",
+            "value": 61.97
+          },
+          "metrics": {
+            "map50": 61.97,
+            "map75": 41.03,
+            "map50_95": 39.14
+          },
+          "sample_count": 250,
+          "evaluated_sample_count": 250,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 619976,
+            "output": 175599,
+            "total": 795575,
+            "average_per_sample": 3182.3
+          },
+          "cost": {
+            "total_usd": 14.97971,
+            "average_per_sample_usd": 0.059919
+          },
+          "speed": {
+            "total_seconds": 2854.748,
+            "average_seconds_per_sample": 11.419
+          },
+          "timestamp": "2026-09-01T18:55:42Z"
+        }
+      },
+      "overall": {
+        "task_count": 6,
+        "sample_count": 641,
+        "tokens": {
+          "input": 1183031,
+          "output": 216391,
+          "total": 1399422,
+          "average_per_sample": 2183.2
+        },
+        "cost": {
+          "total_usd": 22.64986,
+          "average_per_sample_usd": 0.035335
+        },
+        "speed": {
+          "total_seconds": 4945.173,
+          "average_seconds_per_sample": 7.715
+        }
+      }
+    },
+    {
+      "id": "claude-fable-5-1:high",
+      "key": "claude-fable-5-1",
+      "name": "Claude Fable 5.1",
+      "lab": "anthropic",
+      "effort": "high",
+      "tasks": {
+        "reasoning": {
+          "primary_metric": {
+            "name": "accuracy",
+            "value": 72.19
+          },
+          "metrics": {
+            "accuracy": 72.19
+          },
+          "sample_count": 151,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 214304,
+            "output": 41289,
+            "total": 255593,
+            "average_per_sample": 1692.7
+          },
+          "cost": {
+            "total_usd": 4.20749,
+            "average_per_sample_usd": 0.027864
+          },
+          "speed": {
+            "total_seconds": 1128.784,
+            "average_seconds_per_sample": 7.475
+          },
+          "timestamp": "2026-09-01T21:09:49Z"
+        }
+      },
+      "overall": {
+        "task_count": 1,
+        "sample_count": 151,
+        "tokens": {
+          "input": 214304,
+          "output": 41289,
+          "total": 255593,
+          "average_per_sample": 1692.7
+        },
+        "cost": {
+          "total_usd": 4.20749,
+          "average_per_sample_usd": 0.027864
+        },
+        "speed": {
+          "total_seconds": 1128.784,
+          "average_seconds_per_sample": 7.475
+        }
+      }
+    },
+    {
       "id": "claude-sonnet-5:low",
       "key": "claude-sonnet-5",
       "name": "Claude Sonnet 5",
@@ -616,10 +861,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 87.63
+            "value": 88.66
           },
           "metrics": {
-            "accuracy": 87.63
+            "accuracy": 88.66
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -670,10 +915,10 @@
         "identification": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 75.0
+            "value": 84.38
           },
           "metrics": {
-            "accuracy": 75.0
+            "accuracy": 84.38
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -861,10 +1106,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 88.66
+            "value": 89.69
           },
           "metrics": {
-            "accuracy": 88.66
+            "accuracy": 89.69
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -915,10 +1160,10 @@
         "identification": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 84.38
+            "value": 90.62
           },
           "metrics": {
-            "accuracy": 84.38
+            "accuracy": 90.62
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -1214,12 +1459,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 70.24
+            "value": 68.65
           },
           "metrics": {
-            "map50": 70.24,
-            "map75": 56.37,
-            "map50_95": 53.74
+            "map50": 68.65,
+            "map75": 55.76,
+            "map50_95": 52.96
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -1351,10 +1596,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 94.85
+            "value": 96.91
           },
           "metrics": {
-            "accuracy": 94.85
+            "accuracy": 96.91
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -1405,10 +1650,10 @@
         "identification": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 96.88
+            "value": 100.0
           },
           "metrics": {
-            "accuracy": 96.88
+            "accuracy": 100.0
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -1459,12 +1704,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 58.34
+            "value": 55.98
           },
           "metrics": {
-            "map50": 58.34,
-            "map75": 48.41,
-            "map50_95": 46.36
+            "map50": 55.98,
+            "map75": 46.4,
+            "map50_95": 44.5
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -1596,10 +1841,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 94.85
+            "value": 95.88
           },
           "metrics": {
-            "accuracy": 94.85
+            "accuracy": 95.88
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -1704,12 +1949,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 69.81
+            "value": 69.37
           },
           "metrics": {
-            "map50": 69.81,
-            "map75": 60.01,
-            "map50_95": 56.46
+            "map50": 69.37,
+            "map75": 59.81,
+            "map50_95": 56.2
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -1760,10 +2005,10 @@
         "reasoning": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 82.12
+            "value": 82.78
           },
           "metrics": {
-            "accuracy": 82.12
+            "accuracy": 82.78
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -1841,10 +2086,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 90.72
+            "value": 91.75
           },
           "metrics": {
-            "accuracy": 90.72
+            "accuracy": 91.75
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -1895,10 +2140,10 @@
         "identification": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 81.25
+            "value": 84.38
           },
           "metrics": {
-            "accuracy": 81.25
+            "accuracy": 84.38
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -1949,12 +2194,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 58.06
+            "value": 57.51
           },
           "metrics": {
-            "map50": 58.06,
-            "map75": 46.96,
-            "map50_95": 44.92
+            "map50": 57.51,
+            "map75": 46.58,
+            "map50_95": 44.55
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -2194,12 +2439,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 42.61
+            "value": 38.6
           },
           "metrics": {
-            "map50": 42.61,
-            "map75": 32.37,
-            "map50_95": 30.9
+            "map50": 38.6,
+            "map75": 29.18,
+            "map50_95": 27.94
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -2439,12 +2684,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 33.86
+            "value": 33.73
           },
           "metrics": {
-            "map50": 33.86,
-            "map75": 25.2,
-            "map50_95": 24.82
+            "map50": 33.73,
+            "map75": 25.08,
+            "map50_95": 24.74
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -2576,10 +2821,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 94.85
+            "value": 95.88
           },
           "metrics": {
-            "accuracy": 94.85
+            "accuracy": 95.88
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -2684,12 +2929,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 67.57
+            "value": 67.43
           },
           "metrics": {
-            "map50": 67.57,
-            "map75": 55.84,
-            "map50_95": 52.44
+            "map50": 67.43,
+            "map75": 55.78,
+            "map50_95": 52.39
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -3066,10 +3311,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 82.47
+            "value": 83.51
           },
           "metrics": {
-            "accuracy": 82.47
+            "accuracy": 83.51
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -3120,10 +3365,10 @@
         "identification": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 78.12
+            "value": 84.38
           },
           "metrics": {
-            "accuracy": 78.12
+            "accuracy": 84.38
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -3311,10 +3556,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 82.47
+            "value": 83.51
           },
           "metrics": {
-            "accuracy": 82.47
+            "accuracy": 83.51
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -3365,10 +3610,10 @@
         "identification": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 81.25
+            "value": 84.38
           },
           "metrics": {
-            "accuracy": 81.25
+            "accuracy": 84.38
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -3556,10 +3801,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 79.38
+            "value": 80.41
           },
           "metrics": {
-            "accuracy": 79.38
+            "accuracy": 80.41
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -3610,10 +3855,10 @@
         "identification": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 78.12
+            "value": 87.5
           },
           "metrics": {
-            "accuracy": 78.12
+            "accuracy": 87.5
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -3801,10 +4046,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 81.44
+            "value": 82.47
           },
           "metrics": {
-            "accuracy": 81.44
+            "accuracy": 82.47
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -3855,10 +4100,10 @@
         "identification": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 78.12
+            "value": 84.38
           },
           "metrics": {
-            "accuracy": 78.12
+            "accuracy": 84.38
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -4700,10 +4945,10 @@
         "reasoning": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 60.93
+            "value": 61.59
           },
           "metrics": {
-            "accuracy": 60.93
+            "accuracy": 61.59
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -5026,10 +5271,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 86.6
+            "value": 87.63
           },
           "metrics": {
-            "accuracy": 86.6
+            "accuracy": 87.63
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -5271,10 +5516,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 78.35
+            "value": 79.38
           },
           "metrics": {
-            "accuracy": 78.35
+            "accuracy": 79.38
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -5842,10 +6087,10 @@
         "reasoning": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 29.8
+            "value": 31.13
           },
           "metrics": {
-            "accuracy": 29.8
+            "accuracy": 31.13
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -5925,10 +6170,10 @@
         "reasoning": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 46.36
+            "value": 54.3
           },
           "metrics": {
-            "accuracy": 46.36
+            "accuracy": 54.3
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -6496,10 +6741,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 78.35
+            "value": 79.38
           },
           "metrics": {
-            "accuracy": 78.35
+            "accuracy": 79.38
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -6550,10 +6795,10 @@
         "identification": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 62.5
+            "value": 78.12
           },
           "metrics": {
-            "accuracy": 62.5
+            "accuracy": 78.12
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -6604,12 +6849,12 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 36.46
+            "value": 35.66
           },
           "metrics": {
-            "map50": 36.46,
-            "map75": 27.25,
-            "map50_95": 27.28
+            "map50": 35.66,
+            "map75": 26.7,
+            "map50_95": 26.82
           },
           "sample_count": 250,
           "evaluated_sample_count": 250,
@@ -6986,10 +7231,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 86.6
+            "value": 87.63
           },
           "metrics": {
-            "accuracy": 86.6
+            "accuracy": 87.63
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -7040,10 +7285,10 @@
         "identification": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 87.5
+            "value": 90.62
           },
           "metrics": {
-            "accuracy": 87.5
+            "accuracy": 90.62
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -7231,10 +7476,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 88.66
+            "value": 89.69
           },
           "metrics": {
-            "accuracy": 88.66
+            "accuracy": 89.69
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -7721,10 +7966,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 83.51
+            "value": 84.54
           },
           "metrics": {
-            "accuracy": 83.51
+            "accuracy": 84.54
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -7775,10 +8020,10 @@
         "identification": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 78.12
+            "value": 81.25
           },
           "metrics": {
-            "accuracy": 78.12
+            "accuracy": 81.25
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -7966,10 +8211,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 84.54
+            "value": 85.57
           },
           "metrics": {
-            "accuracy": 84.54
+            "accuracy": 85.57
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -8020,10 +8265,10 @@
         "identification": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 78.12
+            "value": 87.5
           },
           "metrics": {
-            "accuracy": 78.12
+            "accuracy": 87.5
           },
           "sample_count": 32,
           "evaluated_sample_count": null,
@@ -8211,10 +8456,10 @@
         "extraction": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 64.95
+            "value": 65.98
           },
           "metrics": {
-            "accuracy": 64.95
+            "accuracy": 65.98
           },
           "sample_count": 97,
           "evaluated_sample_count": null,
@@ -8292,10 +8537,10 @@
         "reasoning": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 30.46
+            "value": 31.79
           },
           "metrics": {
-            "accuracy": 30.46
+            "accuracy": 31.79
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
@@ -8375,10 +8620,10 @@
         "reasoning": {
           "primary_metric": {
             "name": "accuracy",
-            "value": 48.34
+            "value": 49.01
           },
           "metrics": {
-            "accuracy": 48.34
+            "accuracy": 49.01
           },
           "sample_count": 151,
           "evaluated_sample_count": null,
