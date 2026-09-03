@@ -191,6 +191,20 @@ class TestBuildPrompt:
         assert '"x_min"' in prompt
         assert "0-1000 range" in prompt
 
+    def test_meta_bbox_prompt_uses_official_object_name_schema(self) -> None:
+        task = DetectionTask(
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_BBOX
+            )
+        )
+        sample = _make_sample(_detections([[0, 0, 10, 10]], [0]))
+        prompt = task.build_prompt(sample)
+        assert "object grounding expert" in prompt
+        assert '"object_name"' in prompt
+        assert '"bbox"' in prompt
+        assert '"cat"' in prompt
+        assert "0-1000 range" in prompt
+
 
 class TestParsePrediction:
     def test_parses_fenced_json(self) -> None:
@@ -220,6 +234,50 @@ class TestParsePrediction:
         )
         assert len(detections) == 1
         np.testing.assert_allclose(detections.xyxy[0], [100, 200, 300, 400])
+
+    def test_parses_meta_bbox_normalized_coordinates(self) -> None:
+        prediction = (
+            '[{"object_name": "cat", "bbox": '
+            '[{"x_min": 100, "y_min": 200, "x_max": 300, "y_max": 400}]}]'
+        )
+        detections = parse_prediction(
+            prediction,
+            (1000, 1000),
+            ["cat", "dog"],
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_BBOX
+            ),
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [100, 200, 300, 400])
+
+    def test_parses_multiple_boxes_under_one_meta_bbox_object(self) -> None:
+        prediction = (
+            '[{"object_name": "cat", "bbox": ['
+            '{"x_min": 0, "y_min": 0, "x_max": 10, "y_max": 10}, '
+            '{"x_min": 20, "y_min": 20, "x_max": 30, "y_max": 30}]}]'
+        )
+        detections = parse_prediction(
+            prediction,
+            (1000, 1000),
+            ["cat"],
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_BBOX
+            ),
+        )
+        assert len(detections) == 2
+
+    def test_meta_bbox_missing_bbox_returns_empty(self) -> None:
+        prediction = '[{"object_name": "cat"}]'
+        detections = parse_prediction(
+            prediction,
+            (1000, 1000),
+            ["cat"],
+            coordinate_format=(
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_BBOX
+            ),
+        )
+        assert len(detections) == 0
 
     def test_meta_flat_missing_fields_returns_empty(self) -> None:
         prediction = '[{"label": "cat", "x_min": 100, "y_min": 200}]'

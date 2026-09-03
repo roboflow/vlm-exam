@@ -208,6 +208,9 @@ class TestBenchmarkProtocolField:
             "gemini-3.8-flash",
             "qwen-3.8-max",
             "qwen-3.8-flash",
+            "muse-spark-1.1",
+            "muse-spark-1.2",
+            "muse-spark-1.3",
         ]
 
 

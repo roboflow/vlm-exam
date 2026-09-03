@@ -104,6 +104,16 @@ _META_FLAT_NORMALIZED_PROMPT_TEMPLATE = (
     "object, omit it from the results."
 )
 
+_META_BBOX_NORMALIZED_PROMPT_TEMPLATE = (
+    "You are an object grounding expert. Provide the bounding box coordinates "
+    "of the objects in the image: {class_list}. Ensure the objects accurately "
+    "match the request and do not miss any objects. For each object, answer "
+    'in the format {{"object_name": "<name>", "bbox": [{{"x_min": <int>, '
+    '"y_min": <int>, "x_max": <int>, "y_max": <int>}}]}}. The coordinates '
+    "should be in the 0-1000 range. Return a JSON array of results. If you "
+    "cannot find an object, omit it from the results."
+)
+
 PROMPT_CLASS_MODES = ("image", "all")
 """Valid values for the detection prompt class listing mode."""
 
@@ -115,6 +125,7 @@ class DetectionCoordinateFormat(str, Enum):
     XYXY_NORMALIZED_0_TO_1000 = "xyxy_normalized_0_to_1000"
     XYXY_NORMALIZED_0_TO_100 = "xyxy_normalized_0_to_100"
     XYXY_NORMALIZED_0_TO_1000_META_FLAT = "xyxy_normalized_0_to_1000_meta_flat"
+    XYXY_NORMALIZED_0_TO_1000_META_BBOX = "xyxy_normalized_0_to_1000_meta_bbox"
     XYXY_ABSOLUTE_RESIZED_IMAGE = "xyxy_absolute_resized_image"
     XYXY_ABSOLUTE_ORIGINAL_IMAGE = "xyxy_absolute_original_image"
     YXYX_ABSOLUTE_ORIGINAL_IMAGE = "yxyx_absolute_original_image"
@@ -319,6 +330,9 @@ class DetectionTask(Task):
                 return _META_FLAT_NORMALIZED_PROMPT_TEMPLATE.format(
                     class_list=class_list
                 )
+            case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_BBOX:
+                quoted = ", ".join(f'"{name}"' for name in image_classes)
+                return _META_BBOX_NORMALIZED_PROMPT_TEMPLATE.format(class_list=quoted)
             case _:
                 return _PROMPT_TEMPLATE.format(class_list=class_list)
 
@@ -436,6 +450,8 @@ def parse_prediction(
             parser = _parse_normalized_xyxy_percent_json
         case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT:
             parser = _parse_meta_flat_normalized_json
+        case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_BBOX:
+            parser = _parse_meta_bbox_normalized_json
         case _:
             parser = _parse_with_supervision
 
@@ -804,6 +820,65 @@ def _parse_meta_flat_normalized_json(
         class_ids.append(class_index[label])
         class_names.append(label)
         confidences.append(prediction_confidence(entry))
+
+    if not xyxy_list:
+        return sv.Detections.empty()
+
+    return _assemble_detections(xyxy_list, class_ids, class_names, confidences)
+
+
+def _parse_meta_bbox_normalized_json(
+    prediction: str,
+    resolution_wh: tuple[int, int],
+    classes: list[str],
+) -> sv.Detections:
+    try:
+        entries = json.loads(prediction)
+    except json.JSONDecodeError:
+        return sv.Detections.empty()
+    if isinstance(entries, dict):
+        entries = [entries]
+    if not isinstance(entries, list):
+        return sv.Detections.empty()
+
+    width, height = resolution_wh
+    scale_x = width / 1000.0
+    scale_y = height / 1000.0
+    class_index = {name: index for index, name in enumerate(classes)}
+
+    xyxy_list: list[list[float]] = []
+    class_ids: list[int] = []
+    class_names: list[str] = []
+    confidences: list[float | None] = []
+
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        label = entry.get("object_name", entry.get("label"))
+        if label not in class_index:
+            continue
+        boxes = entry.get("bbox")
+        if isinstance(boxes, dict):
+            boxes = [boxes]
+        if not isinstance(boxes, list):
+            continue
+        for box in boxes:
+            if not isinstance(box, dict):
+                continue
+            try:
+                x_min = float(box["x_min"])
+                y_min = float(box["y_min"])
+                x_max = float(box["x_max"])
+                y_max = float(box["y_max"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            xyxy_list.append(
+                [x_min * scale_x, y_min * scale_y, x_max * scale_x, y_max * scale_y]
+            )
+            class_ids.append(class_index[label])
+            class_names.append(label)
+            confidence = prediction_confidence(box) or prediction_confidence(entry)
+            confidences.append(confidence)
 
     if not xyxy_list:
         return sv.Detections.empty()
