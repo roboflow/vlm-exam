@@ -206,6 +206,8 @@ class TestBenchmarkProtocolField:
             "gemini-3.6-flash",
             "gemini-3.7-flash",
             "gemini-3.8-flash",
+            "qwen-3.8-max",
+            "qwen-3.8-flash",
         ]
 
 
