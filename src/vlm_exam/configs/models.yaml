@@ -213,7 +213,6 @@ models:
   qwen-3.8-max:
     name: Qwen3.8 Max
     lab: qwen
-    benchmark_protocol: legacy
     detection_coordinate_format: xyxy_normalized_0_to_1000
     routes:
       - provider: openrouter
@@ -246,10 +245,12 @@ models:
   qwen-3.8-flash:
     name: Qwen3.8 Flash
     lab: qwen
-    benchmark_protocol: legacy
-    provider: openrouter
-    provider_model_id: qwen/qwen3.8-flash
     detection_coordinate_format: xyxy_normalized_0_to_1000
+    routes:
+      - provider: openrouter
+        provider_model_id: qwen/qwen3.8-flash
+      - provider: dashscope
+        provider_model_id: qwen3.8-flash
     pricing:
       input_per_million_tokens: 0.15
       output_per_million_tokens: 0.47
