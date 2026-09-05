@@ -165,7 +165,6 @@ models:
   gpt-5.5:
     name: GPT-5.5
     lab: openai
-    benchmark_protocol: legacy
     provider: openai
     detection_coordinate_format: xyxy_absolute_resized_image
     pricing:
@@ -174,7 +173,6 @@ models:
   gpt-5.4-mini:
     name: GPT-5.4 mini
     lab: openai
-    benchmark_protocol: legacy
     provider: openai
     detection_coordinate_format: xyxy_absolute_resized_image
     pricing:
@@ -183,7 +181,6 @@ models:
   gpt-5.6-sol:
     name: GPT-5.6 Sol
     lab: openai
-    benchmark_protocol: legacy
     provider: openai
     provider_model_id: gpt-5.6-sol
     detection_coordinate_format: xyxy_absolute_resized_image
@@ -193,7 +190,6 @@ models:
   gpt-5.6-terra:
     name: GPT-5.6 Terra
     lab: openai
-    benchmark_protocol: legacy
     provider: openai
     provider_model_id: gpt-5.6-terra
     detection_coordinate_format: xyxy_absolute_resized_image
@@ -203,7 +199,6 @@ models:
   gpt-5.6-luna:
     name: GPT-5.6 Luna
     lab: openai
-    benchmark_protocol: legacy
     provider: openai
     provider_model_id: gpt-5.6-luna
     detection_coordinate_format: xyxy_absolute_resized_image
