@@ -205,6 +205,15 @@ models:
     pricing:
       input_per_million_tokens: 1.00
       output_per_million_tokens: 6.00
+  gpt-6-astra:
+    name: GPT-6 Astra
+    lab: openai
+    provider: openai
+    provider_model_id: gpt-6-astra
+    detection_coordinate_format: xyxy_absolute_resized_image
+    pricing:
+      input_per_million_tokens: 10.00
+      output_per_million_tokens: 50.00
   qwen-3.8-max:
     name: Qwen3.8 Max
     lab: qwen
