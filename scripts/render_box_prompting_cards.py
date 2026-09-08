@@ -130,10 +130,10 @@ def plot_box_prompting_card(
 
     Args:
         prompt_image: Original prompt image.
-        positives: Positive example boxes drawn in green.
-        negatives: Negative example boxes drawn in red.
+        positives: Positive example boxes drawn in green on both panels.
+        negatives: Negative example boxes drawn in red on the prompt panel.
         target_image: Original target image.
-        predictions: Predicted detections drawn in blue.
+        predictions: Predicted detections drawn in blue, under the positives.
         model_id: Config key of the model that produced the predictions.
         config: Benchmark config for display info.
         map_score: Per-image mAP@50 in the 0-1 range, if available.
@@ -153,7 +153,8 @@ def plot_box_prompting_card(
         tuple(float(value) for value in box) for box in predictions.xyxy
     )
     target_panel_image = _annotated_boxes(
-        target_image, [(predicted_boxes, DISPLAY_PREDICTION_HEX)]
+        target_image,
+        [(predicted_boxes, DISPLAY_PREDICTION_HEX), (positives, DISPLAY_POSITIVE_HEX)],
     )
 
     figure = plt.figure(figsize=CARD_FIGURE_SIZE, facecolor="#FAFAFA")
