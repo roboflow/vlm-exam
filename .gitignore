@@ -77,3 +77,4 @@ scripts/render_zero_map_model_comparison.py
 
 # Box-prompting experiments (local only)
 results-box-prompting-*/
+visualizations/box-prompting-cards/

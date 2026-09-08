@@ -803,10 +803,19 @@ def _with_card_legend(
     return Image.fromarray(annotated[:, :, ::-1])
 
 
-def _annotate_box_groups(
+def annotate_box_groups(
     image: Image.Image,
     groups: list[tuple[tuple[_Box, ...], tuple[int, int, int]]],
 ) -> Image.Image:
+    """Draw filled, outlined box groups onto an image copy.
+
+    Args:
+        image: Original RGB image.
+        groups: Ordered (boxes, RGB color) pairs; later groups draw on top.
+
+    Returns:
+        Annotated copy with semi-transparent fills and solid outlines.
+    """
     line_width = max(3, round(max(image.size) / 300))
     fill_layer = Image.new("RGBA", image.size, (0, 0, 0, 0))
     fill_draw = ImageDraw.Draw(fill_layer)
@@ -839,7 +848,7 @@ def prompt_panel(arm: str, image: Image.Image, case: ExampleCase) -> Image.Image
         Annotated copy with a card-style legend.
     """
     positives, negatives = _arm_prompt_boxes(arm, case)
-    annotated = _annotate_box_groups(
+    annotated = annotate_box_groups(
         image,
         [
             (negatives, _DISPLAY_NEGATIVE_RGB),
@@ -869,7 +878,7 @@ def overlay_panel(
     """
     positives, negatives = _arm_prompt_boxes(arm, case)
     predictions = tuple(tuple(float(value) for value in box) for box in detections.xyxy)
-    annotated = _annotate_box_groups(
+    annotated = annotate_box_groups(
         image,
         [
             (predictions, _DISPLAY_PREDICTION_RGB),
