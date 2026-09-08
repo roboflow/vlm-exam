@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+import os
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
@@ -232,7 +234,7 @@ def _load_example(
     arm: str,
     sample: DetectionSample,
 ) -> dict[str, Any]:
-    case = build_example_case(sample)
+    case = build_example_case(sample, max_objects=None)
     if case is None:
         raise click.UsageError(f"no example case for image {record['image']}")
     detections, _ = record_to_detections(record, sample)
@@ -250,6 +252,30 @@ def _load_example(
         "predictions": detections,
         "map_score": compute_image_map50(detections, target_detections(case)),
     }
+
+
+def _render_card(
+    record: dict[str, Any],
+    arm: str,
+    sample: DetectionSample,
+    model: str,
+    config: BenchmarkConfig,
+    card_path: Path,
+) -> Path:
+    example = _load_example(record, arm, sample)
+    figure = plot_box_prompting_card(
+        prompt_image=example["prompt_image"],
+        positives=example["positives"],
+        negatives=example["negatives"],
+        target_image=example["target_image"],
+        predictions=example["predictions"],
+        model_id=model,
+        config=config,
+        map_score=example["map_score"],
+    )
+    figure.savefig(str(card_path), dpi=150)
+    plt.close(figure)
+    return card_path
 
 
 @click.command()
@@ -287,6 +313,13 @@ def _load_example(
     default=None,
     help="Defaults to visualizations/box-prompting-cards/<model>-<effort>.",
 )
+@click.option(
+    "--max-workers",
+    type=click.IntRange(min=1),
+    default=max(1, (os.cpu_count() or 2) - 1),
+    show_default=True,
+    help="Render processes.",
+)
 def main(
     model: str,
     effort: str,
@@ -295,6 +328,7 @@ def main(
     dataset_directory: Path,
     results_directory: Path | None,
     output_directory: Path | None,
+    max_workers: int,
 ) -> None:
     """Render polished box-prompting cards for round-2 results."""
     selected_arms = tuple(arm.strip() for arm in arms.split(",") if arm.strip())
@@ -317,33 +351,31 @@ def main(
     config = load_config(None)
     output_directory.mkdir(parents=True, exist_ok=True)
 
+    jobs: list[tuple[dict[str, Any], str, DetectionSample, Path]] = []
     for arm in selected_arms:
         records = load_arm_records(raw_directory, model, arm)
         if image_name is not None:
             records = [record for record in records if record["image"] == image_name]
-        rendered = 0
         for record in sorted(records, key=lambda item: item["image"]):
             if record.get("error") is not None:
                 continue
             sample = sample_index.get(record["image"])
             if sample is None:
                 continue
-            example = _load_example(record, arm, sample)
-            figure = plot_box_prompting_card(
-                prompt_image=example["prompt_image"],
-                positives=example["positives"],
-                negatives=example["negatives"],
-                target_image=example["target_image"],
-                predictions=example["predictions"],
-                model_id=model,
-                config=config,
-                map_score=example["map_score"],
-            )
             card_path = output_directory / f"{arm}__{Path(record['image']).stem}.png"
-            figure.savefig(str(card_path), dpi=150)
-            plt.close(figure)
-            rendered += 1
-        click.echo(f"{arm}: {rendered} cards written to {output_directory}")
+            jobs.append((record, arm, sample, card_path))
+
+    rendered = {arm: 0 for arm in selected_arms}
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            executor.submit(_render_card, record, arm, sample, model, config, path): arm
+            for record, arm, sample, path in jobs
+        }
+        for future in as_completed(futures):
+            future.result()
+            rendered[futures[future]] += 1
+    for arm in selected_arms:
+        click.echo(f"{arm}: {rendered[arm]} cards written to {output_directory}")
 
 
 if __name__ == "__main__":

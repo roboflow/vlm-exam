@@ -22,12 +22,14 @@ from typing import Any
 import click
 
 from vlm_exam.box_prompting import ARMS
+from vlm_exam.box_prompting_cross import CROSS_ARMS
 from vlm_exam.box_prompting_round2 import ROUND2_ARMS
 
 _SINGLE_TO_MULTI = {
     "text_box_single": "text_box_multi",
     "drawn_box_single": "drawn_box_multi",
 }
+_FULL_SET_ARMS = ("text_box_single", "text_box_multi")
 
 
 @dataclass(frozen=True)
@@ -97,12 +99,17 @@ def _section(
     return lines
 
 
-def _round2_extras(summaries: dict[str, dict[str, dict[str, Any]]]) -> list[str]:
+def _round2_extras(
+    summaries: dict[str, dict[str, dict[str, Any]]],
+    arms: tuple[str, ...] = ROUND2_ARMS,
+) -> list[str]:
     lines = ["### Single vs multi (mAP@50 points)", ""]
     labels = list(summaries)
     lines.append("| Arm pair | " + " | ".join(labels) + " |")
     lines.append("|---|" + "---:|" * len(labels))
     for single, multi in _SINGLE_TO_MULTI.items():
+        if single not in arms or multi not in arms:
+            continue
         cells = []
         for label in labels:
             summary = summaries[label]
@@ -123,33 +130,88 @@ def _round2_extras(summaries: dict[str, dict[str, dict[str, Any]]]) -> list[str]
         lines.append(f"### {title}")
         lines.append("")
         lines.extend(
-            _metric_table(ROUND2_ARMS, summaries, metric, lambda value: _number(value))
+            _metric_table(arms, summaries, metric, lambda value: _number(value))
         )
         lines.append("")
     return lines
 
 
-def build_report(round1: list[Run], round2: list[Run]) -> str:
+def _cross_section(summaries: dict[str, dict[str, dict[str, Any]]]) -> list[str]:
+    lines = ["## Cross-image: examples on one image, targets on four (50 groups)", ""]
+    tables = (
+        ("Mean target mAP@50", "mean_target_map50", _percent),
+        (
+            "Mean target mAP@50, shared-class groups",
+            "mean_target_map50_shared_class",
+            _percent,
+        ),
+        ("Mean target mAP@50, merged groups", "mean_target_map50_merged", _percent),
+        ("Parse failures", "parse_failures", lambda value: _number(value)),
+        ("Errors", "errors", lambda value: _number(value)),
+        ("Average output tokens", "avg_output_tokens", lambda value: _number(value)),
+        (
+            "Average seconds per request",
+            "avg_seconds",
+            lambda value: _number(value, 1),
+        ),
+        ("Total seconds", "total_seconds", lambda value: _number(value)),
+    )
+    for title, metric, formatter in tables:
+        lines.append(f"### {title}")
+        lines.append("")
+        lines.extend(_metric_table(CROSS_ARMS, summaries, metric, formatter))
+        lines.append("")
+    lines.append("### Joint vs pairwise (mean target mAP@50 points)")
+    lines.append("")
+    labels = list(summaries)
+    lines.append("| Arm pair | " + " | ".join(labels) + " |")
+    lines.append("|---|" + "---:|" * len(labels))
+    cells = []
+    for label in labels:
+        summary = summaries[label]
+        if "joint" in summary and "pairwise" in summary:
+            delta = (
+                summary["joint"]["metrics"]["mean_target_map50"]
+                - summary["pairwise"]["metrics"]["mean_target_map50"]
+            )
+            cells.append(f"{delta * 100:+.1f}")
+        else:
+            cells.append("n/a")
+    lines.append("| pairwise -> joint | " + " | ".join(cells) + " |")
+    lines.append("")
+    return lines
+
+
+def _load_summaries(runs: list[Run]) -> dict[str, dict[str, dict[str, Any]]]:
+    return {
+        run.label: summary
+        for run in runs
+        if (summary := _load_summary(run)) is not None
+    }
+
+
+def build_report(
+    round1: list[Run],
+    round2: list[Run],
+    round2_full: list[Run],
+    cross: list[Run],
+) -> str:
     """Render the cross-model comparison as markdown.
 
     Args:
         round1: Round 1 experiment directories to compare.
         round2: Round 2 experiment directories to compare.
+        round2_full: Full-dataset round 2 directories (text arms only).
+        cross: Cross-image experiment directories.
 
     Returns:
         Markdown text.
     """
     lines = ["# Box prompting: Qwen3.8-Max vs GPT-6 Astra", ""]
-    summaries1 = {
-        run.label: summary
-        for run in round1
-        if (summary := _load_summary(run)) is not None
-    }
-    summaries2 = {
-        run.label: summary
-        for run in round2
-        if (summary := _load_summary(run)) is not None
-    }
+    summaries1 = _load_summaries(round1)
+    summaries2 = _load_summaries(round2)
+    summaries_full = _load_summaries(round2_full)
+    summaries_cross = _load_summaries(cross)
     if summaries1:
         lines.extend(
             _section("Round 1: single reference (25 images)", ARMS, summaries1)
@@ -163,6 +225,17 @@ def build_report(round1: list[Run], round2: list[Run]) -> str:
             )
         )
         lines.extend(_round2_extras(summaries2))
+    if summaries_full:
+        lines.extend(
+            _section(
+                "Round 2 text_box, full set (every usable image, no object cap)",
+                _FULL_SET_ARMS,
+                summaries_full,
+            )
+        )
+        lines.extend(_round2_extras(summaries_full, _FULL_SET_ARMS))
+    if summaries_cross:
+        lines.extend(_cross_section(summaries_cross))
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -198,7 +271,21 @@ def main(qwen_root: Path, astra_root: Path, output_directory: Path) -> None:
         Run("Astra low", astra_root / "results-box-prompting-gpt-6-astra-round2-low"),
         Run("Astra high", astra_root / "results-box-prompting-gpt-6-astra-round2-high"),
     ]
-    report = build_report(round1, round2)
+    round2_full = [
+        Run(
+            "Astra low",
+            astra_root / "results-box-prompting-gpt-6-astra-round2-full-low",
+        ),
+        Run(
+            "Astra high",
+            astra_root / "results-box-prompting-gpt-6-astra-round2-full-high",
+        ),
+    ]
+    cross = [
+        Run("Astra low", astra_root / "results-box-prompting-gpt-6-astra-cross-low"),
+        Run("Astra high", astra_root / "results-box-prompting-gpt-6-astra-cross-high"),
+    ]
+    report = build_report(round1, round2, round2_full, cross)
     output_directory.mkdir(parents=True, exist_ok=True)
     report_path = output_directory / "report.md"
     with open(report_path, "w") as file:

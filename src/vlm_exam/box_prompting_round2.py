@@ -148,7 +148,11 @@ def _box_area(box: np.ndarray) -> float:
     return float((box[2] - box[0]) * (box[3] - box[1]))
 
 
-def build_example_case(sample: DetectionSample) -> ExampleCase | None:
+def build_example_case(
+    sample: DetectionSample,
+    *,
+    max_objects: int | None = MAX_OBJECTS_PER_IMAGE,
+) -> ExampleCase | None:
     """Pick deterministic positive and negative examples for one sample.
 
     The positive class is the one with the most instances (ties broken by
@@ -160,15 +164,17 @@ def build_example_case(sample: DetectionSample) -> ExampleCase | None:
 
     Args:
         sample: Detection sample with ground-truth boxes.
+        max_objects: Exclude images with more ground-truth objects than
+            this; ``None`` disables the cap.
 
     Returns:
         The example case, or ``None`` when the image has no class with at
-        least two instances or exceeds :data:`MAX_OBJECTS_PER_IMAGE`.
+        least two instances or exceeds ``max_objects``.
     """
     class_ids = sample.ground_truth.class_id
     if class_ids is None or len(sample.ground_truth) < 2:
         return None
-    if len(sample.ground_truth) > MAX_OBJECTS_PER_IMAGE:
+    if max_objects is not None and len(sample.ground_truth) > max_objects:
         return None
     unique_ids, counts = np.unique(class_ids, return_counts=True)
     best_count = counts.max()
@@ -234,6 +240,7 @@ def select_example_cases(
     *,
     count: int,
     seed: int = 42,
+    max_objects: int | None = MAX_OBJECTS_PER_IMAGE,
 ) -> list[ExampleCase]:
     """Deterministically select usable example cases.
 
@@ -244,6 +251,8 @@ def select_example_cases(
         sample_index: Mapping of image basename to detection sample.
         count: Number of cases to select.
         seed: Shuffle seed shared with round 1.
+        max_objects: Per-image object cap forwarded to
+            :func:`build_example_case`; ``None`` disables it.
 
     Returns:
         Selected example cases in shuffle order.
@@ -251,7 +260,7 @@ def select_example_cases(
     order = select_matrix_images(sample_index, count=len(sample_index), seed=seed)
     cases: list[ExampleCase] = []
     for image_name in order:
-        case = build_example_case(sample_index[image_name])
+        case = build_example_case(sample_index[image_name], max_objects=max_objects)
         if case is not None:
             cases.append(case)
         if len(cases) == count:
@@ -426,11 +435,14 @@ def run_round2_collection(
     effort: str,
     output_directory: Path,
     max_workers: int = 8,
+    arms: tuple[str, ...] = ROUND2_ARMS,
 ) -> None:
-    """Collect all four arms with a shared request-level worker pool.
+    """Collect the requested arms with a shared request-level worker pool.
 
     Every (arm, image) request is an independent job; per-arm file locks
-    keep the resumable JSONL files consistent under concurrency.
+    keep the resumable JSONL files consistent under concurrency. Jobs are
+    ordered by target count descending so the slowest dense images start
+    first instead of forming a tail.
 
     Args:
         cases: Example cases to probe.
@@ -439,6 +451,7 @@ def run_round2_collection(
         effort: Reasoning effort forwarded to the backend.
         output_directory: Experiment root; raw files land in ``raw/``.
         max_workers: Concurrent requests across all arms.
+        arms: Subset of :data:`ROUND2_ARMS` to collect.
     """
     raw_directory = output_directory / "raw"
     raw_directory.mkdir(parents=True, exist_ok=True)
@@ -459,16 +472,17 @@ def run_round2_collection(
             indent=2,
         )
 
-    file_locks = {arm: threading.Lock() for arm in ROUND2_ARMS}
-    progress = {arm: 0 for arm in ROUND2_ARMS}
+    file_locks = {arm: threading.Lock() for arm in arms}
+    progress = {arm: 0 for arm in arms}
     progress_lock = threading.Lock()
 
     jobs: list[tuple[str, ExampleCase]] = []
-    for arm in ROUND2_ARMS:
+    for arm in arms:
         output_path = raw_directory / raw_file_name(backend.model_key, arm)
         done = completed_images(output_path)
         progress[arm] = len([case for case in cases if case.image_name in done])
         jobs.extend((arm, case) for case in cases if case.image_name not in done)
+    jobs.sort(key=lambda job: -len(job[1].target_xyxy))
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [
@@ -630,6 +644,7 @@ def run_round2_analysis(
     model_key: str,
     cases_by_image: dict[str, ExampleCase],
     sample_index: dict[str, DetectionSample],
+    arms: tuple[str, ...] = ROUND2_ARMS,
 ) -> dict[str, dict[str, Any]]:
     """Score every collected round-2 arm.
 
@@ -638,12 +653,13 @@ def run_round2_analysis(
         model_key: vlm-exam model key whose raw files are scored.
         cases_by_image: Mapping of image basename to example case.
         sample_index: Mapping of image basename to detection sample.
+        arms: Subset of :data:`ROUND2_ARMS` to score.
 
     Returns:
         Mapping of arm to its scored results.
     """
     results: dict[str, dict[str, Any]] = {}
-    for arm in ROUND2_ARMS:
+    for arm in arms:
         records = load_arm_records(raw_directory, model_key, arm)
         if records:
             results[arm] = score_round2_arm(records, cases_by_image, sample_index)

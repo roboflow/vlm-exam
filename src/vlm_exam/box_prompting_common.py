@@ -193,12 +193,13 @@ class OpenAIResponsesBackend:
         model_key: str,
         provider_model_id: str,
         api_key: str | None = None,
+        timeout_seconds: float = REQUEST_TIMEOUT_SECONDS,
     ) -> None:
         self.model_key = model_key
         self.provider_model_id = provider_model_id
         self._client = openai.OpenAI(
             api_key=api_key or os.environ.get("OPENAI_API_KEY"),
-            timeout=REQUEST_TIMEOUT_SECONDS,
+            timeout=timeout_seconds,
             max_retries=0,
         )
 
@@ -253,13 +254,14 @@ class DashScopeBackend:
         model_key: str,
         provider_model_id: str,
         api_key: str | None = None,
+        timeout_seconds: float = REQUEST_TIMEOUT_SECONDS,
     ) -> None:
         self.model_key = model_key
         self.provider_model_id = provider_model_id
         self._client = openai.OpenAI(
             base_url=_DASHSCOPE_BASE_URL,
             api_key=api_key or os.environ.get("DASHSCOPE_API_KEY"),
-            timeout=REQUEST_TIMEOUT_SECONDS,
+            timeout=timeout_seconds,
             max_retries=0,
         )
 
@@ -309,20 +311,27 @@ class DashScopeBackend:
         }
 
 
-def build_backend(model_key: str, api_key: str | None = None) -> BoxPromptingBackend:
+def build_backend(
+    model_key: str,
+    api_key: str | None = None,
+    timeout_seconds: float = REQUEST_TIMEOUT_SECONDS,
+) -> BoxPromptingBackend:
     """Create the backend for a supported model key.
 
     Args:
         model_key: One of :data:`SUPPORTED_MODELS`.
         api_key: Optional provider API key overriding the environment.
+        timeout_seconds: Per-request timeout.
 
     Returns:
         Configured backend.
     """
     if model_key == "gpt-6-astra":
-        return OpenAIResponsesBackend(model_key, "gpt-6-astra", api_key)
+        return OpenAIResponsesBackend(
+            model_key, "gpt-6-astra", api_key, timeout_seconds
+        )
     if model_key == "qwen-3.8-max":
-        return DashScopeBackend(model_key, "qwen3.8-max", api_key)
+        return DashScopeBackend(model_key, "qwen3.8-max", api_key, timeout_seconds)
     raise ValueError(f"Unsupported model key: {model_key!r}")
 
 
@@ -485,6 +494,7 @@ def parse_class_agnostic(
     sample: DetectionSample,
     coordinate_format: DetectionCoordinateFormat,
     uploaded_wh: tuple[int, int] | None,
+    key: str | None = None,
 ) -> tuple[sv.Detections, bool]:
     """Parse raw model text into class-agnostic detections.
 
@@ -496,13 +506,19 @@ def parse_class_agnostic(
         sample: Detection sample for coordinate scaling.
         coordinate_format: Coordinate convention of the answer.
         uploaded_wh: Uploaded image size for pixel formats.
+        key: When set, the payload must be a JSON object and only the list
+            under this key is parsed; otherwise a bare list or the first
+            list value of an object is used.
 
     Returns:
         Parsed detections and a parse-failure flag.
     """
     payload, _ = extract_json_payload(raw_output)
     entries: list[Any] | None = None
-    if isinstance(payload, list):
+    if key is not None:
+        if isinstance(payload, dict) and isinstance(payload.get(key), list):
+            entries = payload[key]
+    elif isinstance(payload, list):
         entries = payload
     elif isinstance(payload, dict):
         for value in payload.values():

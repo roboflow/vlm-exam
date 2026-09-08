@@ -26,6 +26,7 @@ from vlm_exam.box_prompting_common import (
     required_api_key_name,
 )
 from vlm_exam.box_prompting_round2 import (
+    MAX_OBJECTS_PER_IMAGE,
     ROUND2_ARMS,
     format_round2_report,
     render_round2_arm,
@@ -65,6 +66,18 @@ from vlm_exam.tasks.detection import DetectionTask, build_sample_index
 @click.option("--seed", type=int, default=42, show_default=True)
 @click.option("--max-workers", type=click.IntRange(min=1), default=4, show_default=True)
 @click.option("--render/--no-render", default=True, show_default=True)
+@click.option(
+    "--arms",
+    default=",".join(ROUND2_ARMS),
+    show_default=True,
+    help="Comma-separated subset of arms to collect, score, and render.",
+)
+@click.option(
+    "--no-object-cap",
+    is_flag=True,
+    default=False,
+    help=f"Include images with more than {MAX_OBJECTS_PER_IMAGE} objects.",
+)
 def main(
     model: str,
     effort: str,
@@ -74,6 +87,8 @@ def main(
     seed: int,
     max_workers: int,
     render: bool,
+    arms: str,
+    no_object_cap: bool,
 ) -> None:
     """Run round 2 of the box-prompting experiment end to end."""
     load_dotenv()
@@ -82,11 +97,18 @@ def main(
         raise click.ClickException(f"{api_key_name} is required.")
     if output_directory is None:
         output_directory = Path(f"results-box-prompting-{model}-round2-{effort}")
+    selected_arms = tuple(arm.strip() for arm in arms.split(",") if arm.strip())
+    unknown_arms = [arm for arm in selected_arms if arm not in ROUND2_ARMS]
+    if unknown_arms:
+        raise click.ClickException(f"Unknown arms: {', '.join(unknown_arms)}")
+    max_objects = None if no_object_cap else MAX_OBJECTS_PER_IMAGE
 
     sample_index = build_sample_index(
         DetectionTask().load_samples(str(dataset_directory))
     )
-    cases = select_example_cases(sample_index, count=image_count, seed=seed)
+    cases = select_example_cases(
+        sample_index, count=image_count, seed=seed, max_objects=max_objects
+    )
     if len(cases) < image_count:
         click.echo(f"Only {len(cases)} usable images found (requested {image_count}).")
     cases_by_image = {case.image_name: case for case in cases}
@@ -101,6 +123,7 @@ def main(
         effort=effort,
         output_directory=output_directory,
         max_workers=max_workers,
+        arms=selected_arms,
     )
 
     raw_directory = output_directory / "raw"
@@ -109,6 +132,7 @@ def main(
         model_key=model,
         cases_by_image=cases_by_image,
         sample_index=sample_index,
+        arms=selected_arms,
     )
     title = f"{model} box-prompting round 2 (effort {effort})"
     report_path = write_round2_artifacts(
@@ -117,7 +141,7 @@ def main(
 
     if render:
         renders_directory = output_directory / "renders"
-        for arm in ROUND2_ARMS:
+        for arm in selected_arms:
             render_round2_arm(
                 arm=arm,
                 raw_directory=raw_directory,
