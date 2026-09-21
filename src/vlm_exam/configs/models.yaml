@@ -395,6 +395,15 @@ models:
     pricing:
       input_per_million_tokens: 2.00
       output_per_million_tokens: 6.00
+  grok-4.7:
+    name: Grok 4.7
+    lab: xai
+    provider: xai
+    provider_model_id: grok-4.7
+    detection_coordinate_format: xyxy_normalized_0_to_100
+    pricing:
+      input_per_million_tokens: 2.00
+      output_per_million_tokens: 6.00
   deepseek-v4-flash-vision-exp:
     name: DeepSeek V4 Flash
     lab: deepseek

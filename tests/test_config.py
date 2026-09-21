@@ -217,6 +217,7 @@ class TestBenchmarkProtocolField:
             "muse-spark-1.1",
             "muse-spark-1.2",
             "muse-spark-1.3",
+            "grok-4.7",
         ]
 
 
