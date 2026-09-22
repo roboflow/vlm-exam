@@ -179,7 +179,11 @@ def _validate_provider_upload_routes(
     from vlm_exam.providers import PRE_RESIZING_PROVIDERS
     from vlm_exam.tasks.detection import DetectionCoordinateFormat
 
-    if coordinate_format != DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE:
+    resized_upload_formats = {
+        DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE,
+        DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE_BBOX,
+    }
+    if coordinate_format not in resized_upload_formats:
         return
     offending = sorted(
         {

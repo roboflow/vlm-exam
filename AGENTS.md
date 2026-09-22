@@ -281,7 +281,8 @@ vlm-exam efficiency-report --effort high
   `xyxy_normalized_0_to_1000`, `xyxy_normalized_0_to_100`,
   `xyxy_normalized_0_to_1000_meta_flat`,
   `xyxy_normalized_0_to_1000_meta_bbox`, `xyxy_absolute_resized_image`,
-  `xyxy_absolute_original_image`, and `yxyx_absolute_original_image`. The
+  `xyxy_absolute_resized_image_bbox`, `xyxy_absolute_original_image`, and
+  `yxyx_absolute_original_image`. The
   format follows the model, not the route
   -- the same weights use the same box convention on Google direct and
   OpenRouter. Cite the source URL when choosing a format (in the PR

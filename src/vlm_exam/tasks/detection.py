@@ -62,6 +62,17 @@ _PIXEL_PROMPT_TEMPLATE = (
     "Only use these labels: {class_list}"
 )
 
+_PIXEL_BBOX_PROMPT_TEMPLATE = (
+    "Detect all objects in this image. "
+    "Output a JSON list where each entry contains the 2D bounding box "
+    'in the key "bbox" and the text label in the key "label". '
+    'The "bbox" value must be [x_min, y_min, x_max, y_max]: the '
+    "top-left and bottom-right corners in absolute pixel coordinates "
+    "of the {width}x{height} pixel image. "
+    "Return only the JSON list, with no extra text. "
+    "Only use these labels: {class_list}"
+)
+
 _PIXEL_YXYX_PROMPT_TEMPLATE = (
     "Detect all objects in this image. "
     "Output a JSON list where each entry contains the 2D bounding box "
@@ -127,6 +138,7 @@ class DetectionCoordinateFormat(str, Enum):
     XYXY_NORMALIZED_0_TO_1000_META_FLAT = "xyxy_normalized_0_to_1000_meta_flat"
     XYXY_NORMALIZED_0_TO_1000_META_BBOX = "xyxy_normalized_0_to_1000_meta_bbox"
     XYXY_ABSOLUTE_RESIZED_IMAGE = "xyxy_absolute_resized_image"
+    XYXY_ABSOLUTE_RESIZED_IMAGE_BBOX = "xyxy_absolute_resized_image_bbox"
     XYXY_ABSOLUTE_ORIGINAL_IMAGE = "xyxy_absolute_original_image"
     YXYX_ABSOLUTE_ORIGINAL_IMAGE = "yxyx_absolute_original_image"
 
@@ -295,15 +307,24 @@ class DetectionTask(Task):
         class_list = ", ".join(image_classes)
 
         match self._coordinate_format:
-            case DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE:
+            case (
+                DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE
+                | DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE_BBOX
+            ):
                 if uploaded_size is None:
-                    fmt = DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE
                     raise ValueError(
-                        f"coordinate format {fmt.value!r} requires uploaded_size; "
-                        "it must come from a provider that pre-resizes uploads."
+                        f"coordinate format {self._coordinate_format.value!r} "
+                        "requires uploaded_size; it must come from a provider "
+                        "that pre-resizes uploads."
                     )
                 uploaded_width, uploaded_height = uploaded_size
-                return _PIXEL_PROMPT_TEMPLATE.format(
+                template = (
+                    _PIXEL_BBOX_PROMPT_TEMPLATE
+                    if self._coordinate_format
+                    is DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE_BBOX
+                    else _PIXEL_PROMPT_TEMPLATE
+                )
+                return template.format(
                     width=uploaded_width,
                     height=uploaded_height,
                     class_list=class_list,
@@ -433,13 +454,24 @@ def parse_prediction(
         Parsed detections, or empty detections on failure.
     """
     match coordinate_format:
-        case DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE:
+        case (
+            DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE
+            | DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE_BBOX
+        ):
             if uploaded_wh is None:
                 max_edge, max_tokens = resolution_tier_limits(resolution_tier)
                 uploaded_wh = compute_resize_dimensions(
                     *resolution_wh, max_edge, max_tokens
                 )
-            parser = partial(_parse_pixel_json, uploaded_wh=uploaded_wh)
+            box_key = (
+                "bbox"
+                if coordinate_format
+                is DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE_BBOX
+                else "box_2d"
+            )
+            parser = partial(
+                _parse_pixel_json, uploaded_wh=uploaded_wh, box_key=box_key
+            )
         case DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE:
             parser = _parse_pixel_native_json
         case DetectionCoordinateFormat.YXYX_ABSOLUTE_ORIGINAL_IMAGE:
@@ -541,6 +573,7 @@ def _parse_pixel_json(
     classes: list[str],
     *,
     uploaded_wh: tuple[int, int],
+    box_key: str = "box_2d",
 ) -> sv.Detections:
     try:
         entries = json.loads(prediction)
@@ -563,7 +596,7 @@ def _parse_pixel_json(
     for entry in entries:
         if not isinstance(entry, dict):
             continue
-        box = entry.get("box_2d")
+        box = entry.get(box_key)
         label = entry.get("label")
         if (
             not isinstance(box, list)
