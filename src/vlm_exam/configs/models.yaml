@@ -378,7 +378,6 @@ models:
   grok-4.5:
     name: Grok 4.5
     lab: xai
-    benchmark_protocol: legacy
     provider: xai
     provider_model_id: grok-4.5
     detection_coordinate_format: xyxy_normalized_0_to_100
@@ -388,7 +387,6 @@ models:
   grok-4.6:
     name: Grok 4.6
     lab: xai
-    benchmark_protocol: legacy
     provider: xai
     provider_model_id: grok-4.6
     detection_coordinate_format: xyxy_normalized_0_to_100
