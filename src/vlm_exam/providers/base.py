@@ -29,7 +29,7 @@ _logger = logging.getLogger(__name__)
 
 _T = TypeVar("_T")
 
-REQUEST_TIMEOUT_SECONDS = 120.0
+REQUEST_TIMEOUT_SECONDS = 600.0
 """Per-request wall-clock timeout applied to every provider SDK call."""
 
 MAX_RETRIES = 3
