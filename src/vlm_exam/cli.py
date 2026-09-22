@@ -1321,8 +1321,6 @@ def leaderboard(
 
             from vlm_exam.tasks.detection import DatasetMapResult, compute_dataset_map
 
-            # One evaluation returns all three metrics. Keep results per run,
-            # including unmatched runs, for this task/effort's three charts.
             dataset_maps: dict[int, DatasetMapResult | None] = {}
             for repeated_runs in model_runs.values():
                 for run in repeated_runs:
