@@ -1319,17 +1319,22 @@ def leaderboard(
             if detection_index is None:
                 continue
 
-            from vlm_exam.tasks.detection import compute_dataset_map
+            from vlm_exam.tasks.detection import DatasetMapResult, compute_dataset_map
+
+            dataset_maps: dict[int, DatasetMapResult | None] = {}
+            for repeated_runs in model_runs.values():
+                for run in repeated_runs:
+                    map_result = compute_dataset_map(run, detection_index)
+                    dataset_maps[id(run)] = map_result
+                    if map_result is None:
+                        click.echo(
+                            f"No valid predictions for {run.model} ({run.effort}, "
+                            f"{run.timestamp}); skipping that run."
+                        )
 
             def dataset_map(run: RunResult, attribute: str) -> float | None:
-                map_result = compute_dataset_map(run, detection_index)
-                if map_result is None:
-                    click.echo(
-                        f"No valid predictions for {run.model} ({run.effort}, "
-                        f"{run.timestamp}); skipping that run."
-                    )
-                    return None
-                return getattr(map_result, attribute)
+                map_result = dataset_maps[id(run)]
+                return None if map_result is None else getattr(map_result, attribute)
 
             metric_titles = {
                 "map50": "mAP@50",
