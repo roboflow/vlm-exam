@@ -220,6 +220,8 @@ class TestBenchmarkProtocolField:
             "grok-4.5",
             "grok-4.6",
             "grok-4.7",
+            "mimo-v2.6-pro",
+            "mimo-v2.6-flash",
         ]
 
 
