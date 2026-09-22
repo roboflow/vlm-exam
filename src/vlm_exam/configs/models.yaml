@@ -35,6 +35,10 @@ labs:
     name: xAI
     color: "#000000"
     logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/xai.svg
+  xiaomi:
+    name: Xiaomi
+    color: "#FF6900"
+    logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/xiaomimimo.svg
   deepseek:
     name: DeepSeek
     color: "#4D6BFE"
@@ -412,3 +416,21 @@ models:
     pricing:
       input_per_million_tokens: 0.44
       output_per_million_tokens: 1.32
+  mimo-v2.6-pro:
+    name: MiMo V2.6 Pro
+    lab: xiaomi
+    provider: openrouter
+    provider_model_id: xiaomi/mimo-v2.6-pro
+    detection_coordinate_format: xyxy_normalized_0_to_1000
+    pricing:
+      input_per_million_tokens: 0.435
+      output_per_million_tokens: 0.87
+  mimo-v2.6-flash:
+    name: MiMo V2.6 Flash
+    lab: xiaomi
+    provider: openrouter
+    provider_model_id: xiaomi/mimo-v2.6-flash
+    detection_coordinate_format: xyxy_normalized_0_to_1000
+    pricing:
+      input_per_million_tokens: 0.14
+      output_per_million_tokens: 0.28
