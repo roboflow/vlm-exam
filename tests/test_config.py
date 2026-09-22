@@ -202,6 +202,7 @@ class TestBenchmarkProtocolField:
         full = [key for key, model in config.models.items() if not model.is_legacy]
         assert full == [
             "claude-fable-5-1",
+            "claude-opus-5-5",
             "gemini-3.5-flash",
             "gemini-3.6-flash",
             "gemini-3.7-flash",
@@ -223,15 +224,24 @@ class TestBenchmarkProtocolField:
         ]
 
 
+_RESIZED_UPLOAD_FORMATS = [
+    "xyxy_absolute_resized_image",
+    "xyxy_absolute_resized_image_bbox",
+]
+
+
 class TestProviderUploadRouteGuard:
-    def test_rejects_resized_format_on_non_resizing_provider(self) -> None:
+    @pytest.mark.parametrize("coordinate_format", _RESIZED_UPLOAD_FORMATS)
+    def test_rejects_resized_format_on_non_resizing_provider(
+        self, coordinate_format: str
+    ) -> None:
         with pytest.raises(ValueError, match="pre-resize"):
             _parse_model(
                 {
                     "name": "Bad Model",
                     "lab": "google",
                     "provider": "google",
-                    "detection_coordinate_format": "xyxy_absolute_resized_image",
+                    "detection_coordinate_format": coordinate_format,
                     "pricing": {
                         "input_per_million_tokens": 1.0,
                         "output_per_million_tokens": 2.0,
@@ -239,13 +249,16 @@ class TestProviderUploadRouteGuard:
                 }
             )
 
-    def test_rejects_provider_upload_with_openrouter_fallback(self) -> None:
+    @pytest.mark.parametrize("coordinate_format", _RESIZED_UPLOAD_FORMATS)
+    def test_rejects_provider_upload_with_openrouter_fallback(
+        self, coordinate_format: str
+    ) -> None:
         with pytest.raises(ValueError, match="incompatible routes"):
             _parse_model(
                 {
                     "name": "Claude With Fallback",
                     "lab": "anthropic",
-                    "detection_coordinate_format": "xyxy_absolute_resized_image",
+                    "detection_coordinate_format": coordinate_format,
                     "routes": [
                         {"provider": "anthropic"},
                         {"provider": "openrouter", "provider_model_id": "x/y"},
@@ -257,13 +270,14 @@ class TestProviderUploadRouteGuard:
                 }
             )
 
-    def test_allows_provider_upload_on_anthropic(self) -> None:
+    @pytest.mark.parametrize("coordinate_format", _RESIZED_UPLOAD_FORMATS)
+    def test_allows_provider_upload_on_anthropic(self, coordinate_format: str) -> None:
         model = _parse_model(
             {
                 "name": "Claude Opus",
                 "lab": "anthropic",
                 "provider": "anthropic",
-                "detection_coordinate_format": "xyxy_absolute_resized_image",
+                "detection_coordinate_format": coordinate_format,
                 "pricing": {
                     "input_per_million_tokens": 5.0,
                     "output_per_million_tokens": 25.0,

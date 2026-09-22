@@ -33,8 +33,8 @@ PRE_RESIZING_PROVIDERS = frozenset({"anthropic", "openai"})
 Anthropic mirrors the model's documented resize formula (driven by
 ``resolution_tier``); OpenAI caps the longest edge at
 :data:`vlm_exam.providers.image_upload.OPENAI_MAX_EDGE_PIXELS`. These are
-the only providers for which the ``xyxy_absolute_resized_image``
-detection coordinate format is valid.
+the only providers for which the ``xyxy_absolute_resized_image`` and
+``xyxy_absolute_resized_image_bbox`` detection coordinate formats are valid.
 """
 
 __all__ = [

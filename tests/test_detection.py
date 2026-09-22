@@ -175,6 +175,16 @@ class TestBuildPrompt:
         with pytest.raises(ValueError, match="uploaded_size"):
             task.build_prompt(sample)
 
+    def test_resized_bbox_prompt_uses_bbox_key(self) -> None:
+        task = DetectionTask(
+            coordinate_format=DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE_BBOX
+        )
+        sample = _make_sample(_detections([[0, 0, 10, 10]], [0]))
+        prompt = task.build_prompt(sample, uploaded_size=(100, 80))
+        assert '"bbox"' in prompt
+        assert "100x80 pixel image" in prompt
+        assert "box_2d" not in prompt
+
     def test_invalid_coordinate_format_raises(self) -> None:
         with pytest.raises(ValueError):
             DetectionCoordinateFormat("bogus")
@@ -453,6 +463,23 @@ class TestParsePixelPrediction:
         assert detections.class_id[0] == 0
         # box_2d is [x_min, y_min, x_max, y_max] in pixels; no resize at 100x100
         np.testing.assert_allclose(detections.xyxy[0], [10, 20, 30, 40])
+
+    def test_parses_resized_bbox_key_and_ignores_box_2d(self) -> None:
+        prediction = (
+            '[{"bbox": [10, 20, 30, 40], "label": "cat"},'
+            ' {"box_2d": [1, 2, 3, 4], "label": "dog"}]'
+        )
+        detections = parse_prediction(
+            prediction,
+            (200, 100),
+            ["cat", "dog"],
+            coordinate_format=DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE_BBOX,
+            uploaded_wh=(100, 50),
+        )
+        assert len(detections) == 1
+        assert detections.class_id is not None
+        assert detections.class_id[0] == 0
+        np.testing.assert_allclose(detections.xyxy[0], [20, 40, 60, 80])
 
     def test_scales_from_uploaded_to_original_resolution(self) -> None:
         original_width, original_height = 4000, 3000
