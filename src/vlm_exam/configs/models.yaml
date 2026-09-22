@@ -223,6 +223,24 @@ models:
     pricing:
       input_per_million_tokens: 10.00
       output_per_million_tokens: 50.00
+  gpt-6-sol:
+    name: GPT-6 Sol
+    lab: openai
+    provider: openai
+    provider_model_id: gpt-6-sol
+    detection_coordinate_format: xyxy_absolute_resized_image
+    pricing:
+      input_per_million_tokens: 2.00
+      output_per_million_tokens: 10.00
+  gpt-6-luna:
+    name: GPT-6 Luna
+    lab: openai
+    provider: openai
+    provider_model_id: gpt-6-luna
+    detection_coordinate_format: xyxy_absolute_resized_image
+    pricing:
+      input_per_million_tokens: 0.10
+      output_per_million_tokens: 0.50
   qwen-3.8-max:
     name: Qwen3.8 Max
     lab: qwen
