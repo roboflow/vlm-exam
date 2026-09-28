@@ -123,6 +123,7 @@ class TestResolveLeaderboardModelList:
             "claude-fable-5",
             "claude-fable-5-1",
             "claude-opus-5-5",
+            "claude-sonnet-5-5",
         ]
 
 
