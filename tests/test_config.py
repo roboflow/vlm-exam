@@ -215,6 +215,7 @@ class TestBenchmarkProtocolField:
             "gpt-6-astra",
             "gpt-6-sol",
             "gpt-6-luna",
+            "gpt-6.1-sol",
             "qwen-3.8-max",
             "qwen-3.8-flash",
             "muse-spark-1.1",
