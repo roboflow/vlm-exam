@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import statistics
 import zipfile
@@ -34,15 +35,32 @@ TEXT_BENCHMARK_PROTOCOL = BenchmarkProtocol(tasks=("text",))
 """Independent text benchmark: low/high, three complete repeats per model."""
 
 
+def inference_hash(model: ModelConfig) -> str:
+    """Fingerprint inference settings without display names or token prices."""
+    settings = {
+        "routes": [
+            {
+                "provider": route.provider,
+                "provider_model_id": route.provider_model_id,
+            }
+            for route in model.routes
+        ],
+        "resolution_tier": model.resolution_tier,
+        "coordinate_format": model.detection_coordinate_format.value,
+    }
+    return hashlib.sha256(json.dumps(settings, sort_keys=True).encode()).hexdigest()
+
+
 def validate_resume(
     previous: RunResult, samples: list[Sample], model: ModelConfig
 ) -> None:
-    """Reject resume when dataset bytes, prompts, scorer or coordinates changed."""
+    """Reject resume when dataset, scoring or inference settings changed."""
     current = {
         sample.identity: sample for sample in samples if isinstance(sample, TextSample)
     }
     if len(current) != len(previous.samples):
         raise ValueError("Resume requires the same complete sample selection")
+    expected_inference = inference_hash(model)
     for result in previous.samples:
         sample = current.get(result.metadata.get("sample_id"))
         if (
@@ -55,8 +73,9 @@ def validate_resume(
             result.metadata.get("text_protocol") != TEXT_PROTOCOL
             or result.metadata.get("coordinate_format")
             != model.detection_coordinate_format.value
+            or result.metadata.get("inference_hash") != expected_inference
         ):
-            raise ValueError("Protocol or coordinate profile changed; start a new run")
+            raise ValueError("Protocol or inference settings changed; start a new run")
 
 
 def _aggregate(samples: list[Any]) -> dict[str, Any]:
@@ -82,39 +101,70 @@ def _aggregate(samples: list[Any]) -> dict[str, Any]:
 
 def summarize_text(directory: Path) -> dict[str, Any]:
     """Average compatible repeats and report category/subset metrics and coverage."""
-    groups: dict[tuple[str, str, str, str, str, tuple[str, ...]], list[RunResult]] = (
-        defaultdict(list)
-    )
+    groups: dict[
+        tuple[str, str, str, str, str, str, tuple[str, ...]], list[RunResult]
+    ] = defaultdict(list)
     for run in load_results_directory(directory):
         if run.task != "text":
             continue
+        if run.effort not in TEXT_BENCHMARK_PROTOCOL.efforts:
+            raise ValueError(f"Unsupported text effort {run.effort!r}; use low or high")
         if not run.samples:
             raise ValueError("Empty text run")
+        for sample in run.samples:
+            score = sample.metadata.get("score")
+            if not is_failed_sample(sample) and (
+                type(score) not in (int, float) or not 0 <= score <= 1
+            ):
+                raise ValueError("Missing or invalid text score")
         signatures = {
             (
                 sample.metadata.get("dataset_hash"),
                 sample.metadata.get("text_protocol"),
                 sample.metadata.get("coordinate_format"),
+                sample.metadata.get("inference_hash"),
             )
             for sample in run.samples
         }
         if len(signatures) != 1 or any(
-            value is None for value in next(iter(signatures))
+            not isinstance(value, str) or not value for value in next(iter(signatures))
         ):
             raise ValueError("Missing or inconsistent text provenance")
-        dataset, protocol, coordinates = next(iter(signatures))
+        dataset, protocol, coordinates, inference = next(iter(signatures))
+        if protocol != TEXT_PROTOCOL:
+            raise ValueError(f"Unsupported text protocol {protocol!r}; start a new run")
+        if any(
+            not isinstance(sample.metadata.get("sample_id"), str)
+            or not sample.metadata["sample_id"]
+            for sample in run.samples
+        ):
+            raise ValueError("Missing text sample identity")
         identities = tuple(
             sorted(sample.metadata["sample_id"] for sample in run.samples)
         )
         if len(set(identities)) != len(identities):
             raise ValueError("Duplicate pair in results")
         groups[
-            (run.model, run.effort, dataset, protocol, coordinates, identities)
+            (
+                run.model,
+                run.effort,
+                dataset,
+                protocol,
+                coordinates,
+                inference,
+                identities,
+            )
         ].append(run)
     output = []
-    for (model, effort, dataset, protocol, coordinates, _), runs in sorted(
-        groups.items()
-    ):
+    for (
+        model,
+        effort,
+        dataset,
+        protocol,
+        coordinates,
+        inference,
+        identities,
+    ), runs in sorted(groups.items()):
         aggregate = [_aggregate(run.samples) for run in runs]
         expected = {
             sample.metadata.get("dataset_pairs")
@@ -132,8 +182,16 @@ def summarize_text(directory: Path) -> dict[str, Any]:
             "dataset_hash": dataset,
             "protocol": protocol,
             "coordinate_format": coordinates,
+            "inference_hash": inference,
+            "selection_hash": hashlib.sha256(
+                json.dumps(
+                    {"sample_ids": identities, "pairs": len(identities)}
+                ).encode()
+            ).hexdigest(),
+            "pairs": len(identities),
             "run_count": len(runs),
             "required_runs": TEXT_BENCHMARK_PROTOCOL.repeats,
+            "full_dataset": complete,
             "complete": complete and len(runs) == TEXT_BENCHMARK_PROTOCOL.repeats,
             "coverage": aggregate,
             "mean": statistics.mean(item["mean"] for item in aggregate)

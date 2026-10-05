@@ -549,6 +549,8 @@ def plot_transcription_card(
     score: float,
     model_id: str,
     config: BenchmarkConfig,
+    *,
+    normalize: bool = True,
 ) -> plt.Figure:
     """Render a social-friendly hero card for an OCR result.
 
@@ -565,14 +567,17 @@ def plot_transcription_card(
         score: Character similarity in [0, 1].
         model_id: Identifier of the model that produced the answer.
         config: Benchmark config for display info.
+        normalize: Apply the legacy OCR display normalization. Disable for
+            text protocols that count fences and whitespace as differences.
 
     Returns:
         Matplotlib figure.
     """
     model_info = config.models[model_id]
     lab_info = config.labs[model_info.lab]
-    expected = normalize_transcription(expected)
-    predicted = normalize_transcription(predicted)
+    if normalize:
+        expected = normalize_transcription(expected)
+        predicted = normalize_transcription(predicted)
 
     figure, image_axes, rail = create_hero_card()
     image_axes.imshow(image)
@@ -764,6 +769,8 @@ def plot_qa_card(
     config: BenchmarkConfig,
     task_label: str,
     match_method: str | None = None,
+    *,
+    normalize: bool = True,
 ) -> plt.Figure:
     """Render a social-friendly hero card for a QA benchmark result.
 
@@ -783,14 +790,19 @@ def plot_qa_card(
         config: Benchmark config for display info.
         task_label: Task tag shown in the identity row (e.g. "COUNTING").
         match_method: Evaluation method recorded for the sample.
+        normalize: Collapse whitespace for legacy QA display. Disable when
+            internal whitespace is part of exact text scoring.
 
     Returns:
         Matplotlib figure.
     """
     model_info = config.models[model_id]
     lab_info = config.labs[model_info.lab]
-    expected = _substitute_missing_glyphs(" ".join(expected.split()))
-    predicted = _substitute_missing_glyphs(" ".join(predicted.split()))
+    if normalize:
+        expected = " ".join(expected.split())
+        predicted = " ".join(predicted.split())
+    expected = _substitute_missing_glyphs(expected)
+    predicted = _substitute_missing_glyphs(predicted)
 
     figure, image_axes, rail = create_hero_card()
     image_axes.imshow(image)

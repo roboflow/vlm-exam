@@ -37,7 +37,12 @@ from vlm_exam.results import (
 )
 from vlm_exam.runner import run_benchmark
 from vlm_exam.tasks import QA_TASK_NAMES, create_task
-from vlm_exam.text_benchmark import register_text_commands
+from vlm_exam.text_benchmark import (
+    TEXT_BENCHMARK_PROTOCOL,
+    inference_hash,
+    register_text_commands,
+)
+from vlm_exam.text_render import register_text_render_commands
 
 if TYPE_CHECKING:
     import matplotlib.pyplot as plt
@@ -263,6 +268,8 @@ def run(
     repeats: int,
 ) -> None:
     """Run a benchmark for one or more models."""
+    if task_name == "text" and effort not in TEXT_BENCHMARK_PROTOCOL.efforts:
+        raise click.UsageError("Text benchmark effort must be low or high.")
     if resume_file is not None and repeats != 1:
         raise click.UsageError("--resume-file cannot be combined with --repeats.")
     if (
@@ -346,10 +353,13 @@ def run(
 
         model_task = task
         if task_name in ("detection", "text"):
+            model_task_args = dict(task_args)
+            if task_name == "text":
+                model_task_args["inference_hash"] = inference_hash(model_config)
             model_task = create_task(
                 task_name,
                 coordinate_format=model_config.detection_coordinate_format,
-                **task_args,
+                **model_task_args,
             )
 
         for repeat in range(1, repeats + 1):
@@ -1675,6 +1685,7 @@ register_reference_commands(main)
 
 
 register_text_commands(main)
+register_text_render_commands(main)
 
 
 if __name__ == "__main__":

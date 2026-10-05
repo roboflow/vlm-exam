@@ -34,7 +34,7 @@ from vlm_exam.tasks.text_scoring import (
     valid_box,
 )
 
-TEXT_PROTOCOL = "mixed-text-v1"
+TEXT_PROTOCOL = "mixed-text-v2"
 """Version of prompt assembly, parsing and scoring for the new text benchmark."""
 TEXT_CATEGORIES = (
     "single_string",
@@ -77,15 +77,14 @@ class TextTask(Task):
         coordinate_format: DetectionCoordinateFormat = (
             DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000
         ),
+        inference_hash: str = "",
     ) -> None:
         self.coordinate_format = DetectionCoordinateFormat(coordinate_format)
+        self.inference_hash = inference_hash
 
     def load_samples(self, data_directory: str) -> list[Sample]:
-        """Validate all rows and image references, preserving "
-        "multiple questions per image."""
+        """Validate all rows and preserve multiple questions per image."""
         directory = Path(data_directory).resolve()
-        registry_path = Path(__file__).parents[1] / "configs" / "text_subsets.json"
-        registry = json.loads(registry_path.read_text())
         pending: list[dict[str, Any]] = []
         identities: set[str] = set()
         images: dict[Path, tuple[int, int, str]] = {}
@@ -110,10 +109,12 @@ class TextTask(Task):
                     fenced
                     or not isinstance(prefix, dict)
                     or not {"task", "question"} <= prefix.keys()
-                    or set(prefix) - {"task", "question", "specification"}
+                    or set(prefix)
+                    - {"task", "question", "specification", "subset", "scoring_profile"}
                 ):
                     raise ValueError(
-                        "Prefix must contain task, question and optional specification"
+                        "Prefix requires task/question and accepts specification, "
+                        "subset and scoring_profile"
                     )
                 category = prefix["task"]
                 if (
@@ -177,18 +178,28 @@ class TextTask(Task):
                         ):
                             raise ValueError("Ground-truth box outside original image")
                 canonical = json.dumps(prefix, ensure_ascii=False, sort_keys=True)
-                identity = _digest((image_hash + canonical).encode())
+                content = json.dumps(
+                    {
+                        "task": category,
+                        "question": prefix["question"],
+                        "specification": specification,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                )
+                identity = _digest((image_hash + content).encode())
                 if identity in identities:
                     raise ValueError("Duplicate image/question pair")
                 identities.add(identity)
-                definition = registry["pairs"].get(
-                    _digest(
-                        json.dumps(
-                            [canonical, row["suffix"]], ensure_ascii=False
-                        ).encode()
-                    ),
-                    registry["prefixes"].get(_digest(canonical.encode()), {}),
-                )
+                subset = prefix.get("subset", _digest(canonical.encode())[:16])
+                profile = prefix.get("scoring_profile", category)
+                if not isinstance(subset, str) or not subset.strip():
+                    raise ValueError("Subset must be a nonempty string")
+                allowed = {category}
+                if category == "transcription":
+                    allowed.update({"exact", "italian_soft_wraps"})
+                if not isinstance(profile, str) or profile not in allowed:
+                    raise ValueError("Unsupported scoring profile for this category")
                 pending.append(
                     dict(
                         image_path=str(image_path),
@@ -202,10 +213,8 @@ class TextTask(Task):
                         image_hash=image_hash,
                         identity=identity,
                         prefix=canonical,
-                        subset=definition.get(
-                            "subset", _digest(canonical.encode())[:16]
-                        ),
-                        scoring_profile=definition.get("scoring_profile", category),
+                        subset=subset,
+                        scoring_profile=profile,
                     )
                 )
             except (ValueError, TypeError, KeyError, OSError) as error:
@@ -215,7 +224,12 @@ class TextTask(Task):
         dataset_hash = _digest(
             json.dumps(
                 sorted(
-                    (item["identity"], item["expected"], item["scoring_profile"])
+                    (
+                        item["identity"],
+                        item["prefix"],
+                        item["expected"],
+                        item["scoring_profile"],
+                    )
                     for item in pending
                 ),
                 ensure_ascii=False,
@@ -245,6 +259,7 @@ class TextTask(Task):
             "text_protocol": TEXT_PROTOCOL,
             "scoring_profile": sample.scoring_profile,
             "coordinate_format": self.coordinate_format.value,
+            "inference_hash": self.inference_hash,
         }
 
     def _geometry(
@@ -309,9 +324,10 @@ class TextTask(Task):
             "Do not include explanations or Markdown."
         )
 
-    def _regions(
+    def parse_regions(
         self, value: Any, sample: TextSample, uploaded_size: tuple[int, int] | None
     ) -> list[dict[str, Any] | None]:
+        """Convert declared model coordinates to original pixels for scoring/display."""
         if not isinstance(value, list):
             raise ValueError("Expected a JSON array")
         key, swapped, width, height = self._geometry(sample, uploaded_size)
@@ -398,7 +414,8 @@ class TextTask(Task):
                 else:
                     details.update(
                         region_score(
-                            sample.answer, self._regions(parsed, sample, uploaded_size)
+                            sample.answer,
+                            self.parse_regions(parsed, sample, uploaded_size),
                         )
                     )
                     details["format_compliant"] &= details["invalid_regions"] == 0

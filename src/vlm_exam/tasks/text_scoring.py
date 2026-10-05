@@ -43,6 +43,13 @@ def _invalid_constant(value: str) -> None:
     raise ValueError(f"Non-finite JSON value: {value}")
 
 
+def _finite_float(value: str) -> float:
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError("Non-finite JSON number")
+    return number
+
+
 def parse_json(value: str) -> tuple[Any, bool]:
     """Parse a whole JSON response, allowing only a complete enclosing fence."""
     value = normalize(value)
@@ -51,7 +58,10 @@ def parse_json(value: str) -> tuple[Any, bool]:
     if match:
         value = match.group(1)
     return json.loads(
-        value, object_pairs_hook=_pairs, parse_constant=_invalid_constant
+        value,
+        object_pairs_hook=_pairs,
+        parse_constant=_invalid_constant,
+        parse_float=_finite_float,
     ), fenced
 
 
@@ -120,10 +130,11 @@ def valid_box(value: Any) -> bool:
         isinstance(value, list)
         and len(value) == 4
         and all(
-            type(number) in (int, float) and math.isfinite(number) for number in value
+            (type(number) is int or type(number) is float and math.isfinite(number))
+            for number in value
         )
-        and value[0] <= value[2]
-        and value[1] <= value[3]
+        and value[0] < value[2]
+        and value[1] < value[3]
     )
 
 
@@ -139,7 +150,7 @@ def _iou(left: list[float], right: list[float]) -> float:
     return intersection / union if union else 0.0
 
 
-def _matching(edges: list[list[int]]) -> int:
+def _matching(edges: list[list[int]]) -> list[tuple[int, int]]:
     owners: dict[int, int] = {}
 
     def visit(reference: int, seen: set[int]) -> bool:
@@ -152,34 +163,53 @@ def _matching(edges: list[list[int]]) -> int:
                 return True
         return False
 
-    return sum(visit(index, set()) for index in range(len(edges)))
+    for index in range(len(edges)):
+        visit(index, set())
+    return sorted((reference, prediction) for prediction, reference in owners.items())
+
+
+def match_regions(
+    reference: list[dict[str, Any]],
+    predictions: list[dict[str, Any] | None],
+    *,
+    require_text: bool = True,
+) -> list[tuple[int, int]]:
+    """Match regions one-to-one by IoU>0.5 and optionally exact text.
+
+    Args:
+        reference: Canonical original-pixel reference regions.
+        predictions: Canonical predicted regions, with invalid entries as None.
+        require_text: Whether recognition must also match.
+
+    Returns:
+        Reference/prediction index pairs from maximum-cardinality matching.
+    """
+    edges = [
+        [
+            index
+            for index, prediction in enumerate(predictions)
+            if prediction is not None
+            and _iou(region["bbox"], prediction["bbox"]) > 0.5
+            and (not require_text or equal(region["text"], prediction["text"]))
+        ]
+        for region in reference
+    ]
+    return _matching(edges)
 
 
 def region_score(
     reference: list[dict[str, Any]], predictions: list[dict[str, Any] | None]
 ) -> dict[str, Any]:
     """Compute maximum-cardinality joint IoU>0.5/text F1 and detection F1."""
-    detection = [
-        [
-            index
-            for index, prediction in enumerate(predictions)
-            if prediction is not None and _iou(region["bbox"], prediction["bbox"]) > 0.5
-        ]
-        for region in reference
-    ]
-    joint = [
-        [
-            index
-            for index in candidates
-            if equal(region["text"], predictions[index]["text"])
-        ]
-        for region, candidates in zip(reference, detection)
-    ]
     total = len(reference) + len(predictions)
-    matches = _matching(joint)
+    matches = len(match_regions(reference, predictions))
     return {
         "score": 2 * matches / total if total else 1.0,
-        "detection_f1": 2 * _matching(detection) / total if total else 1.0,
+        "detection_f1": 2
+        * len(match_regions(reference, predictions, require_text=False))
+        / total
+        if total
+        else 1.0,
         "matched_regions": matches,
         "reference_regions": len(reference),
         "predicted_regions": len(predictions),
