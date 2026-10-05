@@ -1,0 +1,318 @@
+{
+  "prefixes": {
+    "933cf5fad9e7f564f668f675ef7c3ced789b9863bc5a6ef9e1b9725ca964bc49": {
+      "subset": "aircraft-registrations",
+      "scoring_profile": "single_string"
+    },
+    "477b707cebbcd6dfbb5fed72f10dfe2e62e00feca8e2f6ae006df6e33de0c867": {
+      "subset": "bangkok-buses",
+      "scoring_profile": "structured"
+    },
+    "c88e91da6c946745f0aa02d6f9e31e60f4da6f21f8e5160159beb41be74ae4be": {
+      "subset": "basketball-numbers",
+      "scoring_profile": "single_string"
+    },
+    "d62695ff7dd95e0d7d2947d55e11a29d6052206c858a5827024c3972a037b258": {
+      "subset": "blister-batch-codes",
+      "scoring_profile": "single_string"
+    },
+    "658c0e5b4d5e48ce72dedbbc0e991277b8ddbf3c7c754392c7ba0269a79162ff": {
+      "subset": "book-cover-localization",
+      "scoring_profile": "localization_recognition"
+    },
+    "3d7fadf0660f87067ebeff6e61620143a8745f89e313c74a92dba5c40624a8df": {
+      "subset": "book-metadata",
+      "scoring_profile": "structured"
+    },
+    "a703300632cb4e393830a90825c07e1f1d3384f9732e95cc2b8117be396878be": {
+      "subset": "cafe-receipts",
+      "scoring_profile": "structured"
+    },
+    "f4d1ab6dc03a4b85c8608f31e51cdb8dce80bfaad98157f2beac0c521e8af5ea": {
+      "subset": "circuit-markings",
+      "scoring_profile": "localization_recognition"
+    },
+    "6174981f0649e07dcaf22bff3b83b261108ce4fc5aa224fad1157ebaf48fd722": {
+      "subset": "comic-bubble-localization",
+      "scoring_profile": "localization_recognition"
+    },
+    "a0b750b70bf54a22a86e8270b02ebdac7dc5db45b5d0e50af59f8a3df0f02d0d": {
+      "subset": "comic-bubbles",
+      "scoring_profile": "transcription"
+    },
+    "5fb65cc437b21fb305cada904622b9598eb35d68a2f8e21720616b76c2781060": {
+      "subset": "container-text-oct4",
+      "scoring_profile": "structured"
+    },
+    "b3f38c6b63e6967c5fd1d724428f8294762b91e934dc9b043e53433fd913fe3b": {
+      "subset": "cow-ear-tags",
+      "scoring_profile": "single_string"
+    },
+    "21363697af554f8e19e7845101fc3ffa9af7c9a677b14d5ed3d6980ba488b4fb": {
+      "subset": "curved-shop-sign-localization",
+      "scoring_profile": "localization_recognition"
+    },
+    "2230d8632391d9a6437b85d92adc093db2ff8a3754b4cfee87bbfa5a07a79f54": {
+      "subset": "digital-scales",
+      "scoring_profile": "single_string"
+    },
+    "86f51b3c3dae6d112289985ec360f8267b0ffc7a842199fb5039d3d8131f4975": {
+      "subset": "digital-thermometers",
+      "scoring_profile": "single_string"
+    },
+    "632de14cb0143303c8809b0823d67e6faffff47998dba27d7ed83e7af25eacb5": {
+      "subset": "election-results",
+      "scoring_profile": "structured"
+    },
+    "3a0d0e0892a8fc955ba26d8632027e7993d7524c7e7c2bd1f00b21918ecca383": {
+      "subset": "electricity-meters",
+      "scoring_profile": "single_string"
+    },
+    "b2eb7f0ca4b3cb1175731ded832ee7546a4aebcd590572977d4774c2232dbaf4": {
+      "subset": "engraved-metal-markings",
+      "scoring_profile": "transcription"
+    },
+    "d8762ffc9a8e6ed6d0fb5ac170f1b10f4fd7954c04852967ac29ace4d7a5b4aa": {
+      "subset": "epass-serials",
+      "scoring_profile": "single_string"
+    },
+    "4890639a29ac37cd4ff42211643d0c18aff0368031828f92ae05cebd670f36b1": {
+      "subset": "equipment-labels",
+      "scoring_profile": "structured"
+    },
+    "6a08778bfde26392b0a177fd6620e6a792b2f4b36201405b4cfbf00b41135df3": {
+      "subset": "expiration-dates",
+      "scoring_profile": "single_string"
+    },
+    "cc71eb86fa5bf20eab4fc4ada33415107c6128a4157ea0ab8c730a2ff4d65ee9": {
+      "subset": "french-customer-forms",
+      "scoring_profile": "structured"
+    },
+    "a0ebbce28fa5095a9cddd744f6832d5362debbb0e06251e4a7271ef438ffcdb4": {
+      "subset": "graphic-design-poster-text",
+      "scoring_profile": "localization_recognition"
+    },
+    "47f7cc0f39d0c8bbbea60d4182d439bf09c21072866ae0e3753361997e4b49c7": {
+      "subset": "handwritten-cheques",
+      "scoring_profile": "structured"
+    },
+    "a46f70a1dc4301ad9bd2956c2cebecff2020e7773071bd1c7cba17413ad27591": {
+      "subset": "herbarium-labels",
+      "scoring_profile": "structured"
+    },
+    "4788f963011764ba57cc70b15305235d3f2bbaf02de5b23ad05046621e2bf846": {
+      "subset": "house-numbers",
+      "scoring_profile": "single_string"
+    },
+    "84ce444ef86dc04d88799b9624df251a2c73f9c1964589aacef38e9f342697f9": {
+      "subset": "industrial-heat-numbers",
+      "scoring_profile": "structured"
+    },
+    "87309538184438ef333bb256edbba694786c21f17207f53ba90395a46c6e1c8a": {
+      "subset": "italian-documents",
+      "scoring_profile": "italian_soft_wraps"
+    },
+    "7536d2f054eb9bde95e7659c84d1d5a4f1cc128024e6ed47e9519905e4384c6e": {
+      "subset": "japanese-salary-withholding-forms",
+      "scoring_profile": "structured"
+    },
+    "320cb142e18398991c854e1c87291c51a10913bb257f8feadb67e19fe9de07cc": {
+      "subset": "loan-application-fields",
+      "scoring_profile": "structured"
+    },
+    "f2a87f15a0d3eb968c2aea90f31b0f67b5abcc915cf4e8fa4fea33cad10646ff": {
+      "subset": "machine-serials",
+      "scoring_profile": "single_string"
+    },
+    "65c332a8b2270f58e9efe87031b169041a416f8abedb993e76fbbf0f3c22fdfb": {
+      "subset": "mechanical-meters",
+      "scoring_profile": "single_string"
+    },
+    "0749a0105d22d9d44622287b088557ecc5d7d8c2ad2a525248e7eae1b779a046": {
+      "subset": "mixed-meter-electricity-readings",
+      "scoring_profile": "single_string"
+    },
+    "3d0c26ee8395584aec73082b03c9c70b3350395fc3a03d4ba96fb9da2255e17b": {
+      "subset": "nutrition-labels",
+      "scoring_profile": "structured"
+    },
+    "aad8c1d2eecc1e5d335d8861bc947cda95359d88366ee925cfbdb4bdd8974475": {
+      "subset": "object-detection-oct4",
+      "scoring_profile": "single_string"
+    },
+    "12ff5ae87687aff8b112e104d07ff2258b68eda1c9df1e2c1d046037796c6873": {
+      "subset": "odometers",
+      "scoring_profile": "single_string"
+    },
+    "60ba2e315b54c16eafae62ddd5393d34f5422854e8ceea53fdbb56254fce2504": {
+      "subset": "old-map-localization",
+      "scoring_profile": "localization_recognition"
+    },
+    "ecdaefbde8cd63e1aa2022c97472a0c7f316e6643fb5637b801679a1bbfafcab": {
+      "subset": "passport-mrz",
+      "scoring_profile": "exact"
+    },
+    "6594bb1ef85ebb8450242965169738c2db259a2a420c82132697f69c6ee1430c": {
+      "subset": "pcb-source-text-localization",
+      "scoring_profile": "localization_recognition"
+    },
+    "05ecf6bf05f5c67d974332fdd104750dbcea472137faf078dabc65b16ca09548": {
+      "subset": "pharmacy-bills",
+      "scoring_profile": "structured"
+    },
+    "5c725e357739b9ce64c633519b60210ad42abf81769c0b990b399aa1a3b9e6ec": {
+      "subset": "pill-imprints",
+      "scoring_profile": "single_string"
+    },
+    "e95781a757393405476e08a2117433b0963f83e482cc7dc3ffc025e856bae46c": {
+      "subset": "pmg-banknotes",
+      "scoring_profile": "structured"
+    },
+    "ae86443b5fadcab97c4d7493c15b68f7e586ca3189cae742760ea9ff68f936ca": {
+      "subset": "psa-sports-cards",
+      "scoring_profile": "structured"
+    },
+    "69f8a78c51c95b60c3fefbc8453ee63cc302a9d5e8ed9be4fe6766a52c3eed7c": {
+      "subset": "railway-tickets",
+      "scoring_profile": "structured"
+    },
+    "660e48d305d84282a7cdd49626dafd2b1978e495ddb87686dfc032980e3e5d53": {
+      "subset": "retail-leaflet-product-offers",
+      "scoring_profile": "structured"
+    },
+    "c7e0eb346c8e2ba1b4ba45f276be30b522557f377f8a45f76b2dcc56d0a33c4e": {
+      "subset": "scrabble-letter-localization",
+      "scoring_profile": "localization_recognition"
+    },
+    "1b7d212231bfff95d0dbff92be078ce4f5c2730e24048ecb0692c13bc7be4926": {
+      "subset": "scrabble-word-reading",
+      "scoring_profile": "transcription"
+    },
+    "6c56b14aa8dbe99648d5951566b85f10a03bc83526b8f7e03d05cc4f1e87ebbf": {
+      "subset": "sgc-trading-cards",
+      "scoring_profile": "structured"
+    },
+    "ccd97de2b96725a9b0e871c7f6be7dd028aac85b69407adfb4c7a9e2f894ba30": {
+      "subset": "shipping-labels",
+      "scoring_profile": "structured"
+    },
+    "cfea212a35269c790c24eaeab8fac8291ac3b27f6e4f635e3f1a201f60771b1f": {
+      "subset": "simon-weather-table-transcription",
+      "scoring_profile": "structured"
+    },
+    "8275bce695697ed6169fca448e67820b8ebafa251537b788727a8d9fbeafd4d5": {
+      "subset": "sneaker-labels",
+      "scoring_profile": "structured"
+    },
+    "066a130d25134fbf662dbb7b9a3e8d89d1736f146a08cd8a6d7b44fd20b98fc6": {
+      "subset": "technical-dimensions",
+      "scoring_profile": "localization_recognition"
+    },
+    "4a0ef4856867c9de4582536fc28f09285716a4a0b5a5338d65735468f66f775d": {
+      "subset": "train-identifiers",
+      "scoring_profile": "single_string"
+    },
+    "6320a2ab21674c00821bcbd0691dadd74b86abb4db9e54e4ed9bcaa1d10e70fb": {
+      "subset": "treadmill-ocr",
+      "scoring_profile": "single_string"
+    },
+    "1ced26f23029a4b68664bab393008eafe9eca766adc551dfa66e5f17aaad5c57": {
+      "subset": "turkish-building-use-permits",
+      "scoring_profile": "structured"
+    },
+    "cd97317d8ff518baff6375fbbfef911c2f7eadbbca54a17919db502df7c2db08": {
+      "subset": "utility-pole-identifiers",
+      "scoring_profile": "single_string"
+    },
+    "733007c96827bfe7822bd6b4520da49feadae3149e207f3078a1b391d8db0974": {
+      "subset": "vin-numbers",
+      "scoring_profile": "single_string"
+    },
+    "2fb4de8cc245dee5d1b116ac14f6d4c8e07f3f44839ee102149e8dba547ba9d3": {
+      "subset": "water-meter-register-reading",
+      "scoring_profile": "single_string"
+    }
+  },
+  "pairs": {
+    "5dcaff00754e4af4e9f1562ba84232a95a95607c0cd5c809a06c62ef1a6c1d91": {
+      "subset": "night-vcc-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "cdc21f6429c448881e19a35911618cdebb8740a8658ddebb8641b4abb22c7117": {
+      "subset": "night-vcc-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "103a5a33efc3061000c55f6adbf55030214c833d14a1304cacc70c09b8745d8d": {
+      "subset": "night-vcc-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "3983fbc48facd2dfb481793d22104ff4df55b49c20d994733109fa216286dfbd": {
+      "subset": "night-vcc-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "63bcf318c6b8eeae5d7019688a5de3b2286183cbd94b79b6e4d00c22d329416b": {
+      "subset": "night-vcc-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "6f6e941026edb9e78a050a9f90b4f0d1fb1df9152020f69725d74109c2e72464": {
+      "subset": "night-vcc-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "7d5b6e72e0aa3d42a306935228cd86a39f39cc43637293d56608e8063ed73020": {
+      "subset": "night-vcc-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "6184da17db5ce923fc019cc9ff64c655388ec607eadb506090dab4537058c217": {
+      "subset": "night-vcc-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "f9dddda96011dd621b4beff6caf6cd845a929217619df5aad2b42cfd1c419d79": {
+      "subset": "night-vcc-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "9a33be8262f3baf02894c674c2f2f478101f61054106fed7eab9de0c1a5b72dd": {
+      "subset": "night-vcc-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "44fc5494badca33a5ba92680d40b97a9950ecf8c6de0b3bac820e2a0aa0595a5": {
+      "subset": "vasd-night-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "12e2384b0561899d13b38f632a6f459f5943671663ffa63a04320252ccdd3abd": {
+      "subset": "vasd-night-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "0e934152dc29a1f6b789b5e6aa0a3819e993ff754a4a079e21515d3c6f4ecc13": {
+      "subset": "vasd-night-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "0203626ec67075ee897e8323045d0082adf15ad5fd77cafaa1d99b282a4c98bf": {
+      "subset": "vasd-night-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "6ac1778505ac76f0dc1fb5ee4968ff60c5f7fa41acc7f891ade693c562c16d4e": {
+      "subset": "vasd-night-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "7a18b130c045a052bcd4d93d12b8ec16b8546147e5762eaec9d14e44add49823": {
+      "subset": "vasd-night-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "fff07d505f45b08627f247569fd3e1af28ee8edcc7985e319f248e6a779dd8be": {
+      "subset": "vasd-night-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "a4bc6dfa88752ed88b617bd3048f98ce161a68f766ceee8843d612e316c649c8": {
+      "subset": "vasd-night-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "efcf3adf15245601bfc44ee8d85578ea54c783760f5830a8dddb54b9a25f4f66": {
+      "subset": "vasd-night-license-plate-reading",
+      "scoring_profile": "single_string"
+    },
+    "a61aaa5ebbf92ca77ed68f041f6dc0215d1aff33b5c5dd9abc075e670501b7f8": {
+      "subset": "vasd-night-license-plate-reading",
+      "scoring_profile": "single_string"
+    }
+  }
+}

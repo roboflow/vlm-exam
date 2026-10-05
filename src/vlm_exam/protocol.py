@@ -48,6 +48,7 @@ PROTOCOL = BenchmarkProtocol()
 
 TASK_CONCURRENCY: dict[str, int] = {
     "detection": 6,
+    "text": 3,
     "reasoning": 4,
     "ocr": 3,
     "extraction": 2,

@@ -37,6 +37,7 @@ from vlm_exam.results import (
 )
 from vlm_exam.runner import run_benchmark
 from vlm_exam.tasks import QA_TASK_NAMES, create_task
+from vlm_exam.text_benchmark import register_text_commands
 
 if TYPE_CHECKING:
     import matplotlib.pyplot as plt
@@ -264,6 +265,11 @@ def run(
     """Run a benchmark for one or more models."""
     if resume_file is not None and repeats != 1:
         raise click.UsageError("--resume-file cannot be combined with --repeats.")
+    if (
+        task_name == "text"
+        and Path(output_directory).resolve() == Path("results").resolve()
+    ):
+        output_directory = "results-text"
     config = load_config(Path(config_path) if config_path else None)
     task_args: dict[str, str] = {}
     if task_name == "detection":
@@ -273,6 +279,12 @@ def run(
     if max_samples is not None:
         samples = samples[:max_samples]
     model_ids = [model_id.strip() for model_id in models.split(",")]
+    if task_name == "text":
+        unknown = set(model_ids) - config.models.keys()
+        if unknown:
+            raise click.UsageError(f"Unknown models: {sorted(unknown)}")
+        if not samples:
+            raise click.UsageError("No samples selected")
     output_path = Path(output_directory)
 
     previous_run: RunResult | None = None
@@ -290,6 +302,10 @@ def run(
                 f"--resume-file is a {previous_run.task!r} run at effort "
                 f"{previous_run.effort!r}; pass matching --task and --effort."
             )
+        if task_name == "text":
+            from vlm_exam.text_benchmark import validate_resume
+
+            validate_resume(previous_run, samples, config.models[model_ids[0]])
         failed_images = {
             sample.image for sample in previous_run.samples if is_failed_sample(sample)
         }
@@ -298,7 +314,16 @@ def run(
             for sample in samples
             if Path(sample.image_path).name in failed_images
         ]
-        kept_count = len(previous_run.samples) - len(failed_images)
+        if task_name == "text":
+            failed_pairs = {
+                sample.metadata["sample_id"]
+                for sample in previous_run.samples
+                if is_failed_sample(sample)
+            }
+            samples = [sample for sample in samples if sample.identity in failed_pairs]
+        kept_count = len(previous_run.samples) - sum(
+            is_failed_sample(sample) for sample in previous_run.samples
+        )
         click.echo(
             f"Resuming {previous_run.model}: keeping {kept_count} samples, "
             f"re-running {len(samples)} failed samples."
@@ -310,6 +335,7 @@ def run(
     if judge is not None:
         click.echo(f"Scoring: strict rule and LLM judge ({judge_model})")
 
+    text_failures = False
     for model_id in model_ids:
         if model_id not in config.models:
             click.echo(f"Warning: model {model_id!r} not found in config, skipping.")
@@ -319,7 +345,7 @@ def run(
         provider = build_model_provider(model_id, model_config)
 
         model_task = task
-        if task_name == "detection":
+        if task_name in ("detection", "text"):
             model_task = create_task(
                 task_name,
                 coordinate_format=model_config.detection_coordinate_format,
@@ -346,12 +372,21 @@ def run(
                 output_path, task_name, model_id, effort, result.timestamp
             )
             save_results(result, result_path)
+            if task_name == "text":
+                text_failures |= any(
+                    is_failed_sample(sample) for sample in result.samples
+                )
             click.echo(f"Results saved to {result_path}")
             if resume_file is not None:
                 source = Path(resume_file)
                 if source.resolve() != result_path.resolve():
                     source.unlink()
                     click.echo(f"Removed resumed file {source}")
+
+    if text_failures:
+        raise click.ClickException(
+            "Provider failures saved; resume the affected text runs."
+        )
 
 
 def _unique_result_path(
@@ -1637,6 +1672,9 @@ def detection_visualize(
 
 
 register_reference_commands(main)
+
+
+register_text_commands(main)
 
 
 if __name__ == "__main__":
