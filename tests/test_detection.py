@@ -306,6 +306,40 @@ class TestParsePrediction:
         detections = parse_prediction(prediction, (100, 100), ["cat", "dog"])
         assert len(detections) == 0
 
+    @pytest.mark.parametrize(
+        ("coordinate_format", "prediction"),
+        [
+            (
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000,
+                '[{"bbox_2d": [0, 0, 100, 100], "label": ["cat", "dog"]}]',
+            ),
+            (
+                DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE,
+                '[{"bbox": [0, 0, 100, 100], "label": ["cat"]}]',
+            ),
+            (
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_100,
+                '[{"bbox": [0, 0, 10, 10], "label": ["cat"]}]',
+            ),
+            (
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT,
+                '[{"label": ["cat"], "x_min": 0, "y_min": 0, "x_max": 1, "y_max": 1}]',
+            ),
+            (
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_BBOX,
+                '[{"object_name": ["cat"], "bbox": '
+                '[{"x_min": 0, "y_min": 0, "x_max": 1, "y_max": 1}]}]',
+            ),
+        ],
+    )
+    def test_non_string_labels_are_skipped(
+        self, coordinate_format: DetectionCoordinateFormat, prediction: str
+    ) -> None:
+        detections = parse_prediction(
+            prediction, (1000, 1000), ["cat", "dog"], coordinate_format
+        )
+        assert len(detections) == 0
+
     def test_parses_prose_wrapped_json(self) -> None:
         prediction = (
             "Here are the detected objects:\n"
@@ -446,6 +480,28 @@ class TestParseNormalizedPercentPrediction:
         sample = _make_sample(_detections([[10, 10, 20, 20]], [0]))
         prompt = task.build_prompt(sample)
         assert "floats between 0 and 100" in prompt
+        assert "[x_min, y_min, x_max, y_max]" in prompt
+
+
+class TestParseNormalized999Prediction:
+    def test_scales_the_0_to_999_grid_to_the_full_image(self) -> None:
+        prediction = '[{"box_2d": [0, 0, 999, 999], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction,
+            (1998, 999),
+            ["cat", "dog"],
+            coordinate_format=DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_999,
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [0, 0, 1998, 999])
+
+    def test_prompt_requests_0_to_999_coordinates(self) -> None:
+        task = DetectionTask(
+            coordinate_format=DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_999
+        )
+        sample = _make_sample(_detections([[10, 10, 20, 20]], [0]))
+        prompt = task.build_prompt(sample)
+        assert "integers between 0 and 999" in prompt
         assert "[x_min, y_min, x_max, y_max]" in prompt
 
 

@@ -34,6 +34,14 @@ from vlm_exam.providers.image_upload import (
 
 _BASE_URL = "https://openrouter.ai/api/v1"
 _MAX_OUTPUT_TOKENS = 16384
+# Mistral Large 4 only offers reasoning "high" or "none"; at "high" its
+# thinking trace alone regularly exceeds 16k tokens on OCR and detection
+# images and the answer comes back empty, so it gets a larger budget.
+_MAX_OUTPUT_TOKENS_BY_MODEL = {"mistralai/mistral-large-4-0": 65536}
+
+
+def _max_output_tokens(provider_model_id: str) -> int:
+    return _MAX_OUTPUT_TOKENS_BY_MODEL.get(provider_model_id, _MAX_OUTPUT_TOKENS)
 
 
 _REASONING_REQUIRED_MODELS = frozenset(
@@ -130,7 +138,9 @@ class OpenRouterProvider(Provider):
         response, retry_stats = call_with_retries(
             lambda: self._client.chat.completions.create(
                 model=self._provider_model_id,
-                max_tokens=_MAX_OUTPUT_TOKENS,
+                max_tokens=_MAX_OUTPUT_TOKENS_BY_MODEL.get(
+                    self._provider_model_id, _MAX_OUTPUT_TOKENS
+                ),
                 messages=[
                     {
                         "role": "user",

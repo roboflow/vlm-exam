@@ -479,3 +479,12 @@ models:
     pricing:
       input_per_million_tokens: 0.14
       output_per_million_tokens: 0.28
+  mistral-large-4:
+    name: Mistral Large 4
+    lab: mistral
+    provider: openrouter
+    provider_model_id: mistralai/mistral-large-4-0
+    detection_coordinate_format: xyxy_normalized_0_to_999
+    pricing:
+      input_per_million_tokens: 0.68
+      output_per_million_tokens: 2.09

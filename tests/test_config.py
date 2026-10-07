@@ -227,6 +227,7 @@ class TestBenchmarkProtocolField:
             "grok-4.7",
             "mimo-v2.6-pro",
             "mimo-v2.6-flash",
+            "mistral-large-4",
         ]
 
 
