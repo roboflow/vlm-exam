@@ -43,6 +43,11 @@ def test_glm_5_3_flash_keeps_reasoning_at_low_effort() -> None:
     assert _reasoning_config("low", "z-ai/glm-5.3-flash") == {"effort": "low"}
 
 
+def test_inkling_maps_low_effort_to_its_low_preset() -> None:
+    assert _reasoning_config("low", "thinkingmachines/inkling") == {"effort": "low"}
+    assert _reasoning_config("high", "thinkingmachines/inkling") == {"effort": "high"}
+
+
 def _requested_max_tokens(provider_model_id: str) -> int:
     provider = OpenRouterProvider(
         "key", api_key="test", provider_model_id=provider_model_id
