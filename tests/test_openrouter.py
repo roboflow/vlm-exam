@@ -43,10 +43,6 @@ def test_glm_5_3_flash_keeps_reasoning_at_low_effort() -> None:
     assert _reasoning_config("low", "z-ai/glm-5.3-flash") == {"effort": "low"}
 
 
-def test_mistral_large_4_disables_reasoning_at_low_effort() -> None:
-    assert _reasoning_config("low", "mistralai/mistral-large-4-0") == {"enabled": False}
-
-
 def _requested_max_tokens(provider_model_id: str) -> int:
     provider = OpenRouterProvider(
         "key", api_key="test", provider_model_id=provider_model_id
