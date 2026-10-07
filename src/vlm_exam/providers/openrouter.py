@@ -48,6 +48,7 @@ _REASONING_REQUIRED_MODELS = frozenset(
     {
         "qwen/qwen3.8-max",
         "z-ai/glm-5.3-flash",
+        "thinkingmachines/inkling",
     }
 )
 
@@ -57,7 +58,8 @@ def _reasoning_config(effort: str, provider_model_id: str) -> dict[str, Any]:
     # bloats latency and truncates the answer inside the reasoning trace;
     # disabling it keeps low-effort runs fast and well-formed.
     # Gemini, Muse Spark, Qwen3.8 Max, and GLM 5.3 Flash on OpenRouter
-    # require reasoning and reject enabled=False.
+    # require reasoning and reject enabled=False. Inkling exposes graded
+    # effort presets (low = 0.2, high = 0.9), so low and high map directly.
     if (
         provider_model_id.startswith(("google/", "meta/"))
         or provider_model_id in _REASONING_REQUIRED_MODELS

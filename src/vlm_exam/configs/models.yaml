@@ -43,6 +43,10 @@ labs:
     name: DeepSeek
     color: "#4D6BFE"
     logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/deepseek.svg
+  thinking-machines:
+    name: Thinking Machines
+    color: "#31373D"
+    logo_url: https://raw.githubusercontent.com/roboflow/vlm-exam/a47a96540bf0cf52140c2c5116c6e192fba4f3ae/web/logos/thinking-machines.svg
 
 models:
   claude-fable-5:
@@ -488,3 +492,12 @@ models:
     pricing:
       input_per_million_tokens: 0.68
       output_per_million_tokens: 2.09
+  inkling:
+    name: Inkling
+    lab: thinking-machines
+    provider: openrouter
+    provider_model_id: thinkingmachines/inkling
+    detection_coordinate_format: xyxy_normalized_0_to_100
+    pricing:
+      input_per_million_tokens: 1.00
+      output_per_million_tokens: 4.05
