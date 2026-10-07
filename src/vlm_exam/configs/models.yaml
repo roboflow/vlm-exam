@@ -484,7 +484,7 @@ models:
     lab: mistral
     provider: openrouter
     provider_model_id: mistralai/mistral-large-4-0
-    detection_coordinate_format: xyxy_normalized_0_to_1000
+    detection_coordinate_format: xyxy_normalized_0_to_999
     pricing:
       input_per_million_tokens: 0.68
       output_per_million_tokens: 2.09

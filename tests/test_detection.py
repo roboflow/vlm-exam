@@ -483,6 +483,28 @@ class TestParseNormalizedPercentPrediction:
         assert "[x_min, y_min, x_max, y_max]" in prompt
 
 
+class TestParseNormalized999Prediction:
+    def test_scales_the_0_to_999_grid_to_the_full_image(self) -> None:
+        prediction = '[{"box_2d": [0, 0, 999, 999], "label": "cat"}]'
+        detections = parse_prediction(
+            prediction,
+            (1998, 999),
+            ["cat", "dog"],
+            coordinate_format=DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_999,
+        )
+        assert len(detections) == 1
+        np.testing.assert_allclose(detections.xyxy[0], [0, 0, 1998, 999])
+
+    def test_prompt_requests_0_to_999_coordinates(self) -> None:
+        task = DetectionTask(
+            coordinate_format=DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_999
+        )
+        sample = _make_sample(_detections([[10, 10, 20, 20]], [0]))
+        prompt = task.build_prompt(sample)
+        assert "integers between 0 and 999" in prompt
+        assert "[x_min, y_min, x_max, y_max]" in prompt
+
+
 class TestParsePixelPrediction:
     def test_parses_pixel_coordinates_directly(self) -> None:
         prediction = '[{"box_2d": [10, 20, 30, 40], "label": "cat"}]'

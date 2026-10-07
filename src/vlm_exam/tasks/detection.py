@@ -95,6 +95,17 @@ _NORMALIZED_XYXY_PROMPT_TEMPLATE = (
     "Only use these labels: {class_list}"
 )
 
+_NORMALIZED_XYXY_999_PROMPT_TEMPLATE = (
+    "Detect all objects in this image. "
+    "Output a JSON list where each entry contains the 2D bounding box "
+    'in the key "box_2d" and the text label in the key "label". '
+    'The "box_2d" value must be [x_min, y_min, x_max, y_max]: the '
+    "top-left and bottom-right corners as integers between 0 and 999, "
+    "normalized to the image width (x) and height (y). "
+    "Return only the JSON list, with no extra text. "
+    "Only use these labels: {class_list}"
+)
+
 _NORMALIZED_XYXY_PERCENT_PROMPT_TEMPLATE = (
     "Detect all objects in this image. "
     "Output a JSON list where each entry contains the text label in the key "
@@ -134,6 +145,7 @@ class DetectionCoordinateFormat(str, Enum):
 
     YXYX_NORMALIZED_0_TO_1000 = "yxyx_normalized_0_to_1000"
     XYXY_NORMALIZED_0_TO_1000 = "xyxy_normalized_0_to_1000"
+    XYXY_NORMALIZED_0_TO_999 = "xyxy_normalized_0_to_999"
     XYXY_NORMALIZED_0_TO_100 = "xyxy_normalized_0_to_100"
     XYXY_NORMALIZED_0_TO_1000_META_FLAT = "xyxy_normalized_0_to_1000_meta_flat"
     XYXY_NORMALIZED_0_TO_1000_META_BBOX = "xyxy_normalized_0_to_1000_meta_bbox"
@@ -343,6 +355,10 @@ class DetectionTask(Task):
                 )
             case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000:
                 return _NORMALIZED_XYXY_PROMPT_TEMPLATE.format(class_list=class_list)
+            case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_999:
+                return _NORMALIZED_XYXY_999_PROMPT_TEMPLATE.format(
+                    class_list=class_list
+                )
             case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_100:
                 return _NORMALIZED_XYXY_PERCENT_PROMPT_TEMPLATE.format(
                     class_list=class_list
@@ -478,6 +494,8 @@ def parse_prediction(
             parser = _parse_pixel_yxyx_native_json
         case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000:
             parser = _parse_normalized_xyxy_json
+        case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_999:
+            parser = _parse_normalized_xyxy_999_json
         case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_100:
             parser = _parse_normalized_xyxy_percent_json
         case DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT:
@@ -724,6 +742,19 @@ def _parse_normalized_xyxy_json(
         resolution_wh,
         classes,
         normalize_max=1000.0,
+    )
+
+
+def _parse_normalized_xyxy_999_json(
+    prediction: str,
+    resolution_wh: tuple[int, int],
+    classes: list[str],
+) -> sv.Detections:
+    return _parse_normalized_xyxy_scaled_json(
+        prediction,
+        resolution_wh,
+        classes,
+        normalize_max=999.0,
     )
 
 
