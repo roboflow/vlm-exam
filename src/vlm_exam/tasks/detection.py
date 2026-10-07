@@ -602,6 +602,7 @@ def _parse_pixel_json(
             not isinstance(box, list)
             or len(box) != 4
             or not all(isinstance(value, (int, float)) for value in box)
+            or not isinstance(label, str)
             or label not in class_index
         ):
             continue
@@ -686,6 +687,7 @@ def _parse_absolute_pixel_json(
             not isinstance(box, list)
             or len(box) != 4
             or not all(isinstance(value, (int, float)) for value in box)
+            or not isinstance(label, str)
             or label not in class_index
         ):
             continue
@@ -771,6 +773,7 @@ def _parse_normalized_xyxy_scaled_json(
             not isinstance(box, list)
             or len(box) != 4
             or not all(isinstance(value, (int, float)) for value in box)
+            or not isinstance(label, str)
             or label not in class_index
         ):
             continue
@@ -838,7 +841,7 @@ def _parse_meta_flat_normalized_json(
         if not isinstance(entry, dict):
             continue
         label = entry.get("label")
-        if label not in class_index:
+        if not isinstance(label, str) or label not in class_index:
             continue
         try:
             x_min = float(entry["x_min"])
@@ -888,7 +891,7 @@ def _parse_meta_bbox_normalized_json(
         if not isinstance(entry, dict):
             continue
         label = entry.get("object_name", entry.get("label"))
-        if label not in class_index:
+        if not isinstance(label, str) or label not in class_index:
             continue
         boxes = entry.get("bbox")
         if isinstance(boxes, dict):

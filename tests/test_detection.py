@@ -306,6 +306,40 @@ class TestParsePrediction:
         detections = parse_prediction(prediction, (100, 100), ["cat", "dog"])
         assert len(detections) == 0
 
+    @pytest.mark.parametrize(
+        ("coordinate_format", "prediction"),
+        [
+            (
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000,
+                '[{"bbox_2d": [0, 0, 100, 100], "label": ["cat", "dog"]}]',
+            ),
+            (
+                DetectionCoordinateFormat.XYXY_ABSOLUTE_ORIGINAL_IMAGE,
+                '[{"bbox": [0, 0, 100, 100], "label": ["cat"]}]',
+            ),
+            (
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_100,
+                '[{"bbox": [0, 0, 10, 10], "label": ["cat"]}]',
+            ),
+            (
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_FLAT,
+                '[{"label": ["cat"], "x_min": 0, "y_min": 0, "x_max": 1, "y_max": 1}]',
+            ),
+            (
+                DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000_META_BBOX,
+                '[{"object_name": ["cat"], "bbox": '
+                '[{"x_min": 0, "y_min": 0, "x_max": 1, "y_max": 1}]}]',
+            ),
+        ],
+    )
+    def test_non_string_labels_are_skipped(
+        self, coordinate_format: DetectionCoordinateFormat, prediction: str
+    ) -> None:
+        detections = parse_prediction(
+            prediction, (1000, 1000), ["cat", "dog"], coordinate_format
+        )
+        assert len(detections) == 0
+
     def test_parses_prose_wrapped_json(self) -> None:
         prediction = (
             "Here are the detected objects:\n"

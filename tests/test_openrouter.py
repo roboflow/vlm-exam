@@ -12,7 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from vlm_exam.providers.openrouter import _reasoning_config
+from unittest.mock import MagicMock
+
+from PIL import Image
+
+from vlm_exam.providers.openrouter import (
+    _MAX_OUTPUT_TOKENS,
+    OpenRouterProvider,
+    _reasoning_config,
+)
 
 
 def test_gemini_keeps_reasoning_at_low_effort() -> None:
@@ -33,3 +41,27 @@ def test_muse_spark_keeps_reasoning_at_low_effort() -> None:
 
 def test_glm_5_3_flash_keeps_reasoning_at_low_effort() -> None:
     assert _reasoning_config("low", "z-ai/glm-5.3-flash") == {"effort": "low"}
+
+
+def test_mistral_large_4_disables_reasoning_at_low_effort() -> None:
+    assert _reasoning_config("low", "mistralai/mistral-large-4-0") == {"enabled": False}
+
+
+def _requested_max_tokens(provider_model_id: str) -> int:
+    provider = OpenRouterProvider(
+        "key", api_key="test", provider_model_id=provider_model_id
+    )
+    create = MagicMock()
+    create.return_value.choices = []
+    create.return_value.usage = None
+    provider._client.chat.completions.create = create
+    provider.predict(Image.new("RGB", (8, 8)), "prompt", "high")
+    return create.call_args.kwargs["max_tokens"]
+
+
+def test_mistral_large_4_gets_a_larger_output_budget() -> None:
+    assert _requested_max_tokens("mistralai/mistral-large-4-0") == 65536
+
+
+def test_other_models_keep_the_default_output_budget() -> None:
+    assert _requested_max_tokens("qwen/qwen3.8-max") == _MAX_OUTPUT_TOKENS
