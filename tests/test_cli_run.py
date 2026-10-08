@@ -321,3 +321,25 @@ def test_leaderboard_export_has_fixed_visible_padding(
         0
     ][0]
     assert first == 118
+
+
+def test_text_run_uses_shared_output_default(
+    tmp_path: Path, stubbed_run: list[dict[str, Any]], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    result = CliRunner().invoke(
+        cli.main,
+        [
+            "run",
+            "--task",
+            "text",
+            "--models",
+            "alpha",
+            "--effort",
+            "low",
+            "--dataset-directory",
+            str(tmp_path),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert len(list((tmp_path / "results").glob("text_*.jsonl"))) == 1

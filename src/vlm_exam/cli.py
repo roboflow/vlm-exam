@@ -272,12 +272,6 @@ def run(
         raise click.UsageError("Text benchmark effort must be low or high.")
     if resume_file is not None and repeats != 1:
         raise click.UsageError("--resume-file cannot be combined with --repeats.")
-    if (
-        task_name == "text"
-        and click.get_current_context().get_parameter_source("output_directory")
-        == click.core.ParameterSource.DEFAULT
-    ):
-        output_directory = "results-text"
     config = load_config(Path(config_path) if config_path else None)
     task_args: dict[str, str] = {}
     if task_name == "detection":
@@ -589,18 +583,6 @@ def validate(
 
     config = load_config(Path(config_path) if config_path else None)
     report = validate_results(Path(results_directory), config, strict=strict)
-    text_directory = Path(results_directory).parent / "results-text"
-    if text_directory.exists():
-        from dataclasses import replace
-
-        from vlm_exam.text_release import (
-            load_text_release_policy,
-            validate_text_release,
-        )
-
-        problems = validate_text_release(text_directory, load_text_release_policy())
-        report = replace(report, orphans=report.orphans + tuple(problems))
-
     click.echo(format_report(report, verbose=verbose))
     if output_format == "github":
         annotations = format_github_annotations(report)
@@ -789,6 +771,10 @@ def report(
             metric = format_repeated(
                 aggregate_metric(group, run_mean_similarity), "% sim"
             )
+        elif task_name == "text":
+            from vlm_exam.metrics import run_text_score
+
+            metric = format_repeated(aggregate_metric(group, run_text_score), " score")
         elif task_name in JUDGE_TASK_NAMES:
             metric = format_repeated(aggregate_metric(group, run_judge_accuracy))
             strict = format_repeated(aggregate_metric(group, run_strict_accuracy))
@@ -949,13 +935,16 @@ def summary(
                 "`vlm-exam summary --dataset-directory data/detection/train` "
                 "and commit the result."
             )
-        text_directory = results_path.parent / "results-text"
-        if text_directory.exists() and model_filter is None and effort is None:
+        if (
+            any(task.key == "text" for task in benchmark_summary.tasks)
+            and model_filter is None
+            and effort is None
+        ):
             from vlm_exam.text_release import check_text_charts
 
             try:
                 check_text_charts(
-                    text_directory,
+                    results_path,
                     Path("visualizations/leaderboards"),
                     Path(config_path) if config_path else None,
                 )
@@ -1267,6 +1256,21 @@ def leaderboard(
         click.echo(f"No usable .jsonl files found in {results_directory}")
         return
 
+    if any(
+        run.task == "text" and (model_filter is None or run.model in model_filter)
+        for run in runs
+    ):
+        click.get_current_context().invoke(
+            main.commands["text-leaderboard"],
+            results_directory=results_directory,
+            output_directory=output_directory,
+            config_path=Path(config_path) if config_path else None,
+            models=models,
+            group=group,
+        )
+    runs = [run for run in runs if run.task != "text"]
+    if not runs:
+        return
     groups = group_runs(runs, config, models=model_filter)
 
     if not groups:

@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "summary_sha256": "eba51003eace13830f6a592f60ee9d21003a974c6863f6a7bbadec8469644608",
+  "summary_sha256": "59ae7f82e9d631c36921a773bac3ba2c8995de3299ff7abee101ed4924ca0bc8",
   "display_sha256": "90c82cdf5a3c86bee258edf95eac54e11435278290690acd6a8c7011f8815cea",
-  "renderer_sha256": "ac09adb27b94115266d75fedd76d0df13ab55847715df14e0b834638a105591f",
+  "renderer_sha256": "52c877b6a33dffb63421a67f5cd37e6620e2093cfc13db9e77ceb5a1e2fac38e",
   "charts": [
     {
       "file": "text_localization_recognition_high.png",

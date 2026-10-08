@@ -238,7 +238,7 @@ def register_text_render_commands(main: click.Group) -> None:
 
     @main.command("text-leaderboard")
     @click.option(
-        "--results-directory", default="results-text", type=click.Path(exists=True)
+        "--results-directory", default="results", type=click.Path(exists=True)
     )
     @click.option("--output-directory", default="visualizations/leaderboards")
     @click.option(
@@ -353,7 +353,8 @@ def register_text_render_commands(main: click.Group) -> None:
                         entry["model"]: entry["run_count"] for entry in category_entries
                     }
                     preliminary = any(
-                        not entry["complete"] for entry in category_entries
+                        entry["run_count"] == 1 or not entry["complete"]
+                        for entry in category_entries
                     )
                     figure = plot_accuracy_chart(
                         scores,

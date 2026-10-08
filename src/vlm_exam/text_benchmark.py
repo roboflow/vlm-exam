@@ -31,8 +31,8 @@ from vlm_exam.results import RunResult, is_failed_sample, load_results_directory
 from vlm_exam.tasks.base import Sample
 from vlm_exam.tasks.text import TEXT_PROTOCOL, TextSample, TextTask
 
-TEXT_BENCHMARK_PROTOCOL = BenchmarkProtocol(tasks=("text",))
-"""Independent text benchmark: low/high, three complete repeats per model."""
+TEXT_BENCHMARK_PROTOCOL = BenchmarkProtocol(tasks=("text",), repeats=1)
+"""Text benchmark: one complete run per model at each of low/high effort."""
 
 
 def inference_hash(model: ModelConfig) -> str:
@@ -294,12 +294,17 @@ def register_text_commands(main: click.Group) -> None:
         "--config", "config_path", type=click.Path(exists=True, path_type=Path)
     )
     @click.option("--efforts", default="low,high", show_default=True)
-    @click.option("--repeats", type=click.IntRange(min=1), default=3, show_default=True)
+    @click.option(
+        "--repeats",
+        type=click.IntRange(min=1),
+        default=TEXT_BENCHMARK_PROTOCOL.repeats,
+        show_default=True,
+    )
     @click.option(
         "--first-repeat", type=click.IntRange(min=1), default=1, show_default=True
     )
     @click.option("--dataset-root", default="data", type=click.Path(exists=True))
-    @click.option("--output-directory", default="results-text")
+    @click.option("--output-directory", default="results")
     @click.option("--log-directory", default="logs/text")
     @click.option("--max-parallel", default=2, type=click.IntRange(min=1))
     @click.option("--max-samples", type=click.IntRange(min=1))
@@ -315,7 +320,7 @@ def register_text_commands(main: click.Group) -> None:
         max_parallel: int,
         max_samples: int | None,
     ) -> None:
-        """Run low/high three times per model using the existing provider runner."""
+        """Run low/high once per model using the existing provider runner."""
         names = [name.strip() for name in models.split(",")]
         config = load_config(config_path)
         selected_efforts = tuple(value.strip() for value in efforts.split(","))

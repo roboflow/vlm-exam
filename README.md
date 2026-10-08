@@ -447,17 +447,19 @@ result filenames and leaderboards.
 
 Apache 2.0. See [LICENSE](LICENSE).
 
-## Mixed text benchmark (new)
+## Mixed text benchmark
 
-The new Roboflow JSONL benchmark supports single-string extraction, transcription,
-structured extraction, and text localization/recognition in one dataset. It runs
-alongside the existing benchmark. See [import, run, resume and scoring instructions](docs/text-benchmark.md).
+Text evaluation covers single-string extraction, transcription, structured JSON
+extraction, and localization/recognition. The frozen dataset contains 600
+image/question pairs referencing 576 images. The published evaluation includes
+48 models at Low and High effort, with one run per configuration.
 
-### Published mixed-text results
+Raw runs live in [results/](results/), alongside the other tasks. The existing
+[web summary](web/benchmark_summary.json) publishes one `text` task with `overall`
+as its primary metric and the four category metrics. Scores use a 0–100 scale;
+overall is the mean of all 600 pair scores. Accepted missing responses remain
+explicitly unscored, with coverage reported for each metric.
 
-The frozen 600-pair evaluation includes 48 models at Low and High effort, with
-one run per configuration. See the [results, coverage, and rendered leaderboards](results-text/README.md)
-and [machine-readable summary](web/benchmark_summary.json). The charts are preliminary
-single-run results; incomplete configurations retain explicit gap counts and
-are excluded from the existing chart rankings. The unified web summary also
-exposes each category’s scores and coverage independently.
+See [AGENTS.md](AGENTS.md#mixed-text-benchmark) for dataset import, inference,
+coordinate-format requirements, validation and rendering commands. Charts use the
+shared [leaderboard directory](visualizations/leaderboards/).

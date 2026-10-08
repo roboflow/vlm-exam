@@ -329,6 +329,8 @@ def validate_results(
                 )
             )
             continue
+        if run.task == "text":
+            continue
         if run.task not in protocol.tasks:
             orphans.append(
                 Problem(
@@ -391,6 +393,17 @@ def validate_results(
                 problems=tuple(problems),
                 legacy=model_config.is_legacy,
             )
+        )
+
+    from vlm_exam.text_release import (
+        load_text_release_policy,
+        requires_text_release,
+        validate_text_release,
+    )
+
+    if requires_text_release(results_directory, config):
+        orphans.extend(
+            validate_text_release(results_directory, load_text_release_policy())
         )
 
     return ValidationReport(

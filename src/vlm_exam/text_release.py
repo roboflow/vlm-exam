@@ -21,10 +21,45 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from vlm_exam.config import BenchmarkConfig
 from vlm_exam.results import is_failed_sample, load_results
 from vlm_exam.validation import ERROR, Problem
 
 _DEFAULT_POLICY = Path(__file__).parent / "configs" / "text_release.json"
+
+
+def text_result_paths(directory: Path) -> list[Path]:
+    """Select text runs from the shared collection, retaining malformed text files.
+
+    A text filename or the first row's task identifies a candidate. Validation
+    checks every row, so malformed text runs cannot silently disappear.
+    """
+    paths = []
+    for path in sorted(directory.glob("*.jsonl")):
+        if path.name.startswith("text_"):
+            paths.append(path)
+            continue
+        try:
+            with path.open() as source:
+                row = json.loads(source.readline())
+            if isinstance(row, dict) and row.get("task") == "text":
+                paths.append(path)
+        except (ValueError, OSError):
+            continue
+    return paths
+
+
+def requires_text_release(directory: Path, config: BenchmarkConfig) -> bool:
+    """Require reviewed text coverage when configured or present in results.
+
+    The registered release inventory keeps validation active even when every
+    text file is removed. Custom configurations without that inventory can
+    still summarize the original tasks alone.
+    """
+    policy = load_text_release_policy()
+    return bool(text_result_paths(directory)) or set(policy["models"]).issubset(
+        config.models
+    )
 
 
 def validate_text_release(directory: Path, policy: dict[str, Any]) -> list[Problem]:
@@ -43,7 +78,7 @@ def validate_text_release(directory: Path, policy: dict[str, Any]) -> list[Probl
     expected = {
         (model, effort) for model in policy["models"] for effort in policy["efforts"]
     }
-    for path in sorted(directory.glob("*.jsonl")):
+    for path in text_result_paths(directory):
         model, effort = path.stem, "unknown"
         try:
             rows = [json.loads(line) for line in path.read_text().splitlines()]
@@ -163,8 +198,7 @@ def check_text_charts(
     from vlm_exam.visualization.artifacts import chart_manifest
 
     summary = summarize_text(results_directory)
-    labels = results_directory / "model-labels.json"
-    config = load_display_config(config_path, labels if labels.exists() else None)
+    config = load_display_config(config_path)
 
     charts = sorted(
         {

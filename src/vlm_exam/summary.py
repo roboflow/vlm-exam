@@ -536,7 +536,6 @@ def build_summary(
     *,
     models: set[str] | None = None,
     detection_dataset_directory: Path | None = None,
-    text_results_directory: Path | None = None,
 ) -> BenchmarkSummary:
     """Compile all result files into a single frontend-facing summary.
 
@@ -553,14 +552,14 @@ def build_summary(
         detection_dataset_directory: Detection dataset directory used to
             compute mAP. When ``None``, detection quality metrics are
             omitted while token, cost, and speed metrics are kept.
-        text_results_directory: Frozen text release; defaults to the sibling
-            results-text directory when present. It is validated before export.
 
     Returns:
         The assembled benchmark summary.
     """
     runs = load_results_directory(results_directory)
-    all_groups = group_runs(runs, config, models=models)
+    all_groups = group_runs(
+        [run for run in runs if run.task != "text"], config, models=models
+    )
     groups = (
         all_groups
         if effort is None
@@ -661,9 +660,10 @@ def build_summary(
         models=model_summaries,
     )
 
-    text_directory = text_results_directory or results_directory.parent / "results-text"
-    if text_results_directory is not None or text_directory.exists():
-        summary = _with_text_results(summary, text_directory, config, effort, models)
+    from vlm_exam.text_release import requires_text_release
+
+    if requires_text_release(results_directory, config):
+        summary = _with_text_results(summary, results_directory, config, effort, models)
     return summary
 
 
@@ -770,7 +770,11 @@ def _with_text_results(
     effort: str | None,
     models: set[str] | None,
 ) -> BenchmarkSummary:
-    from vlm_exam.text_release import load_text_release_policy, validate_text_release
+    from vlm_exam.text_release import (
+        load_text_release_policy,
+        text_result_paths,
+        validate_text_release,
+    )
 
     policy = load_text_release_policy()
     problems = validate_text_release(directory, policy)
@@ -780,7 +784,7 @@ def _with_text_results(
         )
     runs = []
     sources: dict[tuple[str, str], list[dict[str, str]]] = {}
-    for path in sorted(directory.glob("*.jsonl")):
+    for path in text_result_paths(directory):
         run = load_results(path)
         runs.append(run)
         sources.setdefault((run.model, run.effort), []).append(

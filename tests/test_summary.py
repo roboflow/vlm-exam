@@ -468,7 +468,7 @@ def text_release(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
     from vlm_exam import text_release as release
 
-    directory = tmp_path / "results-text"
+    directory = tmp_path / "results"
     directory.mkdir()
     categories = (
         "single_string",
@@ -532,7 +532,7 @@ def test_text_extends_existing_web_contract_without_changing_overview(
     import hashlib
 
     legacy = tmp_path / "results"
-    legacy.mkdir()
+    legacy.mkdir(exist_ok=True)
     save_results(_run("alpha", "counting"), legacy / "counting.jsonl")
     baseline = summary_to_dict(build_summary(legacy, _config("alpha"), effort="high"))
     assert baseline["models"] == []
@@ -620,7 +620,7 @@ def test_text_overall_weights_pairs_instead_of_categories(
     policy["configurations"]["alpha/low"]["allowed_failures"] = []
     save_results(run, path)
     legacy = tmp_path / "results"
-    legacy.mkdir()
+    legacy.mkdir(exist_ok=True)
     payload = summary_to_dict(build_summary(legacy, _config("alpha")))
     tasks = payload["models"][0]["tasks"]
     total = tasks["text"]
@@ -652,7 +652,7 @@ def test_unified_summary_checks_text_inventory_and_result_bytes(
     tmp_path: Path, text_release: Path
 ) -> None:
     legacy = tmp_path / "results"
-    legacy.mkdir()
+    legacy.mkdir(exist_ok=True)
     config = _config("alpha")
     before = summary_to_dict(build_summary(legacy, config))
     path = text_release / "text_alpha_low.jsonl"
@@ -684,7 +684,7 @@ def test_standard_summary_command_checks_text_and_has_no_sidecar_exports(
     from vlm_exam import text_release as release
 
     directory = tmp_path / "results"
-    directory.mkdir()
+    directory.mkdir(exist_ok=True)
     output = tmp_path / "web" / "benchmark_summary.json"
     monkeypatch.setattr(cli, "load_config", lambda path: _config("alpha"))
     checked = []
@@ -713,3 +713,71 @@ def test_standard_summary_command_checks_text_and_has_no_sidecar_exports(
     result = runner.invoke(cli.main, arguments + ["--check"])
     assert result.exit_code == 1
     assert "out of date" in result.output
+
+
+def test_shared_validation_selects_text_without_ignoring_missing_inventory(
+    text_release: Path,
+) -> None:
+    from vlm_exam.text_release import (
+        load_text_release_policy,
+        text_result_paths,
+        validate_text_release,
+    )
+    from vlm_exam.validation import validate_results
+
+    save_results(_run("alpha", "counting"), text_release / "counting.jsonl")
+    assert len(text_result_paths(text_release)) == 1
+    assert validate_text_release(text_release, load_text_release_policy()) == []
+    report = validate_results(text_release, _config("alpha"))
+    assert not [problem for problem in report.orphans if problem.task == "text"]
+    path = text_release / "text_alpha_low.jsonl"
+    renamed = text_release / "renamed.jsonl"
+    path.rename(renamed)
+    assert text_result_paths(text_release) == [renamed]
+    renamed.unlink()
+    report = validate_results(text_release, _config("alpha"))
+    assert any(
+        problem.task == "text" and "Expected 1 runs, found 0" in problem.message
+        for problem in report.errors
+    )
+    path.write_text("not JSON\n")
+    assert any(
+        problem.kind == "text_release"
+        for problem in validate_text_release(text_release, load_text_release_policy())
+    )
+
+
+def test_shared_leaderboard_dispatches_text_to_existing_renderer(
+    text_release: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import click
+    from click.testing import CliRunner
+
+    from vlm_exam import cli
+
+    received = []
+
+    @click.command()
+    def renderer(**kwargs: object) -> None:
+        received.append(kwargs)
+
+    monkeypatch.setattr(cli, "load_config", lambda path: _config("alpha"))
+    monkeypatch.setitem(cli.main.commands, "text-leaderboard", renderer)
+    result = CliRunner().invoke(
+        cli.main,
+        ["leaderboard", "--results-directory", str(text_release), "--models", "alpha"],
+    )
+    assert result.exit_code == 0, result.output
+    assert received[0]["results_directory"] == str(text_release)
+    assert received[0]["models"] == "alpha"
+    assert "No leaderboard renderer for task 'text'" not in result.output
+    save_results(_run("beta", "counting"), text_release / "counting_beta.jsonl")
+    monkeypatch.setattr(cli, "load_config", lambda path: _config("alpha", "beta"))
+    monkeypatch.setattr(cli, "_resolve_model_filter", lambda *args: {"beta"})
+    monkeypatch.setattr("vlm_exam.metrics.group_runs", lambda *args, **kwargs: {})
+    result = CliRunner().invoke(
+        cli.main,
+        ["leaderboard", "--results-directory", str(text_release), "--models", "beta"],
+    )
+    assert result.exit_code == 0, result.output
+    assert len(received) == 1
