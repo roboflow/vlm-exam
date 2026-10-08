@@ -1003,10 +1003,9 @@ def efficiency_report(
 
     matplotlib.use("Agg")
 
-    import matplotlib.pyplot as plt
-
     from vlm_exam.metrics import aggregate_efficiency_by_model
     from vlm_exam.visualization import plot_combined_metrics_chart, plot_metric_chart
+    from vlm_exam.visualization.charts import save_leaderboard_chart
 
     config = load_config(Path(config_path) if config_path else None)
     model_filter = _resolve_model_filter(config, models, group)
@@ -1056,8 +1055,7 @@ def efficiency_report(
 
     def save_figure(figure: plt.Figure, filename: str) -> None:
         file_path = output_path / filename
-        figure.savefig(str(file_path), dpi=150)
-        plt.close(figure)
+        save_leaderboard_chart(figure, file_path)
         saved.append(file_path)
 
     save_figure(
@@ -1232,10 +1230,9 @@ def leaderboard(
 
     matplotlib.use("Agg")
 
-    import matplotlib.pyplot as plt
-
     from vlm_exam.metrics import RepeatedMetric, aggregate_metric, group_runs
     from vlm_exam.visualization import plot_accuracy_chart, plot_metric_chart
+    from vlm_exam.visualization.charts import save_leaderboard_chart
 
     config = load_config(Path(config_path) if config_path else None)
     model_filter = _resolve_model_filter(config, models, group)
@@ -1289,8 +1286,7 @@ def leaderboard(
 
     def save_figure(figure: plt.Figure, filename: str) -> None:
         file_path = output_path / filename
-        figure.savefig(str(file_path), dpi=150)
-        plt.close(figure)
+        save_leaderboard_chart(figure, file_path)
         saved.append(file_path)
 
     detection_index = None

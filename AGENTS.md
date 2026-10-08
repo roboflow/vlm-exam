@@ -434,3 +434,8 @@ The committed `results-text/` collection is an explicitly single-run release.
 Keep its preliminary labels and failure coverage; do not present it as the
 three-repeat protocol. Rebuild its charts with the display-only
 `--model-labels results-text/model-labels.json` option and `--allow-incomplete`.
+
+All percentage leaderboards use `plot_accuracy_chart`, a thin adapter over
+`plot_metric_chart`; task code supplies values and labels only. Keep layout,
+fonts, margins, row spacing and bars in the shared renderer, and use
+`save_leaderboard_chart` for the common 150 DPI PNG export.

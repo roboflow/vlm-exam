@@ -247,9 +247,10 @@ def register_text_render_commands(main: click.Group) -> None:
         model_labels: Path | None,
     ) -> None:
         """Render per-category low/high charts from compatible, scored repeats."""
-        import matplotlib.pyplot as plt
-
-        from vlm_exam.visualization.charts import plot_metric_chart
+        from vlm_exam.visualization.charts import (
+            plot_accuracy_chart,
+            save_leaderboard_chart,
+        )
 
         summary = summarize_text(Path(results_directory))
         groups: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
@@ -323,6 +324,7 @@ def register_text_render_commands(main: click.Group) -> None:
                             * 100,
                         )
                         for entry in category_entries
+                        if entry["run_count"] > 1
                     }
                     counts = {
                         entry["model"]: entry["run_count"] for entry in category_entries
@@ -330,20 +332,16 @@ def register_text_render_commands(main: click.Group) -> None:
                     preliminary = any(
                         not entry["complete"] for entry in category_entries
                     )
-                    figure = plot_metric_chart(
+                    figure = plot_accuracy_chart(
                         scores,
                         config,
-                        f"{label} · {effort.title()} effort"
-                        + (" · Preliminary" if preliminary else ""),
-                        format_value=lambda value: f"{value:.1f}%",
-                        sort_ascending=False,
-                        full_scale=100,
+                        f"{label} — {effort.title()} Effort"
+                        + (" — Preliminary" if preliminary else ""),
                         spread=spread,
                         run_counts=counts,
                     )
                     path = folder / f"{category}-{effort}.png"
-                    figure.savefig(path, dpi=180, facecolor=figure.get_facecolor())
-                    plt.close(figure)
+                    save_leaderboard_chart(figure, path)
                     rendered.append(str(path.relative_to(output)))
                     click.echo(path)
         (output / "manifest.json").write_text(

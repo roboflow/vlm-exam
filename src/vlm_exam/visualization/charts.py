@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from collections.abc import Callable
+from pathlib import Path
 from typing import Literal
 
 import matplotlib.pyplot as plt
@@ -188,91 +189,16 @@ def plot_accuracy_chart(
     Returns:
         Matplotlib figure.
     """
-    fonts = load_fonts()
-    spread = spread or {}
-    sorted_models = sorted(
-        accuracy.keys(), key=lambda model: accuracy[model], reverse=True
-    )
-
-    count = len(sorted_models)
-    row_spacing = 1.6
-    bar_height = 0.50
-    corner_radius = bar_height / 2
-    bar_max = 100
-
-    figure_height = max(4.0, count * row_spacing + 2.8)
-    figure, axes = plt.subplots(figsize=(14, figure_height))
-    figure.patch.set_facecolor(BACKGROUND_COLOR)
-    axes.set_facecolor(BACKGROUND_COLOR)
-    add_top_accent(figure)
-
-    y_positions = [i * row_spacing for i in range(count - 1, -1, -1)]
-    total_y_range = (count - 1) * row_spacing
-
-    for index, model_id in enumerate(sorted_models):
-        value = accuracy[model_id]
-        lab_info = config.labs[config.models[model_id].lab]
-        color = lab_info.color
-        y = y_positions[index]
-
-        if index > 0:
-            _add_row_divider(axes, y + row_spacing / 2, bar_max + 16)
-
-        draw_rounded_bar(
-            axes,
-            0,
-            y,
-            bar_max,
-            bar_height,
-            corner_radius,
-            facecolor=BAR_TRACK_COLOR,
-            edgecolor="none",
-            zorder=2,
-        )
-        draw_rounded_bar(
-            axes,
-            0,
-            y,
-            value,
-            bar_height,
-            corner_radius,
-            facecolor=color,
-            edgecolor="none",
-            zorder=3,
-        )
-        if model_id in spread:
-            low, high = spread[model_id]
-            _draw_spread_whisker(axes, low, high, y, bar_height)
-
-        axes.text(
-            bar_max + 2.0,
-            y,
-            f"{value:.1f}%",
-            va="center",
-            ha="left",
-            fontsize=19,
-            color=text_color_for_brand(color),
-            font=fonts.display,
-        )
-
-        _add_model_label(axes, model_id, config, y)
-
-    _configure_clean_axes(axes, -LABEL_AREA_WIDTH - 2, 118, -1.0, total_y_range + 2.2)
-
-    axes.text(
-        -LABEL_AREA_WIDTH - 2,
-        total_y_range + 1.8,
+    return plot_metric_chart(
+        accuracy,
+        config,
         title,
-        fontsize=28,
-        color=TEXT_PRIMARY,
-        font=fonts.display,
-        va="bottom",
-        ha="left",
+        format_value=lambda value: f"{value:.1f}%",
+        sort_ascending=False,
+        full_scale=100,
+        spread=spread,
+        run_counts=run_counts,
     )
-    _add_spread_footnote(axes, -LABEL_AREA_WIDTH - 2, -0.55, run_counts or {})
-
-    plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
-    return figure
 
 
 def plot_metric_chart(
@@ -1082,3 +1008,14 @@ def plot_combined_metrics_chart(
 
     plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
     return figure
+
+
+def save_leaderboard_chart(figure: plt.Figure, path: Path) -> None:
+    """Save a leaderboard using the shared PNG export settings.
+
+    Args:
+        figure: Leaderboard figure from a shared chart renderer.
+        path: Destination PNG path.
+    """
+    figure.savefig(str(path), dpi=150)
+    plt.close(figure)
