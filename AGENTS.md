@@ -61,7 +61,8 @@ avoid a loop"). Never narrate what the code does.
 
 The six original tasks in `results/` follow the protocol defined once
 as `PROTOCOL` in `src/vlm_exam/protocol.py` and read by `validate`,
-`benchmark`, `summary`, and the leaderboards. Text currently uses one run per
+`benchmark`, and the historical leaderboards. The website overview uses the
+five-task selection described under "Web summary". Text currently uses one run per
 model/effort, as described under "Mixed text benchmark" below:
 
 1. **Three runs per configuration.** Each `(task, effort)` is run three
@@ -78,8 +79,9 @@ model/effort, as described under "Mixed text benchmark" below:
    `--effort high`. That is 6 tasks x 2 efforts x 3 runs = 36 result files
    per model. Both effort levels have their own leaderboard PNGs.
 4. **All of it in the web JSON.** `web/benchmark_summary.json` carries the
-   protocol (`protocol.repeats`, `protocol.efforts`, `protocol.tasks`,
-   `protocol.runs_per_model`), one entry per `(model, effort)`, per-task
+   overview protocol (`protocol.repeats`, `protocol.repeats_by_task`,
+   `protocol.efforts`, `protocol.tasks`, `protocol.runs_per_model`), one entry
+   per `(model, effort)`, per-task
    `metrics` (means), `metric_runs` (the per-run values), `run_count`, and
    `timestamps`, and per model a `protocol` block with `name`
    (`full` or `legacy`), `status` (`complete`, `incomplete`, `legacy`),
@@ -226,6 +228,23 @@ vlm-exam validate
 
 ## Web summary
 
+- `overview_tasks` is `["text", "counting", "identification", "reasoning",
+  "detection"]`. Text replaces OCR and Data Extraction in the overview; keep
+  their individual task results available. Overall token, cost and elapsed-time
+  totals include only the five selected tasks, averaging repeats within each
+  task before summing. Recompute per-sample averages from the selected totals.
+- The web protocol and every model's run status use the same five tasks across
+  Low and High: Text requires one run per effort, the other four require three,
+  for 26 files per complete model. `protocol.repeats` remains the default of 3;
+  `protocol.repeats_by_task` explicitly records the per-task requirements.
+  Status describes run inventory; response coverage and accepted gaps remain
+  explicit in the task metrics and coverage fields. Keep legacy status for
+  legacy models with missing runs. Missing Text runs cannot be filled by OCR
+  or Extraction runs. This publication selection does not change the historical
+  six-task inference planner or authorize additional runs.
+- Omit `subsets` and `provenance` from the web JSON. Retain them in raw results
+  and internal summaries for audit and validation. Preserve task metrics,
+  metric runs, counts and coverage in the website payload.
 - Regenerate `web/benchmark_summary.json` and commit it in every PR so the
   website payload never drifts from `results/` and `configs/models.yaml`.
 - Rebuild it with the detection dataset so detection mAP is included:
@@ -405,10 +424,11 @@ Publish through `vlm-exam summary --dataset-directory data/detection/train` to
 its primary metric and four category metrics, following detection's `metrics`
 and `metric_runs` contract. Scores are 0–100; overall averages all 600 pair
 scores, not the four category means equally. Preserve standard run statistics,
-source checksums, per-metric coverage and subset metadata. Missing responses
+per-metric coverage. Keep source checksums and subset metadata in internal
+summaries and raw results, outside the web payload. Missing responses
 omit the affected ranking metrics; coverage retains observed scores and bounds.
 `run_count` records repeats; do not add another text protocol block. Preserve
-the six-task overview and its explicitly selected efficiency pool.
+the five-task overview and its explicitly selected efficiency pool.
 
 ### Rendering and checks
 
