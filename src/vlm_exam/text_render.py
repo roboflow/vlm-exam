@@ -20,6 +20,7 @@ import json
 import math
 import re
 from collections import defaultdict
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -229,12 +230,21 @@ def register_text_render_commands(main: click.Group) -> None:
     )
     @click.option("--output-directory", default="visualizations/text/leaderboards")
     @click.option(
+        "--model-labels",
+        "model_labels",
+        type=click.Path(exists=True, path_type=Path),
+        help="JSON model names and lab keys for offline charts only.",
+    )
+    @click.option(
         "--allow-incomplete",
         is_flag=True,
         help="Label full-dataset runs with fewer repeats as preliminary.",
     )
     def leaderboard(
-        results_directory: str, output_directory: str, allow_incomplete: bool
+        results_directory: str,
+        output_directory: str,
+        allow_incomplete: bool,
+        model_labels: Path | None,
     ) -> None:
         """Render per-category low/high charts from compatible, scored repeats."""
         import matplotlib.pyplot as plt
@@ -258,6 +268,17 @@ def register_text_render_commands(main: click.Group) -> None:
                 "for preliminary full-dataset runs."
             )
         config = load_config()
+        if model_labels is not None:
+            labels = json.loads(model_labels.read_text())
+            models = dict(config.models)
+            for key, label in labels.items():
+                if label["lab"] not in config.labs:
+                    raise click.ClickException(f"Unknown lab: {label['lab']}")
+                template = next(iter(config.models.values()))
+                models[key] = replace(
+                    models.get(key, template), name=label["name"], lab=label["lab"]
+                )
+            config = replace(config, models=models)
         output = Path(output_directory)
         output.mkdir(parents=True, exist_ok=True)
         rendered = []

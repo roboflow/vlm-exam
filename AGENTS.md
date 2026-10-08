@@ -429,3 +429,8 @@ Before updating the PR, run Ruff check/format, the existing test suite,
 visually inspect offline render fixtures for strings, JSON, localization,
 empty/invalid responses, and multi-page JSON. New test files are intentionally
 outside this PR at the user's request.
+
+The committed `results-text/` collection is an explicitly single-run release.
+Keep its preliminary labels and failure coverage; do not present it as the
+three-repeat protocol. Rebuild its charts with the display-only
+`--model-labels results-text/model-labels.json` option and `--allow-incomplete`.

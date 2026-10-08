@@ -452,3 +452,11 @@ Apache 2.0. See [LICENSE](LICENSE).
 The new Roboflow JSONL benchmark supports single-string extraction, transcription,
 structured extraction, and text localization/recognition in one dataset. It runs
 alongside the existing benchmark. See [import, run, resume and scoring instructions](AGENTS.md#mixed-text-benchmark).
+
+### Published mixed-text results
+
+The frozen 600-pair evaluation includes 48 models at Low and High effort, with
+one run per configuration. See the [results, coverage, and rendered leaderboards](results-text/README.md)
+and [machine-readable summary](web/text_summary.json). The charts are preliminary
+single-run results; incomplete configurations retain explicit gap counts and
+are excluded from chart rankings.

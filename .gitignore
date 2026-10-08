@@ -76,4 +76,5 @@ scripts/render_zero_map_detection_cards.py
 scripts/render_zero_map_model_comparison.py
 
 results-text*/
+!results-text/
 text-summary.json
