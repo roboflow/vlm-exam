@@ -126,8 +126,9 @@ class TestBuildSummary:
         summary = build_summary(tmp_path, config, effort="low")
 
         by_key = {model.key: model for model in summary.models}
-        assert by_key["alpha"].protocol.status == "complete"
-        assert by_key["alpha"].protocol.runs_present == 36
+        assert by_key["alpha"].protocol.status == "incomplete"
+        assert by_key["alpha"].protocol.runs_present == 24
+        assert by_key["alpha"].protocol.runs_required == 26
         assert by_key["old"].protocol.status == "legacy"
         assert by_key["old"].protocol.runs_present == 1
         assert by_key["old"].protocol.name == "legacy"
@@ -342,6 +343,7 @@ class TestSummaryToDict:
 
         assert list(payload) == [
             "generated_at",
+            "overview_tasks",
             "efforts",
             "scoring",
             "protocol",
@@ -357,16 +359,22 @@ class TestSummaryToDict:
         }
         assert payload["protocol"] == {
             "repeats": 3,
+            "repeats_by_task": {
+                "text": 1,
+                "counting": 3,
+                "identification": 3,
+                "reasoning": 3,
+                "detection": 3,
+            },
             "efforts": ["low", "high"],
             "tasks": [
-                "ocr",
-                "extraction",
+                "text",
                 "counting",
                 "identification",
                 "reasoning",
                 "detection",
             ],
-            "runs_per_model": 36,
+            "runs_per_model": 26,
         }
 
         (task,) = payload["tasks"]
@@ -410,7 +418,7 @@ class TestSummaryToDict:
             "name": "full",
             "status": "incomplete",
             "runs_present": 1,
-            "runs_required": 36,
+            "runs_required": 26,
         }
 
 
@@ -459,3 +467,407 @@ class TestSummaryDrift:
         )
 
         assert any(line.startswith("+") and "2.0" in line for line in drift)
+
+
+@pytest.fixture
+def text_release(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    import hashlib
+    import json
+
+    from vlm_exam import text_release as release
+
+    directory = tmp_path / "results"
+    directory.mkdir()
+    categories = (
+        "single_string",
+        "transcription",
+        "structured",
+        "localization_recognition",
+    )
+    samples = [
+        _sample(
+            index=index,
+            metadata={
+                "sample_id": str(index),
+                "dataset_hash": "snapshot",
+                "dataset_pairs": 4,
+                "text_protocol": "mixed-text-v2",
+                "coordinate_format": "xyxy_normalized_0_to_1000",
+                "inference_hash": "frozen",
+                "image_sha256": str(index),
+                "question": "Read",
+                "category": category,
+                "subset": category,
+                "score": 0.75 if index != 2 else None,
+            },
+        )
+        for index, category in enumerate(categories)
+    ]
+    samples[2].predicted = "ERROR: accepted timeout"
+    samples[2].correct = False
+    samples[2].elapsed_seconds = None
+    run = _run(
+        "alpha", "text", timestamp="2026-10-08T06:38:54.178352+00:00", samples=samples
+    )
+    save_results(run, directory / "text_alpha_low.jsonl")
+    policy = {
+        "name": "test-release",
+        "status": "preliminary",
+        "models": ["alpha"],
+        "efforts": ["low"],
+        "repeats": 1,
+        "pairs": 4,
+        "dataset_hash": "snapshot",
+        "protocol": "mixed-text-v2",
+        "selection_hash": hashlib.sha256(
+            json.dumps({"sample_ids": ("0", "1", "2", "3"), "pairs": 4}).encode()
+        ).hexdigest(),
+        "configurations": {
+            "alpha/low": {
+                "inference_hash": "frozen",
+                "coordinate_format": "xyxy_normalized_0_to_1000",
+                "allowed_failures": ["2"],
+            }
+        },
+    }
+    monkeypatch.setattr(release, "load_text_release_policy", lambda: policy)
+    return directory
+
+
+def test_text_extends_existing_web_contract_and_contributes_to_overview(
+    tmp_path: Path, text_release: Path
+) -> None:
+    legacy = tmp_path / "results"
+    legacy.mkdir(exist_ok=True)
+    save_results(_run("alpha", "counting"), legacy / "counting.jsonl")
+    baseline = summary_to_dict(build_summary(legacy, _config("alpha"), effort="high"))
+    assert baseline["models"] == []
+    payload = summary_to_dict(build_summary(legacy, _config("alpha")))
+    model = payload["models"][0]
+    assert len(payload["models"]) == 1
+    assert model["id"] == "alpha:low"
+    assert payload["overview_tasks"] == [
+        "text",
+        "counting",
+        "identification",
+        "reasoning",
+        "detection",
+    ]
+    assert model["overall"]["sample_count"] == 5
+    assert model["overall"]["tokens"]["total"] == 750
+    assert model["tasks"]["counting"]["primary_metric"]["value"] == 100
+    assert set(model["tasks"]) == {"counting", "text"}
+    text = model["tasks"]["text"]
+    assert text["primary_metric"] is None
+    assert text["metrics"] == {
+        "single_string": 75,
+        "transcription": 75,
+        "localization_recognition": 75,
+    }
+    assert text["metric_runs"] == {
+        key: [value] for key, value in text["metrics"].items()
+    }
+    assert text["run_count"] == 1
+    assert "protocol" not in text
+    assert text["timestamp"] == "2026-10-08T06:38:54Z"
+    assert payload["generated_at"] == text["timestamp"]
+    assert text["tokens"]["total"] == 600
+    assert text["cost"]["total_usd"] == 0.0008
+    assert text["speed"]["total_seconds"] == 3
+    assert "provenance" not in text
+    assert "subsets" not in text
+    gap = text["coverage"][0]["by_metric"]["structured"]
+    assert gap["score"] is None
+    assert gap["evaluated_sample_count"] == 0
+    assert gap["failed_sample_count"] == 1
+    assert gap["score_bounds"] == [0, 100]
+    assert text["sample_count"] == 4
+    assert text["evaluated_sample_count"] == 3
+    assert text["failed_sample_count"] == 1
+    assert text["coverage"][0]["score_bounds"] == [56.25, 81.25]
+    definition = next(t for t in payload["tasks"] if t["key"] == "text")
+    assert "include_in_overall" not in definition
+    assert "protocol" not in definition
+    assert definition["primary_metric"] == "overall"
+    assert [metric["key"] for metric in definition["metrics"]] == [
+        "overall",
+        "single_string",
+        "transcription",
+        "structured",
+        "localization_recognition",
+    ]
+    assert len(payload["tasks"]) == 2
+
+
+def test_text_overall_weights_pairs_instead_of_categories(
+    tmp_path: Path, text_release: Path
+) -> None:
+    import hashlib
+    import json
+    from copy import deepcopy
+
+    from vlm_exam.results import load_results
+    from vlm_exam.text_release import load_text_release_policy
+
+    path = text_release / "text_alpha_low.jsonl"
+    run = load_results(path)
+    run.samples[2].predicted = "valid response"
+    run.samples[2].metadata["score"] = 0.75
+    run.samples[2].elapsed_seconds = 1.0
+    extra = deepcopy(run.samples[0])
+    extra.index = 4
+    extra.metadata.update(sample_id="4", score=0.0)
+    run.samples.append(extra)
+    for sample in run.samples:
+        sample.metadata["dataset_pairs"] = 5
+    policy = load_text_release_policy()
+    policy["pairs"] = 5
+    policy["selection_hash"] = hashlib.sha256(
+        json.dumps({"sample_ids": ("0", "1", "2", "3", "4"), "pairs": 5}).encode()
+    ).hexdigest()
+    policy["configurations"]["alpha/low"]["allowed_failures"] = []
+    save_results(run, path)
+    legacy = tmp_path / "results"
+    legacy.mkdir(exist_ok=True)
+    payload = summary_to_dict(build_summary(legacy, _config("alpha")))
+    tasks = payload["models"][0]["tasks"]
+    total = tasks["text"]
+    assert total["primary_metric"] == {"name": "overall", "value": 60.0}
+    assert total["metrics"] == {
+        "overall": 60.0,
+        "single_string": 37.5,
+        "transcription": 75.0,
+        "structured": 75.0,
+        "localization_recognition": 75.0,
+    }
+    assert total["metric_runs"] == {
+        key: [value] for key, value in total["metrics"].items()
+    }
+    assert total["sample_count"] == total["evaluated_sample_count"] == 5
+    assert total["failed_sample_count"] == 0
+    assert total["tokens"]["total"] == 750
+    assert total["cost"]["total_usd"] == pytest.approx(0.001)
+    assert total["speed"]["total_seconds"] == 5
+    assert "protocol" not in total
+    category_scores = [
+        value for key, value in total["metrics"].items() if key != "overall"
+    ]
+    assert sum(category_scores) / len(category_scores) == 65.625
+    assert "text" in payload["overview_tasks"]
+
+
+def test_unified_summary_checks_text_inventory_and_result_bytes(
+    tmp_path: Path, text_release: Path
+) -> None:
+    legacy = tmp_path / "results"
+    legacy.mkdir(exist_ok=True)
+    config = _config("alpha")
+    before_summary = build_summary(legacy, config)
+    before = summary_to_dict(before_summary)
+    path = text_release / "text_alpha_low.jsonl"
+    path.write_text(
+        path.read_text().replace('"predicted": ""', '"predicted": "different"')
+    )
+    path.write_text(path.read_text() + "\n")
+    with pytest.raises(ValueError):
+        build_summary(legacy, config)
+    path.write_text(path.read_text().rstrip() + "\n")
+    path.write_text(
+        path.read_text().replace('"predicted":""', '"predicted":"different"')
+    )
+    after_summary = build_summary(legacy, config)
+    after = summary_to_dict(after_summary)
+    assert not summary_drift(before, after, ignore_detection_quality=True)
+    assert (
+        before_summary.models[0].tasks["text"].provenance
+        != after_summary.models[0].tasks["text"].provenance
+    )
+    path.unlink()
+    with pytest.raises(ValueError, match="Expected 1 runs, found 0"):
+        build_summary(legacy, config)
+
+
+def test_standard_summary_command_checks_text_and_has_no_sidecar_exports(
+    tmp_path: Path, text_release: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import json
+
+    from click.testing import CliRunner
+
+    from vlm_exam import cli
+    from vlm_exam import text_release as release
+
+    directory = tmp_path / "results"
+    directory.mkdir(exist_ok=True)
+    output = tmp_path / "web" / "benchmark_summary.json"
+    monkeypatch.setattr(cli, "load_config", lambda path: _config("alpha"))
+    checked = []
+    monkeypatch.setattr(
+        release, "check_text_charts", lambda *args: checked.append(args[0])
+    )
+    arguments = [
+        "summary",
+        "--results-directory",
+        str(directory),
+        "--output-file",
+        str(output),
+    ]
+    runner = CliRunner()
+    result = runner.invoke(cli.main, arguments)
+    assert result.exit_code == 0, result.output
+    assert list(output.parent.iterdir()) == [output]
+    assert "text-summary" not in cli.main.commands
+    assert "text-publish" not in cli.main.commands
+    result = runner.invoke(cli.main, arguments + ["--check"])
+    assert result.exit_code == 0, result.output
+    assert checked == [text_release]
+    payload = json.loads(output.read_text())
+    payload["models"][0]["tasks"]["text"]["metrics"]["single_string"] = 99
+    output.write_text(json.dumps(payload))
+    result = runner.invoke(cli.main, arguments + ["--check"])
+    assert result.exit_code == 1
+    assert "out of date" in result.output
+
+
+def test_shared_validation_selects_text_without_ignoring_missing_inventory(
+    text_release: Path,
+) -> None:
+    from vlm_exam.text_release import (
+        load_text_release_policy,
+        text_result_paths,
+        validate_text_release,
+    )
+    from vlm_exam.validation import validate_results
+
+    save_results(_run("alpha", "counting"), text_release / "counting.jsonl")
+    assert len(text_result_paths(text_release)) == 1
+    assert validate_text_release(text_release, load_text_release_policy()) == []
+    report = validate_results(text_release, _config("alpha"))
+    assert not [problem for problem in report.orphans if problem.task == "text"]
+    path = text_release / "text_alpha_low.jsonl"
+    renamed = text_release / "renamed.jsonl"
+    path.rename(renamed)
+    assert text_result_paths(text_release) == [renamed]
+    renamed.unlink()
+    report = validate_results(text_release, _config("alpha"))
+    assert any(
+        problem.task == "text" and "Expected 1 runs, found 0" in problem.message
+        for problem in report.errors
+    )
+    path.write_text("not JSON\n")
+    assert any(
+        problem.kind == "text_release"
+        for problem in validate_text_release(text_release, load_text_release_policy())
+    )
+
+
+def test_shared_leaderboard_dispatches_text_to_existing_renderer(
+    text_release: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import click
+    from click.testing import CliRunner
+
+    from vlm_exam import cli
+
+    received = []
+
+    @click.command()
+    def renderer(**kwargs: object) -> None:
+        received.append(kwargs)
+
+    monkeypatch.setattr(cli, "load_config", lambda path: _config("alpha"))
+    monkeypatch.setitem(cli.main.commands, "text-leaderboard", renderer)
+    result = CliRunner().invoke(
+        cli.main,
+        ["leaderboard", "--results-directory", str(text_release), "--models", "alpha"],
+    )
+    assert result.exit_code == 0, result.output
+    assert received[0]["results_directory"] == str(text_release)
+    assert received[0]["models"] == "alpha"
+    assert "No leaderboard renderer for task 'text'" not in result.output
+    save_results(_run("beta", "counting"), text_release / "counting_beta.jsonl")
+    monkeypatch.setattr(cli, "load_config", lambda path: _config("alpha", "beta"))
+    monkeypatch.setattr(cli, "_resolve_model_filter", lambda *args: {"beta"})
+    monkeypatch.setattr("vlm_exam.metrics.group_runs", lambda *args, **kwargs: {})
+    result = CliRunner().invoke(
+        cli.main,
+        ["leaderboard", "--results-directory", str(text_release), "--models", "beta"],
+    )
+    assert result.exit_code == 0, result.output
+    assert len(received) == 1
+
+
+def test_five_task_overview_counts_mixed_repeats_and_excludes_retired_tasks(
+    text_release: Path,
+) -> None:
+    from copy import deepcopy
+
+    from vlm_exam.results import load_results
+    from vlm_exam.text_release import load_text_release_policy
+
+    policy = load_text_release_policy()
+    policy["efforts"] = ["low", "high"]
+    policy["configurations"]["alpha/low"]["allowed_failures"] = []
+    policy["configurations"]["alpha/high"] = deepcopy(
+        policy["configurations"]["alpha/low"]
+    )
+    run = load_results(text_release / "text_alpha_low.jsonl")
+    run.samples[2].predicted = "valid response"
+    run.samples[2].metadata["score"] = 0.75
+    run.samples[2].elapsed_seconds = 1.0
+    save_results(run, text_release / "text_alpha_low.jsonl")
+    run.effort = "high"
+    save_results(run, text_release / "text_alpha_high.jsonl")
+    for task in BENCHMARK_TASK_NAMES:
+        for effort in ("low", "high"):
+            for repeat in range(3):
+                _save(
+                    _run(
+                        "alpha",
+                        task,
+                        effort=effort,
+                        timestamp=f"2026070{repeat + 1}_000000",
+                    ),
+                    text_release,
+                )
+    config = _config("alpha")
+    payload = summary_to_dict(build_summary(text_release, config))
+    assert payload["protocol"]["runs_per_model"] == 26
+    for model in payload["models"]:
+        assert model["protocol"] == {
+            "name": "full",
+            "status": "complete",
+            "runs_present": 26,
+            "runs_required": 26,
+        }
+        assert set(model["tasks"]) == {*BENCHMARK_TASK_NAMES, "text"}
+        overall = model["overall"]
+        assert overall["task_count"] == 5
+        assert overall["sample_count"] == 8
+        assert overall["tokens"] == {
+            "input": 800,
+            "output": 400,
+            "total": 1200,
+            "average_per_sample": 150.0,
+        }
+        assert overall["cost"] == {
+            "total_usd": 0.0016,
+            "average_per_sample_usd": 0.0002,
+        }
+        assert overall["speed"] == {
+            "total_seconds": 8.0,
+            "average_seconds_per_sample": 1.0,
+        }
+    for task in ("ocr", "extraction"):
+        for path in text_release.glob(f"{task}_*.jsonl"):
+            path.unlink()
+    without_retired = summary_to_dict(build_summary(text_release, config))
+    assert [(m["overall"], m["protocol"]) for m in without_retired["models"]] == [
+        (m["overall"], m["protocol"]) for m in payload["models"]
+    ]
+    filtered = summary_to_dict(build_summary(text_release, config, effort="low"))
+    assert filtered["models"][0]["protocol"]["runs_present"] == 26
+    next(text_release.glob("counting_alpha_high_*.jsonl")).unlink()
+    missing = summary_to_dict(build_summary(text_release, config))
+    assert all(m["protocol"]["status"] == "incomplete" for m in missing["models"])
+    assert all(m["protocol"]["runs_present"] == 25 for m in missing["models"])

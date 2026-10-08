@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgb
 from PIL import Image
 
-from vlm_exam.config import BenchmarkConfig
+from vlm_exam.config import VisualizationConfig
 from vlm_exam.results import RunResult, SampleResult
 from vlm_exam.tasks.qa import normalize_transcription
 from vlm_exam.visualization.theme import (
@@ -177,7 +177,7 @@ def _chunk_runs(
     return merged_lines
 
 
-def _draw_run_line(
+def draw_diff_line(
     rail: plt.Axes,
     x: float,
     y: float,
@@ -185,6 +185,7 @@ def _draw_run_line(
     font_size: float,
     base_color: str = TEXT_PRIMARY,
 ) -> None:
+    """Draw a line of model/reference diff spans in a card rail."""
     fonts = load_fonts()
     width_inches, height_inches = axes_size_inches(rail)
     character_width = (MONO_ADVANCE_EM * font_size / 72) / width_inches
@@ -243,7 +244,7 @@ def _draw_wrapped_lines(
         if _is_paragraph_mark(line):
             y -= 0.55 * line_height
             continue
-        _draw_run_line(rail, 0.0, y, line, font_size, base_color)
+        draw_diff_line(rail, 0.0, y, line, font_size, base_color)
         y -= line_height
     return y
 
@@ -263,7 +264,7 @@ def _draw_run_line_centered(
     character_width = (MONO_ADVANCE_EM * font_size / 72) / width_inches
     total = sum(len(text) for text, _ in runs)
     x = max(0.0, 0.5 - total * character_width / 2)
-    _draw_run_line(rail, x, y, runs, font_size, base_color)
+    draw_diff_line(rail, x, y, runs, font_size, base_color)
 
 
 def _truncate_lines(
@@ -501,7 +502,7 @@ def _draw_fragment_diff(
             font=fonts.bold,
         )
         for line in expected_lines:
-            _draw_run_line(rail, x_text, y - line_height * 0.5, line, font_size)
+            draw_diff_line(rail, x_text, y - line_height * 0.5, line, font_size)
             y -= line_height
         y -= 0.25 * line_height
         rail.text(
@@ -515,7 +516,7 @@ def _draw_fragment_diff(
             font=fonts.bold,
         )
         for line in predicted_lines:
-            _draw_run_line(rail, x_text, y - line_height * 0.5, line, font_size)
+            draw_diff_line(rail, x_text, y - line_height * 0.5, line, font_size)
             y -= line_height
         y -= 0.8 * line_height
         shown += 1
@@ -548,7 +549,9 @@ def plot_transcription_card(
     predicted: str,
     score: float,
     model_id: str,
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
+    *,
+    normalize: bool = True,
 ) -> plt.Figure:
     """Render a social-friendly hero card for an OCR result.
 
@@ -565,14 +568,17 @@ def plot_transcription_card(
         score: Character similarity in [0, 1].
         model_id: Identifier of the model that produced the answer.
         config: Benchmark config for display info.
+        normalize: Apply the legacy OCR display normalization. Disable for
+            text protocols that count fences and whitespace as differences.
 
     Returns:
         Matplotlib figure.
     """
     model_info = config.models[model_id]
     lab_info = config.labs[model_info.lab]
-    expected = normalize_transcription(expected)
-    predicted = normalize_transcription(predicted)
+    if normalize:
+        expected = normalize_transcription(expected)
+        predicted = normalize_transcription(predicted)
 
     figure, image_axes, rail = create_hero_card()
     image_axes.imshow(image)
@@ -602,7 +608,8 @@ def plot_transcription_card(
     return figure
 
 
-def _draw_rail_verdict(rail: plt.Axes, correct: bool) -> None:
+def draw_verdict(rail: plt.Axes, correct: bool) -> None:
+    """Draw the shared correct/incorrect badge in a card rail."""
     fonts = load_fonts()
     y = 0.856
     color = SUCCESS_COLOR if correct else FAILURE_COLOR
@@ -761,9 +768,11 @@ def plot_qa_card(
     predicted: str,
     correct: bool,
     model_id: str,
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     task_label: str,
     match_method: str | None = None,
+    *,
+    normalize: bool = True,
 ) -> plt.Figure:
     """Render a social-friendly hero card for a QA benchmark result.
 
@@ -783,14 +792,19 @@ def plot_qa_card(
         config: Benchmark config for display info.
         task_label: Task tag shown in the identity row (e.g. "COUNTING").
         match_method: Evaluation method recorded for the sample.
+        normalize: Collapse whitespace for legacy QA display. Disable when
+            internal whitespace is part of exact text scoring.
 
     Returns:
         Matplotlib figure.
     """
     model_info = config.models[model_id]
     lab_info = config.labs[model_info.lab]
-    expected = _substitute_missing_glyphs(" ".join(expected.split()))
-    predicted = _substitute_missing_glyphs(" ".join(predicted.split()))
+    if normalize:
+        expected = " ".join(expected.split())
+        predicted = " ".join(predicted.split())
+    expected = _substitute_missing_glyphs(expected)
+    predicted = _substitute_missing_glyphs(predicted)
 
     figure, image_axes, rail = create_hero_card()
     image_axes.imshow(image)
@@ -799,7 +813,7 @@ def plot_qa_card(
     draw_identity_row(
         rail, model_info.name, lab_info.name, lab_info.logo_url, task_label
     )
-    _draw_rail_verdict(rail, correct)
+    draw_verdict(rail, correct)
     question_bottom = _draw_rail_question(rail, question)
     _draw_rail_answer(rail, expected, predicted, correct, question_bottom)
     _draw_rail_footer_qa(rail, match_method)
@@ -813,7 +827,7 @@ def render_case_card(
     run_result: RunResult,
     sample_result: SampleResult,
     image: Image.Image,
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
 ) -> plt.Figure:
     """Render the hero card matching a QA sample result's task.
 

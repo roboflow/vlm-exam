@@ -367,8 +367,8 @@ def draw_identity_row(
         axes.add_artist(annotation)
         width_inches, _ = axes_size_inches(axes)
         text_x = (30 * 2 * 0.34 / 72 + 0.11) / width_inches
-    except Exception:
-        pass
+    except Exception as error:
+        raise RuntimeError(f"Could not load lab logo: {lab_logo_url}") from error
     axes.text(
         text_x,
         y + 0.018,

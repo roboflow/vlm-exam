@@ -20,7 +20,12 @@ from pathlib import Path
 
 from vlm_exam.config import BenchmarkConfig, ModelConfig, load_leaderboard_groups
 from vlm_exam.protocol import PROTOCOL
-from vlm_exam.results import RunResult, SampleResult, load_results_directory
+from vlm_exam.results import (
+    RunResult,
+    SampleResult,
+    is_failed_sample,
+    load_results_directory,
+)
 
 BENCHMARK_TASK_NAMES: tuple[str, ...] = PROTOCOL.tasks
 """Registered benchmark tasks included in cross-task efficiency rollups."""
@@ -418,3 +423,20 @@ def _elapsed_total(samples: list[SampleResult]) -> float:
 def _mean(values: Iterable[float]) -> float:
     collected = list(values)
     return sum(collected) / len(collected) if collected else 0.0
+
+
+def run_text_score(run: RunResult) -> float | None:
+    """Return the complete text run's normalized score on a 0–100 scale.
+
+    Failed, partial or unscored runs do not have a rankable overall score.
+    """
+    if not run.samples or any(
+        is_failed_sample(sample)
+        or sample.metadata.get("score") is None
+        or sample.metadata.get("dataset_pairs") != len(run.samples)
+        for sample in run.samples
+    ):
+        return None
+    return (
+        sum(sample.metadata["score"] for sample in run.samples) / len(run.samples) * 100
+    )

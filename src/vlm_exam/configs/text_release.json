@@ -1,0 +1,558 @@
+{
+  "name": "mixed-text-v2-single-run",
+  "status": "preliminary",
+  "dataset_hash": "6a6cbeadcbf0966327cc19aacd165e9b6335d0cf4ee3584f3e0cc18e400141c7",
+  "selection_hash": "3c7e4856c5e6312bbc441cb18b894467062687c27852cf78ccc230f8f8c80832",
+  "protocol": "mixed-text-v2",
+  "pairs": 600,
+  "repeats": 1,
+  "efforts": [
+    "low",
+    "high"
+  ],
+  "models": [
+    "claude-fable-5",
+    "claude-fable-5-1",
+    "claude-haiku-5-5",
+    "claude-opus-4-8",
+    "claude-opus-5",
+    "claude-opus-5-5",
+    "claude-sonnet-5",
+    "claude-sonnet-5-5",
+    "deepseek-v4-flash-vision-exp",
+    "gemini-2.5-pro",
+    "gemini-3-flash-preview",
+    "gemini-3.1-pro-preview",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.6-flash",
+    "gemini-3.7-flash",
+    "gemini-3.8-flash",
+    "glm-5.3-flash",
+    "glm-5v-turbo",
+    "gpt-5.4-mini",
+    "gpt-5.5",
+    "gpt-5.6-luna",
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
+    "gpt-6-astra",
+    "gpt-6-luna",
+    "gpt-6-sol",
+    "gpt-6.1-sol",
+    "grok-4.5",
+    "grok-4.6",
+    "grok-4.7",
+    "kimi-k2.6",
+    "kimi-k3",
+    "mimo-v2.6-flash",
+    "mimo-v2.6-pro",
+    "mistral-large-4",
+    "muse-glimmer-30b",
+    "muse-spark-1.1",
+    "muse-spark-1.2",
+    "muse-spark-1.3",
+    "qwen-3-vl-235b",
+    "qwen-3.5-27b",
+    "qwen-3.6-27b",
+    "qwen-3.7-flash",
+    "qwen-3.7-plus",
+    "qwen-3.8-27b",
+    "qwen-3.8-flash",
+    "qwen-3.8-max"
+  ],
+  "configurations": {
+    "claude-fable-5-1/high": {
+      "inference_hash": "d7a008331eab6c3803779684104ea3db6ba2207c00187c426e3d8d3f66648be5",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-fable-5-1/low": {
+      "inference_hash": "d7a008331eab6c3803779684104ea3db6ba2207c00187c426e3d8d3f66648be5",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-fable-5/high": {
+      "inference_hash": "d7a008331eab6c3803779684104ea3db6ba2207c00187c426e3d8d3f66648be5",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-fable-5/low": {
+      "inference_hash": "d7a008331eab6c3803779684104ea3db6ba2207c00187c426e3d8d3f66648be5",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-haiku-5-5/high": {
+      "inference_hash": "7d4624f27436624498632e688074c4526319364868e4e751c178096e8f6e8cef",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-haiku-5-5/low": {
+      "inference_hash": "7d4624f27436624498632e688074c4526319364868e4e751c178096e8f6e8cef",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-opus-4-8/high": {
+      "inference_hash": "f7b67e50bf1fe73bc1f9cb0a68682c3500bdc3f245c007fd740d70d15ea3be0b",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-opus-4-8/low": {
+      "inference_hash": "f7b67e50bf1fe73bc1f9cb0a68682c3500bdc3f245c007fd740d70d15ea3be0b",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-opus-5-5/high": {
+      "inference_hash": "3b2f1ca9b374c50d21c349a1a355d0c7a3034e467e20d47203d0790ebfcae774",
+      "coordinate_format": "xyxy_absolute_resized_image_bbox",
+      "allowed_failures": []
+    },
+    "claude-opus-5-5/low": {
+      "inference_hash": "3b2f1ca9b374c50d21c349a1a355d0c7a3034e467e20d47203d0790ebfcae774",
+      "coordinate_format": "xyxy_absolute_resized_image_bbox",
+      "allowed_failures": []
+    },
+    "claude-opus-5/high": {
+      "inference_hash": "d7a008331eab6c3803779684104ea3db6ba2207c00187c426e3d8d3f66648be5",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-opus-5/low": {
+      "inference_hash": "d7a008331eab6c3803779684104ea3db6ba2207c00187c426e3d8d3f66648be5",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-sonnet-5-5/high": {
+      "inference_hash": "d7a008331eab6c3803779684104ea3db6ba2207c00187c426e3d8d3f66648be5",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": [
+        "50c62cb79c8bc09cdfe7b4fa1f4f49932bb0459a3dc3b794d3d3e90f43390777"
+      ]
+    },
+    "claude-sonnet-5-5/low": {
+      "inference_hash": "d7a008331eab6c3803779684104ea3db6ba2207c00187c426e3d8d3f66648be5",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-sonnet-5/high": {
+      "inference_hash": "d7a008331eab6c3803779684104ea3db6ba2207c00187c426e3d8d3f66648be5",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-sonnet-5/low": {
+      "inference_hash": "d7a008331eab6c3803779684104ea3db6ba2207c00187c426e3d8d3f66648be5",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "deepseek-v4-flash-vision-exp/high": {
+      "inference_hash": "666e7d548445bb8d796e0bdc57b4f06e83c12a872d97ea10a248a5c56ce69310",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "deepseek-v4-flash-vision-exp/low": {
+      "inference_hash": "666e7d548445bb8d796e0bdc57b4f06e83c12a872d97ea10a248a5c56ce69310",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-2.5-pro/high": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-2.5-pro/low": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3-flash-preview/high": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3-flash-preview/low": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3.1-pro-preview/high": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3.1-pro-preview/low": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3.5-flash-lite/high": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3.5-flash-lite/low": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3.5-flash/high": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3.5-flash/low": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3.6-flash/high": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3.6-flash/low": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3.7-flash/high": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3.7-flash/low": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3.8-flash/high": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-3.8-flash/low": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "glm-5.3-flash/high": {
+      "inference_hash": "f02943fdb378a5a657740586372f11b82a83c46ff40c090208d6f7e06e08a231",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "glm-5.3-flash/low": {
+      "inference_hash": "f02943fdb378a5a657740586372f11b82a83c46ff40c090208d6f7e06e08a231",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "glm-5v-turbo/high": {
+      "inference_hash": "66b3cee6ad5a43987778867258611d0762ae88b5c9ab0fc6678badba7e6eb6ab",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "glm-5v-turbo/low": {
+      "inference_hash": "66b3cee6ad5a43987778867258611d0762ae88b5c9ab0fc6678badba7e6eb6ab",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gpt-5.4-mini/high": {
+      "inference_hash": "91dd9d8bd97dee7dc2878d07935fe3ebf1ecefda0c2a0f3c08d92a4e7e85cc28",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-5.4-mini/low": {
+      "inference_hash": "91dd9d8bd97dee7dc2878d07935fe3ebf1ecefda0c2a0f3c08d92a4e7e85cc28",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-5.5/high": {
+      "inference_hash": "91dd9d8bd97dee7dc2878d07935fe3ebf1ecefda0c2a0f3c08d92a4e7e85cc28",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-5.5/low": {
+      "inference_hash": "91dd9d8bd97dee7dc2878d07935fe3ebf1ecefda0c2a0f3c08d92a4e7e85cc28",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-5.6-luna/high": {
+      "inference_hash": "89d65bbd026bc529f94073adc525f121abbe9b46c260f3e3914c09e11299253c",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-5.6-luna/low": {
+      "inference_hash": "89d65bbd026bc529f94073adc525f121abbe9b46c260f3e3914c09e11299253c",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-5.6-sol/high": {
+      "inference_hash": "eced4434c6758d65bc9e37a092cf1997cf1b13cb67abf60e60c0f04b38ebde53",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-5.6-sol/low": {
+      "inference_hash": "eced4434c6758d65bc9e37a092cf1997cf1b13cb67abf60e60c0f04b38ebde53",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-5.6-terra/high": {
+      "inference_hash": "21e0423362243832b5603c74a17bc5b83cd61d10852042cf3227719c499db12d",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-5.6-terra/low": {
+      "inference_hash": "21e0423362243832b5603c74a17bc5b83cd61d10852042cf3227719c499db12d",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-6-astra/high": {
+      "inference_hash": "62b385c90cd34366cc19de56b3ceb8ae2dab2c908f1061cda0bf4a4f37635da3",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-6-astra/low": {
+      "inference_hash": "62b385c90cd34366cc19de56b3ceb8ae2dab2c908f1061cda0bf4a4f37635da3",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-6-luna/high": {
+      "inference_hash": "acb970376ecaebca2cebe1f5ed0b91feb895d99e71fdc6191a2fa7af6d932734",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-6-luna/low": {
+      "inference_hash": "acb970376ecaebca2cebe1f5ed0b91feb895d99e71fdc6191a2fa7af6d932734",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-6-sol/high": {
+      "inference_hash": "5814f77cd569d6d6fa4df7af83bc6fdaf864d14800ae0b5b4357ac6b322d41ae",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-6-sol/low": {
+      "inference_hash": "5814f77cd569d6d6fa4df7af83bc6fdaf864d14800ae0b5b4357ac6b322d41ae",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-6.1-sol/high": {
+      "inference_hash": "67879664f75c0e06e651a6f2693f3426a9466a3cf49dc389efffd52262c5a61f",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-6.1-sol/low": {
+      "inference_hash": "67879664f75c0e06e651a6f2693f3426a9466a3cf49dc389efffd52262c5a61f",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "grok-4.5/high": {
+      "inference_hash": "d29fbfb7b4d37c78814d4a1b00d5485b7ed2e2684c61ec8914ee42a00e23c30a",
+      "coordinate_format": "xyxy_normalized_0_to_100",
+      "allowed_failures": []
+    },
+    "grok-4.5/low": {
+      "inference_hash": "d29fbfb7b4d37c78814d4a1b00d5485b7ed2e2684c61ec8914ee42a00e23c30a",
+      "coordinate_format": "xyxy_normalized_0_to_100",
+      "allowed_failures": []
+    },
+    "grok-4.6/high": {
+      "inference_hash": "a384b712547e752cd2cdf9522f4ed3ce31c9ca572a4d1ad0f542645f52a2f211",
+      "coordinate_format": "xyxy_normalized_0_to_100",
+      "allowed_failures": []
+    },
+    "grok-4.6/low": {
+      "inference_hash": "a384b712547e752cd2cdf9522f4ed3ce31c9ca572a4d1ad0f542645f52a2f211",
+      "coordinate_format": "xyxy_normalized_0_to_100",
+      "allowed_failures": []
+    },
+    "grok-4.7/high": {
+      "inference_hash": "ead9cb8887729a1684306cf50e24d883080e5f00a3af0b0a9a381abc2fecc4a9",
+      "coordinate_format": "xyxy_normalized_0_to_100",
+      "allowed_failures": [
+        "5409045585f558eccfdbb296eafd81d38fe69fadf0e05d7b140023db919af996",
+        "6688b168c02cece2263d5602407055dd2dd95a682f7b84415e4f9ef3b51f30f6",
+        "77d13a07cd5ab272c74607668a4bc44e0294bdfc1b3d87668cd5dbd78ace34f1",
+        "ab6087334c1c7b0d513de1a468592d8198e499d7bdf936ad3feb021edf7d005e",
+        "fc68e758ab8932fbd0b53d1b5d35fa85a44b7cd2cf472f36107dbf5ee37b3b43"
+      ]
+    },
+    "grok-4.7/low": {
+      "inference_hash": "ead9cb8887729a1684306cf50e24d883080e5f00a3af0b0a9a381abc2fecc4a9",
+      "coordinate_format": "xyxy_normalized_0_to_100",
+      "allowed_failures": []
+    },
+    "kimi-k2.6/high": {
+      "inference_hash": "7cc0f5b201ffd2183cf809e6ef7a6dc3e771878d4fd62704b262005f2e7d8764",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "kimi-k2.6/low": {
+      "inference_hash": "7cc0f5b201ffd2183cf809e6ef7a6dc3e771878d4fd62704b262005f2e7d8764",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "kimi-k3/high": {
+      "inference_hash": "7ddb1d48c54fa468dd506081c404488a959d9b5fa2b5e1474aa1a1c389f6f968",
+      "coordinate_format": "xyxy_absolute_original_image",
+      "allowed_failures": []
+    },
+    "kimi-k3/low": {
+      "inference_hash": "7ddb1d48c54fa468dd506081c404488a959d9b5fa2b5e1474aa1a1c389f6f968",
+      "coordinate_format": "xyxy_absolute_original_image",
+      "allowed_failures": []
+    },
+    "mimo-v2.6-flash/high": {
+      "inference_hash": "e3958abbf87b7a305ac92a4783d9881997546a7de9446816348fc026ffb4b861",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "mimo-v2.6-flash/low": {
+      "inference_hash": "e3958abbf87b7a305ac92a4783d9881997546a7de9446816348fc026ffb4b861",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "mimo-v2.6-pro/high": {
+      "inference_hash": "ccdf099db6a5bd6b5393a8b8f6cff2193691ae521b44a8f0449bafbd927a9a1f",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "mimo-v2.6-pro/low": {
+      "inference_hash": "ccdf099db6a5bd6b5393a8b8f6cff2193691ae521b44a8f0449bafbd927a9a1f",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "mistral-large-4/high": {
+      "inference_hash": "4f65def503a627609556118d2db151bdcbd2957bced103206884e2de1f7ca91a",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "mistral-large-4/low": {
+      "inference_hash": "4f65def503a627609556118d2db151bdcbd2957bced103206884e2de1f7ca91a",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "muse-glimmer-30b/high": {
+      "inference_hash": "174f32635b497bc223041b106c06552a58ba51a6d257246c4e4099d8881d3148",
+      "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
+      "allowed_failures": []
+    },
+    "muse-glimmer-30b/low": {
+      "inference_hash": "174f32635b497bc223041b106c06552a58ba51a6d257246c4e4099d8881d3148",
+      "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
+      "allowed_failures": []
+    },
+    "muse-spark-1.1/high": {
+      "inference_hash": "f2bf86c6a64f969e6cbf86430b9b3cfa1fce2c01eaba5781006aa93bdc17c77f",
+      "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
+      "allowed_failures": []
+    },
+    "muse-spark-1.1/low": {
+      "inference_hash": "f2bf86c6a64f969e6cbf86430b9b3cfa1fce2c01eaba5781006aa93bdc17c77f",
+      "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
+      "allowed_failures": []
+    },
+    "muse-spark-1.2/high": {
+      "inference_hash": "6e3d9a139bda505199a2d2953f4a229c9f75fe581fbdbc250040145c7c943f6e",
+      "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
+      "allowed_failures": []
+    },
+    "muse-spark-1.2/low": {
+      "inference_hash": "6e3d9a139bda505199a2d2953f4a229c9f75fe581fbdbc250040145c7c943f6e",
+      "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
+      "allowed_failures": []
+    },
+    "muse-spark-1.3/high": {
+      "inference_hash": "43f4d1c5748822a6ce474441f4bcc3b52bbce171ed8c4e79ff0063d54a804ce3",
+      "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
+      "allowed_failures": [
+        "e4ad7887b926635c6bc96a6184919fdb0c32f4c90ba23192c4439f5a6dae9ed1"
+      ]
+    },
+    "muse-spark-1.3/low": {
+      "inference_hash": "43f4d1c5748822a6ce474441f4bcc3b52bbce171ed8c4e79ff0063d54a804ce3",
+      "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
+      "allowed_failures": [
+        "2a828d6bf92e4235986a52fb8987b80a52036828d0a1da8cfba9985a14a60d35",
+        "351bb4deaa3524425c18e70700f9274b856a8f4bf1307bc7c26869654baf6dee"
+      ]
+    },
+    "qwen-3-vl-235b/high": {
+      "inference_hash": "9d69e67fdb62c0a5bf69b39ed2ec79043c634cb3a922d7e0d557d58f4e1b8eaa",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3-vl-235b/low": {
+      "inference_hash": "9d69e67fdb62c0a5bf69b39ed2ec79043c634cb3a922d7e0d557d58f4e1b8eaa",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.5-27b/high": {
+      "inference_hash": "27ee7fc5f7f164d880016018966bc7320df12a6b7186406fc88ea0139ad65d26",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.5-27b/low": {
+      "inference_hash": "27ee7fc5f7f164d880016018966bc7320df12a6b7186406fc88ea0139ad65d26",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.6-27b/high": {
+      "inference_hash": "592edc04571c6dfa6c7fc073a3819fd3d6720fa5a968236b8d81ea14dad4be2d",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.6-27b/low": {
+      "inference_hash": "592edc04571c6dfa6c7fc073a3819fd3d6720fa5a968236b8d81ea14dad4be2d",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.7-flash/high": {
+      "inference_hash": "8c8f6fabbc65b97de334b8b0917046803dbf63470108135bd5f64d3c258a108a",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.7-flash/low": {
+      "inference_hash": "8c8f6fabbc65b97de334b8b0917046803dbf63470108135bd5f64d3c258a108a",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.7-plus/high": {
+      "inference_hash": "d883c71224e7d53a763e76a4f667cd2eabb1323412b0276f2a0e5174332c1f08",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.7-plus/low": {
+      "inference_hash": "d883c71224e7d53a763e76a4f667cd2eabb1323412b0276f2a0e5174332c1f08",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.8-27b/high": {
+      "inference_hash": "6c7edb6f0595a1b540e77d8fffd90e1f9f6f467ca1d741737a31a1789f0b8e41",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.8-27b/low": {
+      "inference_hash": "6c7edb6f0595a1b540e77d8fffd90e1f9f6f467ca1d741737a31a1789f0b8e41",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.8-flash/high": {
+      "inference_hash": "9fdabc30f68f54799117d83d6bdc913db2f7e3e1de79601b0dcfab706fffad53",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.8-flash/low": {
+      "inference_hash": "9fdabc30f68f54799117d83d6bdc913db2f7e3e1de79601b0dcfab706fffad53",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.8-max/high": {
+      "inference_hash": "15636c3cd66f990a178af95d24e6a0cf9a52dc40b8d4c14be738a68916d4bab3",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "qwen-3.8-max/low": {
+      "inference_hash": "15636c3cd66f990a178af95d24e6a0cf9a52dc40b8d4c14be738a68916d4bab3",
+      "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    }
+  }
+}

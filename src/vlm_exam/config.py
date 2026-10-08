@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -99,6 +100,53 @@ class BenchmarkConfig:
 
     labs: dict[str, LabConfig]
     models: dict[str, ModelConfig]
+
+
+@dataclass(frozen=True)
+class ModelDisplay:
+    """Model identity for rendering saved results, without inference settings."""
+
+    name: str
+    lab: str
+
+
+@dataclass(frozen=True)
+class DisplayConfig:
+    """Labs and model identities available to offline renderers."""
+
+    labs: dict[str, LabConfig]
+    models: dict[str, ModelDisplay]
+
+
+VisualizationConfig = BenchmarkConfig | DisplayConfig
+"""Configuration accepted by renderers that only need model identity."""
+
+
+def load_display_config(
+    config_path: Path | None = None, model_labels: Path | None = None
+) -> DisplayConfig:
+    """Load shared rendering identities, optionally extending saved-model labels.
+
+    Args:
+        config_path: Optional benchmark YAML supplying model names and labs.
+        model_labels: Optional JSON mapping model keys to name and lab only.
+
+    Returns:
+        Display-only configuration with no synthetic provider or pricing settings.
+    """
+    config = load_config(config_path)
+    models = {
+        key: ModelDisplay(value.name, value.lab) for key, value in config.models.items()
+    }
+    if model_labels is not None:
+        labels = json.loads(model_labels.read_text())
+        for key, value in labels.items():
+            if set(value) != {"name", "lab"} or not isinstance(value["name"], str):
+                raise ValueError(f"Invalid display identity: {key}")
+            if value["lab"] not in config.labs:
+                raise ValueError(f"Unknown lab for {key}: {value['lab']}")
+            models[key] = ModelDisplay(**value)
+    return DisplayConfig(config.labs, models)
 
 
 def _parse_lab(raw: dict[str, Any]) -> LabConfig:

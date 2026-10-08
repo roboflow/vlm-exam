@@ -215,3 +215,39 @@ class TestBenchmarkCommand:
         assert captured["kwargs"]["max_parallel"] == 4  # type: ignore[index]
         assert "1 of 4 runs finished cleanly; 3 failed" in result.output
         assert "Next: vlm-exam validate" in result.output
+
+
+def test_text_benchmark_defaults_to_one_run_per_effort_in_shared_results(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from click.testing import CliRunner
+
+    from vlm_exam import text_benchmark
+    from vlm_exam.cli import main
+
+    captured: list[Job] = []
+
+    def run(jobs: list[Job], **kwargs: object) -> list[JobOutcome]:
+        captured.extend(jobs)
+        return [JobOutcome(job=job, return_code=0, elapsed_seconds=1) for job in jobs]
+
+    monkeypatch.setattr(text_benchmark, "run_jobs", run)
+    monkeypatch.setattr(text_benchmark.TextTask, "load_samples", lambda *args: [])
+    result = CliRunner().invoke(
+        main,
+        [
+            "text-benchmark",
+            "--models",
+            "claude-fable-5-1",
+            "--dataset-root",
+            str(tmp_path),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert [(job.task, job.effort, job.repeat) for job in captured] == [
+        ("text", "low", 1),
+        ("text", "high", 1),
+    ]
+    for job in captured:
+        index = job.command.index("--output-directory")
+        assert job.command[index + 1] == "results"

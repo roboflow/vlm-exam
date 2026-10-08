@@ -74,3 +74,5 @@ visualizations/*.png
 .DS_Store
 scripts/render_zero_map_detection_cards.py
 scripts/render_zero_map_model_comparison.py
+
+text-summary.json

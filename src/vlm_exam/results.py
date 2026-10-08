@@ -65,6 +65,8 @@ class RunResult:
 
 
 def _sample_key(sample: SampleResult, task: str) -> tuple[str, str]:
+    if task == "text":
+        return (str(sample.metadata["sample_id"]), "")
     question = "" if task == "detection" else str(sample.metadata.get("question", ""))
     return (sample.image, question)
 

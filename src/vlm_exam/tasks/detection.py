@@ -154,6 +154,18 @@ class DetectionCoordinateFormat(str, Enum):
     XYXY_ABSOLUTE_ORIGINAL_IMAGE = "xyxy_absolute_original_image"
     YXYX_ABSOLUTE_ORIGINAL_IMAGE = "yxyx_absolute_original_image"
 
+    @property
+    def normalized_maximum(self) -> float | None:
+        """Upper bound for normalized coordinates, or None for pixel formats."""
+        return {
+            self.YXYX_NORMALIZED_0_TO_1000: 1000.0,
+            self.XYXY_NORMALIZED_0_TO_1000: 1000.0,
+            self.XYXY_NORMALIZED_0_TO_999: 999.0,
+            self.XYXY_NORMALIZED_0_TO_100: 100.0,
+            self.XYXY_NORMALIZED_0_TO_1000_META_FLAT: 1000.0,
+            self.XYXY_NORMALIZED_0_TO_1000_META_BBOX: 1000.0,
+        }.get(self)
+
 
 MAP_PASS_THRESHOLD = 0.8
 """Minimum per-image mAP@50 for a sample to count as correct."""
@@ -741,7 +753,7 @@ def _parse_normalized_xyxy_json(
         prediction,
         resolution_wh,
         classes,
-        normalize_max=1000.0,
+        normalize_max=DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_1000.normalized_maximum,
     )
 
 
@@ -754,7 +766,7 @@ def _parse_normalized_xyxy_999_json(
         prediction,
         resolution_wh,
         classes,
-        normalize_max=999.0,
+        normalize_max=DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_999.normalized_maximum,
     )
 
 
@@ -767,7 +779,7 @@ def _parse_normalized_xyxy_percent_json(
         prediction,
         resolution_wh,
         classes,
-        normalize_max=100.0,
+        normalize_max=DetectionCoordinateFormat.XYXY_NORMALIZED_0_TO_100.normalized_maximum,
     )
 
 

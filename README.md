@@ -446,3 +446,20 @@ result filenames and leaderboards.
 ## License
 
 Apache 2.0. See [LICENSE](LICENSE).
+
+## Mixed text benchmark
+
+Text evaluation covers single-string extraction, transcription, structured JSON
+extraction, and localization/recognition. The frozen dataset contains 600
+image/question pairs referencing 576 images. The published evaluation includes
+48 models at Low and High effort, with one run per configuration.
+
+Raw runs live in [results/](results/), alongside the other tasks. The existing
+[web summary](web/benchmark_summary.json) publishes one `text` task with `overall`
+as its primary metric and the four category metrics. Scores use a 0–100 scale;
+overall is the mean of all 600 pair scores. Accepted missing responses remain
+explicitly unscored, with coverage reported for each metric.
+
+See [AGENTS.md](AGENTS.md#mixed-text-benchmark) for dataset import, inference,
+coordinate-format requirements, validation and rendering commands. Charts use the
+shared [leaderboard directory](visualizations/leaderboards/).

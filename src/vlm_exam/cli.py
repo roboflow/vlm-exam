@@ -37,6 +37,12 @@ from vlm_exam.results import (
 )
 from vlm_exam.runner import run_benchmark
 from vlm_exam.tasks import QA_TASK_NAMES, create_task
+from vlm_exam.text_benchmark import (
+    TEXT_BENCHMARK_PROTOCOL,
+    inference_hash,
+    register_text_commands,
+)
+from vlm_exam.text_render import register_text_render_commands
 
 if TYPE_CHECKING:
     import matplotlib.pyplot as plt
@@ -262,6 +268,8 @@ def run(
     repeats: int,
 ) -> None:
     """Run a benchmark for one or more models."""
+    if task_name == "text" and effort not in TEXT_BENCHMARK_PROTOCOL.efforts:
+        raise click.UsageError("Text benchmark effort must be low or high.")
     if resume_file is not None and repeats != 1:
         raise click.UsageError("--resume-file cannot be combined with --repeats.")
     config = load_config(Path(config_path) if config_path else None)
@@ -273,6 +281,12 @@ def run(
     if max_samples is not None:
         samples = samples[:max_samples]
     model_ids = [model_id.strip() for model_id in models.split(",")]
+    if task_name == "text":
+        unknown = set(model_ids) - config.models.keys()
+        if unknown:
+            raise click.UsageError(f"Unknown models: {sorted(unknown)}")
+        if not samples:
+            raise click.UsageError("No samples selected")
     output_path = Path(output_directory)
 
     previous_run: RunResult | None = None
@@ -290,6 +304,10 @@ def run(
                 f"--resume-file is a {previous_run.task!r} run at effort "
                 f"{previous_run.effort!r}; pass matching --task and --effort."
             )
+        if task_name == "text":
+            from vlm_exam.text_benchmark import validate_resume
+
+            validate_resume(previous_run, samples, config.models[model_ids[0]])
         failed_images = {
             sample.image for sample in previous_run.samples if is_failed_sample(sample)
         }
@@ -298,7 +316,16 @@ def run(
             for sample in samples
             if Path(sample.image_path).name in failed_images
         ]
-        kept_count = len(previous_run.samples) - len(failed_images)
+        if task_name == "text":
+            failed_pairs = {
+                sample.metadata["sample_id"]
+                for sample in previous_run.samples
+                if is_failed_sample(sample)
+            }
+            samples = [sample for sample in samples if sample.identity in failed_pairs]
+        kept_count = len(previous_run.samples) - sum(
+            is_failed_sample(sample) for sample in previous_run.samples
+        )
         click.echo(
             f"Resuming {previous_run.model}: keeping {kept_count} samples, "
             f"re-running {len(samples)} failed samples."
@@ -310,6 +337,7 @@ def run(
     if judge is not None:
         click.echo(f"Scoring: strict rule and LLM judge ({judge_model})")
 
+    text_failures = False
     for model_id in model_ids:
         if model_id not in config.models:
             click.echo(f"Warning: model {model_id!r} not found in config, skipping.")
@@ -319,11 +347,14 @@ def run(
         provider = build_model_provider(model_id, model_config)
 
         model_task = task
-        if task_name == "detection":
+        if task_name in ("detection", "text"):
+            model_task_args = dict(task_args)
+            if task_name == "text":
+                model_task_args["inference_hash"] = inference_hash(model_config)
             model_task = create_task(
                 task_name,
                 coordinate_format=model_config.detection_coordinate_format,
-                **task_args,
+                **model_task_args,
             )
 
         for repeat in range(1, repeats + 1):
@@ -346,12 +377,21 @@ def run(
                 output_path, task_name, model_id, effort, result.timestamp
             )
             save_results(result, result_path)
+            if task_name == "text":
+                text_failures |= any(
+                    is_failed_sample(sample) for sample in result.samples
+                )
             click.echo(f"Results saved to {result_path}")
             if resume_file is not None:
                 source = Path(resume_file)
                 if source.resolve() != result_path.resolve():
                     source.unlink()
                     click.echo(f"Removed resumed file {source}")
+
+    if text_failures:
+        raise click.ClickException(
+            "Provider failures saved; resume the affected text runs."
+        )
 
 
 def _unique_result_path(
@@ -543,7 +583,6 @@ def validate(
 
     config = load_config(Path(config_path) if config_path else None)
     report = validate_results(Path(results_directory), config, strict=strict)
-
     click.echo(format_report(report, verbose=verbose))
     if output_format == "github":
         annotations = format_github_annotations(report)
@@ -732,6 +771,10 @@ def report(
             metric = format_repeated(
                 aggregate_metric(group, run_mean_similarity), "% sim"
             )
+        elif task_name == "text":
+            from vlm_exam.metrics import run_text_score
+
+            metric = format_repeated(aggregate_metric(group, run_text_score), " score")
         elif task_name in JUDGE_TASK_NAMES:
             metric = format_repeated(aggregate_metric(group, run_judge_accuracy))
             strict = format_repeated(aggregate_metric(group, run_strict_accuracy))
@@ -892,7 +935,22 @@ def summary(
                 "`vlm-exam summary --dataset-directory data/detection/train` "
                 "and commit the result."
             )
-        click.echo(f"{output_path} matches results/ and models.yaml.")
+        if (
+            any(task.key == "text" for task in benchmark_summary.tasks)
+            and model_filter is None
+            and effort is None
+        ):
+            from vlm_exam.text_release import check_text_charts
+
+            try:
+                check_text_charts(
+                    results_path,
+                    Path("visualizations/leaderboards"),
+                    Path(config_path) if config_path else None,
+                )
+            except (OSError, ValueError, KeyError) as error:
+                raise click.ClickException(str(error)) from error
+        click.echo(f"{output_path} matches saved results and model configuration.")
         return
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -958,10 +1016,9 @@ def efficiency_report(
 
     matplotlib.use("Agg")
 
-    import matplotlib.pyplot as plt
-
     from vlm_exam.metrics import aggregate_efficiency_by_model
     from vlm_exam.visualization import plot_combined_metrics_chart, plot_metric_chart
+    from vlm_exam.visualization.charts import save_leaderboard_chart
 
     config = load_config(Path(config_path) if config_path else None)
     model_filter = _resolve_model_filter(config, models, group)
@@ -1011,8 +1068,7 @@ def efficiency_report(
 
     def save_figure(figure: plt.Figure, filename: str) -> None:
         file_path = output_path / filename
-        figure.savefig(str(file_path), dpi=150)
-        plt.close(figure)
+        save_leaderboard_chart(figure, file_path)
         saved.append(file_path)
 
     save_figure(
@@ -1187,10 +1243,9 @@ def leaderboard(
 
     matplotlib.use("Agg")
 
-    import matplotlib.pyplot as plt
-
     from vlm_exam.metrics import RepeatedMetric, aggregate_metric, group_runs
     from vlm_exam.visualization import plot_accuracy_chart, plot_metric_chart
+    from vlm_exam.visualization.charts import save_leaderboard_chart
 
     config = load_config(Path(config_path) if config_path else None)
     model_filter = _resolve_model_filter(config, models, group)
@@ -1201,6 +1256,21 @@ def leaderboard(
         click.echo(f"No usable .jsonl files found in {results_directory}")
         return
 
+    if any(
+        run.task == "text" and (model_filter is None or run.model in model_filter)
+        for run in runs
+    ):
+        click.get_current_context().invoke(
+            main.commands["text-leaderboard"],
+            results_directory=results_directory,
+            output_directory=output_directory,
+            config_path=Path(config_path) if config_path else None,
+            models=models,
+            group=group,
+        )
+    runs = [run for run in runs if run.task != "text"]
+    if not runs:
+        return
     groups = group_runs(runs, config, models=model_filter)
 
     if not groups:
@@ -1244,8 +1314,7 @@ def leaderboard(
 
     def save_figure(figure: plt.Figure, filename: str) -> None:
         file_path = output_path / filename
-        figure.savefig(str(file_path), dpi=150)
-        plt.close(figure)
+        save_leaderboard_chart(figure, file_path)
         saved.append(file_path)
 
     detection_index = None
@@ -1637,6 +1706,10 @@ def detection_visualize(
 
 
 register_reference_commands(main)
+
+
+register_text_commands(main)
+register_text_render_commands(main)
 
 
 if __name__ == "__main__":

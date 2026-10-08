@@ -651,7 +651,6 @@ def reference_detection_leaderboard(
     import matplotlib
 
     matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
 
     from vlm_exam.reference.config import (
         assert_no_vlm_model_overlap,
@@ -667,6 +666,7 @@ def reference_detection_leaderboard(
     )
     from vlm_exam.tasks.detection import DetectionTask, build_sample_index
     from vlm_exam.visualization import plot_metric_chart
+    from vlm_exam.visualization.charts import save_leaderboard_chart
 
     vlm_config = load_config(Path(config_path) if config_path else None)
     reference_config = load_reference_config(
@@ -715,8 +715,7 @@ def reference_detection_leaderboard(
                 label_area_width=_REFERENCE_CHART_LABEL_AREA_WIDTH,
             )
             file_path = family_output / f"detection_{metric_key}.png"
-            figure.savefig(str(file_path), dpi=150)
-            plt.close(figure)
+            save_leaderboard_chart(figure, file_path)
             saved.append(file_path)
 
         markdown_path = family_output / "leaderboard.md"

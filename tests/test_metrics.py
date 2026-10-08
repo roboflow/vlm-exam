@@ -245,3 +245,18 @@ class TestAggregateEfficiencyByModel:
             models={"alpha"},
         )
         assert [row.model for row in rows] == ["alpha"]
+
+
+def test_text_report_score_uses_partial_credit_and_rejects_coverage_gaps() -> None:
+    from vlm_exam.metrics import run_text_score
+
+    run = _run("alpha", "text", "20261008_000000")
+    run.samples[0].predicted = "valid"
+    run.samples[0].correct = False
+    run.samples[0].metadata.update(score=0.75, dataset_pairs=1)
+    assert run_text_score(run) == 75
+    run.samples[0].metadata["dataset_pairs"] = 2
+    assert run_text_score(run) is None
+    run.samples[0].metadata["dataset_pairs"] = 1
+    run.samples[0].predicted = "ERROR: accepted failure"
+    assert run_text_score(run) is None

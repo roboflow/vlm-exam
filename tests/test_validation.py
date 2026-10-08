@@ -415,3 +415,77 @@ class TestValidateCommand:
             ],
         )
         assert strict.exit_code == 1
+
+
+def test_text_release_rejects_coverage_and_provenance_changes(tmp_path: Path) -> None:
+    import hashlib
+    import json
+
+    from vlm_exam.text_release import validate_text_release
+
+    samples = [
+        SampleResult(
+            index=index,
+            image=f"{identity}.png",
+            expected="answer",
+            predicted="answer" if index == 0 else "ERROR: timeout",
+            correct=index == 0,
+            input_tokens=0,
+            output_tokens=0,
+            metadata={
+                "sample_id": identity,
+                "dataset_hash": "dataset",
+                "dataset_pairs": 2,
+                "text_protocol": "mixed-text-v2",
+                "coordinate_format": "xyxy_normalized_0_to_1000",
+                "inference_hash": "inference",
+                "image_sha256": identity,
+                "question": "Read",
+                "category": "single_string",
+                "subset": "sample",
+                "score": 1 if index == 0 else None,
+            },
+        )
+        for index, identity in enumerate(("a", "b"))
+    ]
+    path = tmp_path / "run.jsonl"
+    run = RunResult("alpha", "low", "text", "timestamp", samples)
+    save_results(run, path)
+    policy = {
+        "models": ["alpha"],
+        "efforts": ["low"],
+        "repeats": 1,
+        "pairs": 2,
+        "dataset_hash": "dataset",
+        "protocol": "mixed-text-v2",
+        "selection_hash": hashlib.sha256(
+            json.dumps({"sample_ids": ("a", "b"), "pairs": 2}).encode()
+        ).hexdigest(),
+        "configurations": {
+            "alpha/low": {
+                "inference_hash": "inference",
+                "coordinate_format": "xyxy_normalized_0_to_1000",
+                "allowed_failures": ["b"],
+            }
+        },
+    }
+    assert validate_text_release(tmp_path, policy) == []
+    original = path.read_text()
+    path.unlink()
+    assert any(p.kind == "runs" for p in validate_text_release(tmp_path, policy))
+    path.write_text(original)
+    duplicate = tmp_path / "duplicate.jsonl"
+    duplicate.write_text(original)
+    assert any(p.kind == "runs" for p in validate_text_release(tmp_path, policy))
+    duplicate.unlink()
+    for mutate in (
+        lambda rows: rows.pop(),
+        lambda rows: rows[0].update(model="other"),
+        lambda rows: rows[0]["metadata"].update(inference_hash="changed"),
+        lambda rows: rows[1].update(predicted="new response"),
+        lambda rows: rows[1]["metadata"].update(score=0),
+    ):
+        rows = [json.loads(line) for line in original.splitlines()]
+        mutate(rows)
+        path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
+        assert validate_text_release(tmp_path, policy)

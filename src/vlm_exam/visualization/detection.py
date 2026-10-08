@@ -23,7 +23,7 @@ import numpy as np
 import supervision as sv
 from matplotlib.colors import to_rgb
 
-from vlm_exam.config import BenchmarkConfig
+from vlm_exam.config import VisualizationConfig
 from vlm_exam.visualization.theme import (
     CARD_FIGURE_SIZE,
     DIVIDER_COLOR,
@@ -604,11 +604,12 @@ def _boxes_mask(detections: sv.Detections, shape: tuple[int, ...]) -> np.ndarray
     return mask
 
 
-def _region_diff_image(
+def region_diff_image(
     image_rgb: np.ndarray,
     ground_truth: sv.Detections,
     predictions: sv.Detections,
 ) -> np.ndarray:
+    """Tint reference-only, model-only and overlapping detection regions."""
     base = image_rgb.astype(np.float32)
     base = base * (1 - _DIFF_BASE_FADE) + 255.0 * _DIFF_BASE_FADE
     gt_mask = _boxes_mask(ground_truth, image_rgb.shape)
@@ -624,6 +625,9 @@ def _region_diff_image(
     return base.astype(np.uint8)
 
 
+_region_diff_image = region_diff_image
+
+
 def plot_detection_card(
     image: np.ndarray,
     ground_truth: sv.Detections,
@@ -631,7 +635,7 @@ def plot_detection_card(
     gt_labels: list[str],
     pred_labels: list[str],
     model_id: str,
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     map_score: float | None = None,
     label_mode: str = "auto",
 ) -> plt.Figure:
@@ -720,7 +724,7 @@ def plot_detection_card(
     scaled_image, (gt_scaled, pred_scaled) = _scale_for_display(
         image, [ground_truth, predictions]
     )
-    diff = _region_diff_image(scaled_image[:, :, ::-1], gt_scaled, pred_scaled)
+    diff = region_diff_image(scaled_image[:, :, ::-1], gt_scaled, pred_scaled)
 
     rail_left, rail_bottom, rail_width, rail_height = HERO_RAIL_RECT
     diff_rect = _fit_figure_rect(

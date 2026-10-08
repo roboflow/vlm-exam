@@ -59,9 +59,11 @@ avoid a loop"). Never narrate what the code does.
 
 ## Benchmark protocol
 
-Every model in `results/` is measured against one protocol, defined once
+The six original tasks in `results/` follow the protocol defined once
 as `PROTOCOL` in `src/vlm_exam/protocol.py` and read by `validate`,
-`benchmark`, `summary`, and the leaderboards:
+`benchmark`, and the historical leaderboards. The website overview uses the
+five-task selection described under "Web summary". Text currently uses one run per
+model/effort, as described under "Mixed text benchmark" below:
 
 1. **Three runs per configuration.** Each `(task, effort)` is run three
    times and all three result files are committed. A single run is not a
@@ -77,8 +79,9 @@ as `PROTOCOL` in `src/vlm_exam/protocol.py` and read by `validate`,
    `--effort high`. That is 6 tasks x 2 efforts x 3 runs = 36 result files
    per model. Both effort levels have their own leaderboard PNGs.
 4. **All of it in the web JSON.** `web/benchmark_summary.json` carries the
-   protocol (`protocol.repeats`, `protocol.efforts`, `protocol.tasks`,
-   `protocol.runs_per_model`), one entry per `(model, effort)`, per-task
+   overview protocol (`protocol.repeats`, `protocol.repeats_by_task`,
+   `protocol.efforts`, `protocol.tasks`, `protocol.runs_per_model`), one entry
+   per `(model, effort)`, per-task
    `metrics` (means), `metric_runs` (the per-run values), `run_count`, and
    `timestamps`, and per model a `protocol` block with `name`
    (`full` or `legacy`), `status` (`complete`, `incomplete`, `legacy`),
@@ -96,7 +99,8 @@ as `PROTOCOL` in `src/vlm_exam/protocol.py` and read by `validate`,
   samples than the largest run of its task as a partial run.
 - Only average runs produced under one protocol. A change to prompts,
   coordinate formats, judge settings, or image preprocessing invalidates
-  the existing repeats of the affected configurations; re-run all three.
+  the existing repeats of the affected configurations. Obtain authorization
+  for fresh runs under that task's protocol; never silently rewrite provenance.
 - Images are EXIF-transposed on load before being sent to any provider.
   Datasets whose images carry EXIF orientation tags will therefore produce
   runs that are not comparable to runs made before this behavior existed;
@@ -105,7 +109,9 @@ as `PROTOCOL` in `src/vlm_exam/protocol.py` and read by `validate`,
   writes the merged complete file, and deletes the source file, so a
   partial run and its completion are never both counted as repeats.
   `validate` and `summary` warn about any run with failed samples and
-  print the resume command; resume it before committing.
+  print the resume command; resume it before committing unless the exact gaps
+  are explicitly accepted by the text release policy. Never retry accepted gaps
+  without new authorization.
 
 ### Legacy models (`benchmark_protocol: legacy`)
 
@@ -222,6 +228,23 @@ vlm-exam validate
 
 ## Web summary
 
+- `overview_tasks` is `["text", "counting", "identification", "reasoning",
+  "detection"]`. Text replaces OCR and Data Extraction in the overview; keep
+  their individual task results available. Overall token, cost and elapsed-time
+  totals include only the five selected tasks, averaging repeats within each
+  task before summing. Recompute per-sample averages from the selected totals.
+- The web protocol and every model's run status use the same five tasks across
+  Low and High: Text requires one run per effort, the other four require three,
+  for 26 files per complete model. `protocol.repeats` remains the default of 3;
+  `protocol.repeats_by_task` explicitly records the per-task requirements.
+  Status describes run inventory; response coverage and accepted gaps remain
+  explicit in the task metrics and coverage fields. Keep legacy status for
+  legacy models with missing runs. Missing Text runs cannot be filled by OCR
+  or Extraction runs. This publication selection does not change the historical
+  six-task inference planner or authorize additional runs.
+- Omit `subsets` and `provenance` from the web JSON. Retain them in raw results
+  and internal summaries for audit and validation. Preserve task metrics,
+  metric runs, counts and coverage in the website payload.
 - Regenerate `web/benchmark_summary.json` and commit it in every PR so the
   website payload never drifts from `results/` and `configs/models.yaml`.
 - Rebuild it with the detection dataset so detection mAP is included:
@@ -309,3 +332,125 @@ vlm-exam efficiency-report --effort high
   the user explicitly instructs otherwise.
 - Before creating the branch and pushing, ask the user to confirm that
   workflow (branch name and intent to open a PR).
+
+## Mixed text benchmark
+
+### Dataset, runs and coordinates
+
+- Text is one task with four scored categories: `single_string`, `transcription`,
+  `structured`, and `localization_recognition`. Its raw JSONL files belong in
+  **`results/`**, alongside all other VLM tasks. Use the existing model registry,
+  `summary`, `validate`, card primitives and shared chart layout. Do not create
+  separate result roots, web payloads, display registries or task documentation.
+- **For now, run each text model once at Low and once at High effort.**
+  `TEXT_BENCHMARK_PROTOCOL` and `text-benchmark` default to one run per
+  `(task, model, effort)`. The original six tasks retain three repeats. Do not
+  start additional text repeats or rerun completed configurations without
+  authorization. Single-run chart labels remain preliminary.
+- The frozen export is Roboflow project `roboflow-jvuqo/vlm-exam-text`, version 2:
+  <https://app.roboflow.com/roboflow-jvuqo/vlm-exam-text/2>. It contains 600 pairs
+  referencing 576 images: 230 single-string, 50 transcription, 230 structured,
+  and 90 localization/recognition pairs. Use the same export for every model.
+- Import rows have exactly `image`, `prefix`, and `suffix` string fields. Prefix
+  JSON contains the category in `task`, `question`, and optional localization
+  `specification`; suffix contains the reference text or JSON. Read prompts and
+  references from the dataset. Optional `subset` and `scoring_profile` are
+  scoring metadata, never model instructions. Do not infer subset-specific rules
+  from filenames or question hashes. Images must be upright (EXIF orientation 1).
+- **Before running localization/recognition, establish the model's native
+  bounding-box format.** Research official provider evidence and perform the
+  same 50-image detection-format comparison described under "Adding and
+  benchmarking models". Pin `detection_coordinate_format` in the shared model
+  configuration: axis order, normalized scale versus absolute pixels, JSON
+  shape, and whether pixels refer to the original or uploaded/resized image.
+  Do not guess a format or substitute another model. Keep unresolved formats
+  pending. The text runner uses that setting to build prompts and convert
+  predictions back to original-image coordinates.
+- Localization ground truth uses `{"bbox": [x1, y1, x2, y2], "text": ...}` in
+  original-image pixels; text can be null. Record actual upload dimensions for
+  resized-image formats. Pin provider routing, preprocessing, token limits and
+  reasoning settings before inference. Changing dataset bytes, prompts,
+  references, coordinates or inference settings creates an incompatible run.
+
+### Commands
+
+Install with `uv sync --extra dev` and configure the relevant provider keys.
+Text scoring is deterministic and does not require a judge API key.
+
+```bash
+uv run vlm-exam text-import ~/Downloads/DATASET.zip --expected-pairs 600
+uv run vlm-exam text-validate --dataset-directory data/text/train --expected-pairs 600
+uv run vlm-exam text-benchmark --models <key> --max-parallel 2
+```
+
+Import refuses to overwrite an existing snapshot. `text-benchmark` uses the
+shared job planner, prints each log path under `logs/text/`, and writes to
+`results/`. `--dataset-root`, `--config`, and `--efforts` select the dataset,
+configuration and effort levels. Put smoke runs outside `results/`:
+
+```bash
+uv run vlm-exam run --task text --models <key> --effort low \
+  --dataset-directory data/text/train --max-samples 4 \
+  --output-directory /tmp/text-smoke --concurrency 2
+```
+
+For authorized recovery of failed pairs, resume the existing run:
+
+```bash
+uv run vlm-exam run --task text --models <key> --effort low \
+  --dataset-directory data/text/train --resume-file results/RESULT.jsonl
+```
+
+Resume verifies the snapshot and inference profile and preserves successes.
+Do not resume frozen files with incompatible bundled defaults. The reviewed
+`src/vlm_exam/configs/text_release.json` pins the 48-model publication inventory,
+both efforts, one run each, 600 pair IDs, inference hashes and exact accepted
+failure IDs. The release has nine accepted gaps: Sonnet 5.5 High one, Grok 4.7
+High five, and Muse Spark 1.3 Low two / High one. Keep them unscored; do not retry
+or change the policy to make validation pass. New publications require an
+explicitly reviewed inventory change. Private results stay outside this repo.
+
+### Scoring and publication
+
+Default scores are exact string match, transcription character similarity,
+typed JSON field F1, and joint box/text F1. Localization uses one-to-one matches
+with IoU strictly greater than 0.5 and exact text. Invalid regions count as
+unmatched predictions. Provider failures are unscored. Explicit transcription
+profiles can request `exact` or `italian_soft_wraps`; never silently change
+recorded scoring profiles or merge incompatible runs.
+
+Publish through `vlm-exam summary --dataset-directory data/detection/train` to
+`web/benchmark_summary.json`. One `models[].tasks.text` entry has `overall` as
+its primary metric and four category metrics, following detection's `metrics`
+and `metric_runs` contract. Scores are 0–100; overall averages all 600 pair
+scores, not the four category means equally. Preserve standard run statistics,
+per-metric coverage. Keep source checksums and subset metadata in internal
+summaries and raw results, outside the web payload. Missing responses
+omit the affected ranking metrics; coverage retains observed scores and bounds.
+`run_count` records repeats; do not add another text protocol block. Preserve
+the five-task overview and its explicitly selected efficiency pool.
+
+### Rendering and checks
+
+Render text cards or just text charts from saved runs without inference:
+
+```bash
+uv run vlm-exam text-visualize results/RESULT.jsonl \
+  --dataset-directory data/text/train --category localization_recognition
+uv run vlm-exam text-leaderboard
+```
+
+The shared `leaderboard` command also dispatches text charts to the same
+renderer. Leaderboards belong in `visualizations/leaderboards/`; cards default
+to `visualizations/`. Both use the shared model configuration and layout. Apply
+the common 118 px title gap at 150 DPI and omit the averaging footnote without
+changing statistics or spread whiskers. Text PNG rankings require all 600
+scored pairs; JSON exposes category coverage independently. Preserve source,
+renderer and PNG fingerprints in the compact chart manifest.
+
+Before updating this PR, run Ruff check/format, existing tests, `validate`, and
+`summary --check` (including text coverage and chart freshness). Verify cards
+for strings, JSON, localization, empty/invalid responses and pagination when
+changing rendering. Add focused regressions to existing test modules; do not
+create new test files. Moving unchanged result files does not require rebuilding
+PNGs or recomputing inference.

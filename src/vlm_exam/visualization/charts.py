@@ -13,12 +13,14 @@
 # limitations under the License.
 
 from collections.abc import Callable
+from pathlib import Path
 from typing import Literal
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
-from vlm_exam.config import BenchmarkConfig
+from vlm_exam.config import VisualizationConfig
 from vlm_exam.visualization.theme import (
     BACKGROUND_COLOR,
     BAR_TRACK_COLOR,
@@ -38,7 +40,7 @@ from vlm_exam.visualization.theme import (
 def _add_model_label(
     axes: plt.Axes,
     model_id: str,
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     y: float,
     label_area_width: float = LABEL_AREA_WIDTH,
 ) -> None:
@@ -58,8 +60,8 @@ def _add_model_label(
             box_alignment=(0.5, 0.5),
         )
         axes.add_artist(annotation)
-    except Exception:
-        pass
+    except Exception as error:
+        raise RuntimeError(f"Could not load lab logo: {lab_info.logo_url}") from error
 
     text_x = logo_x + 7.0
     axes.text(
@@ -114,6 +116,11 @@ def _configure_clean_axes(
         spine.set_visible(False)
 
 
+def _layout_leaderboard(figure: plt.Figure) -> None:
+    margin = min(0.45 / figure.get_figheight(), 0.2)
+    figure.tight_layout(rect=[0.01, margin, 0.99, 1 - margin])
+
+
 def _draw_spread_whisker(
     axes: plt.Axes,
     low: float,
@@ -142,33 +149,9 @@ def _draw_spread_whisker(
         )
 
 
-def _add_spread_footnote(
-    axes: plt.Axes,
-    x: float,
-    y: float,
-    run_counts: dict[str, int],
-) -> None:
-    repeated = {count for count in run_counts.values() if count > 1}
-    if not repeated:
-        return
-    fonts = load_fonts()
-    counts = ", ".join(str(count) for count in sorted(repeated))
-    axes.text(
-        x,
-        y,
-        f"Bars show the mean over {counts} runs where available; "
-        "whiskers span the lowest and highest run.",
-        fontsize=11,
-        color=TEXT_SECONDARY,
-        font=fonts.medium,
-        va="top",
-        ha="left",
-    )
-
-
 def plot_accuracy_chart(
     accuracy: dict[str, float],
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     title: str,
     spread: dict[str, tuple[float, float]] | None = None,
     run_counts: dict[str, int] | None = None,
@@ -183,101 +166,26 @@ def plot_accuracy_chart(
         spread: Optional mapping of model identifier to the lowest and
             highest per-run value; drawn as a whisker on the bar.
         run_counts: Optional mapping of model identifier to the number of
-            runs behind its bar, used for the footnote.
+            runs behind its bar; retained for API compatibility.
 
     Returns:
         Matplotlib figure.
     """
-    fonts = load_fonts()
-    spread = spread or {}
-    sorted_models = sorted(
-        accuracy.keys(), key=lambda model: accuracy[model], reverse=True
-    )
-
-    count = len(sorted_models)
-    row_spacing = 1.6
-    bar_height = 0.50
-    corner_radius = bar_height / 2
-    bar_max = 100
-
-    figure_height = max(4.0, count * row_spacing + 2.8)
-    figure, axes = plt.subplots(figsize=(14, figure_height))
-    figure.patch.set_facecolor(BACKGROUND_COLOR)
-    axes.set_facecolor(BACKGROUND_COLOR)
-    add_top_accent(figure)
-
-    y_positions = [i * row_spacing for i in range(count - 1, -1, -1)]
-    total_y_range = (count - 1) * row_spacing
-
-    for index, model_id in enumerate(sorted_models):
-        value = accuracy[model_id]
-        lab_info = config.labs[config.models[model_id].lab]
-        color = lab_info.color
-        y = y_positions[index]
-
-        if index > 0:
-            _add_row_divider(axes, y + row_spacing / 2, bar_max + 16)
-
-        draw_rounded_bar(
-            axes,
-            0,
-            y,
-            bar_max,
-            bar_height,
-            corner_radius,
-            facecolor=BAR_TRACK_COLOR,
-            edgecolor="none",
-            zorder=2,
-        )
-        draw_rounded_bar(
-            axes,
-            0,
-            y,
-            value,
-            bar_height,
-            corner_radius,
-            facecolor=color,
-            edgecolor="none",
-            zorder=3,
-        )
-        if model_id in spread:
-            low, high = spread[model_id]
-            _draw_spread_whisker(axes, low, high, y, bar_height)
-
-        axes.text(
-            bar_max + 2.0,
-            y,
-            f"{value:.1f}%",
-            va="center",
-            ha="left",
-            fontsize=19,
-            color=text_color_for_brand(color),
-            font=fonts.display,
-        )
-
-        _add_model_label(axes, model_id, config, y)
-
-    _configure_clean_axes(axes, -LABEL_AREA_WIDTH - 2, 118, -1.0, total_y_range + 2.2)
-
-    axes.text(
-        -LABEL_AREA_WIDTH - 2,
-        total_y_range + 1.8,
+    return plot_metric_chart(
+        accuracy,
+        config,
         title,
-        fontsize=28,
-        color=TEXT_PRIMARY,
-        font=fonts.display,
-        va="bottom",
-        ha="left",
+        format_value=lambda value: f"{value:.1f}%",
+        sort_ascending=False,
+        full_scale=100,
+        spread=spread,
+        run_counts=run_counts,
     )
-    _add_spread_footnote(axes, -LABEL_AREA_WIDTH - 2, -0.55, run_counts or {})
-
-    plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
-    return figure
 
 
 def plot_metric_chart(
     metric: dict[str, float],
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     title: str,
     format_value: Callable[[float], str],
     sort_ascending: bool = True,
@@ -301,7 +209,7 @@ def plot_metric_chart(
         spread: Optional mapping of model identifier to the lowest and
             highest per-run value, in metric units; drawn as a whisker.
         run_counts: Optional mapping of model identifier to the number of
-            runs behind its bar, used for the footnote.
+            runs behind its bar; retained for API compatibility.
 
     Returns:
         Matplotlib figure.
@@ -405,16 +313,15 @@ def plot_metric_chart(
         va="bottom",
         ha="left",
     )
-    _add_spread_footnote(axes, -label_area_width - 2, -0.55, run_counts or {})
 
-    plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
+    _layout_leaderboard(figure)
     return figure
 
 
 def plot_dual_effort_chart(
     metric_high: dict[str, float],
     metric_low: dict[str, float],
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     title: str,
     format_value: Callable[[float], str],
     sort_ascending: bool = True,
@@ -607,13 +514,13 @@ def plot_dual_effort_chart(
         ha="left",
     )
 
-    plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
+    _layout_leaderboard(figure)
     return figure
 
 
 def plot_cost_bar_chart(
     cost_by_model: dict[str, float],
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     title: str = "Average Cost per Image",
 ) -> plt.Figure:
     """Vertical bar chart comparing per-image cost across models.
@@ -690,7 +597,7 @@ def plot_cost_bar_chart(
         pad=20,
     )
 
-    plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
+    _layout_leaderboard(figure)
     return figure
 
 
@@ -701,7 +608,7 @@ def plot_combined_metrics_chart(
     cost_low: dict[str, float],
     time_high: dict[str, float],
     time_low: dict[str, float],
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     sort_by: str = "tokens",
     effort: Literal["low", "high", "both"] = "both",
     column_order: tuple[str, ...] = ("tokens", "cost", "time"),
@@ -869,8 +776,10 @@ def plot_combined_metrics_chart(
                 box_alignment=(0.5, 0.5),
             )
             axes.add_artist(annotation)
-        except Exception:
-            pass
+        except Exception as error:
+            raise RuntimeError(
+                f"Could not load lab logo: {lab_info.logo_url}"
+            ) from error
 
         text_x = logo_x + 7.0
         axes.text(
@@ -1080,5 +989,45 @@ def plot_combined_metrics_chart(
         ha="left",
     )
 
-    plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
+    _layout_leaderboard(figure)
     return figure
+
+
+def save_leaderboard_chart(figure: plt.Figure, path: Path) -> None:
+    """Save a leaderboard using the shared PNG export settings.
+
+    Args:
+        figure: Leaderboard figure from a shared chart renderer.
+        path: Destination PNG path.
+    """
+    figure.set_dpi(150)
+    figure.canvas.draw()
+    pixels = np.asarray(figure.canvas.buffer_rgba())
+    # Text extents include font-dependent leading. Measure the painted content
+    # so every chart gets the same visible top padding at the export resolution.
+    background = pixels[0, 0, :3].astype(np.int16)
+    first = next(
+        (
+            index
+            for index, row in enumerate(pixels)
+            if np.any(
+                np.max(np.abs(row[:, :3].astype(np.int16) - background), axis=1) > 30
+            )
+        ),
+        118,
+    )
+    width, height = figure.get_size_inches()
+    adjusted_height = height + (118 - first) / 150
+    positions = [axes.get_position().frozen() for axes in figure.axes]
+    figure.set_size_inches(width, adjusted_height, forward=False)
+    for axes, position in zip(figure.axes, positions):
+        axes.set_position(
+            [
+                position.x0,
+                position.y0 * height / adjusted_height,
+                position.width,
+                position.height * height / adjusted_height,
+            ]
+        )
+    figure.savefig(str(path), dpi=150)
+    plt.close(figure)

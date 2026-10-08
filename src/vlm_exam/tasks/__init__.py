@@ -18,6 +18,7 @@ from typing import Any
 from vlm_exam.tasks.base import EvaluationResult, Sample, Task
 
 _TASK_REGISTRY: dict[str, str] = {
+    "text": "vlm_exam.tasks.text.TextTask",
     "ocr": "vlm_exam.tasks.qa.OCRTask",
     "extraction": "vlm_exam.tasks.qa.ExtractionTask",
     "counting": "vlm_exam.tasks.qa.CountingTask",
