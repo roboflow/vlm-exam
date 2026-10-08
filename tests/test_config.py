@@ -204,6 +204,7 @@ class TestBenchmarkProtocolField:
             "claude-fable-5-1",
             "claude-opus-5-5",
             "claude-sonnet-5-5",
+            "claude-haiku-5-5",
             "gemini-3.5-flash",
             "gemini-3.6-flash",
             "gemini-3.7-flash",
