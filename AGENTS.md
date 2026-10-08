@@ -439,3 +439,7 @@ All percentage leaderboards use `plot_accuracy_chart`, a thin adapter over
 `plot_metric_chart`; task code supplies values and labels only. Keep layout,
 fonts, margins, row spacing and bars in the shared renderer, and use
 `save_leaderboard_chart` for the common 150 DPI PNG export.
+
+Use `_layout_leaderboard` for fixed vertical padding (approximately 306 px
+above the title at 150 DPI for full leaderboards), capped for short charts.
+Do not scale vertical padding as a percentage of a growing leaderboard.

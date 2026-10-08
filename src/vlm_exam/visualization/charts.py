@@ -115,6 +115,13 @@ def _configure_clean_axes(
         spine.set_visible(False)
 
 
+def _layout_leaderboard(figure: plt.Figure) -> None:
+    # Fixed physical padding restores the August title gap (~306 px at
+    # 150 DPI), capped for charts too short to fit it.
+    margin = min(1.712 / figure.get_figheight(), 0.2)
+    figure.tight_layout(rect=[0.01, margin, 0.99, 1 - margin])
+
+
 def _draw_spread_whisker(
     axes: plt.Axes,
     low: float,
@@ -333,7 +340,7 @@ def plot_metric_chart(
     )
     _add_spread_footnote(axes, -label_area_width - 2, -0.55, run_counts or {})
 
-    plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
+    _layout_leaderboard(figure)
     return figure
 
 
@@ -533,7 +540,7 @@ def plot_dual_effort_chart(
         ha="left",
     )
 
-    plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
+    _layout_leaderboard(figure)
     return figure
 
 
@@ -616,7 +623,7 @@ def plot_cost_bar_chart(
         pad=20,
     )
 
-    plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
+    _layout_leaderboard(figure)
     return figure
 
 
@@ -1006,7 +1013,7 @@ def plot_combined_metrics_chart(
         ha="left",
     )
 
-    plt.tight_layout(rect=[0.01, 0.03, 0.99, 0.97])
+    _layout_leaderboard(figure)
     return figure
 
 
