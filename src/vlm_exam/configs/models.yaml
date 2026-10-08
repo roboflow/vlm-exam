@@ -112,6 +112,15 @@ models:
     pricing:
       input_per_million_tokens: 2.00
       output_per_million_tokens: 10.00
+  claude-haiku-5-5:
+    name: Claude Haiku 5.5
+    lab: anthropic
+    provider: anthropic
+    detection_coordinate_format: xyxy_absolute_resized_image_bbox
+    resolution_tier: high
+    pricing:
+      input_per_million_tokens: 0.10
+      output_per_million_tokens: 0.50
   gemini-3.5-flash:
     name: Gemini 3.5 Flash
     lab: google
