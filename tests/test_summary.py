@@ -544,44 +544,51 @@ def test_text_extends_existing_web_contract_without_changing_overview(
     assert model["overall"]["sample_count"] == 1
     assert model["overall"]["tokens"]["total"] == 150
     assert model["tasks"]["counting"]["primary_metric"]["value"] == 100
-    text = model["tasks"]["text_single_string"]
-    assert text["primary_metric"] == {"name": "score", "value": 75}
-    assert text["metrics"] == {"score": 75}
-    assert text["metric_runs"] == {"score": [75]}
-    assert text["run_count"] == text["protocol"]["repeats"] == 1
-    assert text["protocol"]["status"] == "complete"
-    assert text["protocol"]["preliminary"] is True
+    assert set(model["tasks"]) == {"counting", "text"}
+    text = model["tasks"]["text"]
+    assert text["primary_metric"] is None
+    assert text["metrics"] == {
+        "single_string": 75,
+        "transcription": 75,
+        "localization_recognition": 75,
+    }
+    assert text["metric_runs"] == {
+        key: [value] for key, value in text["metrics"].items()
+    }
+    assert text["run_count"] == 1
+    assert "protocol" not in text
     assert text["timestamp"] == "2026-10-08T06:38:54Z"
     assert payload["generated_at"] == text["timestamp"]
-    assert text["tokens"]["total"] == 150
-    assert text["cost"]["total_usd"] == 0.0002
-    assert text["speed"]["total_seconds"] == 1
+    assert text["tokens"]["total"] == 600
+    assert text["cost"]["total_usd"] == 0.0008
+    assert text["speed"]["total_seconds"] == 3
     assert (
         text["provenance"]["result_files"][0]["sha256"]
         == hashlib.sha256(
             (text_release / "text_alpha_low.jsonl").read_bytes()
         ).hexdigest()
     )
-    gap = model["tasks"]["text_structured"]
-    assert gap["primary_metric"] is None
-    assert gap["metrics"] == {}
+    gap = text["coverage"][0]["by_metric"]["structured"]
+    assert gap["score"] is None
     assert gap["evaluated_sample_count"] == 0
     assert gap["failed_sample_count"] == 1
-    assert gap["coverage"][0]["score_bounds"] == [0, 100]
-    assert gap["protocol"]["status"] == "complete_with_gaps"
-    total = model["tasks"]["text_overall"]
-    assert total["primary_metric"] is None
-    assert total["metrics"] == total["metric_runs"] == {}
-    assert total["sample_count"] == 4
-    assert total["evaluated_sample_count"] == 3
-    assert total["failed_sample_count"] == 1
-    assert total["coverage"][0]["score_bounds"] == [56.25, 81.25]
-    assert total["protocol"]["status"] == "complete_with_gaps"
-    assert all(
-        not t["include_in_overall"]
-        for t in payload["tasks"]
-        if t["key"].startswith("text_")
-    )
+    assert gap["score_bounds"] == [0, 100]
+    assert text["sample_count"] == 4
+    assert text["evaluated_sample_count"] == 3
+    assert text["failed_sample_count"] == 1
+    assert text["coverage"][0]["score_bounds"] == [56.25, 81.25]
+    definition = next(t for t in payload["tasks"] if t["key"] == "text")
+    assert definition["include_in_overall"] is False
+    assert "protocol" not in definition
+    assert definition["primary_metric"] == "overall"
+    assert [metric["key"] for metric in definition["metrics"]] == [
+        "overall",
+        "single_string",
+        "transcription",
+        "structured",
+        "localization_recognition",
+    ]
+    assert len(payload["tasks"]) == 2
 
 
 def test_text_overall_weights_pairs_instead_of_categories(
@@ -616,23 +623,29 @@ def test_text_overall_weights_pairs_instead_of_categories(
     legacy.mkdir()
     payload = summary_to_dict(build_summary(legacy, _config("alpha")))
     tasks = payload["models"][0]["tasks"]
-    total = tasks["text_overall"]
-    assert total["primary_metric"] == {"name": "score", "value": 60.0}
-    assert total["metrics"] == {"score": 60.0}
-    assert total["metric_runs"] == {"score": [60.0]}
+    total = tasks["text"]
+    assert total["primary_metric"] == {"name": "overall", "value": 60.0}
+    assert total["metrics"] == {
+        "overall": 60.0,
+        "single_string": 37.5,
+        "transcription": 75.0,
+        "structured": 75.0,
+        "localization_recognition": 75.0,
+    }
+    assert total["metric_runs"] == {
+        key: [value] for key, value in total["metrics"].items()
+    }
     assert total["sample_count"] == total["evaluated_sample_count"] == 5
     assert total["failed_sample_count"] == 0
     assert total["tokens"]["total"] == 750
     assert total["cost"]["total_usd"] == pytest.approx(0.001)
     assert total["speed"]["total_seconds"] == 5
-    assert total["protocol"]["status"] == "complete"
+    assert "protocol" not in total
     category_scores = [
-        task["primary_metric"]["value"]
-        for key, task in tasks.items()
-        if key != "text_overall"
+        value for key, value in total["metrics"].items() if key != "overall"
     ]
     assert sum(category_scores) / len(category_scores) == 65.625
-    assert "text_overall" not in payload["overview_tasks"]
+    assert "text" not in payload["overview_tasks"]
 
 
 def test_unified_summary_checks_text_inventory_and_result_bytes(
@@ -695,7 +708,7 @@ def test_standard_summary_command_checks_text_and_has_no_sidecar_exports(
     assert result.exit_code == 0, result.output
     assert checked == [text_release]
     payload = json.loads(output.read_text())
-    payload["models"][0]["tasks"]["text_single_string"]["metrics"]["score"] = 99
+    payload["models"][0]["tasks"]["text"]["metrics"]["single_string"] = 99
     output.write_text(json.dumps(payload))
     result = runner.invoke(cli.main, arguments + ["--check"])
     assert result.exit_code == 1

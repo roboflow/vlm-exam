@@ -173,7 +173,6 @@ class ModelTaskResult:
     timestamp: str
     timestamps: tuple[str, ...]
     evaluated_sample_count: int | None = None
-    protocol: dict[str, Any] | None = None
     provenance: dict[str, Any] | None = None
     coverage: tuple[dict[str, Any], ...] = ()
     subsets: dict[str, Any] | None = None
@@ -232,7 +231,6 @@ class TaskSummary:
     name: str
     primary_metric: str
     metrics: tuple[MetricDefinition, ...]
-    protocol: dict[str, Any] | None = None
     include_in_overall: bool = True
 
 
@@ -669,7 +667,7 @@ def build_summary(
     return summary
 
 
-_TEXT_TASKS = {
+_TEXT_METRICS = {
     "single_string": "Single String Extraction",
     "transcription": "Text Transcription",
     "structured": "Structured Text Extraction",
@@ -699,15 +697,42 @@ def _text_result(
     policy: dict[str, Any],
     sources: list[dict[str, str]],
 ) -> ModelTaskResult:
-    coverage = tuple(_text_coverage(run.samples) for run in runs)
-    complete = all(row["failed_sample_count"] == 0 for row in coverage)
-    scores = tuple(row["score"] for row in coverage) if complete else ()
+    coverage = tuple(
+        {
+            **_text_coverage(run.samples),
+            "by_metric": {
+                category: _text_coverage(
+                    [s for s in run.samples if s.metadata["category"] == category]
+                )
+                for category in _TEXT_METRICS
+            },
+        }
+        for run in runs
+    )
+    metric_coverage = {
+        "overall": coverage,
+        **{
+            category: tuple(row["by_metric"][category] for row in coverage)
+            for category in _TEXT_METRICS
+        },
+    }
+    for metric, rows in metric_coverage.items():
+        if any(row["sample_count"] == 0 for row in rows):
+            raise ValueError(f"Missing text metric samples: {metric}")
+    metric_runs = {
+        metric: tuple(row["score"] for row in rows)
+        for metric, rows in metric_coverage.items()
+        if all(row["score"] is not None for row in rows)
+    }
+    metrics = {metric: _mean(list(scores)) for metric, scores in metric_runs.items()}
     metadata = runs[0].samples[0].metadata
     subsets = sorted({s.metadata["subset"] for run in runs for s in run.samples})
     return ModelTaskResult(
-        primary_metric=MetricValue("score", _mean(list(scores))) if complete else None,
-        metrics={"score": _mean(list(scores))} if complete else {},
-        metric_runs={"score": scores} if complete else {},
+        primary_metric=MetricValue("overall", metrics["overall"])
+        if "overall" in metrics
+        else None,
+        metrics=metrics,
+        metric_runs=metric_runs,
         run_count=len(runs),
         sample_count=len(runs[0].samples),
         evaluated_sample_count=min(row["evaluated_sample_count"] for row in coverage),
@@ -717,12 +742,6 @@ def _text_result(
         speed=_mean_speed(runs),
         timestamp=max((run.timestamp for run in runs), key=_iso_timestamp),
         timestamps=tuple(run.timestamp for run in runs),
-        protocol={
-            "name": policy["name"],
-            "repeats": policy["repeats"],
-            "preliminary": policy["status"] == "preliminary",
-            "status": "complete" if complete else "complete_with_gaps",
-        },
         provenance={
             "dataset_hash": policy["dataset_hash"],
             "selection_hash": policy["selection_hash"],
@@ -797,22 +816,7 @@ def _with_text_results(
             protocol=_model_protocol(key, model_config, {}),
         )
         tasks = dict(model.tasks)
-        for category in _TEXT_TASKS:
-            category_runs = [
-                replace(
-                    run,
-                    samples=[
-                        s for s in run.samples if s.metadata["category"] == category
-                    ],
-                )
-                for run in repeated
-            ]
-            if not all(run.samples for run in category_runs):
-                raise ValueError(f"Missing text category {category} for {identity}")
-            tasks[f"text_{category}"] = _text_result(
-                category_runs, model_config, policy, sources[key, run_effort]
-            )
-        tasks["text_overall"] = _text_result(
+        tasks["text"] = _text_result(
             repeated, model_config, policy, sources[key, run_effort]
         )
         entries[identity] = replace(model, tasks=tasks)
@@ -839,18 +843,15 @@ def _with_text_results(
         tasks=summary.tasks
         + [
             TaskSummary(
-                key=f"text_{category}",
-                name=label,
-                primary_metric="score",
-                metrics=(MetricDefinition("score", "Mean score"),),
-                protocol={
-                    "name": policy["name"],
-                    "repeats": policy["repeats"],
-                    "preliminary": policy["status"] == "preliminary",
-                },
+                key="text",
+                name="Text",
+                primary_metric="overall",
+                metrics=tuple(
+                    MetricDefinition(key, label)
+                    for key, label in {"overall": "Overall", **_TEXT_METRICS}.items()
+                ),
                 include_in_overall=False,
             )
-            for category, label in (_TEXT_TASKS | {"overall": "Text Overall"}).items()
         ],
     )
 
@@ -909,7 +910,6 @@ def _task_result_dict(result: ModelTaskResult) -> dict[str, Any]:
         "cost": _cost_dict(result.cost),
         "speed": _speed_dict(result.speed),
         "timestamp": _iso_timestamp(result.timestamp),
-        **({"protocol": result.protocol} if result.protocol is not None else {}),
         **({"provenance": result.provenance} if result.provenance is not None else {}),
         **({"coverage": list(result.coverage)} if result.coverage else {}),
         **({"subsets": result.subsets} if result.subsets is not None else {}),
@@ -1001,7 +1001,6 @@ def summary_to_dict(summary: BenchmarkSummary) -> dict[str, Any]:
                 "key": task.key,
                 "name": task.name,
                 "primary_metric": task.primary_metric,
-                **({"protocol": task.protocol} if task.protocol is not None else {}),
                 **(
                     {"include_in_overall": False} if not task.include_in_overall else {}
                 ),

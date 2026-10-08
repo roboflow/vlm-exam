@@ -326,8 +326,9 @@ JSON, localization, empty/invalid responses and pagination. New test files stay
 outside this PR; add focused regressions to relevant existing test modules.
 
 Publish through the existing `summary` command and `web/benchmark_summary.json`.
-Text categories extend `models[].tasks` with the same result fields and 0–100
-score units. Keep source checksums and task protocol/coverage metadata in that
-payload. Do not create alternate web summary or file-index endpoints. Preserve
+Publish one `models[].tasks.text` entry with `overall` as the primary metric
+and four category metrics, following detection. Keep 0–100 scores, standard
+run statistics, source checksums and coverage metadata. Do not add an extra
+text protocol block; `run_count` records the number of runs. Do not create alternate web summary or file-index endpoints. Preserve
 the six-task overview using its explicit task selection and matching efficiency
 pool; text task pages use the existing consumer architecture.

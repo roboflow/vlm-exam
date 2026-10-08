@@ -176,44 +176,47 @@ that policy. Native fresh benchmarking still defaults to three repeats.
 ## Website JSON contract
 
 The existing `generated_at`, `efforts`, `tasks`, and `models` envelope is retained.
-Each existing `model:effort` row gains five ordinary entries under `tasks`:
-`text_single_string`, `text_transcription`, `text_structured`, and
-`text_localization_recognition`, plus `text_overall`. Existing OCR and extraction
-entries are unchanged.
-
-`text_overall` averages all 600 image/question scores directly. The category
-weights are their pair counts: 230 single-string, 50 transcription, 230 structured,
-and 90 localization/recognition pairs. It is not an equal average of the four
-category means. It uses unrounded sample scores and the same result fields as
-each category, including full-run token, cost and timing totals. Any accepted
-missing response leaves its ranking score null. It remains outside the original
-six-task overview, so neither categories nor their combined score are counted twice.
+Each existing `model:effort` row gains one `tasks.text` entry, using the same
+multi-metric structure as detection. Existing task entries are unchanged.
 The web JSON contains aggregate model/effort/task summaries; individual predictions
 and ground truths remain in the source JSONL files.
 
-Each text task uses the established `primary_metric`, `metrics`, `metric_runs`,
-`run_count`, `timestamps`, sample-count, token, cost and speed fields. The primary
-metric is `score` (mean normalized task score, percent 0–100), not uniform answer
-accuracy. Token and speed aggregation reuse the existing summary helpers. Cost
-is an estimate from the registered token prices, as for the other tasks.
+The text task defines five metrics: `overall`, `single_string`, `transcription`,
+`structured`, and `localization_recognition`. `primary_metric` selects `overall`.
+`metrics` holds the mean values and `metric_runs` holds each metric's per-run
+values, in the same order as `timestamps`. All scores use the existing 0–100 scale.
 
-Additive per-task fields retain the evidence:
+`overall` averages all 600 image/question scores directly. The category weights
+are their pair counts: 230 single-string, 50 transcription, 230 structured, and
+90 localization/recognition pairs. It uses unrounded sample scores, not an equal
+average of four category means. These are normalized task scores, not uniform
+answer accuracy.
 
-- `protocol`: frozen release name, `repeats: 1`, `preliminary: true`, and
-  `status: complete` or `complete_with_gaps`. This is independent of the existing
-  six-task protocol block; a complete single-run release is not three repeats.
+The shared `run_count`, `timestamps`, sample-count, token, cost and speed fields
+cover the complete text run. Token and speed aggregation reuse the existing
+summary helpers. Cost is an estimate from the registered token prices, as for
+the other tasks. `run_count: 1` records the frozen release's single run. There is
+no additional text `protocol` block in either task metadata or model results.
+The existing top-level and model protocol blocks still describe the original
+six-task protocol.
+
+Additive per-task fields retain the evidence without duplicating task entries:
+
 - `provenance`: dataset, selection, inference and scoring identities, coordinate
   convention, and source result filenames with SHA-256 hashes.
 - `coverage`: per-run expected, scored and failed counts, observed score and
-  score bounds, all quality values on the same 0–100 scale.
+  score bounds; `by_metric` carries those same statistics for each category.
+  All quality values use the same 0–100 scale.
 - `subsets`: the corresponding coverage and scores for each prompt subset.
 
-A category with accepted missing responses has `primary_metric: null` and empty
-`metrics`/`metric_runs`. Its observed score remains diagnostic coverage metadata;
-it is not a full-coverage ranking value. Fully scored categories remain rankable.
+Any accepted missing response leaves `primary_metric` null and excludes
+`overall` from `metrics` and `metric_runs`. A category with missing responses
+is likewise omitted from both dictionaries; fully scored category metrics remain
+available. Missing values are not zero scores. Observed partial scores and bounds
+remain diagnostic coverage metadata, not full-coverage ranking values.
 
 The current six-task overview is preserved. `overview_tasks` explicitly names
-its task selection; the new task metadata sets `include_in_overall: false`.
+its task selection; text task metadata sets `include_in_overall: false`.
 Existing model `overall` cost/token/speed totals and six-task protocol status do
 not change. Consumers must use that overview selection for scores as well as
 pooled efficiency instead of averaging every newly registered task.
@@ -222,17 +225,17 @@ pooled efficiency instead of averaging every newly registered task.
 
 The existing `refresh-benchmarks` script can keep fetching the same file and
 reconciling model mappings. `getBenchmarkSummary()` keeps its current loader.
-The regular task leaderboard needs no alternate data source or normalization.
-To expose new pages, extend `lib/benchmarks/types.ts` task keys, slugs and
-`features/evals/benchmark/copy.ts`; use the same task tables, ranking and pricing
-helpers. Extend the existing result type for protocol/coverage metadata and show
-preliminary run and coverage labels. Use `overview_tasks` in overview averaging,
-with the legacy six-task list as the fallback for older snapshots.
+Register one `text` task and its five metric labels using the existing detection
+pattern. The regular task leaderboard needs no alternate data source or score
+normalization. Use the same task tables, ranking and pricing helpers; `overall`
+is the default ranking score. Coverage details and `run_count` expose incomplete
+responses and the number of runs.
 
-Task, model-comparison, and model-profile views may show all eleven task keys, while
-the overview mean and its efficiency pool remain the six original tasks.
-A JSON refresh alone does not register the new website routes. Dataset example
-images are handled by the existing examples workflow, not embedded in this JSON.
+Task, model-comparison, and model-profile views may show all seven task keys,
+while the overview mean and its efficiency pool remain the six original tasks.
+Use `overview_tasks` in overview averaging, with the legacy six-task list as the
+fallback for older snapshots. A JSON refresh alone does not register new website
+routes. Dataset example images use the existing examples workflow, not this JSON.
 
 The imported release preserves its recorded inference profiles. Some differ
 from the current bundled model defaults, and display identities do not add
