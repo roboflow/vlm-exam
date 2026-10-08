@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-08T08:28:40Z",
+  "generated_at": "2026-10-08T09:28:00Z",
   "efforts": [
     "low",
     "high"
@@ -2366,72 +2366,72 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 74.41
+            "value": 74.55
           },
           "metrics": {
-            "map50": 74.41,
-            "map75": 60.21,
-            "map50_95": 57.22
+            "map50": 74.55,
+            "map75": 60.16,
+            "map50_95": 56.97
           },
           "metric_runs": {
             "map50": [
-              73.9,
-              74.47,
-              74.85
+              74.95,
+              74.72,
+              73.99
             ],
             "map75": [
-              59.91,
-              59.74,
-              60.99
+              60.03,
+              60.05,
+              60.4
             ],
             "map50_95": [
-              57.03,
-              57.1,
-              57.52
+              57.12,
+              56.98,
+              56.81
             ]
           },
           "run_count": 3,
           "timestamps": [
-            "2026-09-22T17:29:36Z",
-            "2026-09-22T17:29:38Z",
-            "2026-09-22T17:29:40Z"
+            "2026-10-08T09:08:10Z",
+            "2026-10-08T09:13:43Z",
+            "2026-10-08T09:20:28Z"
           ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
           "tokens": {
-            "input": 619431,
-            "output": 148863,
-            "total": 768294,
-            "average_per_sample": 3073.2
+            "input": 619931,
+            "output": 139521,
+            "total": 759452,
+            "average_per_sample": 3037.8
           },
           "cost": {
-            "total_usd": 5.454977,
-            "average_per_sample_usd": 0.02182
+            "total_usd": 5.270137,
+            "average_per_sample_usd": 0.021081
           },
           "speed": {
-            "total_seconds": 4387.409,
-            "average_seconds_per_sample": 17.55
+            "total_seconds": 2257.562,
+            "average_seconds_per_sample": 9.03
           },
-          "timestamp": "2026-09-22T17:29:40Z"
+          "timestamp": "2026-10-08T09:20:28Z"
         }
       },
       "overall": {
         "task_count": 6,
         "sample_count": 641,
         "tokens": {
-          "input": 1182486,
-          "output": 205751,
-          "total": 1388237,
-          "average_per_sample": 2165.7
+          "input": 1182986,
+          "output": 196409,
+          "total": 1379395,
+          "average_per_sample": 2151.9
         },
         "cost": {
-          "total_usd": 8.844964,
-          "average_per_sample_usd": 0.013799
+          "total_usd": 8.660124,
+          "average_per_sample_usd": 0.01351
         },
         "speed": {
-          "total_seconds": 8180.073,
-          "average_seconds_per_sample": 12.761
+          "total_seconds": 6050.226,
+          "average_seconds_per_sample": 9.439
         }
       },
       "protocol": {
@@ -2675,72 +2675,72 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 76.79
+            "value": 75.97
           },
           "metrics": {
-            "map50": 76.79,
-            "map75": 60.98,
-            "map50_95": 58.23
+            "map50": 75.97,
+            "map75": 60.88,
+            "map50_95": 58.34
           },
           "metric_runs": {
             "map50": [
-              77.18,
-              77.8,
-              75.4
+              74.74,
+              76.14,
+              77.01
             ],
             "map75": [
-              61.17,
-              62.41,
-              59.36
+              60.45,
+              60.6,
+              61.61
             ],
             "map50_95": [
-              58.47,
-              59.14,
-              57.08
+              57.69,
+              58.17,
+              59.15
             ]
           },
           "run_count": 3,
           "timestamps": [
-            "2026-09-22T17:36:59Z",
-            "2026-09-22T17:37:14Z",
-            "2026-09-22T17:37:40Z"
+            "2026-10-08T09:08:14Z",
+            "2026-10-08T09:17:02Z",
+            "2026-10-08T09:28:00Z"
           ],
           "sample_count": 250,
           "evaluated_sample_count": 250,
           "failed_sample_count": 0,
           "tokens": {
-            "input": 619431,
-            "output": 246511,
-            "total": 865942,
-            "average_per_sample": 3463.8
+            "input": 619931,
+            "output": 253722,
+            "total": 873653,
+            "average_per_sample": 3494.6
           },
           "cost": {
-            "total_usd": 7.407944,
-            "average_per_sample_usd": 0.029632
+            "total_usd": 7.554164,
+            "average_per_sample_usd": 0.030217
           },
           "speed": {
-            "total_seconds": 3518.02,
-            "average_seconds_per_sample": 14.072
+            "total_seconds": 3025.903,
+            "average_seconds_per_sample": 12.104
           },
-          "timestamp": "2026-09-22T17:37:40Z"
+          "timestamp": "2026-10-08T09:28:00Z"
         }
       },
       "overall": {
         "task_count": 6,
         "sample_count": 641,
         "tokens": {
-          "input": 1182486,
-          "output": 344103,
-          "total": 1526589,
-          "average_per_sample": 2381.6
+          "input": 1182986,
+          "output": 351314,
+          "total": 1534300,
+          "average_per_sample": 2393.6
         },
         "cost": {
-          "total_usd": 11.611984,
-          "average_per_sample_usd": 0.018115
+          "total_usd": 11.758204,
+          "average_per_sample_usd": 0.018344
         },
         "speed": {
-          "total_seconds": 7799.941,
-          "average_seconds_per_sample": 12.168
+          "total_seconds": 7307.824,
+          "average_seconds_per_sample": 11.401
         }
       },
       "protocol": {

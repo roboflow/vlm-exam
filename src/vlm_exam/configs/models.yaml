@@ -98,7 +98,7 @@ models:
     name: Claude Opus 5.5
     lab: anthropic
     provider: anthropic
-    detection_coordinate_format: xyxy_absolute_resized_image_bbox
+    detection_coordinate_format: xyxy_absolute_resized_image
     resolution_tier: high
     pricing:
       input_per_million_tokens: 4.00
