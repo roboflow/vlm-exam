@@ -176,9 +176,20 @@ that policy. Native fresh benchmarking still defaults to three repeats.
 ## Website JSON contract
 
 The existing `generated_at`, `efforts`, `tasks`, and `models` envelope is retained.
-Each existing `model:effort` row gains four ordinary entries under `tasks`:
+Each existing `model:effort` row gains five ordinary entries under `tasks`:
 `text_single_string`, `text_transcription`, `text_structured`, and
-`text_localization_recognition`. Existing OCR and extraction entries are unchanged.
+`text_localization_recognition`, plus `text_overall`. Existing OCR and extraction
+entries are unchanged.
+
+`text_overall` averages all 600 image/question scores directly. The category
+weights are their pair counts: 230 single-string, 50 transcription, 230 structured,
+and 90 localization/recognition pairs. It is not an equal average of the four
+category means. It uses unrounded sample scores and the same result fields as
+each category, including full-run token, cost and timing totals. Any accepted
+missing response leaves its ranking score null. It remains outside the original
+six-task overview, so neither categories nor their combined score are counted twice.
+The web JSON contains aggregate model/effort/task summaries; individual predictions
+and ground truths remain in the source JSONL files.
 
 Each text task uses the established `primary_metric`, `metrics`, `metric_runs`,
 `run_count`, `timestamps`, sample-count, token, cost and speed fields. The primary
@@ -218,7 +229,7 @@ helpers. Extend the existing result type for protocol/coverage metadata and show
 preliminary run and coverage labels. Use `overview_tasks` in overview averaging,
 with the legacy six-task list as the fallback for older snapshots.
 
-Task, model-comparison, and model-profile views may show all ten task keys, while
+Task, model-comparison, and model-profile views may show all eleven task keys, while
 the overview mean and its efficiency pool remain the six original tasks.
 A JSON refresh alone does not register the new website routes. Dataset example
 images are handled by the existing examples workflow, not embedded in this JSON.

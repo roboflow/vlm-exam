@@ -812,6 +812,9 @@ def _with_text_results(
             tasks[f"text_{category}"] = _text_result(
                 category_runs, model_config, policy, sources[key, run_effort]
             )
+        tasks["text_overall"] = _text_result(
+            repeated, model_config, policy, sources[key, run_effort]
+        )
         entries[identity] = replace(model, tasks=tasks)
     return replace(
         summary,
@@ -847,7 +850,7 @@ def _with_text_results(
                 },
                 include_in_overall=False,
             )
-            for category, label in _TEXT_TASKS.items()
+            for category, label in (_TEXT_TASKS | {"overall": "Text Overall"}).items()
         ],
     )
 

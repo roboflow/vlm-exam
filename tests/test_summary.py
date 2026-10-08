@@ -569,11 +569,70 @@ def test_text_extends_existing_web_contract_without_changing_overview(
     assert gap["failed_sample_count"] == 1
     assert gap["coverage"][0]["score_bounds"] == [0, 100]
     assert gap["protocol"]["status"] == "complete_with_gaps"
+    total = model["tasks"]["text_overall"]
+    assert total["primary_metric"] is None
+    assert total["metrics"] == total["metric_runs"] == {}
+    assert total["sample_count"] == 4
+    assert total["evaluated_sample_count"] == 3
+    assert total["failed_sample_count"] == 1
+    assert total["coverage"][0]["score_bounds"] == [56.25, 81.25]
+    assert total["protocol"]["status"] == "complete_with_gaps"
     assert all(
         not t["include_in_overall"]
         for t in payload["tasks"]
         if t["key"].startswith("text_")
     )
+
+
+def test_text_overall_weights_pairs_instead_of_categories(
+    tmp_path: Path, text_release: Path
+) -> None:
+    import hashlib
+    import json
+    from copy import deepcopy
+
+    from vlm_exam.results import load_results
+    from vlm_exam.text_release import load_text_release_policy
+
+    path = text_release / "text_alpha_low.jsonl"
+    run = load_results(path)
+    run.samples[2].predicted = "valid response"
+    run.samples[2].metadata["score"] = 0.75
+    run.samples[2].elapsed_seconds = 1.0
+    extra = deepcopy(run.samples[0])
+    extra.index = 4
+    extra.metadata.update(sample_id="4", score=0.0)
+    run.samples.append(extra)
+    for sample in run.samples:
+        sample.metadata["dataset_pairs"] = 5
+    policy = load_text_release_policy()
+    policy["pairs"] = 5
+    policy["selection_hash"] = hashlib.sha256(
+        json.dumps({"sample_ids": ("0", "1", "2", "3", "4"), "pairs": 5}).encode()
+    ).hexdigest()
+    policy["configurations"]["alpha/low"]["allowed_failures"] = []
+    save_results(run, path)
+    legacy = tmp_path / "results"
+    legacy.mkdir()
+    payload = summary_to_dict(build_summary(legacy, _config("alpha")))
+    tasks = payload["models"][0]["tasks"]
+    total = tasks["text_overall"]
+    assert total["primary_metric"] == {"name": "score", "value": 60.0}
+    assert total["metrics"] == {"score": 60.0}
+    assert total["metric_runs"] == {"score": [60.0]}
+    assert total["sample_count"] == total["evaluated_sample_count"] == 5
+    assert total["failed_sample_count"] == 0
+    assert total["tokens"]["total"] == 750
+    assert total["cost"]["total_usd"] == pytest.approx(0.001)
+    assert total["speed"]["total_seconds"] == 5
+    assert total["protocol"]["status"] == "complete"
+    category_scores = [
+        task["primary_metric"]["value"]
+        for key, task in tasks.items()
+        if key != "text_overall"
+    ]
+    assert sum(category_scores) / len(category_scores) == 65.625
+    assert "text_overall" not in payload["overview_tasks"]
 
 
 def test_unified_summary_checks_text_inventory_and_result_bytes(

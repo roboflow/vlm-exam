@@ -70,8 +70,9 @@ uv run vlm-exam summary --check
 ```
 
 `web/benchmark_summary.json` is the single website payload. Its existing
-model/effort rows include the four text tasks, their 0–100 scores, per-category
-coverage, preliminary single-run protocol, and source result checksums.
+model/effort rows include the four text categories and `text_overall`, their 0–100
+scores, per-category coverage, preliminary single-run protocol, and source result
+checksums.
 `model-labels.json` supplies card/chart names and lab affiliations only; it never
 changes inference provenance. The compact chart manifest fingerprints rendering
 inputs and PNGs. The standard validation and summary checks cover the exact
