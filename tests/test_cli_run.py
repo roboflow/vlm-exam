@@ -235,3 +235,89 @@ class TestRunResume:
             "fine",
         ]
         assert "Removed resumed file" in result.output
+
+
+@pytest.mark.parametrize("prediction", ["", '{"total":'])
+def test_invalid_json_card_keeps_reference(
+    prediction: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from types import SimpleNamespace
+
+    import matplotlib.pyplot as plt
+    from matplotlib.font_manager import FontProperties
+    from PIL import Image
+
+    from vlm_exam.visualization import text as cards
+
+    font = FontProperties()
+    monkeypatch.setattr(cards.theme, "load_fonts", lambda: SimpleNamespace(bold=font))
+    monkeypatch.setattr(cards, "draw_verdict", lambda *args: None)
+    monkeypatch.setattr(cards.theme, "draw_legend_chip", lambda *args: 0.5)
+    monkeypatch.setattr(cards.theme, "draw_brand_footer", lambda *args: None)
+
+    def frame(*args: Any) -> tuple[Any, Any]:
+        figure = plt.figure()
+        return figure, figure.add_axes([0, 0, 1, 1])
+
+    monkeypatch.setattr(cards, "_frame", frame)
+    drawn = []
+    monkeypatch.setattr(
+        cards,
+        "draw_diff_line",
+        lambda rail, x, y, spans, *args: drawn.extend(spans),
+    )
+    figures = cards._json_cards(
+        Image.new("RGB", (20, 20)),
+        SimpleNamespace(answer={"total": "42.00"}),
+        SimpleNamespace(predicted=prediction, correct=False),
+        "model",
+        None,
+    )
+    try:
+        text = "".join(span[0] for span in drawn)
+        assert '"total": "42.00"' in text
+        assert "INVALID JSON" in text
+        assert prediction in text if prediction else "(empty response)" in text
+    finally:
+        for figure in figures:
+            plt.close(figure)
+
+
+@pytest.mark.parametrize("count", [1, 10])
+def test_leaderboard_export_has_fixed_visible_padding(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, count: int
+) -> None:
+    from types import SimpleNamespace
+
+    import numpy as np
+    from matplotlib.font_manager import FontProperties
+    from PIL import Image
+
+    from vlm_exam.config import DisplayConfig, ModelDisplay
+    from vlm_exam.visualization import charts
+
+    font = FontProperties()
+    monkeypatch.setattr(
+        charts,
+        "load_fonts",
+        lambda: SimpleNamespace(display=font, bold=font, medium=font),
+    )
+    monkeypatch.setattr(charts, "_add_model_label", lambda *args, **kwargs: None)
+    config = DisplayConfig(
+        labs={"lab": LabConfig("Lab", "#ff0000", "")},
+        models={f"m{i}": ModelDisplay(f"Model {i}", "lab") for i in range(count)},
+    )
+    scores = {key: 80.0 for key in config.models}
+    figure = charts.plot_accuracy_chart(
+        scores, config, "Example leaderboard", run_counts={key: 3 for key in scores}
+    )
+    assert not any(
+        "mean over" in text.get_text() for axes in figure.axes for text in axes.texts
+    )
+    path = tmp_path / "chart.png"
+    charts.save_leaderboard_chart(figure, path)
+    pixels = np.asarray(Image.open(path).convert("RGB")).astype(np.int16)
+    first = np.nonzero(np.any(np.max(abs(pixels - pixels[0, 0]), axis=2) > 30, axis=1))[
+        0
+    ][0]
+    assert first == 118

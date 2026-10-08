@@ -17,9 +17,10 @@ from pathlib import Path
 from typing import Literal
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
-from vlm_exam.config import BenchmarkConfig
+from vlm_exam.config import VisualizationConfig
 from vlm_exam.visualization.theme import (
     BACKGROUND_COLOR,
     BAR_TRACK_COLOR,
@@ -39,7 +40,7 @@ from vlm_exam.visualization.theme import (
 def _add_model_label(
     axes: plt.Axes,
     model_id: str,
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     y: float,
     label_area_width: float = LABEL_AREA_WIDTH,
 ) -> None:
@@ -59,8 +60,8 @@ def _add_model_label(
             box_alignment=(0.5, 0.5),
         )
         axes.add_artist(annotation)
-    except Exception:
-        pass
+    except Exception as error:
+        raise RuntimeError(f"Could not load lab logo: {lab_info.logo_url}") from error
 
     text_x = logo_x + 7.0
     axes.text(
@@ -116,9 +117,7 @@ def _configure_clean_axes(
 
 
 def _layout_leaderboard(figure: plt.Figure) -> None:
-    # Fixed physical padding restores the August title gap (~306 px at
-    # 150 DPI), capped for charts too short to fit it.
-    margin = min(1.712 / figure.get_figheight(), 0.2)
+    margin = min(0.45 / figure.get_figheight(), 0.2)
     figure.tight_layout(rect=[0.01, margin, 0.99, 1 - margin])
 
 
@@ -150,33 +149,9 @@ def _draw_spread_whisker(
         )
 
 
-def _add_spread_footnote(
-    axes: plt.Axes,
-    x: float,
-    y: float,
-    run_counts: dict[str, int],
-) -> None:
-    repeated = {count for count in run_counts.values() if count > 1}
-    if not repeated:
-        return
-    fonts = load_fonts()
-    counts = ", ".join(str(count) for count in sorted(repeated))
-    axes.text(
-        x,
-        y,
-        f"Bars show the mean over {counts} runs where available; "
-        "whiskers span the lowest and highest run.",
-        fontsize=11,
-        color=TEXT_SECONDARY,
-        font=fonts.medium,
-        va="top",
-        ha="left",
-    )
-
-
 def plot_accuracy_chart(
     accuracy: dict[str, float],
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     title: str,
     spread: dict[str, tuple[float, float]] | None = None,
     run_counts: dict[str, int] | None = None,
@@ -191,7 +166,7 @@ def plot_accuracy_chart(
         spread: Optional mapping of model identifier to the lowest and
             highest per-run value; drawn as a whisker on the bar.
         run_counts: Optional mapping of model identifier to the number of
-            runs behind its bar, used for the footnote.
+            runs behind its bar; retained for API compatibility.
 
     Returns:
         Matplotlib figure.
@@ -210,7 +185,7 @@ def plot_accuracy_chart(
 
 def plot_metric_chart(
     metric: dict[str, float],
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     title: str,
     format_value: Callable[[float], str],
     sort_ascending: bool = True,
@@ -234,7 +209,7 @@ def plot_metric_chart(
         spread: Optional mapping of model identifier to the lowest and
             highest per-run value, in metric units; drawn as a whisker.
         run_counts: Optional mapping of model identifier to the number of
-            runs behind its bar, used for the footnote.
+            runs behind its bar; retained for API compatibility.
 
     Returns:
         Matplotlib figure.
@@ -338,7 +313,6 @@ def plot_metric_chart(
         va="bottom",
         ha="left",
     )
-    _add_spread_footnote(axes, -label_area_width - 2, -0.55, run_counts or {})
 
     _layout_leaderboard(figure)
     return figure
@@ -347,7 +321,7 @@ def plot_metric_chart(
 def plot_dual_effort_chart(
     metric_high: dict[str, float],
     metric_low: dict[str, float],
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     title: str,
     format_value: Callable[[float], str],
     sort_ascending: bool = True,
@@ -546,7 +520,7 @@ def plot_dual_effort_chart(
 
 def plot_cost_bar_chart(
     cost_by_model: dict[str, float],
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     title: str = "Average Cost per Image",
 ) -> plt.Figure:
     """Vertical bar chart comparing per-image cost across models.
@@ -634,7 +608,7 @@ def plot_combined_metrics_chart(
     cost_low: dict[str, float],
     time_high: dict[str, float],
     time_low: dict[str, float],
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     sort_by: str = "tokens",
     effort: Literal["low", "high", "both"] = "both",
     column_order: tuple[str, ...] = ("tokens", "cost", "time"),
@@ -802,8 +776,10 @@ def plot_combined_metrics_chart(
                 box_alignment=(0.5, 0.5),
             )
             axes.add_artist(annotation)
-        except Exception:
-            pass
+        except Exception as error:
+            raise RuntimeError(
+                f"Could not load lab logo: {lab_info.logo_url}"
+            ) from error
 
         text_x = logo_x + 7.0
         axes.text(
@@ -1024,5 +1000,34 @@ def save_leaderboard_chart(figure: plt.Figure, path: Path) -> None:
         figure: Leaderboard figure from a shared chart renderer.
         path: Destination PNG path.
     """
+    figure.set_dpi(150)
+    figure.canvas.draw()
+    pixels = np.asarray(figure.canvas.buffer_rgba())
+    # Text extents include font-dependent leading. Measure the painted content
+    # so every chart gets the same visible top padding at the export resolution.
+    background = pixels[0, 0, :3].astype(np.int16)
+    first = next(
+        (
+            index
+            for index, row in enumerate(pixels)
+            if np.any(
+                np.max(np.abs(row[:, :3].astype(np.int16) - background), axis=1) > 30
+            )
+        ),
+        118,
+    )
+    width, height = figure.get_size_inches()
+    adjusted_height = height + (118 - first) / 150
+    positions = [axes.get_position().frozen() for axes in figure.axes]
+    figure.set_size_inches(width, adjusted_height, forward=False)
+    for axes, position in zip(figure.axes, positions):
+        axes.set_position(
+            [
+                position.x0,
+                position.y0 * height / adjusted_height,
+                position.width,
+                position.height * height / adjusted_height,
+            ]
+        )
     figure.savefig(str(path), dpi=150)
     plt.close(figure)

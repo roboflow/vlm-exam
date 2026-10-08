@@ -66,6 +66,7 @@ def plan_jobs(
     output_directory: Path = Path("results"),
     log_directory: Path = Path("logs"),
     max_samples: int | None = None,
+    config_path: Path | None = None,
 ) -> list[Job]:
     """Expand models into one job per ``(model, task, effort, repeat)``.
 
@@ -80,6 +81,7 @@ def plan_jobs(
         dataset_root: Directory holding ``<task>/train`` datasets.
         output_directory: Where result files are written.
         log_directory: Where per-job logs are written.
+        config_path: Optional model configuration forwarded to each run.
         max_samples: Optional sample cap forwarded to ``vlm-exam run``
             (smoke tests only; never for committed runs).
 
@@ -102,6 +104,8 @@ def plan_jobs(
                         root=dataset_root,
                         output_directory=output_directory,
                     )
+                    if config_path is not None:
+                        command.extend(["--config", str(config_path)])
                     if max_samples is not None:
                         command.extend(["--max-samples", str(max_samples)])
                     jobs.append(

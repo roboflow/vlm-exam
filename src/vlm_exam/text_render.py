@@ -20,14 +20,14 @@ import json
 import math
 import re
 from collections import defaultdict
-from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
 import click
 from PIL import Image
 
-from vlm_exam.config import BenchmarkConfig, load_config
+from vlm_exam.config import DisplayConfig, load_display_config
+from vlm_exam.metrics import resolve_leaderboard_model_list
 from vlm_exam.results import RunResult, SampleResult, is_failed_sample, load_results
 from vlm_exam.tasks.text import TEXT_CATEGORIES, TEXT_PROTOCOL, TextSample, TextTask
 from vlm_exam.text_benchmark import summarize_text
@@ -77,7 +77,7 @@ def _panel(
     sample: TextSample,
     result: SampleResult,
     output: Path,
-    config: BenchmarkConfig,
+    config: DisplayConfig,
 ) -> tuple[list[Image.Image], list[str]]:
     import matplotlib.pyplot as plt
 
@@ -143,7 +143,15 @@ def register_text_render_commands(main: click.Group) -> None:
     @click.argument("result_file", type=click.Path(exists=True, dir_okay=False))
     @click.option("--compare-file", type=click.Path(exists=True, dir_okay=False))
     @click.option("--dataset-directory", required=True, type=click.Path(exists=True))
-    @click.option("--output-directory", default="visualizations/text/cards")
+    @click.option("--output-directory", default="visualizations")
+    @click.option(
+        "--config", "config_path", type=click.Path(exists=True, path_type=Path)
+    )
+    @click.option(
+        "--model-labels",
+        type=click.Path(exists=True, path_type=Path),
+        help="Display-only JSON identities for saved models.",
+    )
     @click.option("--category", type=click.Choice(TEXT_CATEGORIES))
     @click.option(
         "--max-samples", default=10, show_default=True, type=click.IntRange(min=1)
@@ -155,6 +163,8 @@ def register_text_render_commands(main: click.Group) -> None:
         output_directory: str,
         category: str | None,
         max_samples: int,
+        config_path: Path | None,
+        model_labels: Path | None,
     ) -> None:
         """Render native PNGs; an optional second run is stacked below the first."""
         samples = {
@@ -165,9 +175,11 @@ def register_text_render_commands(main: click.Group) -> None:
         if compare_file:
             runs.append(load_results(Path(compare_file)))
         results = [_validated_results(run, samples) for run in runs]
-        config = load_config()
+        config = load_display_config(config_path, model_labels)
         if any(run.model not in config.models for run in runs):
-            raise click.ClickException("Run model is absent from models.yaml")
+            raise click.ClickException(
+                "Missing model identity; supply --config or --model-labels"
+            )
         if len(runs) == 2 and (
             runs[0].effort != runs[1].effort or results[0].keys() != results[1].keys()
         ):
@@ -219,7 +231,7 @@ def register_text_render_commands(main: click.Group) -> None:
             click.echo(combined or paths[0][0])
             if len(manifest) == max_samples:
                 break
-        (output / "manifest.json").write_text(
+        (output / "text_cards_manifest.json").write_text(
             json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
         )
         click.echo(f"Rendered {len(manifest)} pairs into {output}")
@@ -228,13 +240,18 @@ def register_text_render_commands(main: click.Group) -> None:
     @click.option(
         "--results-directory", default="results-text", type=click.Path(exists=True)
     )
-    @click.option("--output-directory", default="visualizations/text/leaderboards")
+    @click.option("--output-directory", default="visualizations/leaderboards")
+    @click.option(
+        "--config", "config_path", type=click.Path(exists=True, path_type=Path)
+    )
     @click.option(
         "--model-labels",
-        "model_labels",
         type=click.Path(exists=True, path_type=Path),
-        help="JSON model names and lab keys for offline charts only.",
+        help="Display-only JSON identities for saved models.",
     )
+    @click.option("--models", help="Comma-separated model identifiers.")
+    @click.option("--group", help="Named leaderboard group; overrides --models.")
+    @click.option("--effort", type=click.Choice(("low", "high")))
     @click.option(
         "--allow-incomplete",
         is_flag=True,
@@ -245,6 +262,10 @@ def register_text_render_commands(main: click.Group) -> None:
         output_directory: str,
         allow_incomplete: bool,
         model_labels: Path | None,
+        config_path: Path | None,
+        models: str | None,
+        group: str | None,
+        effort: str | None,
     ) -> None:
         """Render per-category low/high charts from compatible, scored repeats."""
         from vlm_exam.visualization.charts import (
@@ -253,6 +274,14 @@ def register_text_render_commands(main: click.Group) -> None:
         )
 
         summary = summarize_text(Path(results_directory))
+        config = load_display_config(config_path, model_labels)
+        selected = resolve_leaderboard_model_list(config, models=models, group=group)
+        summary["configurations"] = [
+            entry
+            for entry in summary["configurations"]
+            if (selected is None or entry["model"] in selected)
+            and (effort is None or entry["effort"] == effort)
+        ]
         groups: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
         for entry in summary["configurations"]:
             if not entry["complete"] and not allow_incomplete:
@@ -268,24 +297,16 @@ def register_text_render_commands(main: click.Group) -> None:
                 "No complete scored configurations. Use --allow-incomplete "
                 "for preliminary full-dataset runs."
             )
-        config = load_config()
-        if model_labels is not None:
-            labels = json.loads(model_labels.read_text())
-            models = dict(config.models)
-            for key, label in labels.items():
-                if label["lab"] not in config.labs:
-                    raise click.ClickException(f"Unknown lab: {label['lab']}")
-                template = next(iter(config.models.values()))
-                models[key] = replace(
-                    models.get(key, template), name=label["name"], lab=label["lab"]
-                )
-            config = replace(config, models=models)
+        if len(groups) != 1:
+            raise click.ClickException(
+                "Multiple snapshots or selections; separate result directories "
+                "and choose explicit output destinations"
+            )
         output = Path(output_directory)
         output.mkdir(parents=True, exist_ok=True)
         rendered = []
         for (dataset, protocol, selection), entries in sorted(groups.items()):
-            folder = output / f"{dataset[:12]}-{protocol}-{selection[:12]}"
-            folder.mkdir(exist_ok=True)
+            folder = output
             for effort in ("low", "high"):
                 configurations = [
                     entry for entry in entries if entry["effort"] == effort
@@ -297,7 +318,9 @@ def register_text_render_commands(main: click.Group) -> None:
                         "separate result directories"
                     )
                 if set(names) - config.models.keys():
-                    raise click.ClickException("Run model is absent from models.yaml")
+                    raise click.ClickException(
+                        "Missing model identity; supply --config or --model-labels"
+                    )
                 for category, label in _CATEGORY_LABELS.items():
                     category_entries = [
                         entry
@@ -340,10 +363,13 @@ def register_text_render_commands(main: click.Group) -> None:
                         spread=spread,
                         run_counts=counts,
                     )
-                    path = folder / f"{category}-{effort}.png"
+                    path = folder / f"text_{category}_{effort}.png"
                     save_leaderboard_chart(figure, path)
                     rendered.append(str(path.relative_to(output)))
                     click.echo(path)
-        (output / "manifest.json").write_text(
-            json.dumps({"charts": rendered, "summary": summary}, indent=2) + "\n"
+        from vlm_exam.visualization.artifacts import chart_manifest
+
+        manifest = chart_manifest(output, rendered, summary, config)
+        (output / "text_manifest.json").write_text(
+            json.dumps(manifest, indent=2) + "\n"
         )

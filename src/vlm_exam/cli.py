@@ -42,6 +42,7 @@ from vlm_exam.text_benchmark import (
     inference_hash,
     register_text_commands,
 )
+from vlm_exam.text_release import register_text_release_commands
 from vlm_exam.text_render import register_text_render_commands
 
 if TYPE_CHECKING:
@@ -274,7 +275,8 @@ def run(
         raise click.UsageError("--resume-file cannot be combined with --repeats.")
     if (
         task_name == "text"
-        and Path(output_directory).resolve() == Path("results").resolve()
+        and click.get_current_context().get_parameter_source("output_directory")
+        == click.core.ParameterSource.DEFAULT
     ):
         output_directory = "results-text"
     config = load_config(Path(config_path) if config_path else None)
@@ -1682,6 +1684,7 @@ register_reference_commands(main)
 
 register_text_commands(main)
 register_text_render_commands(main)
+register_text_release_commands(main)
 
 
 if __name__ == "__main__":

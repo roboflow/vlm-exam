@@ -292,17 +292,34 @@ def register_text_commands(main: click.Group) -> None:
     @click.option(
         "--results-directory", default="results-text", type=click.Path(exists=True)
     )
-    @click.option("--output", default="text-summary.json")
-    def summary(results_directory: str, output: str) -> None:
+    @click.option("--output", default="web/text_summary.json")
+    @click.option(
+        "--check", is_flag=True, help="Fail if the saved summary is outdated."
+    )
+    def summary(results_directory: str, output: str, check: bool) -> None:
         """Write compatible repeat means, task/subset breakdowns and coverage."""
         data = summarize_text(Path(results_directory))
         target = Path(output)
+        content = json.dumps(data, indent=2) + "\n"
+        if check:
+            if not target.exists() or target.read_text() != content:
+                raise click.ClickException(f"Outdated summary: {target}")
+            click.echo(f"Summary is current: {target}")
+            return
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(json.dumps(data, indent=2) + "\n")
+        target.write_text(content)
         click.echo(f"Summary saved to {target}")
 
     @main.command("text-benchmark")
     @click.option("--models", required=True)
+    @click.option(
+        "--config", "config_path", type=click.Path(exists=True, path_type=Path)
+    )
+    @click.option("--efforts", default="low,high", show_default=True)
+    @click.option("--repeats", type=click.IntRange(min=1), default=3, show_default=True)
+    @click.option(
+        "--first-repeat", type=click.IntRange(min=1), default=1, show_default=True
+    )
     @click.option("--dataset-root", default="data", type=click.Path(exists=True))
     @click.option("--output-directory", default="results-text")
     @click.option("--log-directory", default="logs/text")
@@ -310,6 +327,10 @@ def register_text_commands(main: click.Group) -> None:
     @click.option("--max-samples", type=click.IntRange(min=1))
     def benchmark(
         models: str,
+        config_path: Path | None,
+        efforts: str,
+        repeats: int,
+        first_repeat: int,
         dataset_root: str,
         output_directory: str,
         log_directory: str,
@@ -318,7 +339,16 @@ def register_text_commands(main: click.Group) -> None:
     ) -> None:
         """Run low/high three times per model using the existing provider runner."""
         names = [name.strip() for name in models.split(",")]
-        config = load_config()
+        config = load_config(config_path)
+        selected_efforts = tuple(value.strip() for value in efforts.split(","))
+        if len(set(selected_efforts)) != len(selected_efforts) or set(
+            selected_efforts
+        ) - set(TEXT_BENCHMARK_PROTOCOL.efforts):
+            raise click.UsageError(
+                "--efforts must contain low and/or high without duplicates"
+            )
+        if len(names) != len(set(names)):
+            raise click.UsageError("--models contains duplicates")
         unknown = set(names) - config.models.keys()
         if unknown:
             raise click.ClickException(f"Unknown models: {sorted(unknown)}")
@@ -326,6 +356,10 @@ def register_text_commands(main: click.Group) -> None:
         jobs = plan_jobs(
             names,
             protocol=TEXT_BENCHMARK_PROTOCOL,
+            efforts=selected_efforts,
+            repeats=repeats,
+            first_repeat=first_repeat,
+            config_path=config_path,
             dataset_root=Path(dataset_root),
             output_directory=Path(output_directory),
             log_directory=Path(log_directory),

@@ -26,22 +26,22 @@ import numpy as np
 import supervision as sv
 from PIL import Image
 
-from vlm_exam.config import BenchmarkConfig
+from vlm_exam.config import VisualizationConfig
 from vlm_exam.results import SampleResult
 from vlm_exam.tasks.text import TextSample, TextTask
 from vlm_exam.tasks.text_scoring import match_regions, normalize, parse_json
 from vlm_exam.visualization import theme
 from vlm_exam.visualization.cases import (
-    _draw_rail_verdict,
-    _draw_run_line,
+    draw_diff_line,
+    draw_verdict,
     plot_qa_card,
     plot_transcription_card,
 )
-from vlm_exam.visualization.detection import _region_diff_image
+from vlm_exam.visualization.detection import region_diff_image
 
 
 def _frame(
-    image: Image.Image, model: str, config: BenchmarkConfig, label: str
+    image: Image.Image, model: str, config: VisualizationConfig, label: str
 ) -> tuple[plt.Figure, plt.Axes]:
     figure, axes, rail = theme.create_hero_card()
     axes.imshow(image)
@@ -129,7 +129,7 @@ def _json_cards(
     sample: TextSample,
     result: SampleResult,
     model: str,
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
 ) -> list[plt.Figure]:
     invalid = False
     try:
@@ -137,7 +137,15 @@ def _json_cards(
         lines = _json_diff(sample.answer, predicted)
     except (ValueError, TypeError, RecursionError):
         invalid = True
-        lines = [("+", [(line, "predicted")]) for line in result.predicted.splitlines()]
+        reference = json.dumps(
+            sample.answer, indent=2, ensure_ascii=False, sort_keys=True
+        )
+        lines = [("−", [(line, "expected")]) for line in reference.splitlines()]
+        lines += [(" ", [("MODEL RESPONSE — INVALID JSON", None)])]
+        lines += [
+            ("+", [(line, "predicted")])
+            for line in (result.predicted.splitlines() or ["(empty response)"])
+        ]
     width_inches = theme.HERO_RAIL_RECT[2] * theme.CARD_FIGURE_SIZE[0]
     height_inches = theme.HERO_RAIL_RECT[3] * theme.CARD_FIGURE_SIZE[1]
     for font_size in (14, 13, 12, 11):
@@ -155,7 +163,7 @@ def _json_cards(
     figures = []
     for page in range(pages):
         figure, rail = _frame(image, model, config, "DATA EXTRACTION")
-        _draw_rail_verdict(rail, result.correct)
+        draw_verdict(rail, result.correct)
         rail.text(
             0,
             0.792,
@@ -182,8 +190,8 @@ def _json_cards(
                 if prefix == "+"
                 else theme.TEXT_PRIMARY
             )
-            _draw_run_line(rail, 0, y, [(prefix, None)], font_size, color)
-            _draw_run_line(rail, 0.036, y, runs, font_size)
+            draw_diff_line(rail, 0, y, [(prefix, None)], font_size, color)
+            draw_diff_line(rail, 0.036, y, runs, font_size)
         theme.draw_brand_footer(
             rail,
             "evaluated via exact field values"
@@ -259,7 +267,7 @@ def _localization_card(
     result: SampleResult,
     task: TextTask,
     model: str,
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     uploaded_size: tuple[int, int] | None,
 ) -> plt.Figure:
     try:
@@ -283,7 +291,7 @@ def _localization_card(
             * scale
         )
 
-    overlay = _region_diff_image(
+    overlay = region_diff_image(
         np.asarray(display), boxes(reference), boxes(predictions)
     )
     figure, rail = _frame(
@@ -432,7 +440,7 @@ def plot_text_cards(
     result: SampleResult,
     task: TextTask,
     model: str,
-    config: BenchmarkConfig,
+    config: VisualizationConfig,
     uploaded_size: tuple[int, int] | None = None,
 ) -> list[plt.Figure]:
     """Render native text cards, with additional pages for long JSON responses.

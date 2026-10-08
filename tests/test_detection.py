@@ -1105,3 +1105,30 @@ class TestDetectionCard:
         )
         assert output_file.is_file()
         assert output_file.stat().st_size > 0
+
+
+@pytest.mark.parametrize("maximum", [100, 999, 1000])
+def test_text_normalized_coordinates_follow_detection_contract(maximum: int) -> None:
+    from vlm_exam.tasks.text import TextSample, TextTask
+
+    sample = TextSample(
+        image_path="image.png",
+        category="localization_recognition",
+        question="Read",
+        specification="",
+        expected='[{"bbox": [0,0,100,200], "text": "a"}]',
+        answer=[{"bbox": [0, 0, 100, 200], "text": "a"}],
+        image_width=100,
+        image_height=200,
+        image_hash="image",
+        identity="pair",
+        dataset_hash="dataset",
+        dataset_pairs=1,
+        prefix="{}",
+        subset="sample",
+        scoring_profile="default",
+    )
+    task = TextTask(coordinate_format=f"xyxy_normalized_0_to_{maximum}")
+    prediction = json.dumps([{"box_2d": [0, 0, maximum, maximum], "text": "a"}])
+    assert f"{maximum}" in task.build_prompt(sample)
+    assert task.evaluate(sample, prediction).score == 1.0

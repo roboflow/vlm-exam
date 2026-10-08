@@ -268,8 +268,8 @@ class TextTask(Task):
         value = self.coordinate_format.value
         key = "bbox" if value.endswith("_bbox") else "box_2d"
         swapped = value.startswith("yxyx")
-        if "normalized" in value:
-            scale = 100.0 if value == "xyxy_normalized_0_to_100" else 1000.0
+        scale = self.coordinate_format.normalized_maximum
+        if scale is not None:
             return key, swapped, scale, scale
         if "resized_image" in value:
             if uploaded_size is None:

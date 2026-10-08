@@ -336,3 +336,20 @@ def test_write_and_reload_round_trip(tmp_path: Path) -> None:
     config_path.write_text(yaml.dump(raw))
     config = load_config(config_path)
     assert "gemini-test" in config.models
+
+
+def test_display_labels_do_not_create_inference_configuration(tmp_path: Path) -> None:
+    import json
+
+    from vlm_exam.config import load_config, load_display_config
+
+    native = load_config()
+    lab = next(iter(native.labs))
+    labels = tmp_path / "labels.json"
+    labels.write_text(
+        json.dumps({"saved-only-model": {"name": "Saved Model", "lab": lab}})
+    )
+    display = load_display_config(model_labels=labels)
+    assert display.models["saved-only-model"].name == "Saved Model"
+    assert not hasattr(display.models["saved-only-model"], "routes")
+    assert "saved-only-model" not in native.models

@@ -202,14 +202,6 @@
       "sha256": "f18a5aa53e03c9cd25bdebda650eec60c86fcc9f1eac99c0048d7c7cd8201492"
     },
     {
-      "model": "gemini-3.5-flash",
-      "effort": "high",
-      "file": "text_gemini-3.5-flash_high_20261008.jsonl",
-      "pairs": 600,
-      "successful": 600,
-      "sha256": "f4e16e16a6a159db0d828d3e01611c173da1b75dc9ef7acb3660051e12f6a648"
-    },
-    {
       "model": "gemini-3.5-flash-lite",
       "effort": "high",
       "file": "text_gemini-3.5-flash-lite_high_20261008.jsonl",
@@ -224,6 +216,14 @@
       "pairs": 600,
       "successful": 600,
       "sha256": "33a262633e7696d80b64a36db15e5b6de4a5b5014788d5c06885f0fa2a748e08"
+    },
+    {
+      "model": "gemini-3.5-flash",
+      "effort": "high",
+      "file": "text_gemini-3.5-flash_high_20261008.jsonl",
+      "pairs": 600,
+      "successful": 600,
+      "sha256": "f4e16e16a6a159db0d828d3e01611c173da1b75dc9ef7acb3660051e12f6a648"
     },
     {
       "model": "gemini-3.5-flash",

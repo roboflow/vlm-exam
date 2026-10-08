@@ -64,12 +64,15 @@ Nine gaps are retained as failed, unscored records: Sonnet 5.5 High has one cont
 ## Regenerate from the committed results
 
 ```bash
-uv run vlm-exam text-summary --results-directory results-text --output web/text_summary.json
-uv run vlm-exam text-leaderboard --results-directory results-text \
-  --model-labels results-text/model-labels.json --allow-incomplete
+uv run vlm-exam text-publish
+uv run vlm-exam text-publish --check
 ```
 
-`model-labels.json` supplies chart names and lab affiliations only. It does not configure inference or modify saved provenance. `web/text-results.json` lists the exported files, coverage, and SHA-256 checksums. `web/text_summary.json` contains scores by category and prompt group, repeat counts, coverage and bounds. The chart manifest embeds the same summary.
+`model-labels.json` supplies card and chart names and lab affiliations only. It does not configure inference or modify saved provenance. `web/text-results.json` lists the exported files, coverage, and SHA-256 checksums. `web/text_summary.json` contains scores by category and prompt group, repeat counts, coverage and bounds. The compact chart manifest fingerprints the summary, display identities,
+renderer, and PNG files; it does not duplicate the summary. CI validates the
+exact release inventory and accepted failure IDs before checking these artifacts.
+See [the workflow](../docs/text-benchmark.md) for rendering individual cards
+and for the distinction between frozen imported profiles and fresh native runs.
 
 Provider request/account identifiers have been removed from error diagnostics, generation identifiers omitted, and internal experiment labels made self-contained. Predictions, references, scores, image hashes, model routes, inference hashes, retry counts and failure kinds are preserved.
 
@@ -79,24 +82,24 @@ Only configurations with all 600 scored pairs are plotted: 47 Low and 45 High. C
 
 ### Single-string extraction
 
-![Single-string extraction, Low](../visualizations/text/leaderboards/6a6cbeadcbf0-mixed-text-v2-3c7e4856c5e6/single_string-low.png)
+![Single-string extraction, Low](../visualizations/leaderboards/text_single_string_low.png)
 
-[High effort](../visualizations/text/leaderboards/6a6cbeadcbf0-mixed-text-v2-3c7e4856c5e6/single_string-high.png)
+[High effort](../visualizations/leaderboards/text_single_string_high.png)
 
 ### Transcription
 
-![Transcription, Low](../visualizations/text/leaderboards/6a6cbeadcbf0-mixed-text-v2-3c7e4856c5e6/transcription-low.png)
+![Transcription, Low](../visualizations/leaderboards/text_transcription_low.png)
 
-[High effort](../visualizations/text/leaderboards/6a6cbeadcbf0-mixed-text-v2-3c7e4856c5e6/transcription-high.png)
+[High effort](../visualizations/leaderboards/text_transcription_high.png)
 
 ### Structured JSON extraction
 
-![Structured JSON extraction, Low](../visualizations/text/leaderboards/6a6cbeadcbf0-mixed-text-v2-3c7e4856c5e6/structured-low.png)
+![Structured JSON extraction, Low](../visualizations/leaderboards/text_structured_low.png)
 
-[High effort](../visualizations/text/leaderboards/6a6cbeadcbf0-mixed-text-v2-3c7e4856c5e6/structured-high.png)
+[High effort](../visualizations/leaderboards/text_structured_high.png)
 
 ### Text localization and recognition
 
-![Text localization and recognition, Low](../visualizations/text/leaderboards/6a6cbeadcbf0-mixed-text-v2-3c7e4856c5e6/localization_recognition-low.png)
+![Text localization and recognition, Low](../visualizations/leaderboards/text_localization_recognition_low.png)
 
-[High effort](../visualizations/text/leaderboards/6a6cbeadcbf0-mixed-text-v2-3c7e4856c5e6/localization_recognition-high.png)
+[High effort](../visualizations/leaderboards/text_localization_recognition_high.png)
