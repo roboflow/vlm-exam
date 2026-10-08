@@ -42,7 +42,6 @@ from vlm_exam.text_benchmark import (
     inference_hash,
     register_text_commands,
 )
-from vlm_exam.text_release import register_text_release_commands
 from vlm_exam.text_render import register_text_render_commands
 
 if TYPE_CHECKING:
@@ -590,6 +589,17 @@ def validate(
 
     config = load_config(Path(config_path) if config_path else None)
     report = validate_results(Path(results_directory), config, strict=strict)
+    text_directory = Path(results_directory).parent / "results-text"
+    if text_directory.exists():
+        from dataclasses import replace
+
+        from vlm_exam.text_release import (
+            load_text_release_policy,
+            validate_text_release,
+        )
+
+        problems = validate_text_release(text_directory, load_text_release_policy())
+        report = replace(report, orphans=report.orphans + tuple(problems))
 
     click.echo(format_report(report, verbose=verbose))
     if output_format == "github":
@@ -939,7 +949,19 @@ def summary(
                 "`vlm-exam summary --dataset-directory data/detection/train` "
                 "and commit the result."
             )
-        click.echo(f"{output_path} matches results/ and models.yaml.")
+        text_directory = results_path.parent / "results-text"
+        if text_directory.exists() and model_filter is None and effort is None:
+            from vlm_exam.text_release import check_text_charts
+
+            try:
+                check_text_charts(
+                    text_directory,
+                    Path("visualizations/leaderboards"),
+                    Path(config_path) if config_path else None,
+                )
+            except (OSError, ValueError, KeyError) as error:
+                raise click.ClickException(str(error)) from error
+        click.echo(f"{output_path} matches saved results and model configuration.")
         return
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1684,7 +1706,6 @@ register_reference_commands(main)
 
 register_text_commands(main)
 register_text_render_commands(main)
-register_text_release_commands(main)
 
 
 if __name__ == "__main__":

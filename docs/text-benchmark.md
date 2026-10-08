@@ -65,7 +65,6 @@ uv run vlm-exam run --task text --models gpt-6.1-sol --effort low \
   --dataset-directory data/text/train --max-samples 4 \
   --output-directory results-text-smoke --concurrency 2
 uv run vlm-exam text-benchmark --models gpt-6.1-sol --max-parallel 2
-uv run vlm-exam text-summary --results-directory results-text --output text-summary.json
 ```
 
 Use `--dataset-root` for a different root containing `text/train`.
@@ -150,33 +149,85 @@ controls do not authorize rerunning the frozen release. An explicit output
 path passed to `run` is always honored; only the omitted text-task default
 selects `results-text`.
 
-The text JSONL collection remains in `results-text/` because its frozen
-image/question protocol is independent of the six-task `results/` release.
-Combining those directories without protocol-aware validation would hide or
-misclassify coverage. Its summary retains category/subset and snapshot keys
-needed to avoid averaging incompatible runs. Visual artifacts do not require
-that separation and use the existing common directories and rendering code.
-
-Rebuild all public text artifacts with one offline command:
+The frozen text source files remain in `results-text/`; the website receives
+one payload, `web/benchmark_summary.json`. There is no separate text summary or
+file-index endpoint. The existing commands discover the sibling `results-text/`
+directory and validate its reviewed release policy before JSON publication:
 
 ```bash
-uv run vlm-exam text-publish
-uv run vlm-exam text-publish --check
+uv run vlm-exam validate
+uv run vlm-exam summary --dataset-directory data/detection/train
+uv run vlm-exam summary --check
 ```
 
-This validates `configs/text_release.json` before generating the summary,
-checksum index, charts and compact chart manifest. CI runs the check without
-writing. The independently reviewed policy specifies the exact public model
-inventory, both efforts, one run per configuration, all 600 pair IDs through
-the selection hash, frozen inference hashes, and exact accepted failure IDs.
-Changing results does not redefine that policy automatically. Native fresh
-benchmarking still defaults to three repeats.
+To refresh only the text PNGs after a text-only change, use
+`text-leaderboard --allow-incomplete --model-labels results-text/model-labels.json`.
+The PNGs remain unchanged in this JSON migration. Their existing eligibility
+rule requires all 600 scored pairs. The unified JSON exposes category coverage
+independently so consumers can rank every fully scored category.
+`summary --check` checks the unified JSON and compact chart manifest without
+inference. CI uses the existing validate and summary steps.
+
+The independent `configs/text_release.json` policy pins the 48 public models,
+both efforts, one run per configuration, all 600 pair IDs, frozen inference
+hashes, and exact accepted failure IDs. Changing result files does not redefine
+that policy. Native fresh benchmarking still defaults to three repeats.
+
+## Website JSON contract
+
+The existing `generated_at`, `efforts`, `tasks`, and `models` envelope is retained.
+Each existing `model:effort` row gains four ordinary entries under `tasks`:
+`text_single_string`, `text_transcription`, `text_structured`, and
+`text_localization_recognition`. Existing OCR and extraction entries are unchanged.
+
+Each text task uses the established `primary_metric`, `metrics`, `metric_runs`,
+`run_count`, `timestamps`, sample-count, token, cost and speed fields. The primary
+metric is `score` (mean normalized task score, percent 0–100), not uniform answer
+accuracy. Token and speed aggregation reuse the existing summary helpers. Cost
+is an estimate from the registered token prices, as for the other tasks.
+
+Additive per-task fields retain the evidence:
+
+- `protocol`: frozen release name, `repeats: 1`, `preliminary: true`, and
+  `status: complete` or `complete_with_gaps`. This is independent of the existing
+  six-task protocol block; a complete single-run release is not three repeats.
+- `provenance`: dataset, selection, inference and scoring identities, coordinate
+  convention, and source result filenames with SHA-256 hashes.
+- `coverage`: per-run expected, scored and failed counts, observed score and
+  score bounds, all quality values on the same 0–100 scale.
+- `subsets`: the corresponding coverage and scores for each prompt subset.
+
+A category with accepted missing responses has `primary_metric: null` and empty
+`metrics`/`metric_runs`. Its observed score remains diagnostic coverage metadata;
+it is not a full-coverage ranking value. Fully scored categories remain rankable.
+
+The current six-task overview is preserved. `overview_tasks` explicitly names
+its task selection; the new task metadata sets `include_in_overall: false`.
+Existing model `overall` cost/token/speed totals and six-task protocol status do
+not change. Consumers must use that overview selection for scores as well as
+pooled efficiency instead of averaging every newly registered task.
+
+### CV Model Playground integration
+
+The existing `refresh-benchmarks` script can keep fetching the same file and
+reconciling model mappings. `getBenchmarkSummary()` keeps its current loader.
+The regular task leaderboard needs no alternate data source or normalization.
+To expose new pages, extend `lib/benchmarks/types.ts` task keys, slugs and
+`features/evals/benchmark/copy.ts`; use the same task tables, ranking and pricing
+helpers. Extend the existing result type for protocol/coverage metadata and show
+preliminary run and coverage labels. Use `overview_tasks` in overview averaging,
+with the legacy six-task list as the fallback for older snapshots.
+
+Task, model-comparison, and model-profile views may show all ten task keys, while
+the overview mean and its efficiency pool remain the six original tasks.
+A JSON refresh alone does not register the new website routes. Dataset example
+images are handled by the existing examples workflow, not embedded in this JSON.
 
 The imported release preserves its recorded inference profiles. Some differ
 from the current bundled model defaults, and display identities do not add
 inference support. Fresh runs with bundled defaults are separate experiments;
 they must not resume or be pooled with incompatible frozen runs. The runner
-checks inference hashes on resume and the summary separates those profiles.
+checks inference hashes on resume and publication rejects profiles outside the reviewed release policy.
 
 All leaderboard types use a fixed 118 px title gap at the standard 150 DPI
 export, independent of model count. The averaging footnote is omitted from PNGs;

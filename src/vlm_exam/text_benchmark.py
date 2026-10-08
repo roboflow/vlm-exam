@@ -288,28 +288,6 @@ def register_text_commands(main: click.Group) -> None:
             )
         click.echo(f"Validated {len(samples)} pairs in {destination / 'train'}")
 
-    @main.command("text-summary")
-    @click.option(
-        "--results-directory", default="results-text", type=click.Path(exists=True)
-    )
-    @click.option("--output", default="web/text_summary.json")
-    @click.option(
-        "--check", is_flag=True, help="Fail if the saved summary is outdated."
-    )
-    def summary(results_directory: str, output: str, check: bool) -> None:
-        """Write compatible repeat means, task/subset breakdowns and coverage."""
-        data = summarize_text(Path(results_directory))
-        target = Path(output)
-        content = json.dumps(data, indent=2) + "\n"
-        if check:
-            if not target.exists() or target.read_text() != content:
-                raise click.ClickException(f"Outdated summary: {target}")
-            click.echo(f"Summary is current: {target}")
-            return
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(content)
-        click.echo(f"Summary saved to {target}")
-
     @main.command("text-benchmark")
     @click.option("--models", required=True)
     @click.option(

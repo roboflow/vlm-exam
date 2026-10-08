@@ -21,13 +21,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-import click
-
-from vlm_exam.config import load_display_config
 from vlm_exam.results import is_failed_sample, load_results
-from vlm_exam.text_benchmark import summarize_text
 from vlm_exam.validation import ERROR, Problem
-from vlm_exam.visualization.artifacts import chart_manifest
 
 _DEFAULT_POLICY = Path(__file__).parent / "configs" / "text_release.json"
 
@@ -145,131 +140,44 @@ def validate_text_release(directory: Path, policy: dict[str, Any]) -> list[Probl
     return problems
 
 
-def release_index(directory: Path, policy: dict[str, Any]) -> dict[str, Any]:
-    """Build the deterministic public results index from unchanged JSONL bytes."""
-    runs = []
-    for path in sorted(directory.glob("*.jsonl")):
-        run = load_results(path)
-        runs.append(
-            {
-                "model": run.model,
-                "effort": run.effort,
-                "file": path.name,
-                "pairs": len(run.samples),
-                "successful": sum(not is_failed_sample(s) for s in run.samples),
-                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
-            }
-        )
-    return {
-        **{
-            key: policy[key]
-            for key in ("dataset_hash", "pairs", "protocol", "repeats", "efforts")
-        },
-        "models": len(policy["models"]),
-        "runs": runs,
-    }
+def load_text_release_policy() -> dict[str, Any]:
+    """Return the reviewed frozen text release requirements."""
+    return json.loads(_DEFAULT_POLICY.read_text())
 
 
-def register_text_release_commands(main: click.Group) -> None:
-    """Register deterministic publication and validation for the frozen text release."""
+def check_text_charts(
+    results_directory: Path, charts_directory: Path, config_path: Path | None = None
+) -> None:
+    """Verify text PNGs and their source fingerprints during summary validation.
 
-    @main.command("text-publish")
-    @click.option(
-        "--results-directory",
-        default="results-text",
-        type=click.Path(exists=True, path_type=Path),
-    )
-    @click.option(
-        "--policy",
-        default=str(_DEFAULT_POLICY),
-        type=click.Path(exists=True, path_type=Path),
-    )
-    @click.option(
-        "--model-labels",
-        default="results-text/model-labels.json",
-        type=click.Path(exists=True, path_type=Path),
-    )
-    @click.option(
-        "--config", "config_path", type=click.Path(exists=True, path_type=Path)
-    )
-    @click.option("--output-directory", default="web", type=click.Path(path_type=Path))
-    @click.option(
-        "--charts-directory",
-        default="visualizations/leaderboards",
-        type=click.Path(path_type=Path),
-    )
-    @click.option(
-        "--check",
-        is_flag=True,
-        help="Check release coverage and artifact freshness without writing.",
-    )
-    def publish(
-        results_directory: Path,
-        policy: Path,
-        model_labels: Path,
-        config_path: Path | None,
-        output_directory: Path,
-        charts_directory: Path,
-        check: bool,
-    ) -> None:
-        """Validate coverage and rebuild public metadata and charts."""
-        requirements = json.loads(policy.read_text())
-        problems = validate_text_release(results_directory, requirements)
-        if problems:
-            for problem in problems:
-                click.echo(
-                    f"{problem.model} {problem.scope}: {problem.message}", err=True
-                )
-            raise click.ClickException("Text release validation failed")
-        summary = summarize_text(results_directory)
-        config = load_display_config(config_path, model_labels)
-        charts = sorted(
-            {
-                f"text_{category}_{entry['effort']}.png"
-                for entry in summary["configurations"]
-                if entry["full_dataset"] and entry["mean"] is not None
-                for category in entry["by_category"]
-            }
-        )
-        if check:
-            try:
-                manifest = chart_manifest(charts_directory, charts, summary, config)
-            except (OSError, KeyError, ValueError) as error:
-                raise click.ClickException(
-                    f"Invalid chart artifacts: {error}"
-                ) from error
-        else:
-            context = click.get_current_context()
-            context.invoke(
-                main.commands["text-leaderboard"],
-                results_directory=str(results_directory),
-                output_directory=str(charts_directory),
-                allow_incomplete=requirements["repeats"] < 3,
-                model_labels=model_labels,
-                config_path=config_path,
-                models=None,
-                group=None,
-                effort=None,
-            )
-            manifest = chart_manifest(charts_directory, charts, summary, config)
-        artifacts = {
-            output_directory / "text_summary.json": summary,
-            output_directory / "text-results.json": release_index(
-                results_directory, requirements
-            ),
-            charts_directory / "text_manifest.json": manifest,
+    Args:
+        results_directory: Frozen public text results.
+        charts_directory: Shared leaderboard directory.
+        config_path: Optional model configuration supplying display identities.
+
+    Raises:
+        ValueError: The committed chart manifest is stale.
+    """
+    from vlm_exam.config import load_display_config
+    from vlm_exam.text_benchmark import summarize_text
+    from vlm_exam.visualization.artifacts import chart_manifest
+
+    summary = summarize_text(results_directory)
+    labels = results_directory / "model-labels.json"
+    config = load_display_config(config_path, labels if labels.exists() else None)
+
+    charts = sorted(
+        {
+            f"text_{category}_{entry['effort']}.png"
+            for entry in summary["configurations"]
+            if entry["full_dataset"] and entry["mean"] is not None
+            for category in entry["by_category"]
         }
-        for path, data in artifacts.items():
-            content = json.dumps(data, indent=2) + "\n"
-            if check:
-                if not path.exists() or path.read_text() != content:
-                    raise click.ClickException(
-                        f"Outdated artifact: {path}; run text-publish"
-                    )
-            else:
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(content)
-        click.echo(
-            f"Validated {len(requirements['models'])} models, both efforts; "
-            f"public artifacts {'are current' if check else 'rebuilt'}."
+    )
+    expected = chart_manifest(charts_directory, charts, summary, config)
+    path = charts_directory / "text_manifest.json"
+    if json.loads(path.read_text()) != expected:
+        raise ValueError(
+            f"Stale chart manifest: {path}; regenerate "
+            "text-leaderboard --allow-incomplete"
         )

@@ -321,6 +321,13 @@ Leaderboards belong in `visualizations/leaderboards/`; cards default to
 averaging footnote without changing statistics or spread whiskers.
 
 Before updating this PR, run Ruff check/format, the existing tests, `validate`,
-`summary --check`, and `text-publish --check`. Verify offline cards for strings,
+`summary --check` (including text coverage and chart freshness). Verify cards for strings,
 JSON, localization, empty/invalid responses and pagination. New test files stay
 outside this PR; add focused regressions to relevant existing test modules.
+
+Publish through the existing `summary` command and `web/benchmark_summary.json`.
+Text categories extend `models[].tasks` with the same result fields and 0–100
+score units. Keep source checksums and task protocol/coverage metadata in that
+payload. Do not create alternate web summary or file-index endpoints. Preserve
+the six-task overview using its explicit task selection and matching efficiency
+pool; text task pages use the existing consumer architecture.

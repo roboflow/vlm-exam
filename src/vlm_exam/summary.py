@@ -15,9 +15,10 @@
 from __future__ import annotations
 
 import difflib
+import hashlib
 import json
-from dataclasses import dataclass
-from datetime import datetime
+from dataclasses import dataclass, replace
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -38,6 +39,7 @@ from vlm_exam.results import (
     RunResult,
     SampleResult,
     is_failed_sample,
+    load_results,
     load_results_directory,
 )
 
@@ -171,6 +173,10 @@ class ModelTaskResult:
     timestamp: str
     timestamps: tuple[str, ...]
     evaluated_sample_count: int | None = None
+    protocol: dict[str, Any] | None = None
+    provenance: dict[str, Any] | None = None
+    coverage: tuple[dict[str, Any], ...] = ()
+    subsets: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -226,6 +232,8 @@ class TaskSummary:
     name: str
     primary_metric: str
     metrics: tuple[MetricDefinition, ...]
+    protocol: dict[str, Any] | None = None
+    include_in_overall: bool = True
 
 
 @dataclass(frozen=True)
@@ -272,6 +280,9 @@ class BenchmarkSummary:
 
 
 def _iso_timestamp(raw: str) -> str:
+    if "T" in raw:
+        value = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        return value.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     return datetime.strptime(raw, "%Y%m%d_%H%M%S").strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
@@ -527,6 +538,7 @@ def build_summary(
     *,
     models: set[str] | None = None,
     detection_dataset_directory: Path | None = None,
+    text_results_directory: Path | None = None,
 ) -> BenchmarkSummary:
     """Compile all result files into a single frontend-facing summary.
 
@@ -543,6 +555,8 @@ def build_summary(
         detection_dataset_directory: Detection dataset directory used to
             compute mAP. When ``None``, detection quality metrics are
             omitted while token, cost, and speed metrics are kept.
+        text_results_directory: Frozen text release; defaults to the sibling
+            results-text directory when present. It is validated before export.
 
     Returns:
         The assembled benchmark summary.
@@ -640,13 +654,201 @@ def build_summary(
         )
     )
 
-    return BenchmarkSummary(
+    summary = BenchmarkSummary(
         generated_at=(
             _iso_timestamp(latest_run_timestamp) if latest_run_timestamp else None
         ),
         efforts=efforts,
         tasks=task_summaries,
         models=model_summaries,
+    )
+
+    text_directory = text_results_directory or results_directory.parent / "results-text"
+    if text_results_directory is not None or text_directory.exists():
+        summary = _with_text_results(summary, text_directory, config, effort, models)
+    return summary
+
+
+_TEXT_TASKS = {
+    "single_string": "Single String Extraction",
+    "transcription": "Text Transcription",
+    "structured": "Structured Text Extraction",
+    "localization_recognition": "Text Localization and Recognition",
+}
+
+
+def _text_coverage(samples: list[SampleResult]) -> dict[str, Any]:
+    scores = [s.metadata["score"] * 100 for s in samples if not is_failed_sample(s)]
+    total = sum(scores)
+    count = len(samples)
+    return {
+        "sample_count": count,
+        "evaluated_sample_count": len(scores),
+        "failed_sample_count": count - len(scores),
+        "score": total / count if count and len(scores) == count else None,
+        "observed_score": _mean(scores) if scores else None,
+        "score_bounds": [total / count, (total + 100 * (count - len(scores))) / count]
+        if count
+        else None,
+    }
+
+
+def _text_result(
+    runs: list[RunResult],
+    pricing: ModelConfig,
+    policy: dict[str, Any],
+    sources: list[dict[str, str]],
+) -> ModelTaskResult:
+    coverage = tuple(_text_coverage(run.samples) for run in runs)
+    complete = all(row["failed_sample_count"] == 0 for row in coverage)
+    scores = tuple(row["score"] for row in coverage) if complete else ()
+    metadata = runs[0].samples[0].metadata
+    subsets = sorted({s.metadata["subset"] for run in runs for s in run.samples})
+    return ModelTaskResult(
+        primary_metric=MetricValue("score", _mean(list(scores))) if complete else None,
+        metrics={"score": _mean(list(scores))} if complete else {},
+        metric_runs={"score": scores} if complete else {},
+        run_count=len(runs),
+        sample_count=len(runs[0].samples),
+        evaluated_sample_count=min(row["evaluated_sample_count"] for row in coverage),
+        failed_sample_count=sum(row["failed_sample_count"] for row in coverage),
+        tokens=_mean_tokens(runs),
+        cost=_mean_cost(runs, pricing),
+        speed=_mean_speed(runs),
+        timestamp=max((run.timestamp for run in runs), key=_iso_timestamp),
+        timestamps=tuple(run.timestamp for run in runs),
+        protocol={
+            "name": policy["name"],
+            "repeats": policy["repeats"],
+            "preliminary": policy["status"] == "preliminary",
+            "status": "complete" if complete else "complete_with_gaps",
+        },
+        provenance={
+            "dataset_hash": policy["dataset_hash"],
+            "selection_hash": policy["selection_hash"],
+            "scoring_protocol": metadata["text_protocol"],
+            "coordinate_format": metadata["coordinate_format"],
+            "inference_hash": metadata["inference_hash"],
+            "result_files": sources,
+        },
+        coverage=coverage,
+        subsets={
+            subset: [
+                _text_coverage(
+                    [s for s in run.samples if s.metadata["subset"] == subset]
+                )
+                for run in runs
+            ]
+            for subset in subsets
+        },
+    )
+
+
+def _with_text_results(
+    summary: BenchmarkSummary,
+    directory: Path,
+    config: BenchmarkConfig,
+    effort: str | None,
+    models: set[str] | None,
+) -> BenchmarkSummary:
+    from vlm_exam.text_release import load_text_release_policy, validate_text_release
+
+    policy = load_text_release_policy()
+    problems = validate_text_release(directory, policy)
+    if problems:
+        raise ValueError(
+            "Invalid text release: " + "; ".join(p.message for p in problems)
+        )
+    runs = []
+    sources: dict[tuple[str, str], list[dict[str, str]]] = {}
+    for path in sorted(directory.glob("*.jsonl")):
+        run = load_results(path)
+        runs.append(run)
+        sources.setdefault((run.model, run.effort), []).append(
+            {
+                "file": path.name,
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            }
+        )
+    groups: dict[tuple[str, str], list[RunResult]] = {}
+    for run in runs:
+        if (effort is not None and run.effort != effort) or (
+            models is not None and run.model not in models
+        ):
+            continue
+        if run.model not in config.models:
+            raise ValueError(f"Missing model identity and pricing: {run.model}")
+        groups.setdefault((run.model, run.effort), []).append(run)
+    if not groups:
+        return summary
+    entries = {model.id: model for model in summary.models}
+    for (key, run_effort), repeated in sorted(groups.items()):
+        repeated.sort(key=lambda run: _iso_timestamp(run.timestamp))
+        model_config = config.models[key]
+        identity = f"{key}:{run_effort}"
+        model = entries.get(identity) or ModelSummary(
+            id=identity,
+            key=key,
+            name=model_config.name,
+            lab=model_config.lab,
+            effort=run_effort,
+            tasks={},
+            overall=_overall({}),
+            protocol=_model_protocol(key, model_config, {}),
+        )
+        tasks = dict(model.tasks)
+        for category in _TEXT_TASKS:
+            category_runs = [
+                replace(
+                    run,
+                    samples=[
+                        s for s in run.samples if s.metadata["category"] == category
+                    ],
+                )
+                for run in repeated
+            ]
+            if not all(run.samples for run in category_runs):
+                raise ValueError(f"Missing text category {category} for {identity}")
+            tasks[f"text_{category}"] = _text_result(
+                category_runs, model_config, policy, sources[key, run_effort]
+            )
+        entries[identity] = replace(model, tasks=tasks)
+    return replace(
+        summary,
+        generated_at=max(
+            [summary.generated_at or ""]
+            + [
+                _iso_timestamp(run.timestamp)
+                for group in groups.values()
+                for run in group
+            ]
+        ),
+        efforts=tuple(
+            sorted({model.effort for model in entries.values()}, key=_effort_sort_key)
+        ),
+        models=sorted(
+            entries.values(),
+            key=lambda model: (
+                list(config.models).index(model.key),
+                _effort_sort_key(model.effort),
+            ),
+        ),
+        tasks=summary.tasks
+        + [
+            TaskSummary(
+                key=f"text_{category}",
+                name=label,
+                primary_metric="score",
+                metrics=(MetricDefinition("score", "Mean score"),),
+                protocol={
+                    "name": policy["name"],
+                    "repeats": policy["repeats"],
+                    "preliminary": policy["status"] == "preliminary",
+                },
+                include_in_overall=False,
+            )
+            for category, label in _TEXT_TASKS.items()
+        ],
     )
 
 
@@ -704,6 +906,10 @@ def _task_result_dict(result: ModelTaskResult) -> dict[str, Any]:
         "cost": _cost_dict(result.cost),
         "speed": _speed_dict(result.speed),
         "timestamp": _iso_timestamp(result.timestamp),
+        **({"protocol": result.protocol} if result.protocol is not None else {}),
+        **({"provenance": result.provenance} if result.provenance is not None else {}),
+        **({"coverage": list(result.coverage)} if result.coverage else {}),
+        **({"subsets": result.subsets} if result.subsets is not None else {}),
     }
 
 
@@ -766,6 +972,15 @@ def summary_to_dict(summary: BenchmarkSummary) -> dict[str, Any]:
     """
     return {
         "generated_at": summary.generated_at,
+        **(
+            {
+                "overview_tasks": [
+                    task.key for task in summary.tasks if task.include_in_overall
+                ]
+            }
+            if any(not task.include_in_overall for task in summary.tasks)
+            else {}
+        ),
         "efforts": list(summary.efforts),
         "scoring": {
             "judge_model": summary.scoring.judge_model,
@@ -783,6 +998,10 @@ def summary_to_dict(summary: BenchmarkSummary) -> dict[str, Any]:
                 "key": task.key,
                 "name": task.name,
                 "primary_metric": task.primary_metric,
+                **({"protocol": task.protocol} if task.protocol is not None else {}),
+                **(
+                    {"include_in_overall": False} if not task.include_in_overall else {}
+                ),
                 "metrics": [
                     {
                         "key": metric.key,

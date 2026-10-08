@@ -457,6 +457,7 @@ alongside the existing benchmark. See [import, run, resume and scoring instructi
 
 The frozen 600-pair evaluation includes 48 models at Low and High effort, with
 one run per configuration. See the [results, coverage, and rendered leaderboards](results-text/README.md)
-and [machine-readable summary](web/text_summary.json). The charts are preliminary
+and [machine-readable summary](web/benchmark_summary.json). The charts are preliminary
 single-run results; incomplete configurations retain explicit gap counts and
-are excluded from chart rankings.
+are excluded from the existing chart rankings. The unified web summary also
+exposes each category’s scores and coverage independently.

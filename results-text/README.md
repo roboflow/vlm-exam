@@ -64,13 +64,18 @@ Nine gaps are retained as failed, unscored records: Sonnet 5.5 High has one cont
 ## Regenerate from the committed results
 
 ```bash
-uv run vlm-exam text-publish
-uv run vlm-exam text-publish --check
+uv run vlm-exam validate
+uv run vlm-exam summary --dataset-directory data/detection/train
+uv run vlm-exam summary --check
 ```
 
-`model-labels.json` supplies card and chart names and lab affiliations only. It does not configure inference or modify saved provenance. `web/text-results.json` lists the exported files, coverage, and SHA-256 checksums. `web/text_summary.json` contains scores by category and prompt group, repeat counts, coverage and bounds. The compact chart manifest fingerprints the summary, display identities,
-renderer, and PNG files; it does not duplicate the summary. CI validates the
-exact release inventory and accepted failure IDs before checking these artifacts.
+`web/benchmark_summary.json` is the single website payload. Its existing
+model/effort rows include the four text tasks, their 0–100 scores, per-category
+coverage, preliminary single-run protocol, and source result checksums.
+`model-labels.json` supplies card/chart names and lab affiliations only; it never
+changes inference provenance. The compact chart manifest fingerprints rendering
+inputs and PNGs. The standard validation and summary checks cover the exact
+release inventory, accepted gaps and generated artifacts.
 See [the workflow](../docs/text-benchmark.md) for rendering individual cards
 and for the distinction between frozen imported profiles and fresh native runs.
 
@@ -78,7 +83,11 @@ Provider request/account identifiers have been removed from error diagnostics, g
 
 ## Leaderboards
 
-Only configurations with all 600 scored pairs are plotted: 47 Low and 45 High. Charts are explicitly preliminary because each configuration has one run. All 48 models remain in the coverage table and summary.
+Only configurations with all 600 scored pairs are plotted: 47 Low and 45 High.
+These existing PNGs are unchanged by the unified JSON migration. The JSON
+preserves scores and coverage per category, including fully scored categories
+from configurations with an accepted gap elsewhere. All 48 models remain in the
+coverage table and summary.
 
 ### Single-string extraction
 

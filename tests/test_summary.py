@@ -459,3 +459,185 @@ class TestSummaryDrift:
         )
 
         assert any(line.startswith("+") and "2.0" in line for line in drift)
+
+
+@pytest.fixture
+def text_release(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    import hashlib
+    import json
+
+    from vlm_exam import text_release as release
+
+    directory = tmp_path / "results-text"
+    directory.mkdir()
+    categories = (
+        "single_string",
+        "transcription",
+        "structured",
+        "localization_recognition",
+    )
+    samples = [
+        _sample(
+            index=index,
+            metadata={
+                "sample_id": str(index),
+                "dataset_hash": "snapshot",
+                "dataset_pairs": 4,
+                "text_protocol": "mixed-text-v2",
+                "coordinate_format": "xyxy_normalized_0_to_1000",
+                "inference_hash": "frozen",
+                "image_sha256": str(index),
+                "question": "Read",
+                "category": category,
+                "subset": category,
+                "score": 0.75 if index != 2 else None,
+            },
+        )
+        for index, category in enumerate(categories)
+    ]
+    samples[2].predicted = "ERROR: accepted timeout"
+    samples[2].correct = False
+    samples[2].elapsed_seconds = None
+    run = _run(
+        "alpha", "text", timestamp="2026-10-08T06:38:54.178352+00:00", samples=samples
+    )
+    save_results(run, directory / "text_alpha_low.jsonl")
+    policy = {
+        "name": "test-release",
+        "status": "preliminary",
+        "models": ["alpha"],
+        "efforts": ["low"],
+        "repeats": 1,
+        "pairs": 4,
+        "dataset_hash": "snapshot",
+        "protocol": "mixed-text-v2",
+        "selection_hash": hashlib.sha256(
+            json.dumps({"sample_ids": ("0", "1", "2", "3"), "pairs": 4}).encode()
+        ).hexdigest(),
+        "configurations": {
+            "alpha/low": {
+                "inference_hash": "frozen",
+                "coordinate_format": "xyxy_normalized_0_to_1000",
+                "allowed_failures": ["2"],
+            }
+        },
+    }
+    monkeypatch.setattr(release, "load_text_release_policy", lambda: policy)
+    return directory
+
+
+def test_text_extends_existing_web_contract_without_changing_overview(
+    tmp_path: Path, text_release: Path
+) -> None:
+    import hashlib
+
+    legacy = tmp_path / "results"
+    legacy.mkdir()
+    save_results(_run("alpha", "counting"), legacy / "counting.jsonl")
+    baseline = summary_to_dict(build_summary(legacy, _config("alpha"), effort="high"))
+    assert baseline["models"] == []
+    payload = summary_to_dict(build_summary(legacy, _config("alpha")))
+    model = payload["models"][0]
+    assert len(payload["models"]) == 1
+    assert model["id"] == "alpha:low"
+    assert payload["overview_tasks"] == ["counting"]
+    assert model["overall"]["sample_count"] == 1
+    assert model["overall"]["tokens"]["total"] == 150
+    assert model["tasks"]["counting"]["primary_metric"]["value"] == 100
+    text = model["tasks"]["text_single_string"]
+    assert text["primary_metric"] == {"name": "score", "value": 75}
+    assert text["metrics"] == {"score": 75}
+    assert text["metric_runs"] == {"score": [75]}
+    assert text["run_count"] == text["protocol"]["repeats"] == 1
+    assert text["protocol"]["status"] == "complete"
+    assert text["protocol"]["preliminary"] is True
+    assert text["timestamp"] == "2026-10-08T06:38:54Z"
+    assert payload["generated_at"] == text["timestamp"]
+    assert text["tokens"]["total"] == 150
+    assert text["cost"]["total_usd"] == 0.0002
+    assert text["speed"]["total_seconds"] == 1
+    assert (
+        text["provenance"]["result_files"][0]["sha256"]
+        == hashlib.sha256(
+            (text_release / "text_alpha_low.jsonl").read_bytes()
+        ).hexdigest()
+    )
+    gap = model["tasks"]["text_structured"]
+    assert gap["primary_metric"] is None
+    assert gap["metrics"] == {}
+    assert gap["evaluated_sample_count"] == 0
+    assert gap["failed_sample_count"] == 1
+    assert gap["coverage"][0]["score_bounds"] == [0, 100]
+    assert gap["protocol"]["status"] == "complete_with_gaps"
+    assert all(
+        not t["include_in_overall"]
+        for t in payload["tasks"]
+        if t["key"].startswith("text_")
+    )
+
+
+def test_unified_summary_checks_text_inventory_and_result_bytes(
+    tmp_path: Path, text_release: Path
+) -> None:
+    legacy = tmp_path / "results"
+    legacy.mkdir()
+    config = _config("alpha")
+    before = summary_to_dict(build_summary(legacy, config))
+    path = text_release / "text_alpha_low.jsonl"
+    path.write_text(
+        path.read_text().replace('"predicted": ""', '"predicted": "different"')
+    )
+    path.write_text(path.read_text() + "\n")
+    with pytest.raises(ValueError):
+        build_summary(legacy, config)
+    path.write_text(path.read_text().rstrip() + "\n")
+    path.write_text(
+        path.read_text().replace('"predicted":""', '"predicted":"different"')
+    )
+    after = summary_to_dict(build_summary(legacy, config))
+    assert summary_drift(before, after, ignore_detection_quality=True)
+    path.unlink()
+    with pytest.raises(ValueError, match="Expected 1 runs, found 0"):
+        build_summary(legacy, config)
+
+
+def test_standard_summary_command_checks_text_and_has_no_sidecar_exports(
+    tmp_path: Path, text_release: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import json
+
+    from click.testing import CliRunner
+
+    from vlm_exam import cli
+    from vlm_exam import text_release as release
+
+    directory = tmp_path / "results"
+    directory.mkdir()
+    output = tmp_path / "web" / "benchmark_summary.json"
+    monkeypatch.setattr(cli, "load_config", lambda path: _config("alpha"))
+    checked = []
+    monkeypatch.setattr(
+        release, "check_text_charts", lambda *args: checked.append(args[0])
+    )
+    arguments = [
+        "summary",
+        "--results-directory",
+        str(directory),
+        "--output-file",
+        str(output),
+    ]
+    runner = CliRunner()
+    result = runner.invoke(cli.main, arguments)
+    assert result.exit_code == 0, result.output
+    assert list(output.parent.iterdir()) == [output]
+    assert "text-summary" not in cli.main.commands
+    assert "text-publish" not in cli.main.commands
+    result = runner.invoke(cli.main, arguments + ["--check"])
+    assert result.exit_code == 0, result.output
+    assert checked == [text_release]
+    payload = json.loads(output.read_text())
+    payload["models"][0]["tasks"]["text_single_string"]["metrics"]["score"] = 99
+    output.write_text(json.dumps(payload))
+    result = runner.invoke(cli.main, arguments + ["--check"])
+    assert result.exit_code == 1
+    assert "out of date" in result.output

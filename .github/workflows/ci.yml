@@ -23,8 +23,6 @@ jobs:
         run: uv run vlm-exam validate --format github
       - name: Check web/benchmark_summary.json is up to date
         run: uv run vlm-exam summary --check
-      - name: Check mixed-text release coverage and generated artifacts
-        run: uv run vlm-exam text-publish --check
 
   test:
     name: Lint and tests
