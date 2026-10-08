@@ -419,6 +419,7 @@ Each model must declare `detection_coordinate_format` for its native
 grounding convention. Valid values are defined by
 `DetectionCoordinateFormat` in `src/vlm_exam/tasks/detection.py`:
 `yxyx_normalized_0_to_1000`, `xyxy_normalized_0_to_1000`,
+`xyxy_normalized_0_to_999`,
 `xyxy_normalized_0_to_100`, `xyxy_normalized_0_to_1000_meta_flat`,
 `xyxy_normalized_0_to_1000_meta_bbox`, `xyxy_absolute_resized_image`,
 `xyxy_absolute_resized_image_bbox`, `xyxy_absolute_original_image`, and
