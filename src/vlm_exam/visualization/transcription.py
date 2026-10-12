@@ -34,11 +34,18 @@ def _flow(draw: ImageDraw.ImageDraw, runs: list[tuple[str, str]]) -> bool:
     line = size + 5
     for value, kind in runs:
         for token in re.findall(r"\n|[^\S\n]+|\S+", value):
-            if token == "\n":
+            newline = token == "\n"
+            if newline and kind == "equal":
                 x = 0
                 y += line
                 continue
-            token = token.expandtabs(4)
+            if kind != "equal" and token.isspace():
+                token = "".join(
+                    "↵" if char == "\n" else "⇥" if char == "\t" else "·"
+                    for char in token
+                )
+            else:
+                token = token.expandtabs(4)
             parts = (
                 list(token)
                 if structured._text_font(token, size).getlength(token) > _WIDTH
@@ -69,6 +76,9 @@ def _flow(draw: ImageDraw.ImageDraw, runs: list[tuple[str, str]]) -> bool:
                         fill=theme.TEXT_SECONDARY,
                     )
                 x += width
+            if newline:
+                x = 0
+                y += line
     return False
 
 

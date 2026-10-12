@@ -486,3 +486,7 @@ Single-value cards retain the question above a centered 24 px answer comparison.
 Correct values appear once in neutral text; differences show the muted struck
 reference above the purple model value. The saved Exact Match score uses the
 same bottom metric position as the other text cards.
+
+Single-value comparisons display embedded newlines and tabs as visible markers
+before measuring the text. Transcription keeps line breaks and marks only changed
+whitespace (newline, tab or space), using the same insertion/deletion colors.

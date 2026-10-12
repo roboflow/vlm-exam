@@ -678,3 +678,45 @@ def test_single_value_question_wraps_at_words(card_fonts: None) -> None:
     )
     assert " ".join(single_value._question_lines(question)) == question
     assert len(single_value._question_lines("X" * 1000)) > 1
+
+
+@pytest.mark.parametrize("predicted", ["a\n\nb", "a b", "a\tb", "a  b"])
+def test_transcription_whitespace_differences_are_visible(
+    predicted: str, card_fonts: None
+) -> None:
+    from PIL import ImageChops
+
+    from vlm_exam.visualization import transcription
+
+    expected = "a\nb"
+    comparison = transcription._panel(expected, predicted)
+    identical = transcription._panel(predicted, predicted)
+    assert ImageChops.difference(comparison, identical).getbbox() is not None
+
+
+@pytest.mark.parametrize("whitespace, marker", [("\n", "↵"), ("\t", "⇥")])
+def test_single_value_whitespace_is_measured_as_visible_text(
+    whitespace: str, marker: str, monkeypatch: pytest.MonkeyPatch, card_fonts: None
+) -> None:
+    from PIL import ImageDraw
+
+    from vlm_exam.visualization import single_value
+
+    bounds = []
+    painted = []
+    original = ImageDraw.ImageDraw.text
+
+    def capture(self: Any, position: Any, value: str, *args: Any, **kwargs: Any) -> Any:
+        painted.append(value)
+        if kwargs.get("font").size == 24:
+            bounds.append(self.textbbox(position, value, font=kwargs["font"]))
+        return original(self, position, value, *args, **kwargs)
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", capture)
+    single_value._panel(
+        "Read the meter.", "59150", whitespace.join(["Dial one explanation"] * 100)
+    )
+    assert any(marker in value for value in painted)
+    assert all("\n" not in value and "\t" not in value for value in painted)
+    assert all(0 <= top < bottom <= 604 for _, top, _, bottom in bounds)
+    assert all(a[3] <= b[1] for a, b in zip(bounds, bounds[1:]))

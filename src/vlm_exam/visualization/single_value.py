@@ -82,6 +82,10 @@ def _panel(question: str, expected: str, predicted: str) -> Image.Image:
             (predicted or "No response", structured._VALUE_CHANGED, False),
         ]
     )
+    items = [
+        (value.replace("\n", " ↵ ").replace("\t", " ⇥ "), color, strike)
+        for value, color, strike in items
+    ]
     available_top = rule + 70
     gap = 0 if same else 18
     limit = max(1, min(4, (_HEIGHT - available_top - gap) // (31 * len(items))))
