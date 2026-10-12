@@ -33,10 +33,10 @@ _WIDTH = 879
 _HEIGHT = 604
 _MISSING = object()
 _MAP_MATCH = "#E4E3E9"
-_MAP_CHANGED = "#8253BC"
+_MAP_CHANGED = "#BE254B"
 _CARD_MATCH = "#F3F2F5"
-_CARD_CHANGED = "#F0EAF8"
-_VALUE_CHANGED = "#743AC5"
+_CARD_CHANGED = "#FAEDF1"
+_VALUE_CHANGED = "#BE254B"
 
 
 @dataclass(frozen=True)
@@ -312,35 +312,17 @@ def _panel(expected: Any, response: str) -> Image.Image:
     try:
         predicted, _ = parse_json(response)
     except (ValueError, TypeError, RecursionError):
-        message = "Invalid JSON" if response.strip() else "Empty response"
-        draw.text((14, 14), message, fill=_VALUE_CHANGED, font=_text_font(message, 21))
-        raw = (
-            response.replace("\n", " ↵ ").replace("\r", " ↵ ").replace("\t", " ⇥ ")
-            if response
-            else "(empty response)"
+        message = "Could not parse JSON" if response.strip() else "No response"
+        font = _text_font(message, 22)
+        left, top, right, bottom = draw.textbbox((0, 0), message, font=font)
+        x = (_WIDTH - (right - left)) / 2 - left
+        y = (_HEIGHT - (bottom - top)) / 2 - top
+        draw.rounded_rectangle(
+            (x - 16, y + top - 12, x + right + 16, y + bottom + 12),
+            radius=5,
+            fill=_CARD_CHANGED,
         )
-        preview = _wrap(raw, _WIDTH - 28, 20, 4)
-        preview_font = _text_font(raw, 20)
-        for index, line in enumerate(preview):
-            draw.text(
-                (14, 57 + index * 25),
-                line,
-                fill=theme.TEXT_PRIMARY,
-                font=preview_font,
-            )
-        draw.line((0, 175, _WIDTH - 1, 175), fill=theme.DIVIDER_COLOR, width=1)
-        draw.text(
-            (14, 192),
-            "Expected",
-            fill=theme.TEXT_SECONDARY,
-            font=_text_font("Expected", 14),
-        )
-        reference = _fields(expected, expected)
-        for count in range(min(6, len(reference)), 0, -1):
-            tiles, bottom = _layout(reference[:count], 2, 20, top=225, limit=2)
-            if bottom <= _HEIGHT:
-                _draw_tiles(draw, tiles)
-                break
+        draw.text((x, y), message, font=font, fill=_VALUE_CHANGED)
         return panel
     fields = _fields(expected, predicted)
     for columns, size in ((2, 21), (2, 20), (2, 19), (3, 19), (3, 18), (3, 17)):

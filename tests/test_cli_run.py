@@ -254,7 +254,7 @@ def card_fonts(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.parametrize("prediction", ["", '{"total":', '{"x":NaN}', '{"x":1,"x":2}'])
-def test_invalid_json_card_keeps_reference(
+def test_invalid_json_card_has_centered_failure_message(
     prediction: str, monkeypatch: pytest.MonkeyPatch, card_fonts: None
 ) -> None:
     from PIL import ImageDraw
@@ -271,9 +271,20 @@ def test_invalid_json_card_keeps_reference(
     monkeypatch.setattr(ImageDraw.ImageDraw, "text", capture)
     panel = structured._panel({"total": "42.00"}, prediction)
     assert panel.size == (879, 604)
-    assert "total" in drawn and '"42.00"' in drawn
-    assert "Invalid JSON" in drawn if prediction else "Empty response" in drawn
-    assert prediction in drawn if prediction else "(empty response)" in drawn
+    assert drawn == ["Could not parse JSON" if prediction else "No response"]
+    background = panel.getpixel((0, 0))
+    changed = [
+        (x, y)
+        for y in range(panel.height)
+        for x in range(panel.width)
+        if panel.getpixel((x, y)) != background
+    ]
+    assert (
+        abs((min(x for x, _ in changed) + max(x for x, _ in changed)) / 2 - 439.5) <= 1
+    )
+    assert (
+        abs((min(y for _, y in changed) + max(y for _, y in changed)) / 2 - 301.5) <= 1
+    )
 
 
 @pytest.mark.parametrize("score", [0.0, 0.8, 0.95, None])
