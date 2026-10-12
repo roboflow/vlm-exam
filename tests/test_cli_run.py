@@ -720,3 +720,71 @@ def test_single_value_whitespace_is_measured_as_visible_text(
     assert all("\n" not in value and "\t" not in value for value in painted)
     assert all(0 <= top < bottom <= 604 for _, top, _, bottom in bounds)
     assert all(a[3] <= b[1] for a, b in zip(bounds, bounds[1:]))
+
+
+@pytest.mark.parametrize("overlap, count", [(0, 0), (5, 0), (6, 1), (10, 1)])
+def test_localization_crops_require_spatial_match(overlap: int, count: int) -> None:
+    from vlm_exam.visualization.text import _region_rows
+
+    reference = [{"bbox": [0, 0, 10, 10], "text": "same"}]
+    predictions = [{"bbox": [0, 0, overlap, 10], "text": "same"}, None]
+    assert len(_region_rows(reference, predictions)) == count
+    assert _region_rows(reference, []) == []
+    assert _region_rows([], predictions) == []
+    rows = _region_rows(reference, [{"bbox": [0, 0, 10, 10], "text": "wrong"}])
+    assert len(rows) == 1
+    assert rows[0]["expected"] == "same"
+    assert rows[0]["predicted"] == "wrong"
+    assert not rows[0]["correct"]
+
+
+@pytest.mark.parametrize(
+    "response, predictions, message",
+    [
+        ("", [], "No response"),
+        ("{", [], "Could not parse text regions"),
+        ("[]", [], "No text regions detected"),
+        ("[{}]", [None], "Could not parse text regions"),
+        (
+            "[{}]",
+            [{"bbox": [15, 15, 20, 20], "text": "same"}],
+            "No matching text regions",
+        ),
+    ],
+)
+def test_localization_failure_matches_json_style(
+    response: str,
+    predictions: list[Any],
+    message: str,
+    monkeypatch: pytest.MonkeyPatch,
+    card_fonts: None,
+) -> None:
+    from types import SimpleNamespace
+
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from PIL import Image
+
+    from vlm_exam.config import DisplayConfig, ModelDisplay
+    from vlm_exam.visualization import structured, text
+
+    config = DisplayConfig(
+        labs={"lab": LabConfig("Lab", "#000000", "")},
+        models={"test": ModelDisplay("Test", "lab")},
+    )
+    task = SimpleNamespace(parse_regions=lambda *args: predictions)
+    sample = SimpleNamespace(answer=[{"bbox": [0, 0, 10, 10], "text": "same"}])
+    result = SimpleNamespace(predicted=response, metadata={"score": 0.0})
+    figure = text._localization_card(
+        Image.new("RGB", (30, 30)), sample, result, task, "test", config, None
+    )
+    try:
+        rail = figure.axes[1]
+        assert not rail.child_axes
+        assert np.array_equal(
+            rail.images[0].get_array(), np.asarray(structured._message_panel(message))
+        )
+        assert "BOX + TEXT F1" in [t.get_text() for t in rail.texts]
+        assert "0.0%" in [t.get_text() for t in rail.texts]
+    finally:
+        plt.close(figure)

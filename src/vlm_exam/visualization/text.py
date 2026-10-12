@@ -30,7 +30,7 @@ from vlm_exam.tasks.text_scoring import match_regions, parse_json
 from vlm_exam.visualization import theme
 from vlm_exam.visualization.detection import region_diff_image
 from vlm_exam.visualization.single_value import draw_single_value_panel
-from vlm_exam.visualization.structured import draw_structured_panel
+from vlm_exam.visualization.structured import _message_panel, draw_structured_panel
 from vlm_exam.visualization.transcription import draw_transcription_panel
 
 
@@ -110,28 +110,6 @@ def _region_rows(
                 "correct": (a in used_reference),
             }
         )
-    used_reference = {a for a, _ in paired}
-    used_predictions = {b for _, b in paired}
-    rows.extend(
-        {
-            "bbox": region["bbox"],
-            "expected": region["text"],
-            "predicted": "[missing region]",
-            "correct": False,
-        }
-        for index, region in enumerate(reference)
-        if index not in used_reference
-    )
-    rows.extend(
-        {
-            "bbox": region["bbox"],
-            "expected": "[extra region]",
-            "predicted": region["text"],
-            "correct": False,
-        }
-        for index, region in enumerate(predictions)
-        if index not in used_predictions and region is not None
-    )
     return sorted(
         rows,
         key=lambda row: (
@@ -152,11 +130,13 @@ def _localization_card(
     config: VisualizationConfig,
     uploaded_size: tuple[int, int] | None,
 ) -> plt.Figure:
+    parse_failed = False
     try:
         parsed, _ = parse_json(result.predicted)
         predictions = task.parse_regions(parsed, sample, uploaded_size)
     except (ValueError, TypeError, KeyError, RecursionError):
         predictions = [None]
+        parse_failed = True
     reference = sample.answer
     rows = _region_rows(reference, predictions)
 
@@ -189,7 +169,7 @@ def _localization_card(
     selected = rows[: 12 if columns == 3 else 8 if columns == 2 else 3]
     gutter = 0.045
     tile_width = (1 - gutter * (columns - 1)) / columns
-    font_size = 10 if columns == 3 else 11
+    font_size = 9.6
     line_height = font_size * 1.25 / 72 / rail_height
     crops = []
     for row in selected:
@@ -213,11 +193,11 @@ def _localization_card(
         tiles = []
         for row, crop in zip(selected, crops):
             values = (
-                [("", row["predicted"], theme.SUCCESS_TEXT_COLOR)]
+                [("", row["predicted"], theme.TEXT_PRIMARY)]
                 if row["correct"]
                 else [
-                    ("− ", row["expected"], theme.SUCCESS_TEXT_COLOR),
-                    ("+ ", row["predicted"], theme.FAILURE_TEXT_COLOR),
+                    ("", row["expected"], theme.TEXT_SECONDARY),
+                    ("", row["predicted"], "#743AC5"),
                 ]
             )
             blocks = [
@@ -225,6 +205,8 @@ def _localization_card(
                     textwrap.fill(
                         prefix + ("null" if value is None else str(value)),
                         width=55 if columns == 1 else 29 if columns == 2 else 21,
+                        max_lines=6,
+                        placeholder="…",
                     ),
                     color,
                 )
@@ -245,7 +227,7 @@ def _localization_card(
         groups = [tiles[i : i + columns] for i in range(0, len(tiles), columns)]
         heights = [max(t[2] + 0.013 + t[4] for t in group) for group in groups]
         gap = 0.040 if columns == 3 else 0.05
-        lower = 0.19 if len(rows) > len(selected) else 0.13
+        lower = 0.34
         available = 0.85 - lower
         while groups and sum(heights) + gap * (len(groups) - 1) > available:
             groups.pop()
@@ -267,46 +249,90 @@ def _localization_card(
                 axes.set_xticks([])
                 axes.set_yticks([])
                 for spine in axes.spines.values():
-                    spine.set_color(theme.ROBOFLOW_PURPLE)
-                    spine.set_linewidth(1.6)
+                    spine.set_color("#743AC5")
+                    spine.set_linewidth(1.2)
                 y = crop_top - height - 0.013
                 for text, color in blocks:
-                    rail.text(
-                        center,
-                        y,
-                        text,
-                        font=fonts.mono,
-                        fontsize=font_size,
-                        color=color,
-                        va="top",
-                        ha="center",
-                        multialignment="center",
-                        parse_math=False,
-                        linespacing=1.25,
-                    )
+                    for line_index, line in enumerate(text.split("\n")):
+                        line_y = y - line_index * line_height
+                        artist = rail.text(
+                            center,
+                            line_y,
+                            line,
+                            font=fonts.regular,
+                            fontsize=font_size,
+                            color=color,
+                            va="top",
+                            ha="center",
+                            parse_math=False,
+                        )
+                        if color == theme.TEXT_SECONDARY:
+                            figure.canvas.draw()
+                            bounds = artist.get_window_extent(
+                                figure.canvas.get_renderer()
+                            )
+                            points = rail.transData.inverted().transform(
+                                [
+                                    (bounds.x0, (bounds.y0 + bounds.y1) / 2),
+                                    (bounds.x1, (bounds.y0 + bounds.y1) / 2),
+                                ]
+                            )
+                            rail.plot(points[:, 0], points[:, 1], color=color, lw=0.6)
                     y -= (text.count("\n") + 1) * line_height + 0.004
             top -= group_height + gap
         if len(rows) > shown:
             rail.text(
                 0.5,
-                0.14,
+                0.30,
                 f"+ {len(rows) - shown} more regions",
                 font=fonts.medium,
-                fontsize=11,
+                fontsize=9.6,
                 color=theme.TEXT_SECONDARY,
                 va="top",
                 ha="center",
             )
     else:
-        rail.text(
-            0.5,
-            0.5,
-            "No valid text regions",
-            font=fonts.medium,
-            fontsize=14,
-            color=theme.TEXT_SECONDARY,
-            ha="center",
+        message = (
+            "No response"
+            if not result.predicted.strip()
+            else "Could not parse text regions"
+            if parse_failed or (predictions and all(p is None for p in predictions))
+            else "No text regions detected"
+            if not predictions
+            else "No matching text regions"
         )
+        rail.imshow(
+            _message_panel(message),
+            extent=(0, 1, 0.279, 0.869),
+            aspect="auto",
+            interpolation="nearest",
+            zorder=0,
+        )
+        rail.set_xlim(0, 1)
+        rail.set_ylim(0, 1)
+    score = result.metadata.get("score")
+    scored = type(score) in (int, float) and math.isfinite(score) and 0 <= score <= 1
+    rail.plot([0, 1], [0.262, 0.262], color=theme.DIVIDER_COLOR, lw=1, clip_on=False)
+    rail.text(
+        0.5,
+        0.212,
+        "BOX + TEXT F1",
+        fontsize=9.5,
+        ha="center",
+        va="center",
+        color=theme.PANEL_LABEL_COLOR,
+        font=fonts.bold,
+    )
+    rail.text(
+        0.5,
+        0.142,
+        f"{score * 100:.1f}%" if scored else "—",
+        fontsize=26,
+        ha="center",
+        va="center",
+        font=fonts.display,
+        color=theme.score_color(score) if scored else theme.TEXT_SECONDARY,
+    )
     invalid = sum(region is None for region in predictions)
     theme.draw_brand_footer(
         rail,

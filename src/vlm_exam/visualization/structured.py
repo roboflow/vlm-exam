@@ -343,6 +343,22 @@ def _header(
     draw.text((model_x, y + 6), "Model", font=font, fill=_VALUE_CHANGED)
 
 
+def _message_panel(message: str) -> Image.Image:
+    panel = Image.new("RGB", (_WIDTH, _HEIGHT), theme.BACKGROUND_COLOR)
+    draw = ImageDraw.Draw(panel)
+    font = _text_font(message, 22)
+    left, top, right, bottom = draw.textbbox((0, 0), message, font=font)
+    x = (_WIDTH - (right - left)) / 2 - left
+    y = (_HEIGHT - (bottom - top)) / 2 - top
+    draw.rounded_rectangle(
+        (x - 16, y + top - 12, x + right + 16, y + bottom + 12),
+        radius=5,
+        fill=_CARD_CHANGED,
+    )
+    draw.text((x, y), message, font=font, fill=_VALUE_CHANGED)
+    return panel
+
+
 def _panel(expected: Any, response: str) -> Image.Image:
     panel = Image.new("RGB", (_WIDTH, _HEIGHT), theme.BACKGROUND_COLOR)
     draw = ImageDraw.Draw(panel)
@@ -350,17 +366,7 @@ def _panel(expected: Any, response: str) -> Image.Image:
         predicted, _ = parse_json(response)
     except (ValueError, TypeError, RecursionError):
         message = "Could not parse JSON" if response.strip() else "No response"
-        font = _text_font(message, 22)
-        left, top, right, bottom = draw.textbbox((0, 0), message, font=font)
-        x = (_WIDTH - (right - left)) / 2 - left
-        y = (_HEIGHT - (bottom - top)) / 2 - top
-        draw.rounded_rectangle(
-            (x - 16, y + top - 12, x + right + 16, y + bottom + 12),
-            radius=5,
-            fill=_CARD_CHANGED,
-        )
-        draw.text((x, y), message, font=font, fill=_VALUE_CHANGED)
-        return panel
+        return _message_panel(message)
     fields = _fields(expected, predicted)
     for columns, size in ((2, 21), (2, 20), (2, 19), (3, 19), (3, 18), (3, 17)):
         tiles, bottom = _layout(fields, columns, size, top=36)
