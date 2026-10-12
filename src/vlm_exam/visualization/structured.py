@@ -33,10 +33,10 @@ _WIDTH = 879
 _HEIGHT = 604
 _MISSING = object()
 _MAP_MATCH = "#E4E3E9"
-_MAP_CHANGED = "#BE254B"
+_MAP_CHANGED = "#8253BC"
 _CARD_MATCH = "#F3F2F5"
-_CARD_CHANGED = "#FAEDF1"
-_VALUE_CHANGED = "#BE254B"
+_CARD_CHANGED = "#F0EAF8"
+_VALUE_CHANGED = "#743AC5"
 
 
 @dataclass(frozen=True)
@@ -224,7 +224,7 @@ def _layout(
                 field,
                 column * (width + 18),
                 bottoms[column],
-                width,
+                _WIDTH - column * (width + 18) if column == columns - 1 else width,
                 height,
                 labels,
                 values,
@@ -306,6 +306,43 @@ def _draw_tiles(draw: ImageDraw.ImageDraw, tiles: list[_Tile]) -> None:
                 y += tile.size + 5
 
 
+def _header(
+    draw: ImageDraw.ImageDraw,
+    title: str,
+    y: int,
+    total: int | None = None,
+    different: int = 0,
+) -> None:
+    font = _font(font_manager.findfont(theme.load_fonts().bold), 17)
+    draw.text((0, y + 5), title, font=font, fill=theme.PANEL_LABEL_COLOR)
+    if total is not None:
+        draw.text(
+            (font.getlength(title) + 14, y + 6),
+            f"{total} fields",
+            font=_text_font("fields", 17),
+            fill=theme.TEXT_SECONDARY,
+        )
+        label = f"{different} different"
+        font = _text_font(label, 17)
+        draw.text(
+            (_WIDTH - 1 - font.getlength(label), y + 6),
+            label,
+            font=font,
+            fill=_VALUE_CHANGED,
+        )
+        return
+    font = _text_font("Reference Model", 16)
+    model_x = _WIDTH - 1 - font.getlength("Model")
+    reference_x = model_x - 20 - font.getlength("Reference")
+    draw.text((reference_x, y + 6), "Reference", font=font, fill=theme.TEXT_SECONDARY)
+    draw.line(
+        (reference_x, y + 16, reference_x + font.getlength("Reference"), y + 16),
+        fill=theme.TEXT_SECONDARY,
+        width=1,
+    )
+    draw.text((model_x, y + 6), "Model", font=font, fill=_VALUE_CHANGED)
+
+
 def _panel(expected: Any, response: str) -> Image.Image:
     panel = Image.new("RGB", (_WIDTH, _HEIGHT), theme.BACKGROUND_COLOR)
     draw = ImageDraw.Draw(panel)
@@ -326,30 +363,41 @@ def _panel(expected: Any, response: str) -> Image.Image:
         return panel
     fields = _fields(expected, predicted)
     for columns, size in ((2, 21), (2, 20), (2, 19), (3, 19), (3, 18), (3, 17)):
-        tiles, bottom = _layout(fields, columns, size)
+        tiles, bottom = _layout(fields, columns, size, top=36)
         if bottom <= _HEIGHT:
+            _header(draw, "FIELD VALUES", 0)
             _draw_tiles(draw, tiles)
             return panel
     if len(fields) <= 2:
-        tiles, _ = _layout(fields, 1, 20, limit=9 if len(fields) == 1 else 3)
+        tiles, _ = _layout(fields, 1, 20, top=36, limit=8 if len(fields) == 1 else 3)
+        _header(draw, "FIELD VALUES", 0)
         _draw_tiles(draw, tiles)
         return panel
-    columns = 40 if len(fields) > 160 else 24 if len(fields) > 72 else 16
-    rows = math.ceil(len(fields) / columns)
-    bottom = int(rows * min(16, 208 / rows) + 4)
-    cells = _map_layout(fields, bottom + 10)
+    map_height = min(180, max(65, math.ceil(len(fields) / 40) * 14))
+    values_y = 36 + map_height + 16
+    ranked = sorted(fields, key=lambda field: field.matches)
+    for count in range(min(12, len(fields)), 0, -1):
+        tiles, bottom = _layout(ranked[:count], 2, 20, top=values_y + 36, limit=2)
+        if bottom <= _HEIGHT:
+            break
+    _header(
+        draw, "JSON MAP", 0, len(fields), sum(not field.matches for field in fields)
+    )
+    cells = _map_layout(fields, map_height)
+    scale = _WIDTH / max(x + size for x, _, size, _ in cells)
     for x, y, size, matches in cells:
         draw.rectangle(
-            (x, y, x + size - 1, y + size - 1),
+            (
+                round(x * scale),
+                y + 36,
+                round((x + size) * scale) - 1,
+                y + 36 + size - 1,
+            ),
             fill=_MAP_MATCH if matches else _MAP_CHANGED,
         )
-    draw.line((0, bottom + 17, _WIDTH - 1, bottom + 17), fill="#E2E2E9", width=1)
-    ranked = sorted(fields, key=lambda field: field.matches)
-    for count in range(min(12, len(fields) - 1), 0, -1):
-        tiles, height = _layout(ranked[:count], 2, 20, bottom + 35, 2)
-        if height <= _HEIGHT:
-            _draw_tiles(draw, tiles)
-            break
+    draw.line((0, values_y - 10, _WIDTH - 1, values_y - 10), fill="#E2E2E9", width=1)
+    _header(draw, "SELECTED VALUES", values_y)
+    _draw_tiles(draw, tiles)
     return panel
 
 

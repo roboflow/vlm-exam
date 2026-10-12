@@ -383,6 +383,55 @@ def test_json_map_is_conditional_and_prioritizes_differences(
     )
 
 
+@pytest.mark.parametrize("expected", [{}, [], {"long": "x" * 20000}])
+def test_json_hybrid_small_values_omit_map(
+    expected: Any, monkeypatch: pytest.MonkeyPatch, card_fonts: None
+) -> None:
+    from vlm_exam.visualization import structured
+
+    labels: list[str] = []
+    original = structured._header
+
+    def header(draw: Any, title: str, y: int, *args: Any) -> None:
+        labels.append(title)
+        original(draw, title, y, *args)
+
+    monkeypatch.setattr(structured, "_header", header)
+    structured._panel(expected, json.dumps(expected))
+    assert labels == ["FIELD VALUES"]
+
+
+def test_json_hybrid_map_counts_and_full_width(
+    monkeypatch: pytest.MonkeyPatch, card_fonts: None
+) -> None:
+    from vlm_exam.visualization import structured
+
+    headers: list[tuple[Any, ...]] = []
+    rectangles: list[tuple[int, ...]] = []
+    original = structured._header
+    from PIL import ImageDraw
+
+    rectangle = ImageDraw.ImageDraw.rectangle
+
+    def header(draw: Any, title: str, y: int, *args: Any) -> None:
+        headers.append((title, *args))
+        original(draw, title, y, *args)
+
+    def record(draw: Any, box: Any, *args: Any, **kwargs: Any) -> None:
+        if kwargs.get("fill") in (structured._MAP_MATCH, structured._MAP_CHANGED):
+            rectangles.append(box)
+        rectangle(draw, box, *args, **kwargs)
+
+    monkeypatch.setattr(structured, "_header", header)
+    monkeypatch.setattr(ImageDraw.ImageDraw, "rectangle", record)
+    expected = {"rows": list(range(620))}
+    predicted = {"rows": list(range(619)) + [-1]}
+    structured._panel(expected, json.dumps(predicted))
+    assert headers == [("JSON MAP", 620, 1), ("SELECTED VALUES",)]
+    assert min(box[0] for box in rectangles) == 0
+    assert max(box[2] for box in rectangles) == 878
+
+
 @pytest.mark.parametrize("fields", [1, 2, 4])
 def test_long_json_strings_remain_within_card(
     fields: int, monkeypatch: pytest.MonkeyPatch, card_fonts: None

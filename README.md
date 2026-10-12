@@ -466,10 +466,12 @@ shared [leaderboard directory](visualizations/leaderboards/).
 
 Structured JSON cards show one image per sample, including large responses.
 Small objects show all fields; larger responses add a field agreement map grouped
-by JSON parent paths and prioritize mismatches in the value tiles. Cool crimson marks
+by JSON parent paths and prioritize mismatches in the value tiles. Purple marks
 differences, with the expected value struck through above the model value.
+The full-width JSON MAP includes total field and difference counts; the values
+header identifies the struck-through Reference and purple Model.
 FIELD F1 uses the shared detection-score styling. Long values may be shortened
 with an ellipsis; full responses remain in the source result file.
 
-Unparseable JSON uses a centered “Could not parse JSON” message on a pale pink
+Unparseable JSON uses a centered “Could not parse JSON” message on a pale purple
 background. Empty responses show “No response”; the saved FIELD F1 remains visible.
