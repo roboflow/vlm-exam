@@ -450,7 +450,7 @@ renderer and PNG fingerprints in the compact chart manifest.
 
 Before updating this PR, run Ruff check/format, existing tests, `validate`, and
 `summary --check` (including text coverage and chart freshness). Verify cards
-for strings, JSON, localization, empty/invalid responses and pagination when
+for strings, JSON, localization, empty/invalid responses and bounded single-card JSON when
 changing rendering. Add focused regressions to existing test modules; do not
 create new test files. Moving unchanged result files does not require rebuilding
 PNGs or recomputing inference.

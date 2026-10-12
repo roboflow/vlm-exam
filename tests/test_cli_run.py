@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -237,50 +238,157 @@ class TestRunResume:
         assert "Removed resumed file" in result.output
 
 
-@pytest.mark.parametrize("prediction", ["", '{"total":'])
+@pytest.fixture()
+def card_fonts(monkeypatch: pytest.MonkeyPatch) -> None:
+    from matplotlib.font_manager import FontProperties
+    from PIL import Image
+
+    from vlm_exam.visualization import theme
+
+    monkeypatch.setattr(
+        theme, "fetch_logo", lambda *args, **kwargs: Image.new("RGBA", (30, 30))
+    )
+    font = FontProperties(family="DejaVu Sans")
+    fonts = theme.FontSet(font, font, font, font, font)
+    monkeypatch.setattr(theme, "load_fonts", lambda: fonts)
+
+
+@pytest.mark.parametrize("prediction", ["", '{"total":', '{"x":NaN}', '{"x":1,"x":2}'])
 def test_invalid_json_card_keeps_reference(
-    prediction: str, monkeypatch: pytest.MonkeyPatch
+    prediction: str, monkeypatch: pytest.MonkeyPatch, card_fonts: None
+) -> None:
+    from PIL import ImageDraw
+
+    from vlm_exam.visualization import structured
+
+    drawn: list[str] = []
+    original = ImageDraw.ImageDraw.text
+
+    def capture(self: Any, position: Any, text: str, *args: Any, **kwargs: Any) -> Any:
+        drawn.append(text)
+        return original(self, position, text, *args, **kwargs)
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", capture)
+    panel = structured._panel({"total": "42.00"}, prediction)
+    assert panel.size == (879, 604)
+    assert "total" in drawn and '"42.00"' in drawn
+    assert "Invalid JSON" in drawn if prediction else "Empty response" in drawn
+    assert prediction in drawn if prediction else "(empty response)" in drawn
+
+
+@pytest.mark.parametrize("score", [0.0, 0.8, 0.95, None])
+def test_large_json_is_one_card_with_native_field_score(
+    score: float | None, card_fonts: None
 ) -> None:
     from types import SimpleNamespace
 
     import matplotlib.pyplot as plt
-    from matplotlib.font_manager import FontProperties
     from PIL import Image
 
+    from vlm_exam.config import DisplayConfig, ModelDisplay
     from vlm_exam.visualization import text as cards
 
-    font = FontProperties()
-    monkeypatch.setattr(cards.theme, "load_fonts", lambda: SimpleNamespace(bold=font))
-    monkeypatch.setattr(cards, "draw_verdict", lambda *args: None)
-    monkeypatch.setattr(cards.theme, "draw_legend_chip", lambda *args: 0.5)
-    monkeypatch.setattr(cards.theme, "draw_brand_footer", lambda *args: None)
-
-    def frame(*args: Any) -> tuple[Any, Any]:
-        figure = plt.figure()
-        return figure, figure.add_axes([0, 0, 1, 1])
-
-    monkeypatch.setattr(cards, "_frame", frame)
-    drawn = []
-    monkeypatch.setattr(
-        cards,
-        "draw_diff_line",
-        lambda rail, x, y, spans, *args: drawn.extend(spans),
+    answer = {"rows": [[str(i + j) for j in range(10)] for i in range(62)]}
+    config = DisplayConfig(
+        labs={"lab": LabConfig("Lab", "#000000", "")},
+        models={"test": ModelDisplay("Test", "lab")},
     )
+    result = SimpleNamespace(predicted=json.dumps(answer), metadata={"score": score})
     figures = cards._json_cards(
         Image.new("RGB", (20, 20)),
-        SimpleNamespace(answer={"total": "42.00"}),
-        SimpleNamespace(predicted=prediction, correct=False),
-        "model",
-        None,
+        SimpleNamespace(answer=answer),
+        result,
+        "test",
+        config,
     )
     try:
-        text = "".join(span[0] for span in drawn)
-        assert '"total": "42.00"' in text
-        assert "INVALID JSON" in text
-        assert prediction in text if prediction else "(empty response)" in text
+        assert len(figures) == 1
+        rail = figures[0].axes[1]
+        texts = {text.get_text(): text for text in rail.texts}
+        value = f"{score * 100:.1f}%" if score is not None else "—"
+        assert texts["FIELD F1"].get_position() == (0.5, 0.212)
+        assert texts[value].get_position() == (0.5, 0.142)
+        assert texts[value].get_color() == (
+            cards.theme.score_color(score)
+            if score is not None
+            else cards.theme.TEXT_SECONDARY
+        )
+        assert len(rail.images) == 1
     finally:
         for figure in figures:
             plt.close(figure)
+
+
+def test_json_fields_preserve_types_and_missing_extra_paths() -> None:
+    from vlm_exam.visualization.structured import _fields, _path, _value
+
+    fields = _fields(
+        {"zero": 0, "null": None, "empty": [], "missing": "x"},
+        {"zero": False, "null": "null", "empty": {}, "extra": True},
+    )
+    assert not any(field.matches for field in fields)
+    assert [field.path for field in fields][-1] == ("extra",)
+    assert _value(fields[3].predicted) == "[missing]"
+    assert _value("null") != _value(None)
+    assert _value("1.5") != _value(1.5)
+    assert _path(("a.b",)) != _path(("a", "b"))
+
+
+def test_json_map_is_conditional_and_prioritizes_differences(
+    monkeypatch: pytest.MonkeyPatch, card_fonts: None
+) -> None:
+    from vlm_exam.visualization import structured
+
+    drawn: list[Any] = []
+    maps: list[Any] = []
+    draw_tiles = structured._draw_tiles
+    map_layout = structured._map_layout
+
+    def tiles(draw: Any, items: list[Any]) -> None:
+        drawn.extend(items)
+        assert all(tile.y + tile.height <= 604 for tile in items)
+        draw_tiles(draw, items)
+
+    def cells(fields: list[Any], height: int) -> list[Any]:
+        result = map_layout(fields, height)
+        maps.extend(result)
+        return result
+
+    monkeypatch.setattr(structured, "_draw_tiles", tiles)
+    monkeypatch.setattr(structured, "_map_layout", cells)
+    structured._panel({"a": None}, '{"a":null}')
+    assert not maps
+    drawn.clear()
+    expected = {"rows": [["ok"] * 10 for _ in range(62)]}
+    predicted = json.loads(json.dumps(expected))
+    predicted["rows"][-1][-1] = "wrong"
+    structured._panel(expected, json.dumps(predicted))
+    assert len(maps) == 620
+    assert sum(not match for _, _, _, match in maps) == 1
+    assert drawn[0].field.path == ("rows", 61, 9)
+    assert len(drawn) < 620
+    assert all(
+        0 <= x < x + size <= 879 and 0 <= y < y + size <= 222 for x, y, size, _ in maps
+    )
+
+
+@pytest.mark.parametrize("fields", [1, 2, 4])
+def test_long_json_strings_remain_within_card(
+    fields: int, monkeypatch: pytest.MonkeyPatch, card_fonts: None
+) -> None:
+    from vlm_exam.visualization import structured
+
+    original = structured._draw_tiles
+
+    def check(draw: Any, tiles: list[Any]) -> None:
+        assert tiles
+        assert all(tile.y + tile.height <= 604 for tile in tiles)
+        original(draw, tiles)
+
+    monkeypatch.setattr(structured, "_draw_tiles", check)
+    expected = {str(i): "abc " * 2000 for i in range(fields)}
+    predicted = {str(i): "xyz " * 2000 for i in range(fields)}
+    assert structured._panel(expected, json.dumps(predicted)).size == (879, 604)
 
 
 @pytest.mark.parametrize("count", [1, 10])

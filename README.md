@@ -463,3 +463,10 @@ explicitly unscored, with coverage reported for each metric.
 See [AGENTS.md](AGENTS.md#mixed-text-benchmark) for dataset import, inference,
 coordinate-format requirements, validation and rendering commands. Charts use the
 shared [leaderboard directory](visualizations/leaderboards/).
+
+Structured JSON cards show one image per sample, including large responses.
+Small objects show all fields; larger responses add a field agreement map grouped
+by JSON parent paths and prioritize mismatches in the value tiles. Purple marks
+differences, with the expected value struck through above the model value.
+FIELD F1 uses the shared detection-score styling. Long values may be shortened
+with an ellipsis; full responses remain in the source result file.

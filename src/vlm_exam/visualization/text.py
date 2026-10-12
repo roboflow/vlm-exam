@@ -14,10 +14,7 @@
 
 from __future__ import annotations
 
-import difflib
-import json
 import math
-import re
 import textwrap
 from typing import Any
 
@@ -32,12 +29,11 @@ from vlm_exam.tasks.text import TextSample, TextTask
 from vlm_exam.tasks.text_scoring import match_regions, normalize, parse_json
 from vlm_exam.visualization import theme
 from vlm_exam.visualization.cases import (
-    draw_diff_line,
-    draw_verdict,
     plot_qa_card,
     plot_transcription_card,
 )
 from vlm_exam.visualization.detection import region_diff_image
+from vlm_exam.visualization.structured import draw_structured_panel
 
 
 def _frame(
@@ -52,78 +48,6 @@ def _frame(
     return figure, rail
 
 
-def _token_diff(left: str, right: str) -> tuple[list[tuple[str, str | None]], ...]:
-    pattern = (
-        r'"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null|[^\s]'
-    )
-    tokens = [list(re.finditer(pattern, value)) for value in (left, right)]
-    changes: list[set[int]] = [set(), set()]
-    matcher = difflib.SequenceMatcher(
-        None,
-        [t.group() for t in tokens[0]],
-        [t.group() for t in tokens[1]],
-        autojunk=False,
-    )
-    for operation, a, b, c, d in matcher.get_opcodes():
-        if operation != "equal":
-            changes[0].update(range(a, b))
-            changes[1].update(range(c, d))
-    output = []
-    for value, parts, changed, kind in zip(
-        (left, right), tokens, changes, ("expected", "predicted")
-    ):
-        runs: list[tuple[str, str | None]] = []
-        position = 0
-        for index, token in enumerate(parts):
-            runs.append((value[position : token.start()], None))
-            runs.append((token.group(), kind if index in changed else None))
-            position = token.end()
-        runs.append((value[position:], None))
-        output.append(runs)
-    return tuple(output)
-
-
-def _json_diff(
-    expected: Any, predicted: Any
-) -> list[tuple[str, list[tuple[str, str | None]]]]:
-    left, right = (
-        json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True).splitlines()
-        for value in (expected, predicted)
-    )
-    output = []
-    for operation, a, b, c, d in difflib.SequenceMatcher(
-        None, left, right, autojunk=False
-    ).get_opcodes():
-        if operation == "equal":
-            output.extend((" ", [(line, None)]) for line in left[a:b])
-        elif operation == "replace" and b - a == d - c:
-            for expected_line, predicted_line in zip(left[a:b], right[c:d]):
-                expected_runs, predicted_runs = _token_diff(
-                    expected_line, predicted_line
-                )
-                output.extend([("−", expected_runs), ("+", predicted_runs)])
-        else:
-            output.extend(("−", [(line, "expected")]) for line in left[a:b])
-            output.extend(("+", [(line, "predicted")]) for line in right[c:d])
-    return output
-
-
-def _wrap_runs(
-    runs: list[tuple[str, str | None]], width: int
-) -> list[list[tuple[str, str | None]]]:
-    characters = [(character, kind) for text, kind in runs for character in text]
-    output = []
-    for offset in range(0, len(characters), width):
-        line: list[tuple[str, str | None]] = []
-        for character, kind in characters[offset : offset + width]:
-            if line and line[-1][1] == kind:
-                line[-1] = (line[-1][0] + character, kind)
-            else:
-                line.append((character, kind))
-        output.append(line)
-    return output or [[]]
-
-
 def _json_cards(
     image: Image.Image,
     sample: TextSample,
@@ -131,74 +55,34 @@ def _json_cards(
     model: str,
     config: VisualizationConfig,
 ) -> list[plt.Figure]:
-    invalid = False
-    try:
-        predicted, _ = parse_json(result.predicted)
-        lines = _json_diff(sample.answer, predicted)
-    except (ValueError, TypeError, RecursionError):
-        invalid = True
-        reference = json.dumps(
-            sample.answer, indent=2, ensure_ascii=False, sort_keys=True
-        )
-        lines = [("−", [(line, "expected")]) for line in reference.splitlines()]
-        lines += [(" ", [("MODEL RESPONSE — INVALID JSON", None)])]
-        lines += [
-            ("+", [(line, "predicted")])
-            for line in (result.predicted.splitlines() or ["(empty response)"])
-        ]
-    width_inches = theme.HERO_RAIL_RECT[2] * theme.CARD_FIGURE_SIZE[0]
-    height_inches = theme.HERO_RAIL_RECT[3] * theme.CARD_FIGURE_SIZE[1]
-    for font_size in (14, 13, 12, 11):
-        width = int(width_inches * 72 / font_size / theme.MONO_ADVANCE_EM) - 3
-        wrapped = [
-            (prefix if index == 0 else " ", row)
-            for prefix, runs in lines
-            for index, row in enumerate(_wrap_runs(runs, width))
-        ]
-        step = font_size * 1.42 / 72 / height_inches
-        capacity = int((0.725 - 0.115) / step)
-        if len(wrapped) <= capacity:
-            break
-    pages = max(1, math.ceil(len(wrapped) / capacity))
-    figures = []
-    for page in range(pages):
-        figure, rail = _frame(image, model, config, "DATA EXTRACTION")
-        draw_verdict(rail, result.correct)
-        rail.text(
-            0,
-            0.792,
-            "JSON RESPONSE" + (" · INVALID JSON" if invalid else ""),
-            font=theme.load_fonts().bold,
-            fontsize=9.5,
-            color=theme.PANEL_LABEL_COLOR,
-        )
-        edge = theme.draw_legend_chip(
-            rail, 1, 0.797, "+ model", theme.FAILURE_TEXT_COLOR
-        )
-        theme.draw_legend_chip(
-            rail, edge, 0.797, "− expected", theme.SUCCESS_TEXT_COLOR
-        )
-        rail.plot([0, 1], [0.768, 0.768], color=theme.DIVIDER_COLOR, linewidth=1)
-        for index, (prefix, runs) in enumerate(
-            wrapped[page * capacity : (page + 1) * capacity]
-        ):
-            y = 0.725 - index * step
-            color = (
-                theme.SUCCESS_TEXT_COLOR
-                if prefix == "−"
-                else theme.FAILURE_TEXT_COLOR
-                if prefix == "+"
-                else theme.TEXT_PRIMARY
-            )
-            draw_diff_line(rail, 0, y, [(prefix, None)], font_size, color)
-            draw_diff_line(rail, 0.036, y, runs, font_size)
-        theme.draw_brand_footer(
-            rail,
-            "evaluated via exact field values"
-            + (f" · {page + 1}/{pages}" if pages > 1 else ""),
-        )
-        figures.append(figure)
-    return figures
+    figure, rail = _frame(image, model, config, "DATA EXTRACTION")
+    draw_structured_panel(rail, sample.answer, result.predicted)
+    fonts = theme.load_fonts()
+    rail.plot([0, 1], [0.262, 0.262], color=theme.DIVIDER_COLOR, lw=1, clip_on=False)
+    rail.text(
+        0.5,
+        0.212,
+        "FIELD F1",
+        fontsize=9.5,
+        ha="center",
+        va="center",
+        color=theme.PANEL_LABEL_COLOR,
+        font=fonts.bold,
+    )
+    score = result.metadata.get("score")
+    scored = type(score) in (int, float) and math.isfinite(score) and 0 <= score <= 1
+    rail.text(
+        0.5,
+        0.142,
+        f"{score * 100:.1f}%" if scored else "—",
+        fontsize=26,
+        ha="center",
+        va="center",
+        font=fonts.display,
+        color=theme.score_color(score) if scored else theme.TEXT_SECONDARY,
+    )
+    theme.draw_brand_footer(rail, "evaluated via exact field values")
+    return [figure]
 
 
 def _region_rows(
@@ -443,7 +327,7 @@ def plot_text_cards(
     config: VisualizationConfig,
     uploaded_size: tuple[int, int] | None = None,
 ) -> list[plt.Figure]:
-    """Render native text cards, with additional pages for long JSON responses.
+    """Render one native hero card for each text sample.
 
     Args:
         image: Original source image.
@@ -455,7 +339,7 @@ def plot_text_cards(
         uploaded_size: Recorded provider image dimensions for pixel conversion.
 
     Returns:
-        One or more native hero-card figures.
+        A single native hero-card figure in a list.
     """
     if sample.category == "structured":
         return _json_cards(image, sample, result, model, config)
