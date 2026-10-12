@@ -451,3 +451,83 @@ def test_text_run_uses_shared_output_default(
     )
     assert result.exit_code == 0, result.output
     assert len(list((tmp_path / "results").glob("text_*.jsonl"))) == 1
+
+
+def test_json_wrapping_keeps_the_measured_font(
+    monkeypatch: pytest.MonkeyPatch, card_fonts: None
+) -> None:
+    from matplotlib import font_manager
+    from PIL import ImageDraw, ImageFont
+
+    from vlm_exam.visualization import structured
+
+    primary = font_manager.findfont("DejaVu Sans Mono")
+    fallback = font_manager.findfont("DejaVu Sans")
+
+    def choose(value: str, size: int) -> Any:
+        return ImageFont.truetype(fallback if "日本語" in value else primary, size)
+
+    original = ImageDraw.ImageDraw.text
+    widths: list[float] = []
+
+    def capture(self: Any, position: Any, text: str, *args: Any, **kwargs: Any) -> Any:
+        font = kwargs["font"]
+        if font.size == 21:
+            widths.append(font.getlength(text))
+            assert font.path == fallback
+        return original(self, position, text, *args, **kwargs)
+
+    monkeypatch.setattr(structured, "_text_font", choose)
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", capture)
+    answer = {"value": "I" * 100 + "日本語"}
+    structured._panel(answer, json.dumps(answer))
+    assert len(widths) > 1
+    assert max(widths) <= 402
+
+
+def test_json_fallback_preserves_supported_text(
+    monkeypatch: pytest.MonkeyPatch, card_fonts: None
+) -> None:
+    from matplotlib.font_manager import FontEntry
+
+    from vlm_exam.visualization import structured
+
+    monkeypatch.setattr(
+        structured.font_manager.fontManager,
+        "ttflist",
+        [
+            FontEntry(fname="placeholder", name="LastResortHE"),
+            FontEntry(fname="cjk", name="Noto Sans CJK"),
+        ],
+    )
+    structured._fallbacks.cache_clear()
+    try:
+        assert structured._fallbacks() == ("cjk",)
+        monkeypatch.setattr(
+            structured.font_manager, "findfont", lambda *args: "primary"
+        )
+        coverage = {
+            "primary": frozenset(map(ord, "Invoice paid ")),
+            "cjk": frozenset(map(ord, "日本語")),
+        }
+        monkeypatch.setattr(structured, "_coverage", coverage.__getitem__)
+        monkeypatch.setattr(structured, "_font", lambda path, size: path)
+        assert structured._text_font("Invoice paid 🚀", 21) == "primary"
+        assert structured._text_font("日本語😀", 21) == "cjk"
+    finally:
+        structured._fallbacks.cache_clear()
+
+
+def test_deep_json_and_json_like_strings_stay_bounded(card_fonts: None) -> None:
+    from vlm_exam.visualization import structured
+
+    nested: Any = 1
+    for _ in range(2000):
+        nested = [nested]
+    fields = structured._fields({"a": 1}, {"a": nested})
+    assert fields[-1].path == ("a",) + (0,) * 2000
+    for response in (
+        '{"a":' + "[" * 1000 + "1" + "]" * 1000 + "}",
+        json.dumps({"a": "[" * 10000 + "1" + "]" * 10000}),
+    ):
+        assert structured._panel({"a": "ok"}, response).size == (879, 604)

@@ -26,7 +26,7 @@ from matplotlib import font_manager
 from matplotlib.ft2font import FT2Font
 from PIL import Image, ImageDraw, ImageFont
 
-from vlm_exam.tasks.text_scoring import equal, flatten, parse_json
+from vlm_exam.tasks.text_scoring import equal, parse_json
 from vlm_exam.visualization import theme
 
 _WIDTH = 879
@@ -77,7 +77,11 @@ def _coverage(path: str) -> frozenset[int]:
 @lru_cache(maxsize=1)
 def _fallbacks() -> tuple[str, ...]:
     fonts = sorted(
-        font_manager.fontManager.ttflist,
+        (
+            font
+            for font in font_manager.fontManager.ttflist
+            if "lastresort" not in font.name.lower().replace(" ", "")
+        ),
         key=lambda font: (
             not any(
                 name in font.name.lower() for name in ("unicode", "noto", "hiragino")
@@ -108,10 +112,16 @@ def _text_font(value: str, size: int) -> ImageFont.FreeTypeFont:
     points = {ord(character) for character in value}
     if points <= _coverage(primary):
         return _font(primary, size)
+    best = primary
+    supported = len(points & _coverage(primary))
     for path in _fallbacks():
-        if points <= _coverage(path):
+        coverage = _coverage(path)
+        if points <= coverage:
             return _font(path, size)
-    return _font(primary, size)
+        count = len(points & coverage)
+        if count > supported:
+            best, supported = path, count
+    return _font(best, size)
 
 
 def _path(path: tuple[str | int, ...]) -> str:
@@ -134,6 +144,8 @@ def _value(value: Any) -> str:
     try:
         json.loads(value)
         ambiguous = True
+    except RecursionError:
+        ambiguous = True
     except ValueError:
         ambiguous = False
     if not value or ambiguous or value == "[missing]" or value != value.strip():
@@ -141,8 +153,27 @@ def _value(value: Any) -> str:
     return value.replace("\n", " ↵ ").replace("\r", " ↵ ").replace("\t", " ⇥ ")
 
 
+def _leaves(value: Any) -> dict[tuple[str | int, ...], Any]:
+    leaves = {}
+    pending: list[tuple[tuple[str | int, ...], Any]] = [((), value)]
+    while pending:
+        path, current = pending.pop()
+        if isinstance(current, dict) and current:
+            pending.extend(
+                ((*path, key), child) for key, child in reversed(current.items())
+            )
+        elif isinstance(current, list) and current:
+            pending.extend(
+                ((*path, index), current[index])
+                for index in range(len(current) - 1, -1, -1)
+            )
+        else:
+            leaves[path] = current
+    return leaves
+
+
 def _fields(expected: Any, predicted: Any) -> list[_Field]:
-    reference, model = flatten(expected), flatten(predicted)
+    reference, model = _leaves(expected), _leaves(predicted)
     paths = list(reference) + [path for path in model if path not in reference]
     return [
         _Field(path, reference.get(path, _MISSING), model.get(path, _MISSING))
@@ -246,14 +277,15 @@ def _draw_tiles(draw: ImageDraw.ImageDraw, tiles: list[_Tile]) -> None:
             fill=_CARD_MATCH if tile.field.matches else _CARD_CHANGED,
         )
         x, y = x + 14, y + 11
+        label_font = _text_font(_path(tile.field.path), 14)
         for line in tile.labels:
-            draw.text(
-                (x, y), line, fill=theme.TEXT_SECONDARY, font=_text_font(line, 14)
-            )
+            draw.text((x, y), line, fill=theme.TEXT_SECONDARY, font=label_font)
             y += 18
         y += 7
         for index, lines in enumerate(tile.values):
             strike = not tile.field.matches and index == 0
+            value = tile.field.expected if strike else tile.field.predicted
+            font = _text_font(_value(value), tile.size)
             color = (
                 theme.TEXT_SECONDARY
                 if strike
@@ -262,7 +294,6 @@ def _draw_tiles(draw: ImageDraw.ImageDraw, tiles: list[_Tile]) -> None:
                 else _VALUE_CHANGED
             )
             for line in lines:
-                font = _text_font(line, tile.size)
                 draw.text((x, y), line, fill=color, font=font)
                 if strike:
                     bounds = draw.textbbox((x, y), line, font=font)
@@ -283,20 +314,19 @@ def _panel(expected: Any, response: str) -> Image.Image:
     except (ValueError, TypeError, RecursionError):
         message = "Invalid JSON" if response.strip() else "Empty response"
         draw.text((14, 14), message, fill=_VALUE_CHANGED, font=_text_font(message, 21))
-        preview = _wrap(
+        raw = (
             response.replace("\n", " ↵ ").replace("\r", " ↵ ").replace("\t", " ⇥ ")
             if response
-            else "(empty response)",
-            _WIDTH - 28,
-            20,
-            4,
+            else "(empty response)"
         )
+        preview = _wrap(raw, _WIDTH - 28, 20, 4)
+        preview_font = _text_font(raw, 20)
         for index, line in enumerate(preview):
             draw.text(
                 (14, 57 + index * 25),
                 line,
                 fill=theme.TEXT_PRIMARY,
-                font=_text_font(line, 20),
+                font=preview_font,
             )
         draw.line((0, 175, _WIDTH - 1, 175), fill=theme.DIVIDER_COLOR, width=1)
         draw.text(
