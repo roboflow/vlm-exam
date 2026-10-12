@@ -26,12 +26,10 @@ from PIL import Image
 from vlm_exam.config import VisualizationConfig
 from vlm_exam.results import SampleResult
 from vlm_exam.tasks.text import TextSample, TextTask
-from vlm_exam.tasks.text_scoring import match_regions, normalize, parse_json
+from vlm_exam.tasks.text_scoring import match_regions, parse_json
 from vlm_exam.visualization import theme
-from vlm_exam.visualization.cases import (
-    plot_qa_card,
-)
 from vlm_exam.visualization.detection import region_diff_image
+from vlm_exam.visualization.single_value import draw_single_value_panel
 from vlm_exam.visualization.structured import draw_structured_panel
 from vlm_exam.visualization.transcription import draw_transcription_panel
 
@@ -349,11 +347,19 @@ def plot_text_cards(
                 image, sample, result, task, model, config, uploaded_size
             )
         ]
-    if sample.category == "transcription":
-        figure, rail = _frame(image, model, config, "TRANSCRIPTION")
-        draw_transcription_panel(rail, sample.expected, result.predicted)
+    if sample.category in ("transcription", "single_string"):
+        single_value = sample.category == "single_string"
+        figure, rail = _frame(
+            image, model, config, "DATA EXTRACTION" if single_value else "TRANSCRIPTION"
+        )
+        if single_value:
+            draw_single_value_panel(
+                rail, sample.question, sample.expected, result.predicted
+            )
+        else:
+            draw_transcription_panel(rail, sample.expected, result.predicted)
         fonts = theme.load_fonts()
-        exact = sample.scoring_profile == "exact"
+        exact = single_value or sample.scoring_profile == "exact"
         rail.plot(
             [0, 1], [0.262, 0.262], color=theme.DIVIDER_COLOR, lw=1, clip_on=False
         )
@@ -389,22 +395,4 @@ def plot_text_cards(
         )
         return [figure]
 
-    def display(value: str) -> str:
-        return normalize(value).replace("\n", " ↵ ").replace("\t", " ⇥ ")
-
-    figure = plot_qa_card(
-        image,
-        sample.question,
-        display(sample.expected),
-        display(result.predicted),
-        result.correct,
-        model,
-        config,
-        "DATA EXTRACTION",
-        match_method="strict",
-        normalize=False,
-    )
-    rail = figure.axes[1]
-    edge = theme.draw_legend_chip(rail, 1, 0.797, "+ model", theme.FAILURE_TEXT_COLOR)
-    theme.draw_legend_chip(rail, edge, 0.797, "− expected", theme.SUCCESS_TEXT_COLOR)
-    return [figure]
+    raise ValueError(f"Unsupported text category: {sample.category}")

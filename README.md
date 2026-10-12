@@ -481,3 +481,8 @@ muted struck reference text and purple model differences. Original line breaks
 are preserved; long lines wrap and overflow ends with an ellipsis. There is no
 word map or pagination. The saved full-response score remains visible, labeled
 Character Similarity or Exact Match according to the recorded scoring profile.
+
+Single-value cards retain the question above a centered 24 px answer comparison.
+Correct values appear once in neutral text; differences show the muted struck
+reference above the purple model value. The saved Exact Match score uses the
+same bottom metric position as the other text cards.

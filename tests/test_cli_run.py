@@ -638,3 +638,43 @@ def test_transcription_overflow_is_bounded(
     assert len(drawn) < 40
     assert all(0 <= position[1] < 604 for position, _ in drawn)
     assert not any("MAP" in value for _, value in drawn)
+
+
+@pytest.mark.parametrize("same", [True, False])
+def test_single_value_comparison_is_bounded(
+    same: bool, monkeypatch: pytest.MonkeyPatch, card_fonts: None
+) -> None:
+    from PIL import ImageDraw
+
+    from vlm_exam.visualization import single_value
+
+    drawn = []
+    original = ImageDraw.ImageDraw.text
+
+    def capture(self: Any, position: Any, value: str, *args: Any, **kwargs: Any) -> Any:
+        drawn.append((position, value, kwargs.get("font")))
+        return original(self, position, value, *args, **kwargs)
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", capture)
+    expected = "ABC" * 2000
+    predicted = expected if same else "XYZ" * 2000
+    panel = single_value._panel("Read " * 1000, expected, predicted)
+    assert panel.size == (879, 604)
+    assert any("…" in value for _, value, _ in drawn)
+    assert len(drawn) < 20
+    assert all(0 <= position[1] < 580 for position, _, _ in drawn)
+    assert all(
+        position[0] + font.getlength(value) <= 880 for position, value, font in drawn
+    )
+
+
+def test_single_value_question_wraps_at_words(card_fonts: None) -> None:
+    from vlm_exam.visualization import single_value
+
+    question = (
+        "Read the letters and numbers imprinted on the pill in this image. "
+        "Return only the text, preserving capitalization and separating lines "
+        "with a single space. Do not explain."
+    )
+    assert " ".join(single_value._question_lines(question)) == question
+    assert len(single_value._question_lines("X" * 1000)) > 1
