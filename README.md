@@ -475,3 +475,9 @@ with an ellipsis; full responses remain in the source result file.
 
 Unparseable JSON uses a centered “Could not parse JSON” message on a pale purple
 background. Empty responses show “No response”; the saved FIELD F1 remains visible.
+
+Transcription cards use a single text-only panel with 18 px inline comparisons,
+muted struck reference text and purple model differences. Original line breaks
+are preserved; long lines wrap and overflow ends with an ellipsis. There is no
+word map or pagination. The saved full-response score remains visible, labeled
+Character Similarity or Exact Match according to the recorded scoring profile.

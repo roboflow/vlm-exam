@@ -591,3 +591,50 @@ def test_deep_json_and_json_like_strings_stay_bounded(card_fonts: None) -> None:
         json.dumps({"a": "[" * 10000 + "1" + "]" * 10000}),
     ):
         assert structured._panel({"a": "ok"}, response).size == (879, 604)
+
+
+@pytest.mark.parametrize("content", ["ELL\nJAIL\nVOW", "a\n\nb", "日本語\nInvoice"])
+def test_transcription_preserves_line_breaks(
+    content: str, monkeypatch: pytest.MonkeyPatch, card_fonts: None
+) -> None:
+    from PIL import ImageDraw
+
+    from vlm_exam.visualization import transcription
+
+    positions = []
+    original = ImageDraw.ImageDraw.text
+
+    def capture(self: Any, position: Any, value: str, *args: Any, **kwargs: Any) -> Any:
+        if value in content.split("\n") and value:
+            positions.append(position)
+        return original(self, position, value, *args, **kwargs)
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", capture)
+    transcription._panel(content, content)
+    assert [pos[1] for pos in positions] == [
+        36 + index * 23 for index, line in enumerate(content.split("\n")) if line
+    ]
+    assert all(pos[0] == 0 for pos in positions)
+
+
+def test_transcription_overflow_is_bounded(
+    card_fonts: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from PIL import ImageDraw
+
+    from vlm_exam.visualization import transcription
+
+    drawn = []
+    original = ImageDraw.ImageDraw.text
+
+    def capture(self: Any, position: Any, value: str, *args: Any, **kwargs: Any) -> Any:
+        drawn.append((position, value))
+        return original(self, position, value, *args, **kwargs)
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", capture)
+    image = transcription._panel("word\n" * 1000, "word\n" * 1000)
+    assert image.size == (879, 604)
+    assert drawn[-1][1] == "…"
+    assert len(drawn) < 40
+    assert all(0 <= position[1] < 604 for position, _ in drawn)
+    assert not any("MAP" in value for _, value in drawn)

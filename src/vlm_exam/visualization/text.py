@@ -30,10 +30,10 @@ from vlm_exam.tasks.text_scoring import match_regions, normalize, parse_json
 from vlm_exam.visualization import theme
 from vlm_exam.visualization.cases import (
     plot_qa_card,
-    plot_transcription_card,
 )
 from vlm_exam.visualization.detection import region_diff_image
 from vlm_exam.visualization.structured import draw_structured_panel
+from vlm_exam.visualization.transcription import draw_transcription_panel
 
 
 def _frame(
@@ -349,18 +349,45 @@ def plot_text_cards(
                 image, sample, result, task, model, config, uploaded_size
             )
         ]
-    if sample.category == "transcription" and sample.scoring_profile != "exact":
-        return [
-            plot_transcription_card(
-                image,
-                sample.expected,
-                result.predicted,
-                result.metadata["score"],
-                model,
-                config,
-                normalize=False,
-            )
-        ]
+    if sample.category == "transcription":
+        figure, rail = _frame(image, model, config, "TRANSCRIPTION")
+        draw_transcription_panel(rail, sample.expected, result.predicted)
+        fonts = theme.load_fonts()
+        exact = sample.scoring_profile == "exact"
+        rail.plot(
+            [0, 1], [0.262, 0.262], color=theme.DIVIDER_COLOR, lw=1, clip_on=False
+        )
+        rail.text(
+            0.5,
+            0.212,
+            "EXACT MATCH" if exact else "CHARACTER SIMILARITY",
+            fontsize=9.5,
+            ha="center",
+            va="center",
+            color=theme.PANEL_LABEL_COLOR,
+            font=fonts.bold,
+        )
+        score = result.metadata.get("score")
+        scored = (
+            type(score) in (int, float) and math.isfinite(score) and 0 <= score <= 1
+        )
+        rail.text(
+            0.5,
+            0.142,
+            f"{score * 100:.1f}%" if scored else "—",
+            fontsize=26,
+            ha="center",
+            va="center",
+            font=fonts.display,
+            color=theme.score_color(score) if scored else theme.TEXT_SECONDARY,
+        )
+        theme.draw_brand_footer(
+            rail,
+            "evaluated via exact match"
+            if exact
+            else "evaluated via character similarity",
+        )
+        return [figure]
 
     def display(value: str) -> str:
         return normalize(value).replace("\n", " ↵ ").replace("\t", " ⇥ ")
