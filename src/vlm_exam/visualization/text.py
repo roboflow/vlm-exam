@@ -14,10 +14,7 @@
 
 from __future__ import annotations
 
-import difflib
-import json
 import math
-import re
 import textwrap
 from typing import Any
 
@@ -29,15 +26,12 @@ from PIL import Image
 from vlm_exam.config import VisualizationConfig
 from vlm_exam.results import SampleResult
 from vlm_exam.tasks.text import TextSample, TextTask
-from vlm_exam.tasks.text_scoring import match_regions, normalize, parse_json
+from vlm_exam.tasks.text_scoring import match_regions, parse_json
 from vlm_exam.visualization import theme
-from vlm_exam.visualization.cases import (
-    draw_diff_line,
-    draw_verdict,
-    plot_qa_card,
-    plot_transcription_card,
-)
 from vlm_exam.visualization.detection import region_diff_image
+from vlm_exam.visualization.single_value import draw_single_value_panel
+from vlm_exam.visualization.structured import _message_panel, draw_structured_panel
+from vlm_exam.visualization.transcription import draw_transcription_panel
 
 
 def _frame(
@@ -52,78 +46,6 @@ def _frame(
     return figure, rail
 
 
-def _token_diff(left: str, right: str) -> tuple[list[tuple[str, str | None]], ...]:
-    pattern = (
-        r'"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null|[^\s]'
-    )
-    tokens = [list(re.finditer(pattern, value)) for value in (left, right)]
-    changes: list[set[int]] = [set(), set()]
-    matcher = difflib.SequenceMatcher(
-        None,
-        [t.group() for t in tokens[0]],
-        [t.group() for t in tokens[1]],
-        autojunk=False,
-    )
-    for operation, a, b, c, d in matcher.get_opcodes():
-        if operation != "equal":
-            changes[0].update(range(a, b))
-            changes[1].update(range(c, d))
-    output = []
-    for value, parts, changed, kind in zip(
-        (left, right), tokens, changes, ("expected", "predicted")
-    ):
-        runs: list[tuple[str, str | None]] = []
-        position = 0
-        for index, token in enumerate(parts):
-            runs.append((value[position : token.start()], None))
-            runs.append((token.group(), kind if index in changed else None))
-            position = token.end()
-        runs.append((value[position:], None))
-        output.append(runs)
-    return tuple(output)
-
-
-def _json_diff(
-    expected: Any, predicted: Any
-) -> list[tuple[str, list[tuple[str, str | None]]]]:
-    left, right = (
-        json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True).splitlines()
-        for value in (expected, predicted)
-    )
-    output = []
-    for operation, a, b, c, d in difflib.SequenceMatcher(
-        None, left, right, autojunk=False
-    ).get_opcodes():
-        if operation == "equal":
-            output.extend((" ", [(line, None)]) for line in left[a:b])
-        elif operation == "replace" and b - a == d - c:
-            for expected_line, predicted_line in zip(left[a:b], right[c:d]):
-                expected_runs, predicted_runs = _token_diff(
-                    expected_line, predicted_line
-                )
-                output.extend([("−", expected_runs), ("+", predicted_runs)])
-        else:
-            output.extend(("−", [(line, "expected")]) for line in left[a:b])
-            output.extend(("+", [(line, "predicted")]) for line in right[c:d])
-    return output
-
-
-def _wrap_runs(
-    runs: list[tuple[str, str | None]], width: int
-) -> list[list[tuple[str, str | None]]]:
-    characters = [(character, kind) for text, kind in runs for character in text]
-    output = []
-    for offset in range(0, len(characters), width):
-        line: list[tuple[str, str | None]] = []
-        for character, kind in characters[offset : offset + width]:
-            if line and line[-1][1] == kind:
-                line[-1] = (line[-1][0] + character, kind)
-            else:
-                line.append((character, kind))
-        output.append(line)
-    return output or [[]]
-
-
 def _json_cards(
     image: Image.Image,
     sample: TextSample,
@@ -131,74 +53,34 @@ def _json_cards(
     model: str,
     config: VisualizationConfig,
 ) -> list[plt.Figure]:
-    invalid = False
-    try:
-        predicted, _ = parse_json(result.predicted)
-        lines = _json_diff(sample.answer, predicted)
-    except (ValueError, TypeError, RecursionError):
-        invalid = True
-        reference = json.dumps(
-            sample.answer, indent=2, ensure_ascii=False, sort_keys=True
-        )
-        lines = [("−", [(line, "expected")]) for line in reference.splitlines()]
-        lines += [(" ", [("MODEL RESPONSE — INVALID JSON", None)])]
-        lines += [
-            ("+", [(line, "predicted")])
-            for line in (result.predicted.splitlines() or ["(empty response)"])
-        ]
-    width_inches = theme.HERO_RAIL_RECT[2] * theme.CARD_FIGURE_SIZE[0]
-    height_inches = theme.HERO_RAIL_RECT[3] * theme.CARD_FIGURE_SIZE[1]
-    for font_size in (14, 13, 12, 11):
-        width = int(width_inches * 72 / font_size / theme.MONO_ADVANCE_EM) - 3
-        wrapped = [
-            (prefix if index == 0 else " ", row)
-            for prefix, runs in lines
-            for index, row in enumerate(_wrap_runs(runs, width))
-        ]
-        step = font_size * 1.42 / 72 / height_inches
-        capacity = int((0.725 - 0.115) / step)
-        if len(wrapped) <= capacity:
-            break
-    pages = max(1, math.ceil(len(wrapped) / capacity))
-    figures = []
-    for page in range(pages):
-        figure, rail = _frame(image, model, config, "DATA EXTRACTION")
-        draw_verdict(rail, result.correct)
-        rail.text(
-            0,
-            0.792,
-            "JSON RESPONSE" + (" · INVALID JSON" if invalid else ""),
-            font=theme.load_fonts().bold,
-            fontsize=9.5,
-            color=theme.PANEL_LABEL_COLOR,
-        )
-        edge = theme.draw_legend_chip(
-            rail, 1, 0.797, "+ model", theme.FAILURE_TEXT_COLOR
-        )
-        theme.draw_legend_chip(
-            rail, edge, 0.797, "− expected", theme.SUCCESS_TEXT_COLOR
-        )
-        rail.plot([0, 1], [0.768, 0.768], color=theme.DIVIDER_COLOR, linewidth=1)
-        for index, (prefix, runs) in enumerate(
-            wrapped[page * capacity : (page + 1) * capacity]
-        ):
-            y = 0.725 - index * step
-            color = (
-                theme.SUCCESS_TEXT_COLOR
-                if prefix == "−"
-                else theme.FAILURE_TEXT_COLOR
-                if prefix == "+"
-                else theme.TEXT_PRIMARY
-            )
-            draw_diff_line(rail, 0, y, [(prefix, None)], font_size, color)
-            draw_diff_line(rail, 0.036, y, runs, font_size)
-        theme.draw_brand_footer(
-            rail,
-            "evaluated via exact field values"
-            + (f" · {page + 1}/{pages}" if pages > 1 else ""),
-        )
-        figures.append(figure)
-    return figures
+    figure, rail = _frame(image, model, config, "DATA EXTRACTION")
+    draw_structured_panel(rail, sample.answer, result.predicted)
+    fonts = theme.load_fonts()
+    rail.plot([0, 1], [0.262, 0.262], color=theme.DIVIDER_COLOR, lw=1, clip_on=False)
+    rail.text(
+        0.5,
+        0.212,
+        "FIELD F1",
+        fontsize=9.5,
+        ha="center",
+        va="center",
+        color=theme.PANEL_LABEL_COLOR,
+        font=fonts.bold,
+    )
+    score = result.metadata.get("score")
+    scored = type(score) in (int, float) and math.isfinite(score) and 0 <= score <= 1
+    rail.text(
+        0.5,
+        0.142,
+        f"{score * 100:.1f}%" if scored else "—",
+        fontsize=26,
+        ha="center",
+        va="center",
+        font=fonts.display,
+        color=theme.score_color(score) if scored else theme.TEXT_SECONDARY,
+    )
+    theme.draw_brand_footer(rail, "evaluated via exact field values")
+    return [figure]
 
 
 def _region_rows(
@@ -228,28 +110,6 @@ def _region_rows(
                 "correct": (a in used_reference),
             }
         )
-    used_reference = {a for a, _ in paired}
-    used_predictions = {b for _, b in paired}
-    rows.extend(
-        {
-            "bbox": region["bbox"],
-            "expected": region["text"],
-            "predicted": "[missing region]",
-            "correct": False,
-        }
-        for index, region in enumerate(reference)
-        if index not in used_reference
-    )
-    rows.extend(
-        {
-            "bbox": region["bbox"],
-            "expected": "[extra region]",
-            "predicted": region["text"],
-            "correct": False,
-        }
-        for index, region in enumerate(predictions)
-        if index not in used_predictions and region is not None
-    )
     return sorted(
         rows,
         key=lambda row: (
@@ -270,11 +130,13 @@ def _localization_card(
     config: VisualizationConfig,
     uploaded_size: tuple[int, int] | None,
 ) -> plt.Figure:
+    parse_failed = False
     try:
         parsed, _ = parse_json(result.predicted)
         predictions = task.parse_regions(parsed, sample, uploaded_size)
     except (ValueError, TypeError, KeyError, RecursionError):
         predictions = [None]
+        parse_failed = True
     reference = sample.answer
     rows = _region_rows(reference, predictions)
 
@@ -307,7 +169,7 @@ def _localization_card(
     selected = rows[: 12 if columns == 3 else 8 if columns == 2 else 3]
     gutter = 0.045
     tile_width = (1 - gutter * (columns - 1)) / columns
-    font_size = 10 if columns == 3 else 11
+    font_size = 9.6
     line_height = font_size * 1.25 / 72 / rail_height
     crops = []
     for row in selected:
@@ -331,11 +193,11 @@ def _localization_card(
         tiles = []
         for row, crop in zip(selected, crops):
             values = (
-                [("", row["predicted"], theme.SUCCESS_TEXT_COLOR)]
+                [("", row["predicted"], theme.TEXT_PRIMARY)]
                 if row["correct"]
                 else [
-                    ("− ", row["expected"], theme.SUCCESS_TEXT_COLOR),
-                    ("+ ", row["predicted"], theme.FAILURE_TEXT_COLOR),
+                    ("", row["expected"], theme.TEXT_SECONDARY),
+                    ("", row["predicted"], "#743AC5"),
                 ]
             )
             blocks = [
@@ -343,6 +205,8 @@ def _localization_card(
                     textwrap.fill(
                         prefix + ("null" if value is None else str(value)),
                         width=55 if columns == 1 else 29 if columns == 2 else 21,
+                        max_lines=6,
+                        placeholder="…",
                     ),
                     color,
                 )
@@ -363,7 +227,7 @@ def _localization_card(
         groups = [tiles[i : i + columns] for i in range(0, len(tiles), columns)]
         heights = [max(t[2] + 0.013 + t[4] for t in group) for group in groups]
         gap = 0.040 if columns == 3 else 0.05
-        lower = 0.19 if len(rows) > len(selected) else 0.13
+        lower = 0.34
         available = 0.85 - lower
         while groups and sum(heights) + gap * (len(groups) - 1) > available:
             groups.pop()
@@ -385,46 +249,90 @@ def _localization_card(
                 axes.set_xticks([])
                 axes.set_yticks([])
                 for spine in axes.spines.values():
-                    spine.set_color(theme.ROBOFLOW_PURPLE)
-                    spine.set_linewidth(1.6)
+                    spine.set_color("#743AC5")
+                    spine.set_linewidth(1.2)
                 y = crop_top - height - 0.013
                 for text, color in blocks:
-                    rail.text(
-                        center,
-                        y,
-                        text,
-                        font=fonts.mono,
-                        fontsize=font_size,
-                        color=color,
-                        va="top",
-                        ha="center",
-                        multialignment="center",
-                        parse_math=False,
-                        linespacing=1.25,
-                    )
+                    for line_index, line in enumerate(text.split("\n")):
+                        line_y = y - line_index * line_height
+                        artist = rail.text(
+                            center,
+                            line_y,
+                            line,
+                            font=fonts.regular,
+                            fontsize=font_size,
+                            color=color,
+                            va="top",
+                            ha="center",
+                            parse_math=False,
+                        )
+                        if color == theme.TEXT_SECONDARY:
+                            figure.canvas.draw()
+                            bounds = artist.get_window_extent(
+                                figure.canvas.get_renderer()
+                            )
+                            points = rail.transData.inverted().transform(
+                                [
+                                    (bounds.x0, (bounds.y0 + bounds.y1) / 2),
+                                    (bounds.x1, (bounds.y0 + bounds.y1) / 2),
+                                ]
+                            )
+                            rail.plot(points[:, 0], points[:, 1], color=color, lw=0.6)
                     y -= (text.count("\n") + 1) * line_height + 0.004
             top -= group_height + gap
         if len(rows) > shown:
             rail.text(
                 0.5,
-                0.14,
+                0.30,
                 f"+ {len(rows) - shown} more regions",
                 font=fonts.medium,
-                fontsize=11,
+                fontsize=9.6,
                 color=theme.TEXT_SECONDARY,
                 va="top",
                 ha="center",
             )
     else:
-        rail.text(
-            0.5,
-            0.5,
-            "No valid text regions",
-            font=fonts.medium,
-            fontsize=14,
-            color=theme.TEXT_SECONDARY,
-            ha="center",
+        message = (
+            "No response"
+            if not result.predicted.strip()
+            else "Could not parse text regions"
+            if parse_failed or (predictions and all(p is None for p in predictions))
+            else "No text regions detected"
+            if not predictions
+            else "No matching text regions"
         )
+        rail.imshow(
+            _message_panel(message),
+            extent=(0, 1, 0.279, 0.869),
+            aspect="auto",
+            interpolation="nearest",
+            zorder=0,
+        )
+        rail.set_xlim(0, 1)
+        rail.set_ylim(0, 1)
+    score = result.metadata.get("score")
+    scored = type(score) in (int, float) and math.isfinite(score) and 0 <= score <= 1
+    rail.plot([0, 1], [0.262, 0.262], color=theme.DIVIDER_COLOR, lw=1, clip_on=False)
+    rail.text(
+        0.5,
+        0.212,
+        "BOX + TEXT F1",
+        fontsize=9.5,
+        ha="center",
+        va="center",
+        color=theme.PANEL_LABEL_COLOR,
+        font=fonts.bold,
+    )
+    rail.text(
+        0.5,
+        0.142,
+        f"{score * 100:.1f}%" if scored else "—",
+        fontsize=26,
+        ha="center",
+        va="center",
+        font=fonts.display,
+        color=theme.score_color(score) if scored else theme.TEXT_SECONDARY,
+    )
     invalid = sum(region is None for region in predictions)
     theme.draw_brand_footer(
         rail,
@@ -443,7 +351,7 @@ def plot_text_cards(
     config: VisualizationConfig,
     uploaded_size: tuple[int, int] | None = None,
 ) -> list[plt.Figure]:
-    """Render native text cards, with additional pages for long JSON responses.
+    """Render one native hero card for each text sample.
 
     Args:
         image: Original source image.
@@ -455,7 +363,7 @@ def plot_text_cards(
         uploaded_size: Recorded provider image dimensions for pixel conversion.
 
     Returns:
-        One or more native hero-card figures.
+        A single native hero-card figure in a list.
     """
     if sample.category == "structured":
         return _json_cards(image, sample, result, model, config)
@@ -465,35 +373,52 @@ def plot_text_cards(
                 image, sample, result, task, model, config, uploaded_size
             )
         ]
-    if sample.category == "transcription" and sample.scoring_profile != "exact":
-        return [
-            plot_transcription_card(
-                image,
-                sample.expected,
-                result.predicted,
-                result.metadata["score"],
-                model,
-                config,
-                normalize=False,
+    if sample.category in ("transcription", "single_string"):
+        single_value = sample.category == "single_string"
+        figure, rail = _frame(
+            image, model, config, "DATA EXTRACTION" if single_value else "TRANSCRIPTION"
+        )
+        if single_value:
+            draw_single_value_panel(
+                rail, sample.question, sample.expected, result.predicted
             )
-        ]
+        else:
+            draw_transcription_panel(rail, sample.expected, result.predicted)
+        fonts = theme.load_fonts()
+        exact = single_value or sample.scoring_profile == "exact"
+        rail.plot(
+            [0, 1], [0.262, 0.262], color=theme.DIVIDER_COLOR, lw=1, clip_on=False
+        )
+        rail.text(
+            0.5,
+            0.212,
+            "EXACT MATCH" if exact else "CHARACTER SIMILARITY",
+            fontsize=9.5,
+            ha="center",
+            va="center",
+            color=theme.PANEL_LABEL_COLOR,
+            font=fonts.bold,
+        )
+        score = result.metadata.get("score")
+        scored = (
+            type(score) in (int, float) and math.isfinite(score) and 0 <= score <= 1
+        )
+        rail.text(
+            0.5,
+            0.142,
+            f"{score * 100:.1f}%" if scored else "—",
+            fontsize=26,
+            ha="center",
+            va="center",
+            font=fonts.display,
+            color=theme.score_color(score) if scored else theme.TEXT_SECONDARY,
+        )
+        theme.draw_brand_footer(
+            rail,
+            "evaluated via exact match"
+            if exact
+            else "evaluated via character similarity",
+        )
+        return [figure]
 
-    def display(value: str) -> str:
-        return normalize(value).replace("\n", " ↵ ").replace("\t", " ⇥ ")
-
-    figure = plot_qa_card(
-        image,
-        sample.question,
-        display(sample.expected),
-        display(result.predicted),
-        result.correct,
-        model,
-        config,
-        "DATA EXTRACTION",
-        match_method="strict",
-        normalize=False,
-    )
-    rail = figure.axes[1]
-    edge = theme.draw_legend_chip(rail, 1, 0.797, "+ model", theme.FAILURE_TEXT_COLOR)
-    theme.draw_legend_chip(rail, edge, 0.797, "− expected", theme.SUCCESS_TEXT_COLOR)
-    return [figure]
+    raise ValueError(f"Unsupported text category: {sample.category}")

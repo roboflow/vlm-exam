@@ -463,3 +463,30 @@ explicitly unscored, with coverage reported for each metric.
 See [AGENTS.md](AGENTS.md#mixed-text-benchmark) for dataset import, inference,
 coordinate-format requirements, validation and rendering commands. Charts use the
 shared [leaderboard directory](visualizations/leaderboards/).
+
+Structured JSON cards show one image per sample, including large responses.
+Small objects show all fields; larger responses add a field agreement map grouped
+by JSON parent paths and prioritize mismatches in the value tiles. Purple marks
+differences, with the expected value struck through above the model value.
+The full-width JSON MAP includes total field and difference counts; the values
+header identifies the struck-through Reference and purple Model.
+FIELD F1 uses the shared detection-score styling. Long values may be shortened
+with an ellipsis; full responses remain in the source result file.
+
+Unparseable JSON uses a centered “Could not parse JSON” message on a pale purple
+background. Empty responses show “No response”; the saved FIELD F1 remains visible.
+
+Transcription cards use a single text-only panel with 18 px inline comparisons,
+muted struck reference text and purple model differences. Original line breaks
+are preserved; long lines wrap and overflow ends with an ellipsis. There is no
+word map or pagination. The saved full-response score remains visible, labeled
+Character Similarity or Exact Match according to the recorded scoring profile.
+
+Single-value cards retain the question above a centered 24 px answer comparison.
+Correct values appear once in neutral text; differences show the muted struck
+reference above the purple model value. The saved Exact Match score uses the
+same bottom metric position as the other text cards.
+
+Single-value comparisons display embedded newlines and tabs as visible markers
+before measuring the text. Transcription keeps line breaks and marks only changed
+whitespace (newline, tab or space), using the same insertion/deletion colors.
