@@ -405,9 +405,10 @@ Resume verifies the snapshot and inference profile and preserves successes.
 Do not resume frozen files with incompatible bundled defaults. The reviewed
 `src/vlm_exam/configs/text_release.json` pins the 48-model publication inventory,
 both efforts, one run each, 600 pair IDs, inference hashes and exact accepted
-failure IDs. The release has nine accepted gaps: Sonnet 5.5 High one, Grok 4.7
-High five, and Muse Spark 1.3 Low two / High one. Keep them unscored; do not retry
-or change the policy to make validation pass. New publications require an
+failure IDs. The release has six accepted gaps: Sonnet 5.5 High one and Grok 4.7
+High five. Muse Spark 1.3 Low and High are complete after the authorized
+October 13 recovery of three failed pairs. Keep the remaining gaps unscored;
+do not retry or change the policy to make validation pass. New publications require an
 explicitly reviewed inventory change. Private results stay outside this repo.
 
 ### Scoring and publication
