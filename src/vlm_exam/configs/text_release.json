@@ -28,6 +28,7 @@
     "gemini-3.6-flash",
     "gemini-3.7-flash",
     "gemini-3.8-flash",
+    "gemini-4-argon-eap",
     "glm-5.3-flash",
     "glm-5v-turbo",
     "gpt-5.4-mini",
@@ -230,6 +231,16 @@
       "allowed_failures": []
     },
     "gemini-3.8-flash/low": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-4-argon-eap/high": {
+      "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-4-argon-eap/low": {
       "inference_hash": "597307dfa2a95aa7584ef557fceec459e0ae8ea20be2760430675a120f7a2391",
       "coordinate_format": "yxyx_normalized_0_to_1000",
       "allowed_failures": []
