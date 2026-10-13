@@ -474,17 +474,12 @@
     "muse-spark-1.3/high": {
       "inference_hash": "43f4d1c5748822a6ce474441f4bcc3b52bbce171ed8c4e79ff0063d54a804ce3",
       "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
-      "allowed_failures": [
-        "e4ad7887b926635c6bc96a6184919fdb0c32f4c90ba23192c4439f5a6dae9ed1"
-      ]
+      "allowed_failures": []
     },
     "muse-spark-1.3/low": {
       "inference_hash": "43f4d1c5748822a6ce474441f4bcc3b52bbce171ed8c4e79ff0063d54a804ce3",
       "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
-      "allowed_failures": [
-        "2a828d6bf92e4235986a52fb8987b80a52036828d0a1da8cfba9985a14a60d35",
-        "351bb4deaa3524425c18e70700f9274b856a8f4bf1307bc7c26869654baf6dee"
-      ]
+      "allowed_failures": []
     },
     "muse-wonder/high": {
       "inference_hash": "425f90f5d996477d8c0d8df3cf07c76dd83ddf6f2cf4a69f9880db674628f046",
