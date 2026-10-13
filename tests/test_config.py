@@ -230,6 +230,7 @@ class TestBenchmarkProtocolField:
             "mimo-v2.6-pro",
             "mimo-v2.6-flash",
             "mistral-large-4",
+            "gemini-4-argon-eap",
         ]
 
 
