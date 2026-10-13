@@ -507,12 +507,13 @@ models:
       input_per_million_tokens: 0.68
       output_per_million_tokens: 2.09
 
-  gemini-4-argon-eap:
+  gemini-4-argon:
     name: Gemini 4 Argon
     lab: google
     provider: google
     detection_coordinate_format: yxyx_normalized_0_to_1000
-    # Launch introductory pricing; saved evaluations used the EAP endpoint.
+    # Launch introductory pricing. The committed runs (2026-10-12/13) used the
+    # early-access endpoint under the key gemini-4-argon-eap (renamed 2026-10-13).
     pricing:
       input_per_million_tokens: 2.0
       output_per_million_tokens: 10.0

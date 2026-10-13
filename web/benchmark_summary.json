@@ -35870,8 +35870,8 @@
       }
     },
     {
-      "id": "gemini-4-argon-eap:low",
-      "key": "gemini-4-argon-eap",
+      "id": "gemini-4-argon:low",
+      "key": "gemini-4-argon",
       "name": "Gemini 4 Argon",
       "lab": "google",
       "effort": "low",
@@ -36290,8 +36290,8 @@
       }
     },
     {
-      "id": "gemini-4-argon-eap:high",
-      "key": "gemini-4-argon-eap",
+      "id": "gemini-4-argon:high",
+      "key": "gemini-4-argon",
       "name": "Gemini 4 Argon",
       "lab": "google",
       "effort": "high",
