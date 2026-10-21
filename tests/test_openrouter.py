@@ -14,12 +14,14 @@
 
 from unittest.mock import MagicMock
 
+import pytest
 from PIL import Image
 
 from vlm_exam.providers.openrouter import (
     _MAX_OUTPUT_TOKENS,
     OpenRouterProvider,
     _reasoning_config,
+    _request_options,
 )
 
 
@@ -61,3 +63,34 @@ def test_mistral_large_4_gets_a_larger_output_budget() -> None:
 
 def test_other_models_keep_the_default_output_budget() -> None:
     assert _requested_max_tokens("qwen/qwen3.8-max") == _MAX_OUTPUT_TOKENS
+
+
+@pytest.mark.parametrize("suffix", ["", ":free"])
+@pytest.mark.parametrize("effort", ["low", "high"])
+def test_minimax_keeps_reasoning_and_excludes_training(
+    suffix: str, effort: str
+) -> None:
+    provider = OpenRouterProvider(
+        "minimax-m3.1-flash",
+        api_key="test",
+        provider_model_id=f"minimax/minimax-m3.1-flash{suffix}",
+    )
+    create = MagicMock()
+    create.return_value.choices = []
+    create.return_value.usage = None
+    provider._client.chat.completions.create = create
+    provider.predict(Image.new("RGB", (8, 8)), "prompt", effort)
+    assert create.call_args.kwargs["extra_body"] == {
+        "reasoning": {"effort": effort},
+        "provider": {
+            "only": ["minimax"],
+            "allow_fallbacks": False,
+            "data_collection": "deny",
+        },
+    }
+
+
+def test_other_models_keep_existing_provider_preferences() -> None:
+    assert _request_options("low", "qwen/qwen3-vl-235b-a22b-instruct") == {
+        "reasoning": {"enabled": False}
+    }
