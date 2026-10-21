@@ -38,6 +38,9 @@ _MAX_OUTPUT_TOKENS = 16384
 # thinking trace alone regularly exceeds 16k tokens on OCR and detection
 # images and the answer comes back empty, so it gets a larger budget.
 _MAX_OUTPUT_TOKENS_BY_MODEL = {"mistralai/mistral-large-4-0": 65536}
+_MINIMAX_FLASH_MODELS = frozenset(
+    {"minimax/minimax-m3.1-flash", "minimax/minimax-m3.1-flash:free"}
+)
 
 
 def _max_output_tokens(provider_model_id: str) -> int:
@@ -60,12 +63,25 @@ def _reasoning_config(effort: str, provider_model_id: str) -> dict[str, Any]:
     # require reasoning and reject enabled=False.
     if (
         provider_model_id.startswith(("google/", "meta/"))
-        or provider_model_id in _REASONING_REQUIRED_MODELS
+        or provider_model_id in _REASONING_REQUIRED_MODELS | _MINIMAX_FLASH_MODELS
     ):
         return {"effort": effort}
     if effort == "low":
         return {"enabled": False}
     return {"effort": effort}
+
+
+def _request_options(effort: str, provider_model_id: str) -> dict[str, Any]:
+    options: dict[str, Any] = {
+        "reasoning": _reasoning_config(effort, provider_model_id)
+    }
+    if provider_model_id in _MINIMAX_FLASH_MODELS:
+        options["provider"] = {
+            "only": ["minimax"],
+            "allow_fallbacks": False,
+            "data_collection": "deny",
+        }
+    return options
 
 
 class OpenRouterProvider(Provider):
@@ -150,9 +166,7 @@ class OpenRouterProvider(Provider):
                         ],
                     }
                 ],
-                extra_body={
-                    "reasoning": _reasoning_config(effort, self._provider_model_id)
-                },
+                extra_body=_request_options(effort, self._provider_model_id),
             )
         )
 
