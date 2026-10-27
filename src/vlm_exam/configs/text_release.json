@@ -40,6 +40,7 @@
     "gpt-6-luna",
     "gpt-6-sol",
     "gpt-6.1-sol",
+    "gpt-6.1-terra",
     "grok-4.5",
     "grok-4.6",
     "grok-4.7",
@@ -52,6 +53,7 @@
     "muse-spark-1.1",
     "muse-spark-1.2",
     "muse-spark-1.3",
+    "muse-spark-open",
     "muse-wonder",
     "qwen-3-vl-235b",
     "qwen-3.5-27b",
@@ -355,6 +357,16 @@
       "coordinate_format": "xyxy_absolute_resized_image",
       "allowed_failures": []
     },
+    "gpt-6.1-terra/high": {
+      "inference_hash": "d82b5a2011b40392de6349744254ca4ecc8702fa7cef3060ac39265b183db327",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-6.1-terra/low": {
+      "inference_hash": "d82b5a2011b40392de6349744254ca4ecc8702fa7cef3060ac39265b183db327",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
     "grok-4.5/high": {
       "inference_hash": "d29fbfb7b4d37c78814d4a1b00d5485b7ed2e2684c61ec8914ee42a00e23c30a",
       "coordinate_format": "xyxy_normalized_0_to_100",
@@ -478,6 +490,16 @@
     },
     "muse-spark-1.3/low": {
       "inference_hash": "43f4d1c5748822a6ce474441f4bcc3b52bbce171ed8c4e79ff0063d54a804ce3",
+      "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
+      "allowed_failures": []
+    },
+    "muse-spark-open/high": {
+      "inference_hash": "101933f4bf04cd005c0279707e03f9036fa71902d8e278271503734c2960e343",
+      "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
+      "allowed_failures": []
+    },
+    "muse-spark-open/low": {
+      "inference_hash": "101933f4bf04cd005c0279707e03f9036fa71902d8e278271503734c2960e343",
       "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
       "allowed_failures": []
     },

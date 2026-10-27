@@ -61,3 +61,64 @@ def test_mistral_large_4_gets_a_larger_output_budget() -> None:
 
 def test_other_models_keep_the_default_output_budget() -> None:
     assert _requested_max_tokens("qwen/qwen3.8-max") == _MAX_OUTPUT_TOKENS
+
+
+def test_explicit_route_keeps_low_reasoning_and_pins_privacy() -> None:
+    options = {
+        "max_tokens": 32768,
+        "provider": {
+            "only": ["minimax"],
+            "allow_fallbacks": False,
+            "data_collection": "deny",
+            "require_parameters": True,
+        },
+        "reasoning": {"low": {"effort": "low"}},
+    }
+    provider = OpenRouterProvider("test", api_key="test", options=options)
+    options["provider"]["only"].append("unexpected")
+    body = provider.request_options("low")
+    assert body["reasoning"] == {"effort": "low"}
+    assert body["provider"]["only"] == ["minimax"]
+    assert body["provider"]["data_collection"] == "deny"
+    body["provider"]["only"].append("unexpected")
+    assert provider.request_options("low")["provider"]["only"] == ["minimax"]
+
+
+def test_route_options_capture_reported_usage_and_finish_reason() -> None:
+    from openai.types.chat import ChatCompletion
+
+    provider = OpenRouterProvider("test", api_key="test", options={"max_tokens": 32768})
+    response = ChatCompletion.model_validate(
+        {
+            "id": "generation-id",
+            "model": "upstream-model",
+            "provider": "Together",
+            "created": 0,
+            "object": "chat.completion",
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {"role": "assistant", "content": "answer"},
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 10,
+                "completion_tokens": 30,
+                "total_tokens": 40,
+                "cost": 0.001,
+                "completion_tokens_details": {"reasoning_tokens": 20},
+            },
+        }
+    )
+    create = MagicMock(return_value=response)
+    provider._client.chat.completions.create = create
+    answer, usage, _ = provider.predict(Image.new("RGB", (8, 8)), "prompt", "high")
+    assert answer == "answer"
+    assert create.call_args.kwargs["max_tokens"] == 32768
+    assert usage.metadata["provider"] == "Together"
+    assert usage.metadata["reported"]["cost"] == 0.001
+    assert (
+        usage.metadata["reported"]["completion_tokens_details"]["reasoning_tokens"]
+        == 20
+    )

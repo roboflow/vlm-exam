@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import importlib
+from typing import Any
 
 from vlm_exam.config import ModelConfig, RouteConfig
 from vlm_exam.providers.base import Provider, Usage
@@ -53,6 +54,7 @@ def create_provider(
     api_key: str | None = None,
     provider_model_id: str | None = None,
     resolution_tier: str = "high",
+    options: dict[str, Any] | None = None,
 ) -> Provider:
     """Create a provider instance by name.
 
@@ -66,6 +68,7 @@ def create_provider(
             back to its default environment variable.
         provider_model_id: Optional upstream model identifier sent to the
             provider API. Defaults to ``model`` when omitted.
+        options: Explicit provider request settings.
         resolution_tier: Image resolution tier, forwarded only to
             providers that pre-resize uploads (Anthropic and OpenAI).
 
@@ -92,6 +95,10 @@ def create_provider(
     }
     if provider_name in PRE_RESIZING_PROVIDERS:
         kwargs["resolution_tier"] = resolution_tier
+    if options:
+        if provider_name not in {"openrouter", "openai"}:
+            raise ValueError("Route options require OpenRouter or OpenAI")
+        kwargs["options"] = options
     return provider_class(**kwargs)
 
 
@@ -125,6 +132,7 @@ def build_model_provider(
             api_key=api_key,
             provider_model_id=route.provider_model_id,
             resolution_tier=model_config.resolution_tier,
+            **({"options": route.options} if route.options else {}),
         )
         for route in model_config.routes
     ]

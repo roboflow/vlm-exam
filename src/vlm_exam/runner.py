@@ -98,6 +98,8 @@ def _evaluate_sample(
     image_name = os.path.basename(sample.image_path)
 
     metadata: dict[str, Any] = task.sample_metadata(sample)
+    if usage.metadata:
+        metadata["usage"] = usage.metadata
     if "text_protocol" in metadata:
         metadata["resolved_prompt"] = prompt
     if evaluation.match_method is not None:

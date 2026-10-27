@@ -1,0 +1,26 @@
+{
+  "effort": "high",
+  "images": 50,
+  "scores": {
+    "muse-spark-open": [
+      {
+        "format": "xyxy_normalized_0_to_1000_meta_flat",
+        "map50": 0.6221547722816467,
+        "map50_95": 0.4108273386955261,
+        "n": 50
+      },
+      {
+        "format": "xyxy_normalized_0_to_1000",
+        "map50": 0.6129038333892822,
+        "map50_95": 0.39302435517311096,
+        "n": 50
+      },
+      {
+        "format": "xyxy_normalized_0_to_1000_meta_bbox",
+        "map50": 0.6051286458969116,
+        "map50_95": 0.4043188691139221,
+        "n": 50
+      }
+    ]
+  }
+}

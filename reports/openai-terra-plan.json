@@ -1,0 +1,18 @@
+{
+  "config": "src/vlm_exam/configs/models.yaml",
+  "models": [
+    "gpt-6.1-terra"
+  ],
+  "tasks": {
+    "ocr": 3,
+    "extraction": 3,
+    "counting": 3,
+    "identification": 3,
+    "reasoning": 3,
+    "detection": 3,
+    "text": 1
+  },
+  "dataset_root": "data",
+  "output_directory": "results",
+  "timestamp": "20261026_211642"
+}

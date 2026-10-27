@@ -14,6 +14,7 @@
 
 import base64
 import io
+from typing import Any
 
 import openai
 from PIL import Image
@@ -49,12 +50,17 @@ class OpenAIProvider(Provider):
         provider_model_id: str | None = None,
         resolution_tier: str = "high",
         max_edge_pixels: int = OPENAI_MAX_EDGE_PIXELS,
+        options: dict[str, Any] | None = None,
     ) -> None:
         self._model = model
         self._wire_model_id = provider_model_id or model
         self._max_edge_pixels = max_edge_pixels
+        self._options = dict(options or {})
+        if set(self._options) - {"max_output_tokens", "store", "service_tier"}:
+            raise ValueError("Unsupported direct OpenAI request option")
         self._client = openai.OpenAI(
             api_key=api_key,
+            **({"base_url": "https://api.openai.com/v1"} if options else {}),
             timeout=REQUEST_TIMEOUT_SECONDS,
             max_retries=0,
         )
@@ -79,6 +85,7 @@ class OpenAIProvider(Provider):
             lambda: self._client.responses.create(
                 model=self._wire_model_id,
                 reasoning={"effort": effort},
+                **self._options,
                 input=[
                     {
                         "role": "user",
@@ -92,12 +99,37 @@ class OpenAIProvider(Provider):
         )
 
         answer = response.output_text.strip()
+        metadata = {}
+        if self._options:
+            reported = response.usage.model_dump()
+            reported.update(
+                prompt_tokens=response.usage.input_tokens,
+                completion_tokens=response.usage.output_tokens,
+            )
+            status = response.status
+            reason = getattr(response.incomplete_details, "reason", None)
+            metadata = {
+                "provider": "OpenAI",
+                "api_endpoint": "https://api.openai.com/v1/responses",
+                "generation_id": response.id,
+                "model": response.model,
+                "requested_model": self._wire_model_id,
+                "finish_reason": "stop"
+                if status == "completed"
+                else "length"
+                if reason == "max_output_tokens"
+                else "error",
+                "response_status": status,
+                "incomplete_reason": reason,
+                "reported": reported,
+            }
 
         return (
             answer,
             Usage(
                 input_tokens=response.usage.input_tokens,
                 output_tokens=response.usage.output_tokens,
+                metadata=metadata,
             ),
             retry_stats,
         )

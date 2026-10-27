@@ -1,0 +1,13 @@
+{
+  "complete": true,
+  "completed": 5046,
+  "expected": 5046,
+  "by_model": {
+    "gpt-6.1-terra": 5046
+  },
+  "reported_charges_usd": 1.833333,
+  "conservative_estimated_charges_usd": 23.2202025,
+  "unique_billed_generations": 6216,
+  "recomputed_text_samples": 1200,
+  "errors": []
+}

@@ -1,0 +1,171 @@
+{
+  "preflight_complete": 20,
+  "coordinate_search_waived_by_user": true,
+  "coordinate_format": "xyxy_absolute_resized_image",
+  "direct_native_preflight_cost_usd": 0.1183665,
+  "projected_model_cost_usd": 26.6893325,
+  "judge_estimate_usd": 3.358611,
+  "retry_allowance_usd": 6.0095887,
+  "full_estimate_usd": 36.0575322,
+  "approved_allocation_usd": 50,
+  "full_budget_usd": 49.8816335,
+  "rows": [
+    {
+      "identity": "gpt-6.1-terra:extraction:high:0:0",
+      "full_samples": 291,
+      "estimated_model_cost": 0.5961862499999999,
+      "reasoning_tokens": 0,
+      "input_tokens": 1611
+    },
+    {
+      "identity": "gpt-6.1-terra:extraction:low:0:0",
+      "full_samples": 291,
+      "estimated_model_cost": 0.5961862499999999,
+      "reasoning_tokens": 0,
+      "input_tokens": 1611
+    },
+    {
+      "identity": "gpt-6.1-terra:ocr:low:0:0",
+      "full_samples": 111,
+      "estimated_model_cost": 0.1501275,
+      "reasoning_tokens": 4440,
+      "input_tokens": 470
+    },
+    {
+      "identity": "gpt-6.1-terra:counting:low:0:0",
+      "full_samples": 222,
+      "estimated_model_cost": 0.5946825,
+      "reasoning_tokens": 0,
+      "input_tokens": 2123
+    },
+    {
+      "identity": "gpt-6.1-terra:counting:high:0:0",
+      "full_samples": 222,
+      "estimated_model_cost": 0.6235425,
+      "reasoning_tokens": 5328,
+      "input_tokens": 2123
+    },
+    {
+      "identity": "gpt-6.1-terra:identification:low:0:0",
+      "full_samples": 96,
+      "estimated_model_cost": 0.20028,
+      "reasoning_tokens": 0,
+      "input_tokens": 1621
+    },
+    {
+      "identity": "gpt-6.1-terra:ocr:high:0:0",
+      "full_samples": 111,
+      "estimated_model_cost": 0.41486249999999997,
+      "reasoning_tokens": 57276,
+      "input_tokens": 470
+    },
+    {
+      "identity": "gpt-6.1-terra:identification:high:0:0",
+      "full_samples": 96,
+      "estimated_model_cost": 0.22332000000000002,
+      "reasoning_tokens": 4416,
+      "input_tokens": 1621
+    },
+    {
+      "identity": "gpt-6.1-terra:reasoning:low:0:0",
+      "full_samples": 453,
+      "estimated_model_cost": 0.6511875,
+      "reasoning_tokens": 14949,
+      "input_tokens": 990
+    },
+    {
+      "identity": "gpt-6.1-terra:reasoning:high:0:0",
+      "full_samples": 453,
+      "estimated_model_cost": 0.6806325,
+      "reasoning_tokens": 20838,
+      "input_tokens": 990
+    },
+    {
+      "identity": "gpt-6.1-terra:detection:low:0:0",
+      "full_samples": 750,
+      "estimated_model_cost": 2.8049999999999997,
+      "reasoning_tokens": 9750,
+      "input_tokens": 588
+    },
+    {
+      "identity": "gpt-6.1-terra:text:low:0:1",
+      "full_samples": 90,
+      "estimated_model_cost": 0.27899999999999997,
+      "reasoning_tokens": 17910,
+      "input_tokens": 680
+    },
+    {
+      "identity": "gpt-6.1-terra:text:low:0:6",
+      "full_samples": 230,
+      "estimated_model_cost": 0.34557499999999997,
+      "reasoning_tokens": 0,
+      "input_tokens": 1170
+    },
+    {
+      "identity": "gpt-6.1-terra:text:low:0:2",
+      "full_samples": 50,
+      "estimated_model_cost": 0.10975,
+      "reasoning_tokens": 10900,
+      "input_tokens": 556
+    },
+    {
+      "identity": "gpt-6.1-terra:detection:high:0:0",
+      "full_samples": 750,
+      "estimated_model_cost": 5.17875,
+      "reasoning_tokens": 484500,
+      "input_tokens": 588
+    },
+    {
+      "identity": "gpt-6.1-terra:text:high:0:1",
+      "full_samples": 90,
+      "estimated_model_cost": 0.6831,
+      "reasoning_tokens": 98550,
+      "input_tokens": 680
+    },
+    {
+      "identity": "gpt-6.1-terra:text:high:0:6",
+      "full_samples": 230,
+      "estimated_model_cost": 0.36972499999999997,
+      "reasoning_tokens": 4370,
+      "input_tokens": 1170
+    },
+    {
+      "identity": "gpt-6.1-terra:text:high:0:2",
+      "full_samples": 50,
+      "estimated_model_cost": 0.36024999999999996,
+      "reasoning_tokens": 60950,
+      "input_tokens": 556
+    },
+    {
+      "identity": "gpt-6.1-terra:text:low:0:0",
+      "full_samples": 230,
+      "estimated_model_cost": 4.1632875,
+      "reasoning_tokens": 3450,
+      "input_tokens": 3689
+    },
+    {
+      "identity": "gpt-6.1-terra:text:high:0:0",
+      "full_samples": 230,
+      "estimated_model_cost": 7.6638874999999995,
+      "reasoning_tokens": 556830,
+      "input_tokens": 3689
+    }
+  ],
+  "limitations": "One native sample per task/category/effort; indicative, not a confidence bound. Judge estimate from prior calibration. All native input conservatively priced as cache writes.",
+  "native_model_id": "gpt-6.1-terra",
+  "endpoint": "https://api.openai.com/v1/responses",
+  "pricing_source": "https://developers.openai.com/api/docs/models/gpt-6.1-terra",
+  "api_data_policy": "https://developers.openai.com/api/docs/guides/your-data",
+  "store": false,
+  "service_tier": "default",
+  "reasoning_efforts": [
+    "low",
+    "high"
+  ],
+  "max_output_tokens": 65536,
+  "image_protocol": "Existing OpenAI provider: PNG, EXIF transpose, longest edge at most 2048px",
+  "approval": "User approved Terra up to $50 within $300 total; explicitly requested direct OpenAI API and waived additional box-format assessment.",
+  "full_samples": 5046,
+  "full_result_files": 38,
+  "full_manifest_sha256": "42a492d999368473163c402ca2ca83b77b7aeec6bb9c7452ce198592eafcb5c5"
+}

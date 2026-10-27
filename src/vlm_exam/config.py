@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -54,6 +54,7 @@ class RouteConfig:
 
     provider: str
     provider_model_id: str | None = None
+    options: dict[str, Any] = field(default_factory=dict)
 
 
 FULL_PROTOCOL = "full"
@@ -163,6 +164,7 @@ def _parse_routes(raw: dict[str, Any]) -> tuple[RouteConfig, ...]:
             RouteConfig(
                 provider=route["provider"],
                 provider_model_id=route.get("provider_model_id"),
+                options=route.get("options", {}),
             )
             for route in raw["routes"]
         )
