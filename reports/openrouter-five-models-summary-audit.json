@@ -1,6 +1,0 @@
-{
-  "detection_configurations_equal_across_two_full_recomputations": 90,
-  "new_model_task_configurations_matching_independent_metrics": 70,
-  "summary_sha256": "c87c0b01fea321b17bfaf0979c6b3bfa81467e34b4ecff79796f83bef1252e39",
-  "errors": []
-}

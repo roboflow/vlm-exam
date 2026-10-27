@@ -1,8 +1,0 @@
-{
-  "archive": "reports/openrouter-gpt-6.1-terra-calibration.zip",
-  "sha256": "b77bc1ab798fe253899e704476f00f07ee318f3ac6454de436b0ca9f449e1ddc",
-  "files": 263,
-  "audit_code_commit": "9ef20a5",
-  "analysis_script": "scripts/analyze_detection_search.py",
-  "status": "calibration only; fullbenchmark notlaunched, approvalpending"
-}
