@@ -1,9 +1,0 @@
-{
-  "files": 38,
-  "samples": 5046,
-  "checkpoint_file_rows_equal": true,
-  "counted_input_usages_verified": 2700,
-  "frozen_source_hashes_verified": 56,
-  "errors": [],
-  "datasets_match_original_five_model_campaign": true
-}

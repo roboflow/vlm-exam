@@ -1,6 +1,0 @@
-{
-  "archive": "openai-terra-preflight-evidence.zip",
-  "sha256": "66e6b7b411242990b9192fd48847845b38ce6e1af598ba37d28de347537a568e",
-  "bytes": 22541,
-  "purpose": "Native API preflight only; excluded from full result files"
-}

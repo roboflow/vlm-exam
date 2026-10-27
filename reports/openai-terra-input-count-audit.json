@@ -1,9 +1,0 @@
-{
-  "counted_requests": 1700,
-  "compared_saved_predictions": 672,
-  "mismatches": [],
-  "maximum_input_tokens": 5034,
-  "counts_sha256": "d47360121a90f980489f7f7a2da1b8771d7527cb7b5c75e082e45a2eada668d1",
-  "source": "https://developers.openai.com/api/docs/guides/token-counting",
-  "note": "Exact input-token counts replace full-context reservations only. Full output cap remains reserved. Requests, scoring, model settings and datasets unchanged. One counting connection error recovered using saved counts."
-}
