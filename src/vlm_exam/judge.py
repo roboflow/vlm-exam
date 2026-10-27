@@ -21,9 +21,7 @@ import os
 import tempfile
 import threading
 from pathlib import Path
-from typing import Any
 
-import openai
 from google import genai
 from google.genai import types
 
@@ -77,8 +75,6 @@ class Judge:
         api_key: Optional Google API key. Falls back to the
             ``GOOGLE_API_KEY`` environment variable.
         cache_path: Path to the JSON cache file for storing verdicts.
-        openrouter: Pin the historical judge to paid Google Vertex via OpenRouter.
-            Errors propagate rather than silently becoming incorrect verdicts.
     """
 
     def __init__(
@@ -86,21 +82,9 @@ class Judge:
         model: str = DEFAULT_JUDGE_MODEL,
         api_key: str | None = None,
         cache_path: Path | None = None,
-        openrouter: bool = False,
     ) -> None:
         self._model = model
-        self._openrouter = openrouter
-        self._telemetry = threading.local()
-        self._client = (
-            openai.OpenAI(
-                base_url="https://openrouter.ai/api/v1",
-                api_key=api_key or os.environ.get("OPENROUTER_API_KEY"),
-                timeout=120,
-                max_retries=0,
-            )
-            if openrouter
-            else genai.Client(api_key=api_key)
-        )
+        self._client = genai.Client(api_key=api_key)
         self._cache_path = cache_path or _DEFAULT_CACHE_PATH
         self._cache_lock = threading.Lock()
         self._cache: dict[str, bool] = self._load_cache()
@@ -148,44 +132,6 @@ class Judge:
                 os.unlink(temp_path)
             raise
 
-    @property
-    def usage(self) -> dict[str, Any]:
-        """Usage for the current thread's most recent verdict; empty on cache hit."""
-        return getattr(self._telemetry, "usage", {})
-
-    def _request(self, prompt: str) -> str | None:
-        if self._openrouter:
-            if self._model != DEFAULT_JUDGE_MODEL:
-                raise ValueError("Pinned OpenRouter judge requires gemini-3.5-flash")
-            response = self._client.chat.completions.create(
-                model="google/gemini-3.5-flash-20260519",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.0,
-                max_tokens=65536,
-                extra_body={
-                    "provider": {
-                        "only": ["google-vertex/global"],
-                        "allow_fallbacks": False,
-                        "data_collection": "deny",
-                        "require_parameters": True,
-                    }
-                },
-            )
-            self._telemetry.usage = {
-                "generation_id": response.id,
-                "provider": getattr(response, "provider", None),
-                "reported": response.usage.model_dump() if response.usage else {},
-            }
-            if not response.choices or response.choices[0].finish_reason != "stop":
-                raise ValueError("Judge did not finish normally")
-            return response.choices[0].message.content
-        response = self._client.models.generate_content(
-            model=self._model,
-            contents=[prompt],
-            config=types.GenerateContentConfig(temperature=0.0),
-        )
-        return response.text
-
     def evaluate(
         self, *, question: str, expected: str, predicted: str, guidance: str = ""
     ) -> bool:
@@ -201,7 +147,6 @@ class Judge:
         Returns:
             ``True`` if the judge deems the answers equivalent.
         """
-        self._telemetry.usage = {}
         key = _cache_key(question, expected, predicted, self._model, guidance)
 
         with self._cache_lock:
@@ -217,10 +162,15 @@ class Judge:
         )
 
         try:
-            text = self._request(prompt)
+            response = self._client.models.generate_content(
+                model=self._model,
+                contents=[prompt],
+                config=types.GenerateContentConfig(
+                    temperature=0.0,
+                ),
+            )
+            text = response.text
         except Exception:
-            if self._openrouter:
-                raise
             _logger.warning(
                 "Judge API call failed for question=%r; defaulting to incorrect.",
                 question,
@@ -228,8 +178,6 @@ class Judge:
             return False
 
         if text is None:
-            if self._openrouter:
-                raise ValueError("Judge returned no verdict")
             _logger.warning(
                 "Judge returned empty response for question=%r; "
                 "defaulting to incorrect.",
@@ -239,8 +187,6 @@ class Judge:
 
         cleaned = text.strip().upper()
         if cleaned not in ("YES", "NO"):
-            if self._openrouter:
-                raise ValueError(f"Invalid judge verdict: {cleaned!r}")
             _logger.warning(
                 "Judge returned unexpected response %r for question=%r; "
                 "defaulting to incorrect.",

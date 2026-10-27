@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -180,21 +179,3 @@ def test_rescore_run_skips_samples_with_both_verdicts_unless_forced() -> None:
 def test_rescore_run_rejects_non_judge_tasks() -> None:
     with pytest.raises(ValueError, match="not judge-scored"):
         rescore_run(_run("ocr", []), _StubJudge({}))
-
-
-def test_openrouter_judge_pins_historical_checkpoint_and_raises_errors(
-    tmp_path: Path,
-) -> None:
-    from unittest.mock import MagicMock
-
-    judge = Judge(openrouter=True, api_key="test", cache_path=tmp_path / "judge.json")
-    create = MagicMock(side_effect=TimeoutError("judge timed out"))
-    judge._client.chat.completions.create = create
-    with pytest.raises(TimeoutError, match="judge timed out"):
-        judge.evaluate(question="q", expected="a", predicted="a")
-    request = create.call_args.kwargs
-    assert request["model"] == "google/gemini-3.5-flash-20260519"
-    assert request["temperature"] == 0
-    assert request["extra_body"]["provider"]["only"] == ["google-vertex/global"]
-    assert request["extra_body"]["provider"]["data_collection"] == "deny"
-    assert not (tmp_path / "judge.json").exists()
