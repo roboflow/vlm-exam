@@ -19,8 +19,8 @@ import random
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from dataclasses import dataclass
-from typing import TypeVar
+from dataclasses import dataclass, field
+from typing import Any, TypeVar
 
 import httpx
 from PIL import Image
@@ -153,6 +153,7 @@ class Usage:
 
     input_tokens: int
     output_tokens: int
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class Provider(ABC):

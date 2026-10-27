@@ -42,6 +42,7 @@ def inference_hash(model: ModelConfig) -> str:
             {
                 "provider": route.provider,
                 "provider_model_id": route.provider_model_id,
+                **({"options": route.options} if route.options else {}),
             }
             for route in model.routes
         ],

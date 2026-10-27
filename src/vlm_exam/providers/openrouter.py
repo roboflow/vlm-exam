@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+from copy import deepcopy
 from typing import Any
 
 import openai
@@ -82,10 +83,12 @@ class OpenRouterProvider(Provider):
         model: str,
         api_key: str | None = None,
         provider_model_id: str | None = None,
+        options: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the provider.
 
         Args:
+            options: Frozen routing, reasoning and output-token settings.
             model: vlm-exam model key, reported as ``model`` and used in
                 result filenames and config lookups.
             api_key: Optional OpenRouter API key. Falls back to the
@@ -93,6 +96,7 @@ class OpenRouterProvider(Provider):
             provider_model_id: OpenRouter model slug to call (e.g.
                 ``"qwen/qwen3.7-plus"``). Defaults to ``model``.
         """
+        self._options = deepcopy(options or {})
         self._model = model
         self._provider_model_id = provider_model_id or model
         self._encoded_cache: tuple[Image.Image, str, tuple[int, int]] | None = None
@@ -127,6 +131,16 @@ class OpenRouterProvider(Provider):
             return None
         return uploaded_size
 
+    def request_options(self, effort: str) -> dict[str, Any]:
+        """Return explicit settings for an effort, preserving historical defaults."""
+        reasoning = self._options.get("reasoning", {}).get(
+            effort, _reasoning_config(effort, self._provider_model_id)
+        )
+        body = {"reasoning": deepcopy(reasoning)}
+        if "provider" in self._options:
+            body["provider"] = deepcopy(self._options["provider"])
+        return body
+
     def predict(
         self,
         image: Image.Image,
@@ -138,8 +152,8 @@ class OpenRouterProvider(Provider):
         response, retry_stats = call_with_retries(
             lambda: self._client.chat.completions.create(
                 model=self._provider_model_id,
-                max_tokens=_MAX_OUTPUT_TOKENS_BY_MODEL.get(
-                    self._provider_model_id, _MAX_OUTPUT_TOKENS
+                max_tokens=self._options.get(
+                    "max_tokens", _max_output_tokens(self._provider_model_id)
                 ),
                 messages=[
                     {
@@ -150,9 +164,7 @@ class OpenRouterProvider(Provider):
                         ],
                     }
                 ],
-                extra_body={
-                    "reasoning": _reasoning_config(effort, self._provider_model_id)
-                },
+                extra_body=self.request_options(effort),
             )
         )
 
@@ -168,6 +180,17 @@ class OpenRouterProvider(Provider):
             Usage(
                 input_tokens=usage.prompt_tokens if usage else 0,
                 output_tokens=usage.completion_tokens if usage else 0,
+                metadata={
+                    "provider": getattr(response, "provider", None),
+                    "generation_id": response.id,
+                    "model": response.model,
+                    "finish_reason": (
+                        response.choices[0].finish_reason if response.choices else None
+                    ),
+                    "reported": usage.model_dump() if usage else {},
+                }
+                if self._options
+                else {},
             ),
             retry_stats,
         )

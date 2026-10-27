@@ -516,3 +516,39 @@ models:
     pricing:
       input_per_million_tokens: 2.0
       output_per_million_tokens: 10.0
+
+  muse-spark-open:
+    name: Muse Spark Open
+    lab: meta
+    routes:
+      - provider: openrouter
+        provider_model_id: meta/muse-spark-open
+        options:
+          max_tokens: 65536
+          provider:
+            only: [together]
+            allow_fallbacks: false
+            require_parameters: true
+            data_collection: deny
+          reasoning:
+            low: {effort: low}
+            high: {effort: high}
+    detection_coordinate_format: xyxy_normalized_0_to_1000_meta_flat
+    pricing:
+      input_per_million_tokens: 1.25
+      output_per_million_tokens: 4.25
+
+  gpt-6.1-terra:
+    name: GPT-6.1 Terra
+    lab: openai
+    routes:
+    - provider: openai
+      provider_model_id: gpt-6.1-terra
+      options:
+        max_output_tokens: 65536
+        store: false
+        service_tier: default
+    detection_coordinate_format: xyxy_absolute_resized_image
+    pricing:
+      input_per_million_tokens: 1.0
+      output_per_million_tokens: 5.0
