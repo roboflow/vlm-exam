@@ -1,0 +1,154 @@
+[
+  {
+    "id": "nemotron-3.5-super-vl:identification:low:1:18",
+    "failed_attempts": 3,
+    "error": "Truncated completion; configuration needs review",
+    "has_saved_prediction": false,
+    "successful_repeats": [
+      {
+        "id": "nemotron-3.5-super-vl:identification:low:0:18",
+        "output_tokens": 1742,
+        "finish_reason": "stop",
+        "correct": false
+      },
+      {
+        "id": "nemotron-3.5-super-vl:identification:high:0:18",
+        "output_tokens": 435,
+        "finish_reason": "stop",
+        "correct": false
+      },
+      {
+        "id": "nemotron-3.5-super-vl:identification:high:1:18",
+        "output_tokens": 15354,
+        "finish_reason": "stop",
+        "correct": false
+      },
+      {
+        "id": "nemotron-3.5-super-vl:identification:low:2:18",
+        "output_tokens": 643,
+        "finish_reason": "stop",
+        "correct": false
+      },
+      {
+        "id": "nemotron-3.5-super-vl:identification:high:2:18",
+        "output_tokens": 22979,
+        "finish_reason": "stop",
+        "correct": false
+      }
+    ],
+    "decision": "Retain successful repeats unchanged. After active main session ends, retry only unresolved technical failures with identical frozen configuration. Do not select by score or change prompt/provider/precision.",
+    "final_outcome": {
+      "complete": true,
+      "failed_attempts": 3,
+      "finish_reason": "stop",
+      "correct": false,
+      "output_tokens": 2205,
+      "generation_id": "gen-1793045115-u1X8RhLgzy1CopbGDvZ2"
+    }
+  },
+  {
+    "id": "nemotron-3.5-super-vl:reasoning:high:1:71",
+    "failed_attempts": 2,
+    "error": "Truncated completion; configuration needs review",
+    "has_saved_prediction": false,
+    "successful_repeats": [
+      {
+        "id": "nemotron-3.5-super-vl:reasoning:high:0:71",
+        "output_tokens": 3919,
+        "finish_reason": "stop",
+        "correct": false
+      },
+      {
+        "id": "nemotron-3.5-super-vl:reasoning:high:2:71",
+        "output_tokens": 2868,
+        "finish_reason": "stop",
+        "correct": false
+      },
+      {
+        "id": "nemotron-3.5-super-vl:reasoning:low:2:71",
+        "output_tokens": 9040,
+        "finish_reason": "stop",
+        "correct": false
+      }
+    ],
+    "decision": "Retain successful repeats unchanged. After active main session ends, retry only unresolved technical failures with identical frozen configuration. Do not select by score or change prompt/provider/precision.",
+    "final_outcome": {
+      "complete": true,
+      "failed_attempts": 4,
+      "finish_reason": "stop",
+      "correct": false,
+      "output_tokens": 19649,
+      "generation_id": "gen-1793046294-D55vpGtiXyjrlEJIl6Lg"
+    }
+  },
+  {
+    "id": "nemotron-3.5-super-vl:reasoning:low:0:71",
+    "failed_attempts": 2,
+    "error": "Truncated completion; configuration needs review",
+    "has_saved_prediction": false,
+    "successful_repeats": [
+      {
+        "id": "nemotron-3.5-super-vl:reasoning:high:0:71",
+        "output_tokens": 3919,
+        "finish_reason": "stop",
+        "correct": false
+      },
+      {
+        "id": "nemotron-3.5-super-vl:reasoning:high:2:71",
+        "output_tokens": 2868,
+        "finish_reason": "stop",
+        "correct": false
+      },
+      {
+        "id": "nemotron-3.5-super-vl:reasoning:low:2:71",
+        "output_tokens": 9040,
+        "finish_reason": "stop",
+        "correct": false
+      }
+    ],
+    "decision": "Retain successful repeats unchanged. After active main session ends, retry only unresolved technical failures with identical frozen configuration. Do not select by score or change prompt/provider/precision.",
+    "final_outcome": {
+      "complete": true,
+      "failed_attempts": 2,
+      "finish_reason": "stop",
+      "correct": false,
+      "output_tokens": 6594,
+      "generation_id": "gen-1793045116-iQh6k2BW6bPZT3EXKObO"
+    }
+  },
+  {
+    "id": "nemotron-3.5-super-vl:reasoning:low:1:71",
+    "failed_attempts": 2,
+    "error": "Truncated completion; configuration needs review",
+    "has_saved_prediction": false,
+    "successful_repeats": [
+      {
+        "id": "nemotron-3.5-super-vl:reasoning:high:0:71",
+        "output_tokens": 3919,
+        "finish_reason": "stop",
+        "correct": false
+      },
+      {
+        "id": "nemotron-3.5-super-vl:reasoning:high:2:71",
+        "output_tokens": 2868,
+        "finish_reason": "stop",
+        "correct": false
+      },
+      {
+        "id": "nemotron-3.5-super-vl:reasoning:low:2:71",
+        "output_tokens": 9040,
+        "finish_reason": "stop",
+        "correct": false
+      }
+    ],
+    "decision": "Retain successful repeats unchanged. After active main session ends, retry only unresolved technical failures with identical frozen configuration. Do not select by score or change prompt/provider/precision.",
+    "final_outcome": {
+      "complete": true,
+      "failed_attempts": 2,
+      "finish_reason": "stop",
+      "correct": false,
+      "output_tokens": 8306,
+      "generation_id": "gen-1793045116-Aqxml4OtvvTqxxDdSaB9"
+    }
+  }
+]

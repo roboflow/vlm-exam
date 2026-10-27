@@ -232,6 +232,10 @@ class TestBenchmarkProtocolField:
             "mistral-large-4",
             "gemini-4-argon-eap",
             "muse-spark-open",
+            "deepseek-v4.1-flash-1017",
+            "minimax-m3.1-flash",
+            "kimi-k3.1-pro",
+            "nemotron-3.5-super-vl",
             "gpt-6.1-terra",
         ]
 

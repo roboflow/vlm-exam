@@ -1,0 +1,44 @@
+{
+  "comparisons": {
+    "deepseek-v4.1-flash-1017": {
+      "best_observed": "xyxy_normalized_0_to_1000",
+      "map50": 0.5256041884422302
+    },
+    "kimi-k3.1-pro": {
+      "best_observed": "xyxy_normalized_0_to_1000",
+      "map50": 0.7202765345573425
+    },
+    "minimax-m3.1-flash": {
+      "best_observed": "xyxy_absolute_original_image",
+      "map50": 0.5700267553329468
+    },
+    "muse-spark-open": {
+      "best_observed": "xyxy_normalized_0_to_1000_meta_flat",
+      "map50": 0.6221547722816467
+    },
+    "nemotron-3.5-super-vl": {
+      "best_observed": "xyxy_normalized_0_to_999",
+      "map50": 0.5289304256439209,
+      "selected_format": "xyxy_normalized_0_to_1000",
+      "selection_reason": "Explicit user choice after critical review: 0\u2013999 advantage is not statistically established; standard 0\u20131000 selected. Original search scores retained."
+    }
+  },
+  "status": "Frozen; Nemotron revised to XYXY 0\u20131000 by explicit user instruction, affected full-run samples invalidated and rerun.",
+  "validation": {
+    "matrix_evaluations": 1800,
+    "text_localization_checks": 20,
+    "all_text_formats_compliant": true,
+    "visual_overlay_indices": [
+      0,
+      14
+    ],
+    "budget_search_actual_usd": 23.740953897,
+    "full_campaign_ceiling_usd": 276.257803103,
+    "nemotron_1000_text_checks": {
+      "completed": 4,
+      "format_compliant": 4,
+      "pending_rate_limited": 0,
+      "cost_usd": 0.001243
+    }
+  }
+}

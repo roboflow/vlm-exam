@@ -1,0 +1,258 @@
+{
+  "schema_counts": {
+    "xyxy_absolute_resized_image": {
+      "responses": 50,
+      "boxes": 1009
+    },
+    "yxyx_normalized_0_to_1000": {
+      "responses": 50,
+      "boxes": 1037,
+      "nonpositive_size": 7
+    },
+    "xyxy_normalized_0_to_1000": {
+      "responses": 50,
+      "boxes": 1007
+    }
+  },
+  "non_json_ids": [],
+  "selected": "xyxy_absolute_resized_image",
+  "bootstrap": {
+    "best_observed": "xyxy_absolute_resized_image",
+    "runner_up": "xyxy_normalized_0_to_1000",
+    "gap": 0.017915844917297363,
+    "paired_bootstrap_95_percent_interval": [
+      0.002066628634929657,
+      0.03568849712610245
+    ],
+    "resamples": 300,
+    "positive_interval": true
+  },
+  "limitations": [
+    "Three plausible family-informed formats, not an exhaustive search of all10supportedformats.",
+    "One generation per image/format; paired bootstrap reflects image variation only, no multiplicity adjustment.",
+    "First50 images overlap the250-image full benchmark; not heldout.",
+    "Family baseline is GPT5.6Terra directOpenAI and provides context, not causal comparison.",
+    "Format validity does not imply correct localization; wrong boxes remain scored."
+  ],
+  "calibration_cost": {
+    "model": "gpt-6.1-terra",
+    "provider": "openai standard via OpenRouter",
+    "requests": 5046,
+    "files": 38,
+    "details": [
+      {
+        "effort": "low",
+        "task": "ocr",
+        "calibration_n": 4,
+        "full_requests": 111,
+        "input_tokens": 142329.75,
+        "output_tokens": 26723.25,
+        "reasoning_tokens": 7270.5,
+        "cost_with_all_input_at_cache_write_rate": 0.3115284375
+      },
+      {
+        "effort": "low",
+        "task": "extraction",
+        "calibration_n": 4,
+        "full_requests": 291,
+        "input_tokens": 335595.75,
+        "output_tokens": 4656,
+        "reasoning_tokens": 1818.75,
+        "cost_with_all_input_at_cache_write_rate": 0.4427746875
+      },
+      {
+        "effort": "low",
+        "task": "counting",
+        "calibration_n": 4,
+        "full_requests": 222,
+        "input_tokens": 347208,
+        "output_tokens": 2331.0,
+        "reasoning_tokens": 1110,
+        "cost_with_all_input_at_cache_write_rate": 0.445665
+      },
+      {
+        "effort": "low",
+        "task": "identification",
+        "calibration_n": 4,
+        "full_requests": 96,
+        "input_tokens": 105072.0,
+        "output_tokens": 696.0,
+        "reasoning_tokens": 0,
+        "cost_with_all_input_at_cache_write_rate": 0.13482
+      },
+      {
+        "effort": "low",
+        "task": "reasoning",
+        "calibration_n": 4,
+        "full_requests": 453,
+        "input_tokens": 504415.5,
+        "output_tokens": 28312.5,
+        "reasoning_tokens": 25141.5,
+        "cost_with_all_input_at_cache_write_rate": 0.772081875
+      },
+      {
+        "effort": "low",
+        "task": "detection",
+        "calibration_n": 4,
+        "full_requests": 750,
+        "input_tokens": 2972437.5,
+        "output_tokens": 293625.0,
+        "reasoning_tokens": 44062.5,
+        "cost_with_all_input_at_cache_write_rate": 5.183671875
+      },
+      {
+        "effort": "low",
+        "task": "single_string",
+        "calibration_n": 4,
+        "full_requests": 230,
+        "input_tokens": 144325.0,
+        "output_tokens": 16330,
+        "reasoning_tokens": 14375.0,
+        "cost_with_all_input_at_cache_write_rate": 0.26205625
+      },
+      {
+        "effort": "low",
+        "task": "transcription",
+        "calibration_n": 4,
+        "full_requests": 50,
+        "input_tokens": 53212.5,
+        "output_tokens": 10650,
+        "reasoning_tokens": 5275.0,
+        "cost_with_all_input_at_cache_write_rate": 0.119765625
+      },
+      {
+        "effort": "low",
+        "task": "structured",
+        "calibration_n": 4,
+        "full_requests": 230,
+        "input_tokens": 2173960,
+        "output_tokens": 232472.5,
+        "reasoning_tokens": 9602.5,
+        "cost_with_all_input_at_cache_write_rate": 3.8798125
+      },
+      {
+        "effort": "low",
+        "task": "localization_recognition",
+        "calibration_n": 4,
+        "full_requests": 90,
+        "input_tokens": 366007.5,
+        "output_tokens": 21217.5,
+        "reasoning_tokens": 4657.5,
+        "cost_with_all_input_at_cache_write_rate": 0.563596875
+      },
+      {
+        "effort": "high",
+        "task": "ocr",
+        "calibration_n": 4,
+        "full_requests": 111,
+        "input_tokens": 142329.75,
+        "output_tokens": 73815,
+        "reasoning_tokens": 53946,
+        "cost_with_all_input_at_cache_write_rate": 0.5469871875
+      },
+      {
+        "effort": "high",
+        "task": "extraction",
+        "calibration_n": 4,
+        "full_requests": 291,
+        "input_tokens": 335595.75,
+        "output_tokens": 14477.25,
+        "reasoning_tokens": 11349,
+        "cost_with_all_input_at_cache_write_rate": 0.4918809375
+      },
+      {
+        "effort": "high",
+        "task": "counting",
+        "calibration_n": 4,
+        "full_requests": 222,
+        "input_tokens": 347208,
+        "output_tokens": 3774,
+        "reasoning_tokens": 2442,
+        "cost_with_all_input_at_cache_write_rate": 0.45288
+      },
+      {
+        "effort": "high",
+        "task": "identification",
+        "calibration_n": 4,
+        "full_requests": 96,
+        "input_tokens": 105072.0,
+        "output_tokens": 2856.0,
+        "reasoning_tokens": 2016,
+        "cost_with_all_input_at_cache_write_rate": 0.14562
+      },
+      {
+        "effort": "high",
+        "task": "reasoning",
+        "calibration_n": 4,
+        "full_requests": 453,
+        "input_tokens": 504415.5,
+        "output_tokens": 59343,
+        "reasoning_tokens": 56172,
+        "cost_with_all_input_at_cache_write_rate": 0.927234375
+      },
+      {
+        "effort": "high",
+        "task": "detection",
+        "calibration_n": 50,
+        "full_requests": 750,
+        "input_tokens": 2507235.0,
+        "output_tokens": 844425.0000000001,
+        "reasoning_tokens": 495390.0,
+        "cost_with_all_input_at_cache_write_rate": 7.356168750000001
+      },
+      {
+        "effort": "high",
+        "task": "single_string",
+        "calibration_n": 4,
+        "full_requests": 230,
+        "input_tokens": 144325.0,
+        "output_tokens": 32142.5,
+        "reasoning_tokens": 30072.5,
+        "cost_with_all_input_at_cache_write_rate": 0.34111875
+      },
+      {
+        "effort": "high",
+        "task": "transcription",
+        "calibration_n": 4,
+        "full_requests": 50,
+        "input_tokens": 53212.5,
+        "output_tokens": 79575.0,
+        "reasoning_tokens": 74162.5,
+        "cost_with_all_input_at_cache_write_rate": 0.464390625
+      },
+      {
+        "effort": "high",
+        "task": "structured",
+        "calibration_n": 4,
+        "full_requests": 230,
+        "input_tokens": 2173960,
+        "output_tokens": 630085.0,
+        "reasoning_tokens": 343332.5,
+        "cost_with_all_input_at_cache_write_rate": 5.867875
+      },
+      {
+        "effort": "high",
+        "task": "localization_recognition",
+        "calibration_n": 4,
+        "full_requests": 90,
+        "input_tokens": 366007.5,
+        "output_tokens": 76095.0,
+        "reasoning_tokens": 60750,
+        "cost_with_all_input_at_cache_write_rate": 0.837984375
+      }
+    ],
+    "model_cost_usd": 29.547913125,
+    "judge_cost_usd": 3.3586110000000002,
+    "retry_allowance_usd": 6.581304825000001,
+    "full_estimate_usd": 39.48782895,
+    "reasoning_tokens_included": 1242945.75,
+    "calibration_reported_cost_usd": 1.9333305,
+    "unknown_charge_reserve_usd": 1.6384,
+    "balance_usd": 106.75080176100005,
+    "original_campaign_reported_spend_usd": 181.06355641400012,
+    "original_completed": 23432,
+    "prior_calibration_usd": 23.742196897,
+    "total_spent_plus_terra_estimate_excluding_remaining_original_usd": 247.8653127610001,
+    "limitations": "4 samples per task/effort and Textcategory; Highdetection50,Low4. Inputconservatively1.25/Mcachewrites. Judge2samples/task; 20%contingency notguarantee. OriginalNemotronunfinished; fullTerrarequiresapproval."
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "source": "/Users/skalskip/Documents/Codex/2026-10-26/run-a-full-benchmark-in-roboflow/work/vlm-exam-main/experiments/full-campaign-recovery",
+  "destination": "/Users/skalskip/Documents/Codex/2026-10-26/run-a-full-benchmark-in-roboflow/work/vlm-exam-main/experiments/full-campaign-validated",
+  "source_manifest_sha256": "80b606f8ad17baf9405502cb4ff11deda281c538c95f3e93e48bfc8aa97110e0",
+  "destination_manifest_sha256": "77efe15ef4551629e2fb1370d1ef39cfde608837383c8702fc12b34bdf8adf57",
+  "format_changes": {},
+  "scheduler_change": null,
+  "response_validation_change": {
+    "previous_sha256": "396013a4fd122f1d4d0bd15e0e22fc229767180b063ce8d55c49e1050ac4708a",
+    "current_sha256": "3977edfa673c9ef00d1cc25a8399e8c0d87df9a3565cdbffc117f6c8bf82c2c3",
+    "scope": "Reject incomplete fresh/cached responses before scoring; requests, valid response scoring and all other code unchanged."
+  },
+  "invalidated_sample_ids": [
+    "nemotron-3.5-super-vl:detection:low:2:241"
+  ],
+  "invalidated_completed_results": 1,
+  "sample_rows": 24424,
+  "completed_results": 24374,
+  "preservation": "Unaffected sample rows and ALL charges copied verbatim; original unchanged. Explicitly invalidated format/incomplete-response rows remain archived in the source and must be inferred anew.",
+  "applied": true
+}

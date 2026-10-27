@@ -1,0 +1,16 @@
+{
+  "archive": "openrouter-five-models-billing-evidence.zip",
+  "sha256": "5a9a483190998e1ff43494257cb097fd5ef638bc623179178d35ba221241e2c1",
+  "generations": 27792,
+  "reported_cost_usd": 185.387835834,
+  "files": {
+    "charges.jsonl": "69d6be298579ec6a8cd6137b05200b2b2ab542ecac2c2dd0f285dba531f01ee5",
+    "manifest.json": "b68e478b9f41e04a717111141da9bd59e9f497d82ffe7b8c6709da0084ddbca4",
+    "status.json": "01f89a0421a74249bad1930513443740755e0914005159ba46ec24620ac65b92",
+    "unknown-charge-lookups.json": "13e7aab9306467579571caedeed23606249e2c04672deb044ee29a7b379af97b",
+    "generation-lookup-control.json": "0c084ffa50a683f5ee19e29a165021c5ac1c250d7120b797647ed7d6af312f0d",
+    "generation-lookup-old-control.json": "ea9acba8628f5551cead64c19ce73204601220fe8233ccaef58de33793c3f572",
+    "import-receipt.json": "a826abdcac711c8d3195d28ce3a5e39cdf9cdf4e036def43dea573e76d9da7ff"
+  },
+  "note": "Usage-only ledger; missing metadata does not imply zero billing. No credentials or model request headers are included. Successful generation lookup retains only billing, token, provider and completion fields; unrelated account/request metadata is omitted."
+}

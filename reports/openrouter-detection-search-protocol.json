@@ -1,0 +1,125 @@
+{
+  "status": "complete; selected formats frozen before full Detection and Text",
+  "efforts": [
+    "high"
+  ],
+  "user_revision": "User requested High-only format search and target concurrency 48. Full benchmark still requires Low and High.",
+  "images_per_format": 50,
+  "matrix_requests": 1800,
+  "diagnostic_requests": 30,
+  "primary_metric": "dataset-aggregate mAP@50",
+  "secondary_metric": "dataset-aggregate mAP@50:95",
+  "selection_rule": "Choose highest High mAP@50 among valid format implementations; report mAP@50:95 and failure rates. Near-ties require uncertainty analysis before claiming superiority. Same selected format is used for full Low and High; Low optimality is not established by this search.",
+  "failures": "Retain all failures and token charges; API errors, empty and truncated outputs count as empty detections in search scoring. Do not cherry-pick retries based on mAP.",
+  "preprocessing": "Existing OpenRouter JPEG upload and EXIF transpose. Uploaded dimensions explicitly equal original dimensions when encoder does not resize.",
+  "source_evidence": {
+    "minimax": "Model card, chat template, image processor and API guide/index inspected. No explicit bounding-box output convention found in these sources. This is not proof no guidance exists anywhere.",
+    "nemotron": "Exact post-trained BF16 model card, official super35 guide, evaluation, SFT and paper summaries inspected. Grounding training is mentioned, but no required box output convention identified.",
+    "kimi": "Official Chinese K3.1 quickstart retrieved after English endpoint returned 403. Related K3 model card retained as family context, not exact-model evidence."
+  },
+  "diagnostic_observation": {
+    "kimi": "10/10 declared XYXY pixel coordinates; varying table/list/JSON structures.",
+    "minimax": "10/10 declared pixel coordinates, with some image dimensions incorrect.",
+    "nemotron": "Variable list/text and ref/box tagged responses; 3/10 empty responses despite finish_reason=stop. No unique stable native schema established."
+  },
+  "budget": {
+    "approved_overall_usd": 300,
+    "search_sub_limit_usd": 54.5,
+    "diagnostic_actual_usd": 0.28260423,
+    "reservation": "Full 65536 output tokens plus twice measured input for same model/image, new prompt UTF-8 bytes and 1024 extra input tokens. Largest measured calibration input 11798 tokens; 250 model/image groups covered.",
+    "note": "Reservation is conservative empirical accounting, not a provider-enforced maximum input-token cap."
+  },
+  "sources": [
+    {
+      "name": "minimax-card",
+      "url": "https://huggingface.co/MiniMaxAI/MiniMax-M3.1-Flash/raw/main/README.md",
+      "sha256": "c49a7cca92321066bc20e25ce720260242dcb112baf1d09c7c213899e39d2151"
+    },
+    {
+      "name": "minimax-template",
+      "url": "https://huggingface.co/MiniMaxAI/MiniMax-M3.1-Flash/raw/main/chat_template.jinja",
+      "sha256": "961e3f96b2c08d26555efdfeb3b384d5e81181bf0cfc04edbadc31c6e507b431"
+    },
+    {
+      "name": "nemotron-card",
+      "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16/raw/main/README.md",
+      "sha256": "5314d0e464ebb95a4e84a29736b0297a32a0c9eea814a65d8f1791e4cb3f91fb"
+    },
+    {
+      "name": "nemotron-guide",
+      "url": "https://raw.githubusercontent.com/NVIDIA-NeMo/Nemotron/main/docs/nemotron/super35/README.md",
+      "sha256": "c35b575cfce28e2e3ace390558195af69627e00585597d657d3363aea5abb92e"
+    },
+    {
+      "name": "kimi-docs",
+      "url": "https://platform.moonshot.ai/docs/guide/kimi-k3-1-pro-quickstart",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "name": "kimi-vision",
+      "url": "https://platform.moonshot.ai/docs/guide/use-kimi-vision-model",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "name": "minimax-api-index",
+      "url": "https://platform.minimax.io/docs/llms.txt",
+      "sha256": "b884763b2534b4fbbc0f6457dde6728c93e2476ccf69adbc0e818b3911e19b51"
+    },
+    {
+      "name": "nemotron-tree",
+      "url": "https://api.github.com/repos/NVIDIA-NeMo/Nemotron/git/trees/main?recursive=1",
+      "sha256": "9eedc1bfcbc7899547e1504f2df7de22e45d7e0873765dae6bb2bbfe63336a23"
+    },
+    {
+      "name": "moonshot-quickstart-cn",
+      "url": "https://platform.moonshot.cn/docs/guide/kimi-k3-1-pro-quickstart",
+      "sha256": "ae0bf5d0a775433335d3afac57430348d637977f611f3a321919e3d6d571b8a2"
+    },
+    {
+      "name": "moonshot-k3-card",
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/raw/main/README.md",
+      "sha256": "57de265b5842dfa465c6e73b368b0e15a89b8793b5450528dad577da202cc6fe"
+    },
+    {
+      "name": "minimax-image-processor",
+      "url": "https://huggingface.co/MiniMaxAI/MiniMax-M3.1-Flash/raw/main/image_processor.py",
+      "sha256": "8218f98634c365608a98ea887bfebac37131ec2acdb8445188350490de7cf994"
+    },
+    {
+      "name": "nemotron-evaluate",
+      "url": "https://raw.githubusercontent.com/NVIDIA-NeMo/Nemotron/main/docs/nemotron/super35/evaluate.md"
+    },
+    {
+      "name": "nemotron-sft",
+      "url": "https://raw.githubusercontent.com/NVIDIA-NeMo/Nemotron/main/docs/nemotron/super35/sft.md"
+    },
+    {
+      "name": "nemotron-paper-data",
+      "url": "https://raw.githubusercontent.com/NVIDIA-NeMo/Nemotron/main/skills/nemotron-super35/paper/data.md"
+    },
+    {
+      "name": "nemotron-paper-evaluation",
+      "url": "https://raw.githubusercontent.com/NVIDIA-NeMo/Nemotron/main/skills/nemotron-super35/paper/evaluation.md"
+    }
+  ],
+  "completion": {
+    "matrix": 1800,
+    "native_diagnostic": 30,
+    "text_localization": 20,
+    "recovered_api_failures": 2,
+    "unresolved_matrix_errors": 0,
+    "search_and_text_cost_usd": 23.740953897
+  },
+  "additional_official_format_evidence": {
+    "muse": {
+      "url": "https://dev.meta.ai/docs/image-understanding",
+      "scope": "Muse Spark family; code example uses muse-spark-1.3, not Open",
+      "finding": "Normalized 0\u20131000, XYXY, top-left origin; schema supplied by caller; example uses box array. Supports chosen scale/order but not a claim that flat fields are officially preferred."
+    },
+    "deepseek": {
+      "url": "https://api-docs.deepseek.com/guides/vision/",
+      "scope": "Current deepseek-flash vision documentation",
+      "finding": "No explicit preferred detection bounding-box schema or scale found in reviewed guide."
+    }
+  }
+}

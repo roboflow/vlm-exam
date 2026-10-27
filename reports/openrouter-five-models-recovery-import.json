@@ -1,0 +1,18 @@
+{
+  "source": "/Users/skalskip/Documents/Codex/2026-10-26/run-a-full-benchmark-in-roboflow/work/vlm-exam-main/experiments/full-campaign-nemotron-1000",
+  "destination": "/Users/skalskip/Documents/Codex/2026-10-26/run-a-full-benchmark-in-roboflow/work/vlm-exam-main/experiments/full-campaign-recovery",
+  "source_manifest_sha256": "f735ad3eb79e5e8ebb993c0d7b52aacc5971bd0849747246b90eae30dd88623a",
+  "destination_manifest_sha256": "80b606f8ad17baf9405502cb4ff11deda281c538c95f3e93e48bfc8aa97110e0",
+  "format_changes": {},
+  "scheduler_change": {
+    "previous_sha256": "23b2ad2c22f4611e3bfd72f72ef5d4245cf7a2f84585247dbbe523412d803bc4",
+    "current_sha256": "396013a4fd122f1d4d0bd15e0e22fc229767180b063ce8d55c49e1050ac4708a",
+    "scope": "Queue dispatch, per-provider cooldowns and status only; frozen inference, scoring, configuration, dataset loading and exports unchanged."
+  },
+  "invalidated_sample_ids": [],
+  "invalidated_completed_results": 0,
+  "sample_rows": 21963,
+  "completed_results": 21844,
+  "preservation": "Unaffected sample rows and ALL charges copied verbatim; original unchanged. Explicitly invalidated Detection/Text rows remain archived in the source and must be inferred anew.",
+  "applied": true
+}

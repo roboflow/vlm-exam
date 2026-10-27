@@ -44,6 +44,15 @@ labs:
     color: "#4D6BFE"
     logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/deepseek.svg
 
+  minimax:
+    name: MiniMax
+    color: "#F23D79"
+    logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/minimax.svg
+  nvidia:
+    name: NVIDIA
+    color: "#76B900"
+    logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/nvidia.svg
+
 models:
   claude-fable-5:
     name: Claude Fable 5
@@ -537,6 +546,90 @@ models:
     pricing:
       input_per_million_tokens: 1.25
       output_per_million_tokens: 4.25
+
+  deepseek-v4.1-flash-1017:
+    name: DeepSeek V4.1 Flash 1017
+    lab: deepseek
+    routes:
+      - provider: openrouter
+        provider_model_id: deepseek/deepseek-v4.1-flash-1017
+        options:
+          max_tokens: 65536
+          provider:
+            only: [together]
+            allow_fallbacks: false
+            require_parameters: true
+            data_collection: deny
+          reasoning:
+            low: {effort: low}
+            high: {effort: high}
+    detection_coordinate_format: xyxy_normalized_0_to_1000
+    pricing:
+      input_per_million_tokens: 0.3
+      output_per_million_tokens: 1.2
+
+  minimax-m3.1-flash:
+    name: MiniMax M3.1 Flash
+    lab: minimax
+    routes:
+      - provider: openrouter
+        provider_model_id: minimax/minimax-m3.1-flash
+        options:
+          max_tokens: 65536
+          provider:
+            only: [minimax]
+            allow_fallbacks: false
+            require_parameters: true
+            data_collection: deny
+          reasoning:
+            low: {effort: low}
+            high: {effort: high}
+    detection_coordinate_format: xyxy_absolute_original_image
+    pricing:
+      input_per_million_tokens: 0.15
+      output_per_million_tokens: 0.6
+
+  kimi-k3.1-pro:
+    name: Kimi K3.1 Pro
+    lab: moonshot
+    routes:
+      - provider: openrouter
+        provider_model_id: moonshotai/kimi-k3.1-pro
+        options:
+          max_tokens: 65536
+          provider:
+            only: [moonshotai/mxfp4]
+            allow_fallbacks: false
+            require_parameters: true
+            data_collection: deny
+          reasoning:
+            low: {effort: low}
+            high: {effort: high}
+    detection_coordinate_format: xyxy_normalized_0_to_1000
+    pricing:
+      input_per_million_tokens: 2
+      output_per_million_tokens: 10
+
+  nemotron-3.5-super-vl:
+    name: NVIDIA Nemotron 3.5 Super VL
+    lab: nvidia
+    routes:
+      - provider: openrouter
+        provider_model_id: nvidia/nemotron-3.5-super-vl
+        options:
+          max_tokens: 65536
+          provider:
+            only: [crusoe/bf16]
+            allow_fallbacks: false
+            require_parameters: true
+            data_collection: deny
+          reasoning:
+            low: {effort: low}
+            high: {effort: high}
+    detection_coordinate_format: xyxy_normalized_0_to_1000
+    pricing:
+      input_per_million_tokens: 0.1
+      output_per_million_tokens: 0.4
 
   gpt-6.1-terra:
     name: GPT-6.1 Terra

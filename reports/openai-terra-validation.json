@@ -1,0 +1,39 @@
+{
+  "status": "Result validation and chart publication complete; retained original campaign audit",
+  "tests": {
+    "passed": 364,
+    "command": "pytest -q"
+  },
+  "ruff_check": "pass",
+  "ruff_format": "pass",
+  "protocol_validation": {
+    "status": "pass",
+    "historical_warnings": 266
+  },
+  "result_audit": "openai-terra-result-audit.json",
+  "export_audit": "openai-terra-export-audit.json",
+  "text_scores_independently_recomputed": 1200,
+  "native_input_counts_verified_against_usage": 2700,
+  "new_results": {
+    "files": 38,
+    "samples": 5046
+  },
+  "all_six_results": {
+    "files": 228,
+    "samples": 30276
+  },
+  "coordinate_format": "xyxy_absolute_resized_image",
+  "format_search": "Explicitly waived by user for native Terra",
+  "native_api": "https://api.openai.com/v1/responses",
+  "scheduler_migration": "openai-terra-scheduler-import.json",
+  "full_accounted_usd": 25.0535355,
+  "native_preflight_usd": 0.1183665,
+  "maximum_unknown_retry_cost_usd": 2.9812825,
+  "approved_terra_cap_usd": 50,
+  "publication": {
+    "summary": "complete",
+    "leaderboards": "complete",
+    "efficiency_low": "complete",
+    "efficiency_high": "complete"
+  }
+}

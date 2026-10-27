@@ -1,0 +1,16 @@
+{
+  "source": "/Users/skalskip/Documents/Codex/2026-10-26/run-a-full-benchmark-in-roboflow/work/vlm-exam-main/experiments/full-campaign-routed",
+  "destination": "/Users/skalskip/Documents/Codex/2026-10-26/run-a-full-benchmark-in-roboflow/work/vlm-exam-main/experiments/full-campaign-retry",
+  "source_manifest_sha256": "5436bee58298cc2f594704b7422ef48b841c2c52eb9a960722de800481a7791a",
+  "destination_manifest_sha256": "b8914ea1116405d398895a02889e689b967a7abe1cf0f610a319d3fa81df4d44",
+  "format_changes": {},
+  "scheduler_change": {
+    "previous_sha256": "22eccce4cb66abffe06e8810091e9f0efc8867ec896e17f3f0f5ea4454b7e8eb",
+    "current_sha256": "23b2ad2c22f4611e3bfd72f72ef5d4245cf7a2f84585247dbbe523412d803bc4",
+    "scope": "Queue dispatch, per-provider cooldowns and status only; frozen inference, scoring, configuration, dataset loading and exports unchanged."
+  },
+  "sample_rows": 9424,
+  "completed_results": 9359,
+  "preservation": "All sample and charge rows copied verbatim; original unchanged. Format changes, when present, affect only not-yet-started Detection and Text.",
+  "applied": true
+}

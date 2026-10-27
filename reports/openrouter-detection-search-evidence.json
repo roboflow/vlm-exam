@@ -1,0 +1,9 @@
+{
+  "archive": "openrouter-detection-search-evidence.zip",
+  "sha256": "5f4fa2f98ff362b64bd61bb9b977f60a3e66c6f1096cfd5a0fa8c7b0af25a986",
+  "files": 1858,
+  "bytes": 2908278,
+  "contents": "Frozen request manifests, 1830 saved detection/diagnostic responses, 20 Text localization responses, format selection, source references and audit reports. Dataset image bytes are not duplicated.",
+  "validation": "Use source checkout 247ea81 (before the full-campaign scheduler-only change). Extract archive to an empty directory, then run PYTHONPATH=src python scripts/audit_detection_search.py <directory> --complete with the same detection dataset. The frozen source hashes intentionally reject later source revisions.",
+  "source_commit": "247ea81"
+}

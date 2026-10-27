@@ -1,0 +1,102 @@
+{
+  "complete": true,
+  "samples": 25230,
+  "full_files": 190,
+  "models": [
+    {
+      "model": "muse-spark-open",
+      "completed_samples": 5046,
+      "reported_model_cost_including_retries_and_invalidated_generations_usd": 36.69892154999995,
+      "recorded_model_generations": 5046,
+      "successful_sample_latency_mean_seconds": 14.153567810078512,
+      "successful_sample_latency_median_seconds": 6.53435479151085,
+      "input_tokens_successful_samples": 9936656,
+      "output_tokens_successful_samples_including_reasoning": 7029811
+    },
+    {
+      "model": "deepseek-v4.1-flash-1017",
+      "completed_samples": 5046,
+      "reported_model_cost_including_retries_and_invalidated_generations_usd": 22.273176204000002,
+      "recorded_model_generations": 5054,
+      "successful_sample_latency_mean_seconds": 12.702612638263798,
+      "successful_sample_latency_median_seconds": 4.118099062470719,
+      "input_tokens_successful_samples": 3983198,
+      "output_tokens_successful_samples_including_reasoning": 17493655
+    },
+    {
+      "model": "minimax-m3.1-flash",
+      "completed_samples": 5046,
+      "reported_model_cost_including_retries_and_invalidated_generations_usd": 7.375653959999997,
+      "recorded_model_generations": 5046,
+      "successful_sample_latency_mean_seconds": 19.732776753342236,
+      "successful_sample_latency_median_seconds": 7.986885874881409,
+      "input_tokens_successful_samples": 10122951,
+      "output_tokens_successful_samples_including_reasoning": 10530244
+    },
+    {
+      "model": "nemotron-3.5-super-vl",
+      "completed_samples": 5046,
+      "reported_model_cost_including_retries_and_invalidated_generations_usd": 9.497523419999997,
+      "recorded_model_generations": 5206,
+      "successful_sample_latency_mean_seconds": 23.889739195606783,
+      "successful_sample_latency_median_seconds": 10.166204312467016,
+      "input_tokens_successful_samples": 7534446,
+      "output_tokens_successful_samples_including_reasoning": 18202879
+    },
+    {
+      "model": "kimi-k3.1-pro",
+      "completed_samples": 5046,
+      "reported_model_cost_including_retries_and_invalidated_generations_usd": 105.61178819999967,
+      "recorded_model_generations": 5046,
+      "successful_sample_latency_mean_seconds": 53.579759016431254,
+      "successful_sample_latency_median_seconds": 20.19850704143755,
+      "input_tokens_successful_samples": 13644102,
+      "output_tokens_successful_samples_including_reasoning": 8045133
+    }
+  ],
+  "reported_shared_judge_cost_usd": 3.930772500000003,
+  "recorded_judge_generations": 2386,
+  "reported_campaign_total_usd": 185.38783583399962,
+  "unresolved_charge_generation_ids": [
+    "gen-1793044290-oht3H5GKIwLuZNucEAW5",
+    "gen-1793044291-aKcivBjAtyODBR9XQtOo",
+    "gen-1793044290-uHBN0hRNbndIXoDx3Egk",
+    "gen-1793044297-VfsCnFndVA1ZMt4mAHrQ",
+    "gen-1793044297-mzmjqijS4LUrJMH6Ri49",
+    "gen-1793044297-i1FiaK2PziUIBj91gacO",
+    "gen-1793044297-OazSYdEsqPsqFuQSwAVz",
+    "gen-1793044753-mrYgERmBqSs4LYTSDyBs"
+  ],
+  "search_and_intervening_calibration_usd": 23.742196897,
+  "terra_calibration_reported_usd": 1.9333305,
+  "approved_overall_limit_usd": 300,
+  "notes": [
+    "Campaign ledger includes retries and invalidated coordinate/protocol responses; standard leaderboard costs instead estimate one complete run averaged over repetitions.",
+    "Judge cache reuses identical verdicts; judge cost is the actual reported shared ledger, not an artificial per-model allocation.",
+    "Eight model generations lack reported usage; lookups returned 404, also observed for a known billed control. Missing usage is not evidence of zero cost.",
+    "Terra had a separate malformed calibration generation with unresolved billing; its conservative allowance is $1.6384.",
+    "Latency is successful inference response time, not queue wall time or aggregate throughput.",
+    "Reported costs do not prove exact account debit reconciliation.",
+    "Terra full evaluation is awaiting separate estimate approval."
+  ],
+  "recorded_model_generation_finish_reasons": {
+    "meta/muse-spark-open": {
+      "stop": 5046
+    },
+    "deepseek/deepseek-v4.1-flash-1017": {
+      "stop": 5046,
+      "length": 8
+    },
+    "minimax/minimax-m3.1-flash": {
+      "stop": 5046
+    },
+    "nvidia/nemotron-3.5-super-vl": {
+      "stop": 5130,
+      "length": 53,
+      "error": 23
+    },
+    "moonshotai/kimi-k3.1-pro": {
+      "stop": 5046
+    }
+  }
+}

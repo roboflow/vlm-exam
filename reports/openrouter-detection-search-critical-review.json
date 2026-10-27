@@ -1,0 +1,46 @@
+{
+  "identical_original_and_uploaded_pixel_requests_out_of_50": {
+    "minimax-m3.1-flash": 50,
+    "kimi-k3.1-pro": 50,
+    "nemotron-3.5-super-vl": 50
+  },
+  "reinterpretation_diagnostics": [
+    {
+      "model": "nemotron-3.5-super-vl",
+      "requested_format": "xyxy_absolute_original_image",
+      "diagnostic_interpretation": "xyxy_normalized_0_to_1000",
+      "map50": 0.5278524160385132,
+      "map50_95": 0.3462068438529968
+    },
+    {
+      "model": "nemotron-3.5-super-vl",
+      "requested_format": "yxyx_normalized_0_to_1000",
+      "diagnostic_interpretation": "xyxy_normalized_0_to_1000",
+      "map50": 0.5384257435798645,
+      "map50_95": 0.3512642979621887
+    },
+    {
+      "model": "nemotron-3.5-super-vl",
+      "requested_format": "xyxy_normalized_0_to_999",
+      "diagnostic_interpretation": "xyxy_normalized_0_to_1000",
+      "map50": 0.5279890298843384,
+      "map50_95": 0.3408440053462982
+    },
+    {
+      "model": "deepseek-v4.1-flash-1017",
+      "requested_format": "xyxy_absolute_original_image",
+      "diagnostic_interpretation": "xyxy_normalized_0_to_1000",
+      "map50": 0.19317622482776642,
+      "map50_95": 0.12601622939109802
+    }
+  ],
+  "qualification": "Offline diagnostics only; no paid calls or changes to benchmark scoring, frozen formats, or published search scores.",
+  "findings": [
+    "Original-image and uploaded-image pixel box_2d requests are identical for all 50 images in each of MiniMax, Kimi and Nemotron; they are repeat observations, not independent format treatments.",
+    "MiniMax identical-prompt runs differ by 6.39 mAP50 points, demonstrating generation variability not captured by conditional image bootstrap.",
+    "Nemotron frequently disregards requested coordinate convention: offline reinterpretation of pixel-request responses as XYXY 0\u20131000 raises mAP50 from 1.97 to 52.79; reinterpreting YXYX-request responses as XYXY raises 2.97 to 53.84.",
+    "Changing only the denominator for saved Nemotron 0\u2013999 outputs to 1000 changes mAP50 from 52.89 to 52.80; this does not support a confident native 999-grid claim.",
+    "Search includes wording and JSON-shape differences as well as coordinate differences. Same first 50 images are part of full 250-image benchmark, so selection is not held-out.",
+    "API success is not strict output-schema compliance; the shared historical parser accepts aliases such as bbox_2d."
+  ]
+}
