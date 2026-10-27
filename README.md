@@ -490,3 +490,89 @@ same bottom metric position as the other text cards.
 Single-value comparisons display embedded newlines and tabs as visible markers
 before measuring the text. Transcription keeps line breaks and marks only changed
 whitespace (newline, tab or space), using the same insertion/deletion colors.
+
+
+## Resumable OpenRouter campaigns
+
+`python -m vlm_exam.campaign` runs an explicitly budgeted plan through a shared
+pool, initially 32 requests and adjustable up to 128. Every route must be paid,
+pinned to one provider without fallback, exclude training use, and explicitly
+configure Low and High reasoning and an output-token ceiling.
+
+The JSON plan specifies `config`, `models`, `tasks` (task-to-repeat counts),
+`dataset_root`, `output_directory`, and a unique `timestamp` (`YYYYMMDD_HHMMSS`).
+Use three repeats for the original six tasks and one for Text. Review calibration,
+current route pricing and the account balance before approving a budget.
+
+```bash
+PYTHONUNBUFFERED=1 python -m vlm_exam.campaign campaign-plan.json \
+  --directory logs/campaign --budget-usd APPROVED_AMOUNT --concurrency 32 \
+  --env-file .env 2>&1 | tee logs/campaign.log
+```
+
+In separate terminals, serve the dashboard and publish its task coverage:
+
+```bash
+python -m http.server 8765 --bind 127.0.0.1 --directory logs/campaign
+```
+
+```bash
+PYTHONUNBUFFERED=1 python scripts/campaign_coverage.py logs/campaign --watch \
+  2>&1 | tee logs/campaign-coverage.log
+```
+
+To export full runs as they finish and refresh the dashboard's quality, cost
+and speed table, run this read-only checkpoint publisher in another terminal:
+
+```bash
+PYTHONUNBUFFERED=1 python scripts/campaign_publish.py logs/campaign --watch \
+  2>&1 | tee logs/campaign-publish.log
+```
+
+The publisher writes only complete result files and never calls model APIs.
+Scores remain pending until all required repeats exist. Cost estimates use the
+standard leaderboard token prices per run, excluding judge and retry charges;
+the campaign spend counter separately includes those reported charges.
+
+Open `http://127.0.0.1:8765/dashboard.html` for live progress and reported spend.
+Change `logs/campaign/control.json` to adjust concurrency or set `pause: true`.
+A pause drains active requests, then stops safely. Rate-limit cooldowns and
+concurrency reductions apply to the affected provider or judge; other routes
+continue using the shared pool. Provider limits recover gradually. Individual
+request failures retry independently; completed model predictions survive judge
+failures. Task coverage distinguishes completed results, outstanding errors and
+saved predictions awaiting scoring.
+Optional `initial_route_limits` maps pinned provider names to initial concurrency
+limits after a restart. `deferred_samples` lists exact sample identities to hold
+for review while other samples continue. Removing an identity and resuming makes
+that sample eligible again without repeating successful samples.
+
+Set `pause: false` and re-run the same command to resume. SQLite checkpoints preserve predictions,
+verdicts and billed generation IDs; the manifest rejects changes to dataset
+bytes, model settings or evaluation code. Only complete runs are exported into
+`results/`. Do not launch two processes against the same campaign directory.
+Insufficient credits or the approved spend ceiling stop new requests. A first
+truncated completion gets one retry with identical settings; a repeated failure
+defers that sample for configuration review while the remaining queue continues.
+The campaign remains incomplete until deferred and failed samples are resolved.
+The launcher never purchases credits. Budget reservations account
+for in-flight model and judge calls; unknown charges from network interruptions
+must be reconciled separately from reported usage.
+
+This runner pins the existing Gemini 3.5 Flash judge snapshot to Google's Vertex
+endpoint through OpenRouter. It preserves the benchmark judge prompt, guidance
+and temperature. A judge API failure is retried, never converted into an
+incorrect verdict. The ordinary single-run command retains its existing backend.
+
+For a read-only checkpoint audit, run:
+
+```bash
+python scripts/audit_openrouter_campaign.py logs/campaign --complete --recompute-text
+```
+
+Omit `--complete` for an intermediate audit. A complete audit does not replace
+`vlm-exam validate` and `vlm-exam summary --check` on the exported result files.
+
+The completed five-model OpenRouter campaign is documented in
+[the benchmark report](reports/openrouter-five-models.md), including quality
+tables, actual campaign costs, coordinate-search evidence and recovery audits.
