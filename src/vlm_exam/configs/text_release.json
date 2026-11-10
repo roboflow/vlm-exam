@@ -62,7 +62,9 @@
     "qwen-3.7-plus",
     "qwen-3.8-27b",
     "qwen-3.8-flash",
-    "qwen-3.8-max"
+    "qwen-3.8-max",
+    "claude-fable-5-2",
+    "muse-ember"
   ],
   "configurations": {
     "claude-fable-5-1/high": {
@@ -591,6 +593,26 @@
     "qwen-3.8-max/low": {
       "inference_hash": "15636c3cd66f990a178af95d24e6a0cf9a52dc40b8d4c14be738a68916d4bab3",
       "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "claude-fable-5-2/low": {
+      "inference_hash": "d7a008331eab6c3803779684104ea3db6ba2207c00187c426e3d8d3f66648be5",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "claude-fable-5-2/high": {
+      "inference_hash": "d7a008331eab6c3803779684104ea3db6ba2207c00187c426e3d8d3f66648be5",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "muse-ember/low": {
+      "inference_hash": "4fde41a73f45f1f4cbaf72d63c2015fa6866f22869211ed69ad88f16d83e2a3a",
+      "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
+      "allowed_failures": []
+    },
+    "muse-ember/high": {
+      "inference_hash": "4fde41a73f45f1f4cbaf72d63c2015fa6866f22869211ed69ad88f16d83e2a3a",
+      "coordinate_format": "xyxy_normalized_0_to_1000_meta_flat",
       "allowed_failures": []
     }
   }
