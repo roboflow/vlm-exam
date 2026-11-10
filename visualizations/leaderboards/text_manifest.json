@@ -1,71 +1,71 @@
 {
   "schema_version": 1,
-  "summary_sha256": "28327ea41d91425471f38c4798152228be66b28f88a50dc843348441a5785476",
-  "display_sha256": "c3b5579042774aa81ebf9512d395e3e2baaf36af9e38a42e611d66d41e9b60a6",
+  "summary_sha256": "2902165516f02866dd92f563a5451df8550d39f4f58f672b07eadf347a5f962e",
+  "display_sha256": "4e58bae42a9c3155f9338e738a90b1dbde9afd533aea69227db99afbca1d0cbe",
   "renderer_sha256": "52c877b6a33dffb63421a67f5cd37e6620e2093cfc13db9e77ceb5a1e2fac38e",
   "charts": [
     {
       "file": "text_localization_recognition_high.png",
-      "sha256": "23da0159482d02d7f42a6061df7fac4459fd762577a4119e7137901bf6288e23",
+      "sha256": "cb82dea7706262fa98515cef81c985316b1a0722b24f64079f675af10c4524b5",
       "size": [
         2100,
-        12900
+        13140
       ]
     },
     {
       "file": "text_localization_recognition_low.png",
-      "sha256": "51e9e2b0948530630b521d1195bb22ff70081aaaff6e51c22464d77c6cbf8745",
+      "sha256": "e67a6a735ab83126fab0d5ec273c7ca0130892ad11bab18651b7589fe21bebd0",
       "size": [
         2100,
-        13380
+        13620
       ]
     },
     {
       "file": "text_single_string_high.png",
-      "sha256": "07c75555a7b53da81fe0247218e5ef0b281d946c5e38a8bab44ce3826fed317c",
+      "sha256": "3ae9af0f917152912d5d27344b6199cbdacf253d6bd17a158dfa4467c9e6556b",
       "size": [
         2100,
-        12900
+        13140
       ]
     },
     {
       "file": "text_single_string_low.png",
-      "sha256": "3889bbade49d54ac1ab71ff24306f93f3154ad86fec25ebdca4ec7587096ce07",
+      "sha256": "57ab9023fe4920afb359850d741d0ad44e895fd694be076f58c8403beb9b7cdf",
       "size": [
         2100,
-        13380
+        13620
       ]
     },
     {
       "file": "text_structured_high.png",
-      "sha256": "8ceaa1a820f7202eda2d66286a3aa855719c0e47558d50f774f2fbab2d5f8571",
+      "sha256": "ff096e1e0455413c215d5b338217734515baea2cdc1adb316a04e816a54f7463",
       "size": [
         2100,
-        12900
+        13140
       ]
     },
     {
       "file": "text_structured_low.png",
-      "sha256": "890410974673b7ed7b200f4e272eb9c6ee89eb7f74864d60a9764869d1cf6321",
+      "sha256": "1802afa6b3bd75eb407c6628ad50dfb69d4c0a55015b1007f2ffddedf8bd05ee",
       "size": [
         2100,
-        13380
+        13620
       ]
     },
     {
       "file": "text_transcription_high.png",
-      "sha256": "20ac6417b014493ad71a5039e1a5dab93af229193120331726e54b9ff4b42ece",
+      "sha256": "f7017d4ecacdd836765fbb351ace541b3151d3f9cd2669d4393e80e2972239ac",
       "size": [
         2100,
-        12900
+        13140
       ]
     },
     {
       "file": "text_transcription_low.png",
-      "sha256": "4edfe9f0ca2c96200620b329dc721604c3b04a2d9dd521397a3036a56040b08c",
+      "sha256": "1526348a185caadd42c8dc2ac2bf96371dd760bfa87885904af9d1bb9b3c1bec",
       "size": [
         2100,
-        13380
+        13620
       ]
     }
   ]
