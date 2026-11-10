@@ -110,3 +110,30 @@ def test_jpeg_data_url_under_max_base64_bytes_fits_cap() -> None:
     )
     assert len(data_url.encode("utf-8")) <= OPENROUTER_MAX_BASE64_BYTES
     assert max(uploaded_size) <= max(image.size)
+
+
+@pytest.mark.parametrize("reason", ["end_turn", "max_tokens", "refusal"])
+def test_anthropic_preserves_completion_reason(
+    monkeypatch: pytest.MonkeyPatch, reason: str
+) -> None:
+    from vlm_exam.providers.anthropic import AnthropicProvider
+
+    provider = AnthropicProvider("claude-fable-5-2", api_key="test")
+    response = SimpleNamespace(
+        content=[SimpleNamespace(type="text", text="answer")]
+        if reason == "end_turn"
+        else [],
+        stop_reason=reason,
+        id="msg_test",
+        model="claude-fable-5-2",
+        usage=SimpleNamespace(
+            input_tokens=100,
+            output_tokens=16384,
+            model_dump=lambda: {"input_tokens": 100, "output_tokens": 16384},
+        ),
+    )
+    monkeypatch.setattr(provider._client.messages, "create", lambda **kwargs: response)
+    answer, usage, _ = provider.predict(Image.new("RGB", (50, 50)), "Read", "high")
+    assert usage.metadata["finish_reason"] == reason
+    assert usage.output_tokens == 16384
+    assert answer == ("answer" if reason == "end_turn" else "[model refused to answer]")

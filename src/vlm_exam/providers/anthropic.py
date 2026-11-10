@@ -196,6 +196,14 @@ class AnthropicProvider(Provider):
             Usage(
                 input_tokens=message.usage.input_tokens,
                 output_tokens=message.usage.output_tokens,
+                metadata={
+                    "model": getattr(message, "model", self._wire_model_id),
+                    "finish_reason": getattr(message, "stop_reason", None),
+                    "generation_id": getattr(message, "id", None),
+                    "reported": message.usage.model_dump()
+                    if hasattr(message.usage, "model_dump")
+                    else {},
+                },
             ),
             retry_stats,
         )
