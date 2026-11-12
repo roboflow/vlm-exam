@@ -578,3 +578,20 @@ models:
     pricing:
       input_per_million_tokens: 1.0
       output_per_million_tokens: 5.0
+
+  gemini-4-hydrogen:
+    name: Gemini 4 Hydrogen
+    lab: google
+    routes:
+      - provider: google
+        provider_model_id: gemini-4-hydrogen
+        options:
+          api_version: v1beta
+          thinking_levels:
+            low: low
+            medium: medium
+            high: xhigh
+    detection_coordinate_format: yxyx_normalized_0_to_1000
+    pricing:
+      input_per_million_tokens: 1.5
+      output_per_million_tokens: 7.5
