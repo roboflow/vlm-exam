@@ -30,11 +30,32 @@ The production endpoint was smoke-tested through this provider at Low and High
 on November 12, 2026. Both returned the expected image text with `STOP`.
 Smoke tests verify API integration; they are not published benchmark runs.
 
-The opt-in file is deliberately outside the default model inventory until the
-complete publication protocol is available. No benchmark results or synthetic
-leaderboard entries are added. Historical `gemini-4-hydrogen-eap` results must
-keep their original identity and must not be relabeled as production results.
-The existing summary and release inventory remain unchanged.
+## Published benchmark
+
+The default registry publishes `gemini-4-hydrogen-eap`, preserving the endpoint
+used for the measurements. It includes three repeats at Low and High for each
+of OCR, extraction, counting, identification, reasoning and detection, plus one
+complete frozen 600-pair Text run per effort. Benchmark High is native `xhigh`.
+The original tasks and Text Low use the original provider-default output budget
+(65,536 tokens). Text High is the explicitly authorized full replacement at
+131,072 tokens, with its original inference hash pinned in the Text release
+inventory. It is not pooled with the earlier 65,536-token Text High run.
+
+The full Text High replacement preserves terminal responses from its first pass
+and completes unresolved continuation responses using a continuation-capable
+SDK. Empty terminal model responses remain scored outcomes; none are retried or
+removed to improve the results. All published source files are copied unchanged.
+
+Later diagnostics used 625 detection images and only 550 Text pairs, excluding
+transcription. Those experiments are separate from this publication protocol and
+are not included in `results/`, the website summary or these leaderboards.
+
+The production `gemini-4-hydrogen` opt-in configuration above remains separate.
+Historical EAP runs are never relabeled as production measurements. Published
+costs use launch-price estimates ($1.50 input / $7.50 output per million tokens),
+not actual early-access billing. Default registry settings reproduce the original
+65,536-token runs; reproducing Text High requires explicitly setting the Google
+route option `max_output_tokens: 131072` in a custom configuration.
 
 Sources:
 

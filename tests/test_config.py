@@ -235,6 +235,7 @@ class TestBenchmarkProtocolField:
             "gemini-4-argon-eap",
             "muse-spark-open",
             "gpt-6.1-terra",
+            "gemini-4-hydrogen-eap",
         ]
 
 
@@ -360,3 +361,16 @@ def test_display_labels_do_not_create_inference_configuration(tmp_path: Path) ->
     assert display.models["saved-only-model"].name == "Saved Model"
     assert not hasattr(display.models["saved-only-model"], "routes")
     assert "saved-only-model" not in native.models
+
+
+def test_hydrogen_preserves_eap_identity_and_native_thinking() -> None:
+    model = load_config().models["gemini-4-hydrogen-eap"]
+    assert model.name == "Gemini 4 Hydrogen"
+    assert model.benchmark_protocol != "legacy"
+    assert model.detection_coordinate_format == "yxyx_normalized_0_to_1000"
+    assert model.routes[0].provider_model_id == "gemini-4-hydrogen-eap"
+    assert model.routes[0].options["thinking_levels"] == {
+        "low": "low",
+        "medium": "medium",
+        "high": "xhigh",
+    }
