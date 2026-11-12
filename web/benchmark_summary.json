@@ -40070,8 +40070,8 @@
       }
     },
     {
-      "id": "gemini-4-hydrogen-eap:low",
-      "key": "gemini-4-hydrogen-eap",
+      "id": "gemini-4-hydrogen:low",
+      "key": "gemini-4-hydrogen",
       "name": "Gemini 4 Hydrogen",
       "lab": "google",
       "effort": "low",
@@ -40490,8 +40490,8 @@
       }
     },
     {
-      "id": "gemini-4-hydrogen-eap:high",
-      "key": "gemini-4-hydrogen-eap",
+      "id": "gemini-4-hydrogen:high",
+      "key": "gemini-4-hydrogen",
       "name": "Gemini 4 Hydrogen",
       "lab": "google",
       "effort": "high",
