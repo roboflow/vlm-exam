@@ -81,3 +81,9 @@ def test_is_retryable_error_classification() -> None:
     assert is_retryable_error(_Overloaded())
     assert is_retryable_error(_GenaiServerError())
     assert not is_retryable_error(ValueError("nope"))
+
+
+def test_google_sdk_transport_error_is_retryable() -> None:
+    httpx2 = pytest.importorskip("httpx2")
+    assert is_retryable_error(httpx2.ReadTimeout("timeout"))
+    assert is_retryable_error(httpx2.ConnectError("connection reset"))

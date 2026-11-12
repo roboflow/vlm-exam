@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import anthropic
@@ -19,8 +20,8 @@ import openai
 import pytest
 from PIL import Image
 
-from vlm_exam.config import ModelConfig, PricingConfig, RouteConfig
-from vlm_exam.providers import build_model_provider
+from vlm_exam.config import ModelConfig, PricingConfig, RouteConfig, load_config
+from vlm_exam.providers import build_model_provider, create_provider
 from vlm_exam.providers.base import Provider, RetryStats, Usage
 from vlm_exam.providers.fallback import FallbackProvider, is_rate_limit_error
 from vlm_exam.tasks.detection import DetectionCoordinateFormat
@@ -231,3 +232,124 @@ class TestUploadedImageSize:
     def test_default_provider_returns_none(self) -> None:
         stub = _StubProvider("gpt-5.5", responses=[])
         assert stub.uploaded_image_size(Image.new("RGB", (640, 480))) is None
+
+
+@pytest.mark.parametrize("effort,expected", [("low", "low"), ("high", "xhigh")])
+def test_google_preview_request(effort: str, expected: str) -> None:
+    from pathlib import Path
+
+    configuration = load_config(
+        Path(__file__).parents[1] / "src/vlm_exam/configs/previews/hydrogen.yaml"
+    )
+    with patch("vlm_exam.providers.google.genai.Client") as client:
+        response = client.return_value.models.generate_content.return_value
+        response.text = "  detected  "
+        response.usage_metadata.prompt_token_count = 10
+        response.usage_metadata.candidates_token_count = 3
+        response.usage_metadata.thoughts_token_count = 7
+        provider = build_model_provider(
+            "gemini-4-hydrogen",
+            configuration.models["gemini-4-hydrogen"],
+            api_key="test-key",
+        )
+        text, usage, _ = provider.predict(Image.new("RGB", (10, 10)), "find", effort)
+        assert client.call_args.kwargs["http_options"].api_version == "v1beta"
+        request = client.return_value.models.generate_content.call_args.kwargs
+        assert request["model"] == "gemini-4-hydrogen"
+        assert request["config"].max_output_tokens == 131072
+        assert request["config"].thinking_config.thinking_level.lower() == expected
+        assert text == "detected"
+        assert usage.input_tokens == 10
+        assert usage.output_tokens == 10
+
+
+@pytest.mark.parametrize(
+    "model,effort,expected",
+    [("gemini-4-argon-eap", "high", "high"), ("gemini-2.5-pro", "high", 8192)],
+)
+def test_google_existing_thinking_is_unchanged(
+    model: str, effort: str, expected: str | int
+) -> None:
+    with patch("vlm_exam.providers.google.genai.Client") as client:
+        response = client.return_value.models.generate_content.return_value
+        response.text = "ok"
+        response.usage_metadata.prompt_token_count = 1
+        response.usage_metadata.candidates_token_count = 1
+        response.usage_metadata.thoughts_token_count = 0
+        provider = create_provider("google", model, api_key="test-key")
+        provider.predict(Image.new("RGB", (10, 10)), "find", effort)
+        thinking = client.return_value.models.generate_content.call_args.kwargs[
+            "config"
+        ].thinking_config
+        if isinstance(expected, int):
+            assert thinking.thinking_budget == expected
+            assert thinking.thinking_level is None
+        else:
+            assert thinking.thinking_level.lower() == expected
+        assert client.call_args.kwargs["http_options"].api_version is None
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"api_version": "invalid"},
+        {"thinking_levels": {"high": "typo"}},
+        {"thinking_levels": []},
+        {"thinking_levels": {"high": ["xhigh"]}},
+        {"api_version": ["v1beta"]},
+        {"thinking_level": "xhigh"},
+    ],
+)
+def test_google_rejects_invalid_options(options: dict[str, Any]) -> None:
+    with patch("vlm_exam.providers.google.genai.Client") as client:
+        with pytest.raises(ValueError):
+            create_provider("google", "gemini-4-hydrogen", options=options)
+        client.assert_not_called()
+
+
+def test_google_output_limit_and_finish_metadata() -> None:
+    from google.genai import types
+
+    with patch("vlm_exam.providers.google.genai.Client") as client:
+        client.return_value.models.generate_content.return_value = (
+            types.GenerateContentResponse(
+                candidates=[types.Candidate(finish_reason="MAX_TOKENS")],
+                usage_metadata=types.GenerateContentResponseUsageMetadata(
+                    prompt_token_count=12,
+                    candidates_token_count=0,
+                    thoughts_token_count=131072,
+                ),
+            )
+        )
+        provider = create_provider(
+            "google",
+            "gemini-4-hydrogen",
+            api_key="test-key",
+            options={"max_output_tokens": 131072, "thinking_levels": {"high": "xhigh"}},
+        )
+        _, usage, _ = provider.predict(Image.new("RGB", (10, 10)), "find", "high")
+        request = client.return_value.models.generate_content.call_args.kwargs
+        assert request["config"].max_output_tokens == 131072
+        assert usage.output_tokens == 131072
+        assert usage.metadata["thinking_tokens"] == 131072
+        assert usage.metadata["candidate_tokens"] == 0
+        assert usage.metadata["finish_reasons"] == ["FinishReason.MAX_TOKENS"]
+
+
+@pytest.mark.parametrize("limit", [0, -1, True, "131072", 1.5])
+def test_google_rejects_invalid_output_limit(limit: Any) -> None:
+    with pytest.raises(ValueError, match="max_output_tokens"):
+        create_provider(
+            "google", "gemini-4-hydrogen", options={"max_output_tokens": limit}
+        )
+
+
+def test_google_unfinished_continuation_is_not_scored_as_empty() -> None:
+    from types import SimpleNamespace
+
+    with patch("vlm_exam.providers.google.genai.Client") as client:
+        response = client.return_value.models.generate_content.return_value
+        response.candidates = [SimpleNamespace(finish_reason="CONTINUATION")]
+        provider = create_provider("google", "gemini-4-hydrogen", api_key="test-key")
+        with pytest.raises(RuntimeError, match="requires continuation"):
+            provider.predict(Image.new("RGB", (10, 10)), "find", "high")
