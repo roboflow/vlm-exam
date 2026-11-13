@@ -590,7 +590,7 @@ models:
           thinking_levels:
             low: low
             medium: medium
-            high: xhigh
+            high: high
     detection_coordinate_format: yxyx_normalized_0_to_1000
     pricing:
       input_per_million_tokens: 1.5

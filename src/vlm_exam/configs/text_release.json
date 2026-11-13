@@ -622,7 +622,7 @@
       "allowed_failures": []
     },
     "gemini-4-hydrogen/high": {
-      "inference_hash": "45038b2443cb13669b486ed5c55c22470fb3ded6e30f217be231924e0fdceed6",
+      "inference_hash": "a4e44b0bc537248c925c8972b41880b3d54aa820660095e25ee5a3601954722f",
       "coordinate_format": "yxyx_normalized_0_to_1000",
       "allowed_failures": []
     }
