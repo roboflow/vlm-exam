@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import io
+from typing import Any
 
 from google import genai
 from google.genai import types
@@ -53,7 +54,33 @@ class GoogleProvider(Provider):
         model: str,
         api_key: str | None = None,
         provider_model_id: str | None = None,
+        options: dict[str, Any] | None = None,
     ) -> None:
+        settings = dict(options or {})
+        unknown = settings.keys() - {
+            "api_version",
+            "thinking_levels",
+            "max_output_tokens",
+        }
+        if unknown:
+            raise ValueError(f"Unsupported Google options: {sorted(unknown)}")
+        api_version = settings.get("api_version")
+        if api_version not in (None, "v1", "v1beta", "v1alpha"):
+            raise ValueError("Unsupported Google API version")
+        thinking_levels = settings.get("thinking_levels", {})
+        if not isinstance(thinking_levels, dict) or any(
+            key not in {"low", "medium", "high"}
+            or value not in ("minimal", "low", "medium", "high", "xhigh")
+            for key, value in thinking_levels.items()
+        ):
+            raise ValueError("Invalid Google thinking_levels mapping")
+        max_output_tokens = settings.get("max_output_tokens")
+        if max_output_tokens is not None and (
+            type(max_output_tokens) is not int or max_output_tokens < 1
+        ):
+            raise ValueError("Invalid Google max_output_tokens")
+        self._max_output_tokens = max_output_tokens
+        self._thinking_levels = dict(thinking_levels)
         self._model = model
         self._wire_model_id = provider_model_id or model
         # timeout is milliseconds here; retry is disabled (attempts=1) so
@@ -62,6 +89,7 @@ class GoogleProvider(Provider):
         self._client = genai.Client(
             api_key=api_key,
             http_options=types.HttpOptions(
+                api_version=api_version,
                 timeout=int(REQUEST_TIMEOUT_SECONDS * 1000),
                 retry_options=types.HttpRetryOptions(attempts=1),
             ),
@@ -87,11 +115,22 @@ class GoogleProvider(Provider):
                     prompt,
                 ],
                 config=types.GenerateContentConfig(
-                    thinking_config=_thinking_config(self._wire_model_id, effort),
+                    max_output_tokens=self._max_output_tokens,
+                    thinking_config=_thinking_config(
+                        self._wire_model_id, self._thinking_levels.get(effort, effort)
+                    ),
                 ),
             )
         )
 
+        if any(
+            str(candidate.finish_reason).endswith("CONTINUATION")
+            for candidate in (response.candidates or [])
+        ):
+            raise RuntimeError(
+                "Google generation requires continuation; "
+                "use a continuation-capable SDK"
+            )
         answer = response.text.strip() if response.text else EMPTY_RESPONSE_TEXT
         output_tokens = response.usage_metadata.candidates_token_count or 0
         thoughts_tokens = response.usage_metadata.thoughts_token_count or 0
@@ -101,6 +140,16 @@ class GoogleProvider(Provider):
             Usage(
                 input_tokens=response.usage_metadata.prompt_token_count,
                 output_tokens=output_tokens + thoughts_tokens,
+                metadata={
+                    "candidate_tokens": output_tokens,
+                    "thinking_tokens": thoughts_tokens,
+                    "max_output_tokens": self._max_output_tokens,
+                    "thinking_level": self._thinking_levels.get(effort, effort),
+                    "finish_reasons": [
+                        str(candidate.finish_reason)
+                        for candidate in (response.candidates or [])
+                    ],
+                },
             ),
             retry_stats,
         )

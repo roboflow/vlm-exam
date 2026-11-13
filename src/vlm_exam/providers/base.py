@@ -25,6 +25,11 @@ from typing import Any, TypeVar
 import httpx
 from PIL import Image
 
+try:
+    import httpx2
+except ImportError:
+    httpx2 = None
+
 _logger = logging.getLogger(__name__)
 
 _T = TypeVar("_T")
@@ -62,7 +67,7 @@ def is_retryable_error(error: Exception) -> bool:
     """Report whether an error is a transient failure worth retrying.
 
     Covers request timeouts, connection/transport failures, and server-side
-    5xx responses across every provider SDK (all of which use ``httpx``).
+    5xx responses across provider SDKs using ``httpx`` or ``httpx2``.
     Rate-limit errors are deliberately excluded; those are handled by
     :class:`~vlm_exam.providers.fallback.FallbackProvider` route failover.
 
@@ -73,6 +78,8 @@ def is_retryable_error(error: Exception) -> bool:
         ``True`` when the call should be retried.
     """
     if isinstance(error, (TimeoutError, httpx.TimeoutException, httpx.TransportError)):
+        return True
+    if httpx2 is not None and isinstance(error, httpx2.TransportError):
         return True
     # openai/anthropic expose the HTTP status as `status_code`; google-genai
     # exposes it as `code`.

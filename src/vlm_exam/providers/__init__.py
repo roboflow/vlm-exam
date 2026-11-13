@@ -96,8 +96,8 @@ def create_provider(
     if provider_name in PRE_RESIZING_PROVIDERS:
         kwargs["resolution_tier"] = resolution_tier
     if options:
-        if provider_name not in {"openrouter", "openai"}:
-            raise ValueError("Route options require OpenRouter or OpenAI")
+        if provider_name not in {"openrouter", "openai", "google"}:
+            raise ValueError("Route options require OpenRouter, OpenAI or Google")
         kwargs["options"] = options
     return provider_class(**kwargs)
 

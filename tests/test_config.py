@@ -236,6 +236,7 @@ class TestBenchmarkProtocolField:
             "gemini-4-carbon-eap",
             "muse-spark-open",
             "gpt-6.1-terra",
+            "gemini-4-hydrogen",
         ]
 
 
