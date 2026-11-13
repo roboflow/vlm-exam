@@ -233,6 +233,7 @@ class TestBenchmarkProtocolField:
             "mimo-v2.6-flash",
             "mistral-large-4",
             "gemini-4-argon-eap",
+            "gemini-4-carbon-eap",
             "muse-spark-open",
             "gpt-6.1-terra",
             "gemini-4-hydrogen",

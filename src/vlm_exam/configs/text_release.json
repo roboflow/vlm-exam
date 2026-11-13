@@ -65,7 +65,8 @@
     "qwen-3.8-max",
     "claude-fable-5-2",
     "muse-ember",
-    "gemini-4-hydrogen"
+    "gemini-4-hydrogen",
+    "gemini-4-carbon-eap"
   ],
   "configurations": {
     "claude-fable-5-1/high": {
@@ -623,6 +624,16 @@
     },
     "gemini-4-hydrogen/high": {
       "inference_hash": "a4e44b0bc537248c925c8972b41880b3d54aa820660095e25ee5a3601954722f",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-4-carbon-eap/low": {
+      "inference_hash": "7734454a3a44ea28743226571277a96d59845eee449bffaae4843d9ecc25c58c",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-4-carbon-eap/high": {
+      "inference_hash": "7734454a3a44ea28743226571277a96d59845eee449bffaae4843d9ecc25c58c",
       "coordinate_format": "yxyx_normalized_0_to_1000",
       "allowed_failures": []
     }
