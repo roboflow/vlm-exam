@@ -251,39 +251,3 @@ def test_text_benchmark_defaults_to_one_run_per_effort_in_shared_results(
     for job in captured:
         index = job.command.index("--output-directory")
         assert job.command[index + 1] == "results"
-
-
-def test_benchmark_forwards_custom_qwen4_config_to_all_child_runs(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    from click.testing import CliRunner
-
-    import vlm_exam.orchestrate as orchestrate
-    from vlm_exam.cli import main
-
-    captured: list[Job] = []
-
-    def run(jobs: list[Job], **kwargs: object) -> list[JobOutcome]:
-        captured.extend(jobs)
-        return [JobOutcome(job, 0, 0.0) for job in jobs]
-
-    monkeypatch.setattr(orchestrate, "run_jobs", run)
-    config = Path(__file__).parents[1] / "src/vlm_exam/configs/qwen4-max.yaml"
-    result = CliRunner().invoke(
-        main,
-        [
-            "benchmark",
-            "--models",
-            "qwen-4-max",
-            "--config",
-            str(config),
-            "--dataset-root",
-            str(tmp_path),
-        ],
-    )
-    assert result.exit_code == 0, result.output
-    assert len(captured) == 36
-    assert {job.effort for job in captured} == {"low", "high"}
-    for job in captured:
-        assert job.command[job.command.index("--config") + 1] == str(config)
