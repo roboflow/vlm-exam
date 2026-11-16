@@ -443,6 +443,52 @@ a single `routes` entry, plus `provider_model_id` with the OpenRouter slug
 (e.g. `qwen/qwen3-vl-235b-a22b-instruct`). The short YAML key appears in
 result filenames and leaderboards.
 
+### Qwen4 Max support
+
+The opt-in configuration `src/vlm_exam/configs/qwen4-max.yaml` runs
+`qwen/qwen4-max` through OpenRouter. It uses native `low` and `high`
+reasoning, matching Qwen3.8 Max's published benchmark effort levels.
+Low explicitly enables the native low effort instead of inheriting the
+OpenRouter adapter's reasoning-disabled default. High means `high`, not
+`xhigh` from the separate minimum/maximum detection experiment.
+
+Routing is pinned to `alibaba` with fallbacks disabled and required parameter
+support. The output budget is 131,072 tokens, as used in the detection
+experiment; this is larger than Qwen3.8 Max's historical 16,384-token default.
+Token budgets therefore differ even though reasoning effort levels match.
+[OpenRouter lists](https://openrouter.ai/qwen/qwen4-max) input/output pricing
+of $1.50/$4.50 per million tokens (checked November 16, 2026).
+
+Detection uses `xyxy_normalized_0_to_1000`: a JSON list of objects with
+`box_2d: [x_min, y_min, x_max, y_max]` and `label`. An existing comparison
+of nine prompt formats on the same 50 images at low effort selected this
+format (73.93% mAP@50, 58.33% mAP@50:95). Alternative flat and bbox schemas
+scored 40.00% and 3.95% mAP@50. These are format-probe results, not a full
+benchmark entry.
+
+With `OPENROUTER_API_KEY` configured, run a local detection smoke test:
+
+```bash
+uv run vlm-exam run --models qwen-4-max --task detection --effort low \
+  --config src/vlm_exam/configs/qwen4-max.yaml \
+  --dataset-directory data/detection/train --max-samples 4 \
+  --output-directory work/qwen4-smoke --concurrency 2
+```
+
+For the six-task, three-repeat Low/High protocol (also requires
+`GOOGLE_API_KEY` for the existing judge):
+
+```bash
+uv run vlm-exam benchmark --models qwen-4-max \
+  --config src/vlm_exam/configs/qwen4-max.yaml \
+  --output-directory work/qwen4-results --log-directory logs/qwen4
+```
+
+This configuration is deliberately outside the published model registry until
+the required full benchmark results are available. Do not mix the separate
+625-image Low/XHigh detection experiment with the historical dataset's
+Low/High results or publish its XHigh runs as High.
+
 ## License
 
 Apache 2.0. See [LICENSE](LICENSE).

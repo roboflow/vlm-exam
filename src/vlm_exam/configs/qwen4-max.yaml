@@ -1,0 +1,26 @@
+labs:
+  qwen:
+    name: Qwen
+    color: "#8A3FFC"
+    logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/qwen-color.svg
+
+models:
+  qwen-4-max:
+    name: Qwen4 Max
+    lab: qwen
+    detection_coordinate_format: xyxy_normalized_0_to_1000
+    routes:
+      - provider: openrouter
+        provider_model_id: qwen/qwen4-max
+        options:
+          max_tokens: 131072
+          provider:
+            only: [alibaba]
+            allow_fallbacks: false
+            require_parameters: true
+          reasoning:
+            low: {effort: low}
+            high: {effort: high}
+    pricing:
+      input_per_million_tokens: 1.50
+      output_per_million_tokens: 4.50

@@ -512,6 +512,7 @@ def benchmark(
         output_directory=Path(output_directory),
         log_directory=Path(log_directory),
         max_samples=max_samples,
+        config_path=Path(config_path) if config_path else None,
     )
     outcomes = run_jobs(jobs, max_parallel=max_parallel, echo=click.echo)
     click.echo("")
