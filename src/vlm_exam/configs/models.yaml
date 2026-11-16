@@ -298,6 +298,25 @@ models:
     pricing:
       input_per_million_tokens: 2.00
       output_per_million_tokens: 10.00
+  qwen-4-max:
+    name: Qwen4 Max
+    lab: qwen
+    detection_coordinate_format: xyxy_normalized_0_to_1000
+    routes:
+      - provider: openrouter
+        provider_model_id: qwen/qwen4-max
+        options:
+          max_tokens: 131072
+          provider:
+            only: [alibaba]
+            allow_fallbacks: false
+            require_parameters: true
+          reasoning:
+            low: {effort: low}
+            high: {effort: high}
+    pricing:
+      input_per_million_tokens: 1.50
+      output_per_million_tokens: 4.50
   qwen-3.8-max:
     name: Qwen3.8 Max
     lab: qwen
