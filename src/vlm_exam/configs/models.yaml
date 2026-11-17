@@ -624,3 +624,33 @@ models:
     pricing:
       input_per_million_tokens: 1.5
       output_per_million_tokens: 7.5
+
+  gpt-6.2-astra:
+    name: GPT-6.2 Astra
+    lab: openai
+    routes:
+      - provider: openai
+        provider_model_id: gpt-6.2-astra
+        options:
+          max_output_tokens: 128000
+          store: false
+          service_tier: default
+    detection_coordinate_format: xyxy_absolute_resized_image
+    pricing:
+      input_per_million_tokens: 8.00
+      output_per_million_tokens: 40.00
+
+  gpt-6.2-sol:
+    name: GPT-6.2 Sol
+    lab: openai
+    routes:
+      - provider: openai
+        provider_model_id: gpt-6.2-sol
+        options:
+          max_output_tokens: 128000
+          store: false
+          service_tier: default
+    detection_coordinate_format: xyxy_absolute_resized_image
+    pricing:
+      input_per_million_tokens: 2.00
+      output_per_million_tokens: 10.00
