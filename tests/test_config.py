@@ -238,6 +238,8 @@ class TestBenchmarkProtocolField:
             "muse-spark-open",
             "gpt-6.1-terra",
             "gemini-4-hydrogen",
+            "gpt-6.2-astra",
+            "gpt-6.2-sol",
         ]
 
 

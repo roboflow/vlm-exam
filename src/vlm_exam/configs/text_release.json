@@ -67,7 +67,9 @@
     "muse-ember",
     "gemini-4-hydrogen",
     "gemini-4-carbon-eap",
-    "qwen-4-max"
+    "qwen-4-max",
+    "gpt-6.2-astra",
+    "gpt-6.2-sol"
   ],
   "configurations": {
     "claude-fable-5-1/high": {
@@ -646,6 +648,26 @@
     "qwen-4-max/high": {
       "inference_hash": "d4e1801d6b97ff2108ad596974e59e076b3a4e06ff35babdbab3cd9979441bdc",
       "coordinate_format": "xyxy_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gpt-6.2-astra/low": {
+      "inference_hash": "1c6167be5ff1762c4afb59ca1087b24e638932a2f9481cf972eaf1bbff469b4f",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-6.2-astra/high": {
+      "inference_hash": "1c6167be5ff1762c4afb59ca1087b24e638932a2f9481cf972eaf1bbff469b4f",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-6.2-sol/low": {
+      "inference_hash": "a6ee11debc00c8a35754ccd5eca48c3b61912046a39d357f88ef40586ac2f902",
+      "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gpt-6.2-sol/high": {
+      "inference_hash": "a6ee11debc00c8a35754ccd5eca48c3b61912046a39d357f88ef40586ac2f902",
+      "coordinate_format": "xyxy_absolute_resized_image",
       "allowed_failures": []
     }
   }
