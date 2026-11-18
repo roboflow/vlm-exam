@@ -1275,8 +1275,8 @@ def test_v2_resume_reuses_success_and_rejects_changed_selection(
         calls.append(args)
         return {
             "case": "a",
-            "model": "test",
-            "arm": "maximum",
+            "model": args[1],
+            "arm": args[2],
             "repeat": 1,
             "predicted": "[]",
             "detections": [],
@@ -1292,3 +1292,17 @@ def test_v2_resume_reuses_success_and_rejects_changed_selection(
     with pytest.raises(ValueError, match="Resume rejected"):
         runner.run_release(tmp_path, images, "test", "maximum", "profile", output, 2)
     assert len(calls) == 1
+
+    policy["runs"] = []
+    profile = {
+        "provider": "openai",
+        "wire": "new-model",
+        "format": "xyxy_absolute_resized_image",
+        "minimum": "low",
+        "maximum": "max",
+        "max_output_tokens": 128000,
+    }
+    runner.run_release(
+        tmp_path, images, "new-model", "maximum", None, tmp_path / "new-run", 2, profile
+    )
+    assert len(calls) == 2

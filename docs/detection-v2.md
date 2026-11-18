@@ -120,6 +120,14 @@ uv run vlm-exam detection-v2 run --model gpt-6.2-sol --effort maximum \
   --output runs/detection-v2/gpt-6.2-sol-maximum --concurrency 30
 ```
 
+For a model not yet in the release, supply `--profile request-profile.json` instead
+of `--configuration`. The JSON must explicitly define `provider`, `wire`,
+`format`, `minimum`, `maximum`, and `max_output_tokens`; optional `routing` and
+`arms` pin provider routing and measured arms. A null output limit means omit the
+explicit limit, not unlimited output. Anthropic requires a positive limit.
+The runner fingerprints this profile and its inference implementation for resume;
+it does not require adding an unevaluated model to the published inventory first.
+
 This command sends paid requests. It checks every image hash before any request,
 uses the profile's coordinate format and image-conditioned class list, records
 native parameters, bounds API timeouts, retries transient transport/server errors,

@@ -61,9 +61,10 @@ def run_release(
     images: Path,
     model: str,
     effort: str,
-    configuration: str,
+    configuration: str | None,
     output: Path,
     concurrency: int,
+    profile: dict[str, Any] | None = None,
 ) -> None:
     """Evaluate or resume a full release using one explicit native request profile.
 
@@ -75,6 +76,7 @@ def run_release(
         configuration: Reviewed request profile hash, never inferred from a name.
         output: New working directory outside the published result tree.
         concurrency: Maximum number of simultaneous image requests.
+        profile: Explicit native settings for a new model, instead of a frozen hash.
     """
     from vlm_exam.detection_v2_inference import infer
 
@@ -84,19 +86,65 @@ def run_release(
     policy, cases = load_release(root)
     if not 1 <= concurrency <= 60 or effort not in policy["efforts"]:
         raise ValueError("Invalid concurrency or effort")
-    entry = next(
-        (
-            row
-            for row in policy["runs"]
-            if (row["model"], row["effort"]) == (model, effort)
-        ),
-        None,
-    )
-    if entry is None or configuration not in entry["configurations"]:
-        raise ValueError(
-            "Choose a measured model/effort and one of its explicit profiles"
+    if profile is None:
+        entry = next(
+            (
+                row
+                for row in policy["runs"]
+                if (row["model"], row["effort"]) == (model, effort)
+            ),
+            None,
         )
-    config = policy["configurations"][configuration]
+        if entry is None or configuration not in entry["configurations"]:
+            raise ValueError(
+                "Choose a measured model/effort and one of its explicit profiles"
+            )
+        config = policy["configurations"][configuration]
+    else:
+        from vlm_exam.tasks.detection import DetectionCoordinateFormat
+
+        if configuration is not None:
+            raise ValueError("Choose either --configuration or --profile, not both")
+        if not isinstance(profile, dict):
+            raise ValueError("Profile must be a JSON object")
+        required = {
+            "provider",
+            "wire",
+            "format",
+            "minimum",
+            "maximum",
+            "max_output_tokens",
+        }
+        if not required.issubset(profile) or set(profile) - required - {
+            "routing",
+            "arms",
+        }:
+            raise ValueError(
+                "Profile must explicitly specify provider, wire, format, "
+                "both native efforts and max_output_tokens"
+            )
+        if profile["provider"] not in {
+            "openai",
+            "google",
+            "anthropic",
+            "openrouter",
+            "xai",
+        }:
+            raise ValueError("Unsupported provider")
+        DetectionCoordinateFormat(profile["format"])
+        if not isinstance(profile["wire"], str) or not profile["wire"]:
+            raise ValueError("Profile requires an upstream model identifier")
+        limit = profile["max_output_tokens"]
+        if limit is not None and (type(limit) is not int or limit <= 0):
+            raise ValueError("max_output_tokens must be a positive integer or null")
+        if profile["provider"] == "anthropic" and limit is None:
+            raise ValueError("Anthropic requires an explicit positive output limit")
+        if effort not in profile.get("arms", policy["efforts"]):
+            raise ValueError("This profile does not define the requested arm")
+        config = profile
+        configuration = hashlib.sha256(
+            json.dumps(config, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
     if output.resolve().is_relative_to((root / "results").resolve()):
         raise ValueError("New runs must be outside the frozen results tree")
     for case in cases:

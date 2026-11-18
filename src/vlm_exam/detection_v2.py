@@ -554,8 +554,13 @@ def register_detection_commands(main: click.Group) -> None:
     @click.option("--effort", type=click.Choice(["minimum", "maximum"]), required=True)
     @click.option(
         "--configuration",
-        required=True,
+        required=False,
         help="Explicit frozen profile hash from release.json.",
+    )
+    @click.option(
+        "--profile",
+        type=click.Path(exists=True, path_type=Path),
+        help="Explicit JSON request profile for a new model.",
     )
     @click.option("--output", required=True, type=click.Path(path_type=Path))
     @click.option("--concurrency", type=click.IntRange(1, 60), default=30)
@@ -564,7 +569,8 @@ def register_detection_commands(main: click.Group) -> None:
         images: Path,
         model: str,
         effort: str,
-        configuration: str,
+        configuration: str | None,
+        profile: Path | None,
         output: Path,
         concurrency: int,
     ) -> None:
@@ -577,7 +583,16 @@ def register_detection_commands(main: click.Group) -> None:
         from vlm_exam.detection_v2_runner import run_release
 
         try:
-            run_release(root, images, model, effort, configuration, output, concurrency)
+            run_release(
+                root,
+                images,
+                model,
+                effort,
+                configuration,
+                output,
+                concurrency,
+                json.loads(profile.read_text()) if profile else None,
+            )
         except ValueError as error:
             raise click.ClickException(str(error)) from error
         click.echo(f"Saved run and summary to {output}")

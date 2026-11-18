@@ -189,7 +189,7 @@ def infer(
             ],
         }
         kwargs.update(store=False)
-        if "max_output_tokens" in config:
+        if config.get("max_output_tokens") is not None:
             kwargs["max_output_tokens"] = config["max_output_tokens"]
         if provider == "xai":
             kwargs["input"][0]["content"][0]["detail"] = "high"
@@ -285,7 +285,7 @@ def infer(
             model=config["wire"],
             **(
                 {"max_tokens": config["max_output_tokens"]}
-                if "max_output_tokens" in config
+                if config.get("max_output_tokens") is not None
                 else {}
             ),
             messages=[
