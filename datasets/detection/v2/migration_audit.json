@@ -1,0 +1,17 @@
+{
+  "baseline_commit": "e6c3db503decdfe5271aca04cfb39bb03bdb3974",
+  "v1_unchanged_files": 254,
+  "v1_content_mismatches": 0,
+  "v2_models": 55,
+  "v2_configurations": 105,
+  "v2_cases": 600,
+  "v2_subsets": 120,
+  "primary_responses": 62989,
+  "explicit_missing": 11,
+  "diagnostic_responses": 221,
+  "raw_prediction_parser_parity_mismatches": 0,
+  "independent_qwen_audit_configurations": 13,
+  "independent_qwen_audit_max_absolute_map50_difference": 0.0,
+  "private_images_committed": false,
+  "new_inference_performed_for_migration": false
+}

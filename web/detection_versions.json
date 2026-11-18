@@ -1,0 +1,25 @@
+{
+  "versions": {
+    "v1": {
+      "summary": "benchmark_summary.json",
+      "task": "detection",
+      "metric": "map50",
+      "units": "percent",
+      "efforts": [
+        "low",
+        "high"
+      ]
+    },
+    "v2": {
+      "summary": "detection_v2_summary.json",
+      "metric": "map50",
+      "units": "fraction",
+      "efforts": [
+        "minimum",
+        "maximum"
+      ]
+    }
+  },
+  "overview_detection_version": "v1",
+  "default_detection_version": "v2"
+}

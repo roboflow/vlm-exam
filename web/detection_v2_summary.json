@@ -1,0 +1,2421 @@
+{
+  "version": "v2",
+  "protocol": "detection-v2",
+  "images": 600,
+  "subset_count": 120,
+  "repeats": 1,
+  "scoring": {
+    "primary_metric": "map50",
+    "aggregation": "macro mean across subsets",
+    "prediction_cap": null,
+    "f1": "micro, class-aware maximum bipartite matching at IoU >= 0.5",
+    "units": "fraction"
+  },
+  "models": [
+    {
+      "model": "claude-fable-5",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 599,
+        "empty": 1
+      },
+      "metrics": {
+        "map50": 0.2508091121495454,
+        "map50_missing_as_empty": 0.2508091121495454,
+        "map50_capped100": 0.2502982150560153,
+        "f1": 0.21282812005843285,
+        "precision": 0.27186333730906853,
+        "recall": 0.17485770848799803,
+        "seconds_per_image": 68.85956381519635,
+        "input_tokens": 1681604,
+        "output_tokens": 3639336
+      },
+      "rank": 41
+    },
+    {
+      "model": "claude-fable-5",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 596,
+        "invalid_json": 4
+      },
+      "metrics": {
+        "map50": 0.24335565488775804,
+        "map50_missing_as_empty": 0.24335565488775804,
+        "map50_capped100": 0.24315643847367027,
+        "f1": 0.20137904369119733,
+        "precision": 0.2885236820238205,
+        "recall": 0.1546646869586736,
+        "seconds_per_image": 15.702909963925679,
+        "input_tokens": 1681604,
+        "output_tokens": 788758
+      },
+      "rank": 38
+    },
+    {
+      "model": "claude-fable-5-1",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 598,
+        "empty": 2
+      },
+      "metrics": {
+        "map50": 0.3682132929718743,
+        "map50_missing_as_empty": 0.3682132929718743,
+        "map50_capped100": 0.36511414824053645,
+        "f1": 0.3259205543469503,
+        "precision": 0.3563248766737139,
+        "recall": 0.30029695619896063,
+        "seconds_per_image": 142.86073223630586,
+        "input_tokens": 1682804,
+        "output_tokens": 7165679
+      },
+      "rank": 33
+    },
+    {
+      "model": "claude-fable-5-1",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 595,
+        "empty": 2,
+        "invalid_json": 3
+      },
+      "metrics": {
+        "map50": 0.32922649292546946,
+        "map50_missing_as_empty": 0.32922649292546946,
+        "map50_capped100": 0.3277074859050723,
+        "f1": 0.290158655124531,
+        "precision": 0.3599545521184577,
+        "recall": 0.24303390249938134,
+        "seconds_per_image": 18.799396152098975,
+        "input_tokens": 1682804,
+        "output_tokens": 961812
+      },
+      "rank": 29
+    },
+    {
+      "model": "claude-fable-5-2",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 597,
+        "empty": 2,
+        "truncated": 1
+      },
+      "metrics": {
+        "map50": 0.6822107709391275,
+        "map50_missing_as_empty": 0.6822107709391275,
+        "map50_capped100": 0.6457041930785635,
+        "f1": 0.7310212603905398,
+        "precision": 0.7787694804286394,
+        "recall": 0.6887899034892353,
+        "seconds_per_image": 117.26338467121124,
+        "input_tokens": 1680935,
+        "output_tokens": 7231190
+      },
+      "rank": 5
+    },
+    {
+      "model": "claude-fable-5-2",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 599,
+        "invalid_json": 1
+      },
+      "metrics": {
+        "map50": 0.6250202078585668,
+        "map50_missing_as_empty": 0.6250202078585668,
+        "map50_capped100": 0.5987866645892306,
+        "f1": 0.6731795489757273,
+        "precision": 0.8008396477575261,
+        "recall": 0.5806236080178173,
+        "seconds_per_image": 19.046126131216685,
+        "input_tokens": 1682804,
+        "output_tokens": 839352
+      },
+      "rank": 7
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 594,
+        "empty": 4,
+        "invalid_json": 1,
+        "truncated": 1
+      },
+      "metrics": {
+        "map50": 0.4862980123735421,
+        "map50_missing_as_empty": 0.4862980123735421,
+        "map50_capped100": 0.47795291655832745,
+        "f1": 0.4645248233050908,
+        "precision": 0.5521248679412466,
+        "recall": 0.40091561494679534,
+        "seconds_per_image": 87.42164947986603,
+        "input_tokens": 1682804,
+        "output_tokens": 12532169
+      },
+      "rank": 21
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.42403097632341086,
+        "map50_missing_as_empty": 0.42403097632341086,
+        "map50_capped100": 0.42021873372917373,
+        "f1": 0.42788162255833906,
+        "precision": 0.6683134493088768,
+        "recall": 0.31467458549863897,
+        "seconds_per_image": 8.961761881113052,
+        "input_tokens": 1682804,
+        "output_tokens": 766127
+      },
+      "rank": 22
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.137960577881798,
+        "map50_missing_as_empty": 0.137960577881798,
+        "map50_capped100": 0.13773464178508826,
+        "f1": 0.12200731315872201,
+        "precision": 0.18408307953467473,
+        "recall": 0.09123979213066073,
+        "seconds_per_image": 33.350246708393094,
+        "input_tokens": 1681604,
+        "output_tokens": 1698661
+      },
+      "rank": 48
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 595,
+        "empty": 1,
+        "invalid_json": 4
+      },
+      "metrics": {
+        "map50": 0.13603155283878246,
+        "map50_missing_as_empty": 0.13603155283878246,
+        "map50_capped100": 0.1359342405143707,
+        "f1": 0.10420125604562189,
+        "precision": 0.1924410078656179,
+        "recall": 0.0714427121999505,
+        "seconds_per_image": 11.477408878405889,
+        "input_tokens": 1681604,
+        "output_tokens": 516292
+      },
+      "rank": 45
+    },
+    {
+      "model": "claude-opus-5",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 590,
+        "invalid_json": 10
+      },
+      "metrics": {
+        "map50": 0.2995765593058119,
+        "map50_missing_as_empty": 0.2995765593058119,
+        "map50_capped100": 0.29834161302715073,
+        "f1": 0.26461697158985087,
+        "precision": 0.3142332165095784,
+        "recall": 0.2285325414501361,
+        "seconds_per_image": 71.90040872414907,
+        "input_tokens": 1681604,
+        "output_tokens": 3445297
+      },
+      "rank": 39
+    },
+    {
+      "model": "claude-opus-5",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 593,
+        "invalid_json": 7
+      },
+      "metrics": {
+        "map50": 0.271377935797985,
+        "map50_missing_as_empty": 0.271377935797985,
+        "map50_capped100": 0.27014334069681356,
+        "f1": 0.25042947127314374,
+        "precision": 0.35052097248196634,
+        "recall": 0.19480326651818858,
+        "seconds_per_image": 14.638629754781723,
+        "input_tokens": 1681604,
+        "output_tokens": 742477
+      },
+      "rank": 37
+    },
+    {
+      "model": "claude-opus-5-5",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 596,
+        "empty": 4
+      },
+      "metrics": {
+        "map50": 0.6009705821303214,
+        "map50_missing_as_empty": 0.6009705821303214,
+        "map50_capped100": 0.5859173683390205,
+        "f1": 0.5488285299606054,
+        "precision": 0.5760922792317319,
+        "recall": 0.5240287057658995,
+        "seconds_per_image": 170.02747492909432,
+        "input_tokens": 1682804,
+        "output_tokens": 11434606
+      },
+      "rank": 11
+    },
+    {
+      "model": "claude-opus-5-5",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 599,
+        "invalid_json": 1
+      },
+      "metrics": {
+        "map50": 0.5067200526915258,
+        "map50_missing_as_empty": 0.5067200526915258,
+        "map50_capped100": 0.502705401586718,
+        "f1": 0.4622509121526803,
+        "precision": 0.7938305819978311,
+        "recall": 0.32605790645879734,
+        "seconds_per_image": 9.321630344390869,
+        "input_tokens": 1682804,
+        "output_tokens": 475869
+      },
+      "rank": 14
+    },
+    {
+      "model": "claude-sonnet-5",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 599,
+        "invalid_json": 1
+      },
+      "metrics": {
+        "map50": 0.13381434795871125,
+        "map50_missing_as_empty": 0.13381434795871125,
+        "map50_capped100": 0.133346290215862,
+        "f1": 0.12068058235397298,
+        "precision": 0.1474180415684594,
+        "recall": 0.10215293244246473,
+        "seconds_per_image": 77.09580558101337,
+        "input_tokens": 1681604,
+        "output_tokens": 4837482
+      },
+      "rank": 49
+    },
+    {
+      "model": "claude-sonnet-5",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 598,
+        "invalid_json": 2
+      },
+      "metrics": {
+        "map50": 0.12311478623263004,
+        "map50_missing_as_empty": 0.12311478623263004,
+        "map50_capped100": 0.12308384622453256,
+        "f1": 0.09568411386593205,
+        "precision": 0.18554131054131054,
+        "recall": 0.06446424152437516,
+        "seconds_per_image": 7.815261082649231,
+        "input_tokens": 1681604,
+        "output_tokens": 485863
+      },
+      "rank": 46
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 585,
+        "empty": 13,
+        "truncated": 2
+      },
+      "metrics": {
+        "map50": 0.5944032088193733,
+        "map50_missing_as_empty": 0.5944032088193733,
+        "map50_capped100": 0.5780376342086432,
+        "f1": 0.5977467226961147,
+        "precision": 0.6857362503603575,
+        "recall": 0.5297698589458055,
+        "seconds_per_image": 145.08653305331865,
+        "input_tokens": 1682804,
+        "output_tokens": 13038776
+      },
+      "rank": 12
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 597,
+        "invalid_json": 3
+      },
+      "metrics": {
+        "map50": 0.4687316473185395,
+        "map50_missing_as_empty": 0.4687316473185395,
+        "map50_capped100": 0.46859282282336306,
+        "f1": 0.38797331579441885,
+        "precision": 0.8061694650527138,
+        "recall": 0.255456570155902,
+        "seconds_per_image": 7.412205487887064,
+        "input_tokens": 1682804,
+        "output_tokens": 377480
+      },
+      "rank": 19
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 521,
+        "invalid_json": 75,
+        "truncated": 4
+      },
+      "metrics": {
+        "map50": 0.20495645479544086,
+        "map50_missing_as_empty": 0.20495645479544086,
+        "map50_capped100": 0.19836329077625123,
+        "f1": 0.28066603650112704,
+        "precision": 0.3403279844824546,
+        "recall": 0.23880227666419204,
+        "seconds_per_image": 56.87335861245791,
+        "input_tokens": 223538,
+        "output_tokens": 2873005
+      },
+      "rank": 44
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 452,
+        "invalid_json": 140,
+        "truncated": 8
+      },
+      "metrics": {
+        "map50": 0.18260588239694092,
+        "map50_missing_as_empty": 0.18260588239694092,
+        "map50_capped100": 0.17990758830880318,
+        "f1": 0.22226750702318743,
+        "precision": 0.26987381145947476,
+        "recall": 0.18893838158871568,
+        "seconds_per_image": 40.74564753890038,
+        "input_tokens": 223538,
+        "output_tokens": 1705401
+      },
+      "rank": 39
+    },
+    {
+      "model": "gemini-3-flash-preview",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 421,
+        "invalid_json": 177,
+        "truncated": 2
+      },
+      "metrics": {
+        "map50": 0.2777278301626211,
+        "map50_missing_as_empty": 0.2777278301626211,
+        "map50_capped100": 0.27136365324840883,
+        "f1": 0.29434764453555023,
+        "precision": 0.6316389703486478,
+        "recall": 0.1918831972284088,
+        "seconds_per_image": 34.83229198495547,
+        "input_tokens": 719184,
+        "output_tokens": 3759249
+      },
+      "rank": 40
+    },
+    {
+      "model": "gemini-3-flash-preview",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 356,
+        "invalid_json": 242,
+        "truncated": 1,
+        "empty": 1
+      },
+      "metrics": {
+        "map50": 0.2836971123877447,
+        "map50_missing_as_empty": 0.2836971123877447,
+        "map50_capped100": 0.27822627849139586,
+        "f1": 0.3055183199285076,
+        "precision": 0.6168245376635092,
+        "recall": 0.2030438010393467,
+        "seconds_per_image": 17.299372696876524,
+        "input_tokens": 719184,
+        "output_tokens": 847863
+      },
+      "rank": 36
+    },
+    {
+      "model": "gemini-3.1-pro-preview",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 557,
+        "invalid_json": 43
+      },
+      "metrics": {
+        "map50": 0.4591633093657341,
+        "map50_missing_as_empty": 0.4591633093657341,
+        "map50_capped100": 0.4447822706499816,
+        "f1": 0.5139653294875945,
+        "precision": 0.6340037757769387,
+        "recall": 0.43214550853749073,
+        "seconds_per_image": 46.52273418068886,
+        "input_tokens": 719184,
+        "output_tokens": 2642882
+      },
+      "rank": 23
+    },
+    {
+      "model": "gemini-3.1-pro-preview",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 538,
+        "invalid_json": 62
+      },
+      "metrics": {
+        "map50": 0.4266624421036492,
+        "map50_missing_as_empty": 0.4266624421036492,
+        "map50_capped100": 0.42335158752587937,
+        "f1": 0.4229316372964141,
+        "precision": 0.729145211122554,
+        "recall": 0.29784706755753526,
+        "seconds_per_image": 28.049481637477875,
+        "input_tokens": 719184,
+        "output_tokens": 595729
+      },
+      "rank": 21
+    },
+    {
+      "model": "gemini-3.5-flash",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 597,
+        "truncated": 1,
+        "invalid_json": 2
+      },
+      "metrics": {
+        "map50": 0.49406858104727386,
+        "map50_missing_as_empty": 0.49406858104727386,
+        "map50_capped100": 0.4741930305288406,
+        "f1": 0.5598155528071702,
+        "precision": 0.7308535661603477,
+        "recall": 0.4536500866122247,
+        "seconds_per_image": 79.98932636022568,
+        "input_tokens": 719184,
+        "output_tokens": 2327287
+      },
+      "rank": 19
+    },
+    {
+      "model": "gemini-3.5-flash",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 579,
+        "invalid_json": 21
+      },
+      "metrics": {
+        "map50": 0.47946633788621207,
+        "map50_missing_as_empty": 0.47946633788621207,
+        "map50_capped100": 0.45404608217553083,
+        "f1": 0.5942915105237948,
+        "precision": 0.6899123380871386,
+        "recall": 0.521950012373175,
+        "seconds_per_image": 71.46280032594998,
+        "input_tokens": 719184,
+        "output_tokens": 1215331
+      },
+      "rank": 17
+    },
+    {
+      "model": "gemini-3.5-flash-lite",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 591,
+        "invalid_json": 9
+      },
+      "metrics": {
+        "map50": 0.40026017132913694,
+        "map50_missing_as_empty": 0.40026017132913694,
+        "map50_capped100": 0.38193702809900665,
+        "f1": 0.5101042665953732,
+        "precision": 0.6997454372869655,
+        "recall": 0.40133630289532296,
+        "seconds_per_image": 20.037762799660364,
+        "input_tokens": 719184,
+        "output_tokens": 1310228
+      },
+      "rank": 28
+    },
+    {
+      "model": "gemini-3.5-flash-lite",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 589,
+        "invalid_json": 11
+      },
+      "metrics": {
+        "map50": 0.4040249187819427,
+        "map50_missing_as_empty": 0.4040249187819427,
+        "map50_capped100": 0.37698689955383696,
+        "f1": 0.5508378918121039,
+        "precision": 0.6633207862818904,
+        "recall": 0.47097253155159613,
+        "seconds_per_image": 20.078273878494898,
+        "input_tokens": 719184,
+        "output_tokens": 1056847
+      },
+      "rank": 24
+    },
+    {
+      "model": "gemini-3.6-flash",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 597,
+        "invalid_json": 3
+      },
+      "metrics": {
+        "map50": 0.49663419307228956,
+        "map50_missing_as_empty": 0.49663419307228956,
+        "map50_capped100": 0.47734573352790904,
+        "f1": 0.575766614962415,
+        "precision": 0.7246039492454388,
+        "recall": 0.4776540460282108,
+        "seconds_per_image": 73.6326477821668,
+        "input_tokens": 719184,
+        "output_tokens": 2384989
+      },
+      "rank": 18
+    },
+    {
+      "model": "gemini-3.6-flash",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 580,
+        "invalid_json": 20
+      },
+      "metrics": {
+        "map50": 0.47861686166288564,
+        "map50_missing_as_empty": 0.47861686166288564,
+        "map50_capped100": 0.4506374589841774,
+        "f1": 0.6027767888928445,
+        "precision": 0.7098775784001342,
+        "recall": 0.5237564959168522,
+        "seconds_per_image": 64.94080453077952,
+        "input_tokens": 719184,
+        "output_tokens": 1142671
+      },
+      "rank": 18
+    },
+    {
+      "model": "gemini-3.7-flash",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 589,
+        "invalid_json": 10,
+        "truncated": 1
+      },
+      "metrics": {
+        "map50": 0.5676725735499834,
+        "map50_missing_as_empty": 0.5676725735499834,
+        "map50_capped100": 0.5462382748334978,
+        "f1": 0.6031937065195057,
+        "precision": 0.7411989611888616,
+        "recall": 0.5085127443702054,
+        "seconds_per_image": 106.85761487007142,
+        "input_tokens": 719184,
+        "output_tokens": 6879908
+      },
+      "rank": 14
+    },
+    {
+      "model": "gemini-3.7-flash",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 580,
+        "invalid_json": 20
+      },
+      "metrics": {
+        "map50": 0.5014390900246023,
+        "map50_missing_as_empty": 0.5014390900246023,
+        "map50_capped100": 0.4819243767124135,
+        "f1": 0.5517306452373838,
+        "precision": 0.7568057293239571,
+        "recall": 0.43410047018064835,
+        "seconds_per_image": 40.43932209650676,
+        "input_tokens": 719184,
+        "output_tokens": 941717
+      },
+      "rank": 16
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 597,
+        "invalid_json": 3
+      },
+      "metrics": {
+        "map50": 0.5727978739577035,
+        "map50_missing_as_empty": 0.5727978739577035,
+        "map50_capped100": 0.548628945928067,
+        "f1": 0.6326182594614734,
+        "precision": 0.7514724406768121,
+        "recall": 0.5462261816382084,
+        "seconds_per_image": 105.21525568405787,
+        "input_tokens": 719184,
+        "output_tokens": 6583292
+      },
+      "rank": 13
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 582,
+        "invalid_json": 18
+      },
+      "metrics": {
+        "map50": 0.5114909757374941,
+        "map50_missing_as_empty": 0.5114909757374941,
+        "map50_capped100": 0.4900362123871067,
+        "f1": 0.5870038314176245,
+        "precision": 0.7709742351046699,
+        "recall": 0.4739173471912893,
+        "seconds_per_image": 44.696451562245684,
+        "input_tokens": 719184,
+        "output_tokens": 985027
+      },
+      "rank": 12
+    },
+    {
+      "model": "gemini-4-argon-eap",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 599,
+        "empty": 1
+      },
+      "metrics": {
+        "map50": 0.6808338733734369,
+        "map50_missing_as_empty": 0.6808338733734369,
+        "map50_capped100": 0.6464572516303936,
+        "f1": 0.740151629814109,
+        "precision": 0.8335451080050826,
+        "recall": 0.6655778272704777,
+        "seconds_per_image": 80.68227368950843,
+        "input_tokens": 738429,
+        "output_tokens": 2906162
+      },
+      "rank": 6
+    },
+    {
+      "model": "gemini-4-argon-eap",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 597,
+        "invalid_json": 3
+      },
+      "metrics": {
+        "map50": 0.6501001239517791,
+        "map50_missing_as_empty": 0.6501001239517791,
+        "map50_capped100": 0.6132130827207827,
+        "f1": 0.7502110522163943,
+        "precision": 0.8510691744905329,
+        "recall": 0.6707250680524622,
+        "seconds_per_image": 50.748888316949206,
+        "input_tokens": 738429,
+        "output_tokens": 1146410
+      },
+      "rank": 4
+    },
+    {
+      "model": "gemini-4-carbon-eap",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 583,
+        "empty": 14,
+        "truncated": 3
+      },
+      "metrics": {
+        "map50": 0.692280367356337,
+        "map50_missing_as_empty": 0.692280367356337,
+        "map50_capped100": 0.6566018626831162,
+        "f1": 0.7324696356275303,
+        "precision": 0.8055209260908281,
+        "recall": 0.6715664439495175,
+        "seconds_per_image": 172.92284045259157,
+        "input_tokens": 738451,
+        "output_tokens": 10421142
+      },
+      "rank": 4
+    },
+    {
+      "model": "gemini-4-carbon-eap",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 598,
+        "invalid_json": 2
+      },
+      "metrics": {
+        "map50": 0.6893694967645387,
+        "map50_missing_as_empty": 0.6893694967645387,
+        "map50_capped100": 0.6512723891920662,
+        "f1": 0.7725625934356019,
+        "precision": 0.8475723277874642,
+        "recall": 0.7097500618658747,
+        "seconds_per_image": 35.82731269439061,
+        "input_tokens": 738451,
+        "output_tokens": 1227654
+      },
+      "rank": 1
+    },
+    {
+      "model": "gemini-4-hydrogen-eap",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 594,
+        "empty": 3,
+        "truncated": 2,
+        "invalid_json": 1
+      },
+      "metrics": {
+        "map50": 0.6482874704106507,
+        "map50_missing_as_empty": 0.6482874704106507,
+        "map50_capped100": 0.6219834902836737,
+        "f1": 0.6782062236432292,
+        "precision": 0.7653023140084598,
+        "recall": 0.6089086859688196,
+        "seconds_per_image": 29.803653198480607,
+        "input_tokens": 738429,
+        "output_tokens": 3836470
+      },
+      "rank": 9
+    },
+    {
+      "model": "gemini-4-hydrogen-eap",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.5960786898217824,
+        "map50_missing_as_empty": 0.5960786898217824,
+        "map50_capped100": 0.5813611542713867,
+        "f1": 0.6025701300736561,
+        "precision": 0.8215811965811965,
+        "recall": 0.47574857708488,
+        "seconds_per_image": 16.346516004800797,
+        "input_tokens": 738429,
+        "output_tokens": 1728801
+      },
+      "rank": 9
+    },
+    {
+      "model": "glm-5v-turbo",
+      "effort": "enabled",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 485,
+        "invalid_json": 115
+      },
+      "metrics": {
+        "map50": 0.2841915441308326,
+        "map50_missing_as_empty": 0.2841915441308326,
+        "map50_capped100": 0.2830361885144763,
+        "f1": 0.25761252068838075,
+        "precision": 0.36731888374650595,
+        "recall": 0.1983667409057164,
+        "seconds_per_image": 104.90556581656138,
+        "input_tokens": 1835561,
+        "output_tokens": 1106205
+      }
+    },
+    {
+      "model": "gpt-5.4-mini",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.04646405713735172,
+        "map50_missing_as_empty": 0.04646405713735172,
+        "map50_capped100": 0.04619986033994792,
+        "f1": 0.05996258185219831,
+        "precision": 0.08103666245259165,
+        "recall": 0.047587230883444694,
+        "seconds_per_image": 172.1109553249677,
+        "input_tokens": 1201377,
+        "output_tokens": 18273274
+      },
+      "rank": 51
+    },
+    {
+      "model": "gpt-5.4-mini",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 599,
+        "invalid_json": 1
+      },
+      "metrics": {
+        "map50": 0.0430504167386971,
+        "map50_missing_as_empty": 0.0430504167386971,
+        "map50_capped100": 0.042904372642685,
+        "f1": 0.054026752692376626,
+        "precision": 0.07907664425048887,
+        "recall": 0.04102944815639693,
+        "seconds_per_image": 7.964670894940694,
+        "input_tokens": 1201377,
+        "output_tokens": 631252
+      },
+      "rank": 49
+    },
+    {
+      "model": "gpt-5.5",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.19256766219656735,
+        "map50_missing_as_empty": 0.19256766219656735,
+        "map50_capped100": 0.19209255155304467,
+        "f1": 0.19122537562604341,
+        "precision": 0.20771797475699985,
+        "recall": 0.17715911902994308,
+        "seconds_per_image": 138.90585308710735,
+        "input_tokens": 1399024,
+        "output_tokens": 6750283
+      },
+      "rank": 46
+    },
+    {
+      "model": "gpt-5.5",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.16986163737322688,
+        "map50_missing_as_empty": 0.16986163737322688,
+        "map50_capped100": 0.16971572961077375,
+        "f1": 0.1653015873015873,
+        "precision": 0.23050022133687473,
+        "recall": 0.12885424399901016,
+        "seconds_per_image": 14.674870946009953,
+        "input_tokens": 1399024,
+        "output_tokens": 689531
+      },
+      "rank": 40
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.3644004591917716,
+        "map50_missing_as_empty": 0.3644004591917716,
+        "map50_capped100": 0.3604627800029751,
+        "f1": 0.32664135978815273,
+        "precision": 0.34538883831278105,
+        "recall": 0.30982430091561497,
+        "seconds_per_image": 233.41653524597487,
+        "input_tokens": 1399024,
+        "output_tokens": 15534070
+      },
+      "rank": 34
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.3197929692832986,
+        "map50_missing_as_empty": 0.3197929692832986,
+        "map50_capped100": 0.3182256125951729,
+        "f1": 0.29874784571507007,
+        "precision": 0.38931510116468576,
+        "recall": 0.24236575105171987,
+        "seconds_per_image": 15.884790783325831,
+        "input_tokens": 1399024,
+        "output_tokens": 812350
+      },
+      "rank": 33
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.4005051848459213,
+        "map50_missing_as_empty": 0.4005051848459213,
+        "map50_capped100": 0.3961515564849833,
+        "f1": 0.365693005345426,
+        "precision": 0.37458480381980486,
+        "recall": 0.35721356099975254,
+        "seconds_per_image": 213.13945942640305,
+        "input_tokens": 1399024,
+        "output_tokens": 12478340
+      },
+      "rank": 27
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.37573808352753985,
+        "map50_missing_as_empty": 0.37573808352753985,
+        "map50_capped100": 0.3739545380483226,
+        "f1": 0.32854974076938503,
+        "precision": 0.3899768801849585,
+        "recall": 0.2838406335065578,
+        "seconds_per_image": 17.810343752304714,
+        "input_tokens": 1399024,
+        "output_tokens": 969864
+      },
+      "rank": 25
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.3367854963074933,
+        "map50_missing_as_empty": 0.3367854963074933,
+        "map50_capped100": 0.3344202901022072,
+        "f1": 0.2917015473522184,
+        "precision": 0.3209913229525734,
+        "recall": 0.26731007176441474,
+        "seconds_per_image": 264.72464450438815,
+        "input_tokens": 1399024,
+        "output_tokens": 15373499
+      },
+      "rank": 37
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 598,
+        "invalid_json": 2
+      },
+      "metrics": {
+        "map50": 0.3062411787555902,
+        "map50_missing_as_empty": 0.3062411787555902,
+        "map50_capped100": 0.3047216708160704,
+        "f1": 0.28628099173553717,
+        "precision": 0.3644223412394797,
+        "recall": 0.23573372927493194,
+        "seconds_per_image": 14.521346896886826,
+        "input_tokens": 1399024,
+        "output_tokens": 822552
+      },
+      "rank": 35
+    },
+    {
+      "model": "gpt-6-astra",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.7032696607530549,
+        "map50_missing_as_empty": 0.7032696607530549,
+        "map50_capped100": 0.6517303301320377,
+        "f1": 0.7849135802469136,
+        "precision": 0.7831731953683173,
+        "recall": 0.786661717396684,
+        "seconds_per_image": 299.51264779607453,
+        "input_tokens": 1399024,
+        "output_tokens": 7532949
+      },
+      "rank": 3
+    },
+    {
+      "model": "gpt-6-astra",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 582,
+        "invalid_json": 18
+      },
+      "metrics": {
+        "map50": 0.6531935888033937,
+        "map50_missing_as_empty": 0.6531935888033937,
+        "map50_capped100": 0.6049413744827689,
+        "f1": 0.7687069545854694,
+        "precision": 0.8060216104685888,
+        "recall": 0.7346943825785697,
+        "seconds_per_image": 26.172430551846823,
+        "input_tokens": 1399024,
+        "output_tokens": 840664
+      },
+      "rank": 3
+    },
+    {
+      "model": "gpt-6-luna",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.4035907848210627,
+        "map50_missing_as_empty": 0.4035907848210627,
+        "map50_capped100": 0.4000289621720488,
+        "f1": 0.35130625228137874,
+        "precision": 0.3712050250702518,
+        "recall": 0.3334323187329869,
+        "seconds_per_image": 149.64785076618193,
+        "input_tokens": 1399024,
+        "output_tokens": 10387838
+      },
+      "rank": 26
+    },
+    {
+      "model": "gpt-6-luna",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 599,
+        "invalid_json": 1
+      },
+      "metrics": {
+        "map50": 0.3717228944694701,
+        "map50_missing_as_empty": 0.3717228944694701,
+        "map50_capped100": 0.3691407888555356,
+        "f1": 0.34843361289457614,
+        "precision": 0.437703506867772,
+        "recall": 0.28940856223707,
+        "seconds_per_image": 15.287135130167007,
+        "input_tokens": 1399024,
+        "output_tokens": 818819
+      },
+      "rank": 26
+    },
+    {
+      "model": "gpt-6-sol",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.551355835361998,
+        "map50_missing_as_empty": 0.551355835361998,
+        "map50_capped100": 0.5271275784522004,
+        "f1": 0.5991000697129095,
+        "precision": 0.6140834091204366,
+        "recall": 0.5848304875030933,
+        "seconds_per_image": 109.36472946405411,
+        "input_tokens": 1399024,
+        "output_tokens": 8596434
+      },
+      "rank": 15
+    },
+    {
+      "model": "gpt-6-sol",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.5054652053561465,
+        "map50_missing_as_empty": 0.5054652053561465,
+        "map50_capped100": 0.4832991472454523,
+        "f1": 0.5718020541549953,
+        "precision": 0.6814928950522171,
+        "recall": 0.4925266023261569,
+        "seconds_per_image": 10.58579048315684,
+        "input_tokens": 1399024,
+        "output_tokens": 690005
+      },
+      "rank": 15
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.6807851833411405,
+        "map50_missing_as_empty": 0.6807851833411405,
+        "map50_capped100": 0.6320470580497689,
+        "f1": 0.765865581458827,
+        "precision": 0.7679713354400458,
+        "recall": 0.7637713437268003,
+        "seconds_per_image": 216.91316085100175,
+        "input_tokens": 1399024,
+        "output_tokens": 7532981
+      },
+      "rank": 7
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 575,
+        "invalid_json": 25
+      },
+      "metrics": {
+        "map50": 0.6367033399563904,
+        "map50_missing_as_empty": 0.6367033399563904,
+        "map50_capped100": 0.5937203537284707,
+        "f1": 0.7413268896294428,
+        "precision": 0.7997364576470252,
+        "recall": 0.6908685968819599,
+        "seconds_per_image": 18.9380647110939,
+        "input_tokens": 1399024,
+        "output_tokens": 817692
+      },
+      "rank": 6
+    },
+    {
+      "model": "gpt-6.1-terra",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.660270748008952,
+        "map50_missing_as_empty": 0.660270748008952,
+        "map50_capped100": 0.6241222203097399,
+        "f1": 0.7096667134705965,
+        "precision": 0.7328570298700271,
+        "recall": 0.6878990348923534,
+        "seconds_per_image": 303.1556515264511,
+        "input_tokens": 1399024,
+        "output_tokens": 12289154
+      },
+      "rank": 8
+    },
+    {
+      "model": "gpt-6.1-terra",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 599,
+        "invalid_json": 1
+      },
+      "metrics": {
+        "map50": 0.5863723752787336,
+        "map50_missing_as_empty": 0.5863723752787336,
+        "map50_capped100": 0.5668267517583445,
+        "f1": 0.5968885178720498,
+        "precision": 0.7718547595682042,
+        "recall": 0.4865874783469438,
+        "seconds_per_image": 15.433669723669688,
+        "input_tokens": 1399024,
+        "output_tokens": 599397
+      },
+      "rank": 10
+    },
+    {
+      "model": "gpt-6.2-astra",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.7257579279469307,
+        "map50_missing_as_empty": 0.7257579279469307,
+        "map50_capped100": 0.6740176233644888,
+        "f1": 0.7999506264272048,
+        "precision": 0.7980297992858022,
+        "recall": 0.8018807225934175,
+        "seconds_per_image": 326.84624794642133,
+        "input_tokens": 1399024,
+        "output_tokens": 9625227
+      },
+      "rank": 1
+    },
+    {
+      "model": "gpt-6.2-astra",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.6859556874141466,
+        "map50_missing_as_empty": 0.6859556874141466,
+        "map50_capped100": 0.6436272150407604,
+        "f1": 0.7505866262620845,
+        "precision": 0.8191343030232082,
+        "recall": 0.6926255877258104,
+        "seconds_per_image": 17.739600193500518,
+        "input_tokens": 1399024,
+        "output_tokens": 717258
+      },
+      "rank": 2
+    },
+    {
+      "model": "gpt-6.2-sol",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.7201571226492888,
+        "map50_missing_as_empty": 0.7201571226492888,
+        "map50_capped100": 0.6724803463618324,
+        "f1": 0.7877938969484742,
+        "precision": 0.7963590391908976,
+        "recall": 0.7794110368720614,
+        "seconds_per_image": 137.11293161431948,
+        "input_tokens": 1399024,
+        "output_tokens": 6999484
+      },
+      "rank": 2
+    },
+    {
+      "model": "gpt-6.2-sol",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.6413350269996347,
+        "map50_missing_as_empty": 0.6413350269996347,
+        "map50_capped100": 0.6101644326488895,
+        "f1": 0.6670008255690529,
+        "precision": 0.8249580628692291,
+        "recall": 0.5598119277406582,
+        "seconds_per_image": 18.90552749156952,
+        "input_tokens": 1399024,
+        "output_tokens": 594668
+      },
+      "rank": 5
+    },
+    {
+      "model": "grok-4.5",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.04286306178661713,
+        "map50_missing_as_empty": 0.04286306178661713,
+        "map50_capped100": 0.04244123718623693,
+        "f1": 0.05096500188161927,
+        "precision": 0.05577454844972642,
+        "recall": 0.046919079435783224,
+        "seconds_per_image": 77.98585290153821,
+        "input_tokens": 1321618,
+        "output_tokens": 2134722
+      },
+      "rank": 52
+    },
+    {
+      "model": "grok-4.5",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.04325468749222334,
+        "map50_missing_as_empty": 0.04325468749222334,
+        "map50_capped100": 0.0429488812962821,
+        "f1": 0.05057656208098686,
+        "precision": 0.055194615159496634,
+        "recall": 0.04667161593664934,
+        "seconds_per_image": 53.22250625173251,
+        "input_tokens": 1321618,
+        "output_tokens": 1247286
+      },
+      "rank": 48
+    },
+    {
+      "model": "grok-4.6",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 599,
+        "invalid_json": 1
+      },
+      "metrics": {
+        "map50": 0.059996162679544794,
+        "map50_missing_as_empty": 0.059996162679544794,
+        "map50_capped100": 0.059827537736752374,
+        "f1": 0.05961204354548208,
+        "precision": 0.08374759281651664,
+        "recall": 0.04627567433803514,
+        "seconds_per_image": 122.92319655179978,
+        "input_tokens": 1407418,
+        "output_tokens": 4610053
+      },
+      "rank": 50
+    },
+    {
+      "model": "grok-4.6",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.056924655250410676,
+        "map50_missing_as_empty": 0.056924655250410676,
+        "map50_capped100": 0.05688105787724756,
+        "f1": 0.05523145317225537,
+        "precision": 0.08313846460022886,
+        "recall": 0.04135115070527097,
+        "seconds_per_image": 40.69946424802144,
+        "input_tokens": 1406818,
+        "output_tokens": 1447485
+      },
+      "rank": 47
+    },
+    {
+      "model": "grok-4.7",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.15349434580525667,
+        "map50_missing_as_empty": 0.15349434580525667,
+        "map50_capped100": 0.15293750857202515,
+        "f1": 0.13576811756316504,
+        "precision": 0.156064161496673,
+        "recall": 0.12014352882949765,
+        "seconds_per_image": 136.07793191075325,
+        "input_tokens": 1771018,
+        "output_tokens": 5528307
+      },
+      "rank": 47
+    },
+    {
+      "model": "grok-4.7",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.161448439868127,
+        "map50_missing_as_empty": 0.161448439868127,
+        "map50_capped100": 0.16094085743507094,
+        "f1": 0.14004423419549056,
+        "precision": 0.1845898453316058,
+        "recall": 0.11281860925513487,
+        "seconds_per_image": 59.4924634651343,
+        "input_tokens": 1770418,
+        "output_tokens": 2228734
+      },
+      "rank": 42
+    },
+    {
+      "model": "kimi-k3",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": false,
+      "response_counts": {
+        "returned": 595,
+        "missing": 5
+      },
+      "metrics": {
+        "map50": null,
+        "map50_missing_as_empty": 0.36742353036849335,
+        "map50_capped100": null,
+        "f1": null,
+        "precision": null,
+        "recall": null,
+        "seconds_per_image": null,
+        "input_tokens": 3021352,
+        "output_tokens": 4267036
+      }
+    },
+    {
+      "model": "kimi-k3",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": false,
+      "response_counts": {
+        "returned": 594,
+        "missing": 6
+      },
+      "metrics": {
+        "map50": null,
+        "map50_missing_as_empty": 0.3367823487475107,
+        "map50_capped100": null,
+        "f1": null,
+        "precision": null,
+        "recall": null,
+        "seconds_per_image": null,
+        "input_tokens": 3029494,
+        "output_tokens": 995690
+      }
+    },
+    {
+      "model": "mimo-v2.6-flash",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 586,
+        "empty": 13,
+        "invalid_json": 1
+      },
+      "metrics": {
+        "map50": 0.23120801574010935,
+        "map50_missing_as_empty": 0.23120801574010935,
+        "map50_capped100": 0.23034149491037775,
+        "f1": 0.1921921921921922,
+        "precision": 0.24250650378916414,
+        "recall": 0.15916852264291018,
+        "seconds_per_image": 30.44554368376732,
+        "input_tokens": 1358384,
+        "output_tokens": 3409983
+      },
+      "rank": 42
+    },
+    {
+      "model": "mimo-v2.6-flash",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 574,
+        "invalid_json": 26
+      },
+      "metrics": {
+        "map50": 0.14722950811907745,
+        "map50_missing_as_empty": 0.14722950811907745,
+        "map50_capped100": 0.14650002970071607,
+        "f1": 0.12175028563410772,
+        "precision": 0.3203924464605971,
+        "recall": 0.07515466468695868,
+        "seconds_per_image": 6.337086953719457,
+        "input_tokens": 1359584,
+        "output_tokens": 352979
+      },
+      "rank": 44
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 586,
+        "empty": 11,
+        "invalid_json": 3
+      },
+      "metrics": {
+        "map50": 0.22232168727805401,
+        "map50_missing_as_empty": 0.22232168727805401,
+        "map50_capped100": 0.22171664136324884,
+        "f1": 0.20420757363253858,
+        "precision": 0.23567497572029783,
+        "recall": 0.180153427369463,
+        "seconds_per_image": 72.95024190545082,
+        "input_tokens": 1358384,
+        "output_tokens": 4375250
+      },
+      "rank": 43
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 594,
+        "truncated": 5,
+        "invalid_json": 1
+      },
+      "metrics": {
+        "map50": 0.16939217551977587,
+        "map50_missing_as_empty": 0.16939217551977587,
+        "map50_capped100": 0.16918870575937034,
+        "f1": 0.1013695329129684,
+        "precision": 0.11042085921777933,
+        "recall": 0.09368968077208611,
+        "seconds_per_image": 22.939863376220067,
+        "input_tokens": 1359584,
+        "output_tokens": 1221085
+      },
+      "rank": 41
+    },
+    {
+      "model": "mistral-large-4",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 513,
+        "invalid_json": 86,
+        "empty": 1
+      },
+      "metrics": {
+        "map50": 0.44835227006066514,
+        "map50_missing_as_empty": 0.44835227006066514,
+        "map50_capped100": 0.42334994380313823,
+        "f1": 0.5366935990287605,
+        "precision": 0.6153403091101085,
+        "recall": 0.4758723088344469,
+        "seconds_per_image": 32.605807166099545,
+        "input_tokens": 1068314,
+        "output_tokens": 1837690
+      },
+      "rank": 25
+    },
+    {
+      "model": "muse-ember",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 597,
+        "invalid_json": 3
+      },
+      "metrics": {
+        "map50": 0.380980921798376,
+        "map50_missing_as_empty": 0.380980921798376,
+        "map50_capped100": 0.3798225817209944,
+        "f1": 0.318450109794272,
+        "precision": 0.42956178311835636,
+        "recall": 0.25300668151447664,
+        "seconds_per_image": 15.403709597190222,
+        "input_tokens": 1516185,
+        "output_tokens": 4274433
+      },
+      "rank": 31
+    },
+    {
+      "model": "muse-ember",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 551,
+        "invalid_json": 49
+      },
+      "metrics": {
+        "map50": 0.3244860137575112,
+        "map50_missing_as_empty": 0.3244860137575112,
+        "map50_capped100": 0.3231816081946211,
+        "f1": 0.27550322278635986,
+        "precision": 0.5056172349986783,
+        "recall": 0.18933432318732987,
+        "seconds_per_image": 3.3980272817611694,
+        "input_tokens": 1516185,
+        "output_tokens": 761868
+      },
+      "rank": 31
+    },
+    {
+      "model": "muse-glimmer-30b",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "invalid_json": 33,
+        "returned": 567
+      },
+      "metrics": {
+        "map50": 0.20091392088252177,
+        "map50_missing_as_empty": 0.20091392088252177,
+        "map50_capped100": 0.20097076829636837,
+        "f1": 0.16941914515702355,
+        "precision": 0.3582960358056266,
+        "recall": 0.1109378866617174,
+        "seconds_per_image": 50.07986135244369,
+        "input_tokens": 1545585,
+        "output_tokens": 1842200
+      },
+      "rank": 45
+    },
+    {
+      "model": "muse-glimmer-30b",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 422,
+        "invalid_json": 178
+      },
+      "metrics": {
+        "map50": 0.15576165743356493,
+        "map50_missing_as_empty": 0.15576165743356493,
+        "map50_capped100": 0.1557362886722937,
+        "f1": 0.11197311649518753,
+        "precision": 0.3461143883046935,
+        "recall": 0.0667903984162336,
+        "seconds_per_image": 14.27058173418045,
+        "input_tokens": 1544985,
+        "output_tokens": 476156
+      },
+      "rank": 43
+    },
+    {
+      "model": "muse-spark-1.1",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 587,
+        "invalid_json": 13
+      },
+      "metrics": {
+        "map50": 0.3708363475530253,
+        "map50_missing_as_empty": 0.3708363475530253,
+        "map50_capped100": 0.3645694362639915,
+        "f1": 0.3579802138731629,
+        "precision": 0.42386078949150247,
+        "recall": 0.30982430091561497,
+        "seconds_per_image": 28.251175782680512,
+        "input_tokens": 1516185,
+        "output_tokens": 3195547
+      },
+      "rank": 32
+    },
+    {
+      "model": "muse-spark-1.1",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 543,
+        "invalid_json": 57
+      },
+      "metrics": {
+        "map50": 0.35549146602619053,
+        "map50_missing_as_empty": 0.35549146602619053,
+        "map50_capped100": 0.3476917882270451,
+        "f1": 0.37559746987606973,
+        "precision": 0.44533052803040585,
+        "recall": 0.3247463499133878,
+        "seconds_per_image": 11.881732635100683,
+        "input_tokens": 1516185,
+        "output_tokens": 1492111
+      },
+      "rank": 28
+    },
+    {
+      "model": "muse-spark-1.2",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 596,
+        "invalid_json": 4
+      },
+      "metrics": {
+        "map50": 0.34546625968699424,
+        "map50_missing_as_empty": 0.34546625968699424,
+        "map50_capped100": 0.34062009852932534,
+        "f1": 0.3257316719791365,
+        "precision": 0.3929045788185949,
+        "recall": 0.27817371937639196,
+        "seconds_per_image": 33.33566661278407,
+        "input_tokens": 1516185,
+        "output_tokens": 3192258
+      },
+      "rank": 36
+    },
+    {
+      "model": "muse-spark-1.2",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 557,
+        "invalid_json": 43
+      },
+      "metrics": {
+        "map50": 0.30760882648131277,
+        "map50_missing_as_empty": 0.30760882648131277,
+        "map50_capped100": 0.30483651074227963,
+        "f1": 0.30478030628309716,
+        "precision": 0.5500452021180421,
+        "recall": 0.21078940856223707,
+        "seconds_per_image": 6.720029720465342,
+        "input_tokens": 1516185,
+        "output_tokens": 569902
+      },
+      "rank": 34
+    },
+    {
+      "model": "muse-spark-1.3",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 587,
+        "invalid_json": 12,
+        "empty": 1
+      },
+      "metrics": {
+        "map50": 0.30286074341984204,
+        "map50_missing_as_empty": 0.30286074341984204,
+        "map50_capped100": 0.29772801334565885,
+        "f1": 0.3067306744752439,
+        "precision": 0.3557456813506188,
+        "recall": 0.26958673595644644,
+        "seconds_per_image": 85.61460578163465,
+        "input_tokens": 1516185,
+        "output_tokens": 5329167
+      },
+      "rank": 38
+    },
+    {
+      "model": "muse-spark-1.3",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 576,
+        "invalid_json": 24
+      },
+      "metrics": {
+        "map50": 0.3221491021870558,
+        "map50_missing_as_empty": 0.3221491021870558,
+        "map50_capped100": 0.31771840395231266,
+        "f1": 0.3447334643942225,
+        "precision": 0.5018685841335919,
+        "recall": 0.2625340262311309,
+        "seconds_per_image": 14.235315085252125,
+        "input_tokens": 1516185,
+        "output_tokens": 1044845
+      },
+      "rank": 32
+    },
+    {
+      "model": "muse-spark-open",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 597,
+        "invalid_json": 3
+      },
+      "metrics": {
+        "map50": 0.3497504718019627,
+        "map50_missing_as_empty": 0.3497504718019627,
+        "map50_capped100": 0.34613845677425464,
+        "f1": 0.3418660173605072,
+        "precision": 0.47339843236852475,
+        "recall": 0.26753278891363524,
+        "seconds_per_image": 43.85304760495821,
+        "input_tokens": 1597785,
+        "output_tokens": 2189841
+      },
+      "rank": 35
+    },
+    {
+      "model": "muse-spark-open",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 578,
+        "invalid_json": 22
+      },
+      "metrics": {
+        "map50": 0.32551115839978595,
+        "map50_missing_as_empty": 0.32551115839978595,
+        "map50_capped100": 0.323417734675301,
+        "f1": 0.32378522966820783,
+        "precision": 0.5697275730939467,
+        "recall": 0.22615689185845086,
+        "seconds_per_image": 14.822126338481903,
+        "input_tokens": 1597785,
+        "output_tokens": 638793
+      },
+      "rank": 30
+    },
+    {
+      "model": "muse-wonder",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.4498619482497209,
+        "map50_missing_as_empty": 0.4498619482497209,
+        "map50_capped100": 0.44194467512752456,
+        "f1": 0.4150405579561822,
+        "precision": 0.5357995693873556,
+        "recall": 0.33870329126453846,
+        "seconds_per_image": 43.579655902783074,
+        "input_tokens": 1516185,
+        "output_tokens": 3152545
+      },
+      "rank": 24
+    },
+    {
+      "model": "muse-wonder",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 593,
+        "invalid_json": 7
+      },
+      "metrics": {
+        "map50": 0.4160549359464009,
+        "map50_missing_as_empty": 0.4160549359464009,
+        "map50_capped100": 0.4118413351466491,
+        "f1": 0.38940188877229803,
+        "precision": 0.6638640429338104,
+        "recall": 0.2755011135857461,
+        "seconds_per_image": 8.60664344827334,
+        "input_tokens": 1516185,
+        "output_tokens": 714323
+      },
+      "rank": 23
+    },
+    {
+      "model": "qwen-3.5-27b",
+      "effort": "enabled",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 549,
+        "truncated": 1,
+        "invalid_json": 49,
+        "empty": 1
+      },
+      "metrics": {
+        "map50": 0.329372260410067,
+        "map50_missing_as_empty": 0.329372260410067,
+        "map50_capped100": 0.3249714594140338,
+        "f1": 0.3373810305218247,
+        "precision": 0.4247295673076923,
+        "recall": 0.279831724820589,
+        "seconds_per_image": 96.55097100575765,
+        "input_tokens": 1040723,
+        "output_tokens": 2784277
+      }
+    },
+    {
+      "model": "qwen-3.6-27b",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 598,
+        "invalid_json": 2
+      },
+      "metrics": {
+        "map50": 0.39756100326194427,
+        "map50_missing_as_empty": 0.39756100326194427,
+        "map50_capped100": 0.38780404833281257,
+        "f1": 0.41785230088357667,
+        "precision": 0.5642439291275619,
+        "recall": 0.3317743132887899,
+        "seconds_per_image": 32.39099313934644,
+        "input_tokens": 1039655,
+        "output_tokens": 908647
+      },
+      "rank": 29
+    },
+    {
+      "model": "qwen-3.7-flash",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.3952651642578227,
+        "map50_missing_as_empty": 0.3952651642578227,
+        "map50_capped100": 0.38402664679306325,
+        "f1": 0.44131882804557937,
+        "precision": 0.570380829117151,
+        "recall": 0.3598861667903984,
+        "seconds_per_image": 42.262191571791966,
+        "input_tokens": 1040723,
+        "output_tokens": 3678379
+      },
+      "rank": 30
+    },
+    {
+      "model": "qwen-3.7-flash",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 591,
+        "invalid_json": 9
+      },
+      "metrics": {
+        "map50": 0.35701627233635613,
+        "map50_missing_as_empty": 0.35701627233635613,
+        "map50_capped100": 0.34407843120655646,
+        "f1": 0.39436903641983606,
+        "precision": 0.6139763573595565,
+        "recall": 0.2904726552833457,
+        "seconds_per_image": 8.834620220661163,
+        "input_tokens": 1041923,
+        "output_tokens": 699204
+      },
+      "rank": 27
+    },
+    {
+      "model": "qwen-3.7-plus",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 598,
+        "empty": 2
+      },
+      "metrics": {
+        "map50": 0.48906944621639925,
+        "map50_missing_as_empty": 0.48906944621639925,
+        "map50_capped100": 0.47098920713621434,
+        "f1": 0.510785680410445,
+        "precision": 0.6091591540122716,
+        "recall": 0.43976738431081414,
+        "seconds_per_image": 70.3475492378076,
+        "input_tokens": 1040723,
+        "output_tokens": 2560847
+      },
+      "rank": 20
+    },
+    {
+      "model": "qwen-3.8-27b",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.46422801500496763,
+        "map50_missing_as_empty": 0.46422801500496763,
+        "map50_capped100": 0.4350204382324591,
+        "f1": 0.5645128593245307,
+        "precision": 0.6218920287049996,
+        "recall": 0.5168275179411037,
+        "seconds_per_image": 73.247142273585,
+        "input_tokens": 1063523,
+        "output_tokens": 2191829
+      },
+      "rank": 22
+    },
+    {
+      "model": "qwen-3.8-27b",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 598,
+        "invalid_json": 2
+      },
+      "metrics": {
+        "map50": 0.43796759411773867,
+        "map50_missing_as_empty": 0.43796759411773867,
+        "map50_capped100": 0.41165951513145654,
+        "f1": 0.5367440691455939,
+        "precision": 0.6158874611465376,
+        "recall": 0.475624845335313,
+        "seconds_per_image": 60.280071703195574,
+        "input_tokens": 1056323,
+        "output_tokens": 1742260
+      },
+      "rank": 20
+    },
+    {
+      "model": "qwen-3.8-flash",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 596,
+        "empty": 1,
+        "invalid_json": 3
+      },
+      "metrics": {
+        "map50": 0.5027486759858827,
+        "map50_missing_as_empty": 0.5027486759858827,
+        "map50_capped100": 0.4730518846617391,
+        "f1": 0.5854321942374102,
+        "precision": 0.6346737590702783,
+        "recall": 0.5432813659985152,
+        "seconds_per_image": 42.472297675212225,
+        "input_tokens": 1071323,
+        "output_tokens": 2168012
+      },
+      "rank": 17
+    },
+    {
+      "model": "qwen-3.8-flash",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 598,
+        "invalid_json": 2
+      },
+      "metrics": {
+        "map50": 0.5082078861515886,
+        "map50_missing_as_empty": 0.5082078861515886,
+        "map50_capped100": 0.47766672010675393,
+        "f1": 0.576532078923298,
+        "precision": 0.6107696566998893,
+        "recall": 0.5459292254392477,
+        "seconds_per_image": 40.556226694981255,
+        "input_tokens": 1071323,
+        "output_tokens": 2081137
+      },
+      "rank": 13
+    },
+    {
+      "model": "qwen-3.8-max",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 599,
+        "invalid_json": 1
+      },
+      "metrics": {
+        "map50": 0.5480457305580785,
+        "map50_missing_as_empty": 0.5480457305580785,
+        "map50_capped100": 0.5146368461023182,
+        "f1": 0.609967482550783,
+        "precision": 0.6774456768110249,
+        "recall": 0.5547141796585003,
+        "seconds_per_image": 160.90968445936838,
+        "input_tokens": 1048523,
+        "output_tokens": 5294828
+      },
+      "rank": 16
+    },
+    {
+      "model": "qwen-3.8-max",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 545,
+        "invalid_json": 55
+      },
+      "metrics": {
+        "map50": 0.5749737824589829,
+        "map50_missing_as_empty": 0.5749737824589829,
+        "map50_capped100": 0.5420910848270675,
+        "f1": 0.6539630614053022,
+        "precision": 0.7279320285237445,
+        "recall": 0.5936401880722594,
+        "seconds_per_image": 56.222291406393055,
+        "input_tokens": 1064123,
+        "output_tokens": 1768228
+      },
+      "rank": 11
+    },
+    {
+      "model": "qwen-4-max",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 594,
+        "invalid_json": 6
+      },
+      "metrics": {
+        "map50": 0.6265770072544304,
+        "map50_missing_as_empty": 0.6265770072544304,
+        "map50_capped100": 0.5847708269759703,
+        "f1": 0.7152661357921207,
+        "precision": 0.7597239997774192,
+        "recall": 0.6757238307349666,
+        "seconds_per_image": 144.43110843896866,
+        "input_tokens": 2438699,
+        "output_tokens": 5087870
+      },
+      "rank": 10
+    },
+    {
+      "model": "qwen-4-max",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "response_counts": {
+        "returned": 600
+      },
+      "metrics": {
+        "map50": 0.6190606565680354,
+        "map50_missing_as_empty": 0.6190606565680354,
+        "map50_capped100": 0.5722940847704497,
+        "f1": 0.7465144071172487,
+        "precision": 0.8054441260744986,
+        "recall": 0.6956198960653304,
+        "seconds_per_image": 52.628889807860055,
+        "input_tokens": 2440266,
+        "output_tokens": 1807365
+      },
+      "rank": 8
+    }
+  ]
+}
