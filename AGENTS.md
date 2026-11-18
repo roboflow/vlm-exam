@@ -455,3 +455,23 @@ for strings, JSON, localization, empty/invalid responses and bounded single-card
 changing rendering. Add focused regressions to existing test modules; do not
 create new test files. Moving unchanged result files does not require rebuilding
 PNGs or recomputing inference.
+
+
+## Detection versions
+
+- The original `detection` task is v1. Historical flat files and
+  `results/detection/v1/*.jsonl` form its repeat pool. Moving files must preserve
+  every byte and all existing metrics.
+- Detection v2 is independent: 600 cases, 120 subsets, one run per measured native
+  minimum/maximum configuration. Its approved inventory and exact missing-response
+  IDs are pinned in `datasets/detection/v2/release.json`. Existing terminal outputs
+  are accepted as recorded; do not retry, drop, repair or promote diagnostics merely
+  to improve a score. This is an explicit exception to the legacy three-repeat and
+  resume-before-commit rules, not a change to v1 or other tasks.
+- V2 archives include raw prediction text, frozen parsed detections and provenance.
+  Diagnostics are separate. Never pool versions, configurations or diagnostic runs.
+- Keep private image bytes out of the repository. Preserve original image hashes
+  and distinct case IDs for tasks sharing a photo.
+- `detection-v2 summary` produces the detailed internal summary and the compact web
+  payload. The existing overview still describes v1. Validate both protocols and
+  run both summary freshness checks before publishing changes.

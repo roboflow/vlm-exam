@@ -26,6 +26,7 @@ dependencies = [
     "rapidfuzz",
     "roboflow",
     "supervision",
+    "scipy",
 ]
 
 [project.optional-dependencies]

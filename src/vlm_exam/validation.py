@@ -21,7 +21,7 @@ from pathlib import Path
 from vlm_exam.config import BenchmarkConfig
 from vlm_exam.protocol import PROTOCOL, BenchmarkProtocol, run_command
 from vlm_exam.rescore import JUDGE_TASK_NAMES
-from vlm_exam.results import RunResult, is_failed_sample, load_results
+from vlm_exam.results import RunResult, is_failed_sample, load_results, result_paths
 
 ERROR = "error"
 """Severity of a problem that fails validation."""
@@ -150,7 +150,7 @@ class _LoadedRun:
 
 def _load_runs(results_directory: Path) -> list[_LoadedRun]:
     loaded: list[_LoadedRun] = []
-    for path in sorted(results_directory.glob("*.jsonl")):
+    for path in result_paths(results_directory):
         try:
             loaded.append(_LoadedRun(path=path, run=load_results(path)))
         except ValueError:

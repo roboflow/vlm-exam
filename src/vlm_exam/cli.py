@@ -24,6 +24,7 @@ import click
 from dotenv import load_dotenv
 
 from vlm_exam.config import BenchmarkConfig, load_config
+from vlm_exam.detection_v2 import register_detection_commands
 from vlm_exam.judge import DEFAULT_JUDGE_MODEL, Judge
 from vlm_exam.providers import build_model_provider
 from vlm_exam.reference.cli import register_reference_commands
@@ -33,6 +34,7 @@ from vlm_exam.results import (
     load_results,
     load_results_directory,
     merge_resumed_runs,
+    result_paths,
     save_results,
 )
 from vlm_exam.runner import run_benchmark
@@ -288,6 +290,8 @@ def run(
         if not samples:
             raise click.UsageError("No samples selected")
     output_path = Path(output_directory)
+    if task_name == "detection" and output_directory == "results":
+        output_path = output_path / "detection" / "v1"
 
     previous_run: RunResult | None = None
     if resume_file is not None:
@@ -652,7 +656,7 @@ def rescore(
     for raw_path in paths:
         path = Path(raw_path)
         if path.is_dir():
-            files.extend(sorted(path.glob("*.jsonl")))
+            files.extend(result_paths(path))
         else:
             files.append(path)
 
@@ -903,7 +907,7 @@ def summary(
 
     results_path = Path(results_directory)
     detection_dataset = Path(dataset_directory) if dataset_directory else None
-    has_detection_runs = any(results_path.glob("detection_*.jsonl"))
+    has_detection_runs = bool(result_paths(results_path, "detection_*.jsonl"))
     if detection_dataset is None and has_detection_runs:
         click.echo(
             "No --dataset-directory given; detection quality metrics "
@@ -1710,6 +1714,9 @@ register_reference_commands(main)
 
 register_text_commands(main)
 register_text_render_commands(main)
+
+
+register_detection_commands(main)
 
 
 if __name__ == "__main__":

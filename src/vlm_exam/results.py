@@ -227,6 +227,14 @@ def load_results(path: Path) -> RunResult:
     )
 
 
+def result_paths(path: Path, pattern: str = "*.jsonl") -> list[Path]:
+    """Find historical runs, including the explicitly archived detection v1 runs.
+
+    V2 and diagnostic runs are deliberately excluded from the legacy repeat pool.
+    """
+    return sorted([*path.glob(pattern), *(path / "detection" / "v1").glob(pattern)])
+
+
 def load_results_directory(path: Path, pattern: str = "*.jsonl") -> list[RunResult]:
     """Load every non-empty JSONL results file in a directory.
 
@@ -241,7 +249,7 @@ def load_results_directory(path: Path, pattern: str = "*.jsonl") -> list[RunResu
         Run results sorted by file name.
     """
     runs: list[RunResult] = []
-    for file_path in sorted(path.glob(pattern)):
+    for file_path in result_paths(path, pattern):
         try:
             runs.append(load_results(file_path))
         except ValueError:

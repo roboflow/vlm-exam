@@ -1132,3 +1132,163 @@ def test_text_normalized_coordinates_follow_detection_contract(maximum: int) -> 
     prediction = json.dumps([{"box_2d": [0, 0, maximum, maximum], "text": "a"}])
     assert f"{maximum}" in task.build_prompt(sample)
     assert task.evaluate(sample, prediction).score == 1.0
+
+
+def test_v2_dense_scoring_has_no_100_object_cap() -> None:
+    from vlm_exam.detection_v2 import score_subset
+
+    objects = [
+        {"box": [index * 3, 0, index * 3 + 2, 2], "label": "seed"}
+        for index in range(150)
+    ]
+    result = score_subset(
+        [{"id": "crowded", "objects": objects}],
+        [{"case": "crowded", "detections": objects, "status": "returned"}],
+    )
+    assert result["map50"] == pytest.approx(1)
+    assert result["map50_capped100"] < 0.7
+    assert result["f1"] == 1
+    assert result["tp"] == 150
+
+
+def test_v2_f1_counts_unknown_classes_and_duplicate_predictions() -> None:
+    from vlm_exam.detection_v2 import score_subset
+
+    target = {"box": [0, 0, 10, 10], "label": "seed"}
+    predictions = [target, target, {**target, "label": "stone"}]
+    result = score_subset(
+        [{"id": "a", "objects": [target]}],
+        [{"case": "a", "detections": predictions, "status": "returned"}],
+    )
+    assert (result["tp"], result["fp"], result["fn"]) == (1, 2, 0)
+    assert result["f1"] == 0.5
+
+
+def test_v2_missing_response_stays_in_denominator() -> None:
+    from vlm_exam.detection_v2 import score_subset
+
+    target = {"box": [0, 0, 10, 10], "label": "seed"}
+    result = score_subset(
+        [{"id": "a", "objects": [target]}],
+        [{"case": "a", "detections": [], "status": "missing"}],
+    )
+    assert result["images"] == result["missing"] == result["fn"] == 1
+    assert result["map50"] == result["f1"] == 0
+
+
+def test_v2_parser_preserves_unknown_labels_and_uploaded_coordinates() -> None:
+    from vlm_exam.detection_v2_inference import parse_objects
+
+    case = {"width": 1000, "height": 500, "objects": []}
+    result = {
+        "predicted": '[{"box_2d":[10,20,30,40],"label":"unexpected"}]',
+        "uploaded_size": [500, 250],
+    }
+    parsed = parse_objects(case, result, "xyxy_absolute_resized_image")
+    assert parsed == [
+        {"box": [20.0, 40.0, 60.0, 80.0], "label": "unexpected", "confidence": 1.0}
+    ]
+
+
+def test_v2_openai_request_preserves_native_effort_and_token_limit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    from PIL import Image
+
+    from vlm_exam import detection_v2_inference as inference
+
+    Image.new("RGB", (100, 50)).save(tmp_path / "a.png")
+    response = SimpleNamespace(
+        output_text='[{"box_2d":[1,2,3,4],"label":"seed"}]',
+        status="completed",
+        model="test-model",
+        usage=SimpleNamespace(
+            input_tokens=4,
+            output_tokens=8,
+            output_tokens_details=SimpleNamespace(reasoning_tokens=3),
+        ),
+        model_dump=lambda **kwargs: {},
+    )
+    client = MagicMock()
+    stream = client.responses.stream.return_value.__enter__.return_value
+    stream.get_final_response.return_value = response
+    monkeypatch.setattr(inference, "_client", lambda provider: client)
+    case = {
+        "id": "a",
+        "image": "a.png",
+        "width": 100,
+        "height": 50,
+        "objects": [{"box": [1, 2, 3, 4], "label": "seed"}],
+    }
+    config = {
+        "provider": "openai",
+        "wire": "test-model",
+        "maximum": "max",
+        "format": "xyxy_absolute_resized_image",
+        "max_output_tokens": 128000,
+    }
+    result = inference.infer(case, "test-model", "maximum", config, tmp_path)
+    request = client.responses.stream.call_args.kwargs
+    assert request["reasoning"] == {"effort": "max"}
+    assert request["max_output_tokens"] == 128000
+    assert request["store"] is False
+    assert "100x50" in result["prompt"]
+    assert result["native_effort"] == "max"
+    assert result["detections"][0]["box"] == [1, 2, 3, 4]
+
+
+def test_v2_resume_reuses_success_and_rejects_changed_selection(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import hashlib
+
+    from PIL import Image
+
+    from vlm_exam import detection_v2_inference as inference
+    from vlm_exam import detection_v2_runner as runner
+
+    images = tmp_path / "images"
+    images.mkdir()
+    path = images / "a.png"
+    Image.new("RGB", (10, 10)).save(path)
+    case = {
+        "id": "a",
+        "subset": "s",
+        "image": "a.png",
+        "image_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "objects": [{"box": [0, 0, 5, 5], "label": "seed"}],
+    }
+    policy = {
+        "dataset_sha256": "first",
+        "efforts": ["minimum", "maximum"],
+        "configurations": {"profile": {"maximum": "max"}},
+        "runs": [{"model": "test", "effort": "maximum", "configurations": ["profile"]}],
+    }
+    monkeypatch.setattr(runner, "load_release", lambda root: (policy, [case]))
+    monkeypatch.setattr(runner, "validate_release", lambda root: [])
+    calls = []
+
+    def fake_infer(*args: object) -> dict:
+        calls.append(args)
+        return {
+            "case": "a",
+            "model": "test",
+            "arm": "maximum",
+            "repeat": 1,
+            "predicted": "[]",
+            "detections": [],
+            "truncated": False,
+        }
+
+    monkeypatch.setattr(inference, "infer", fake_infer)
+    output = tmp_path / "run"
+    runner.run_release(tmp_path, images, "test", "maximum", "profile", output, 2)
+    runner.run_release(tmp_path, images, "test", "maximum", "profile", output, 2)
+    assert len(calls) == 1
+    policy["dataset_sha256"] = "changed"
+    with pytest.raises(ValueError, match="Resume rejected"):
+        runner.run_release(tmp_path, images, "test", "maximum", "profile", output, 2)
+    assert len(calls) == 1
