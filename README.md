@@ -52,9 +52,10 @@ end") show a min-max whisker over their runs.
 Reference open-vocabulary detectors (YOLO-E, etc.) are benchmarked separately.
 See [reference/README.md](reference/README.md) for setup and commands.
 
-Stricter IoU thresholds:
-[mAP@75](visualizations/leaderboards/detection_map75_low.png) |
-[mAP@50:95](visualizations/leaderboards/detection_map50_95_low.png)
+Historical v1 (different dataset/protocol):
+[mAP@50](visualizations/leaderboards/detection/v1/detection_map50_low.png) |
+[mAP@75](visualizations/leaderboards/detection/v1/detection_map75_low.png) |
+[mAP@50:95](visualizations/leaderboards/detection/v1/detection_map50_95_low.png)
 
 ## Supported providers
 
@@ -493,7 +494,8 @@ whitespace (newline, tab or space), using the same insertion/deletion colors.
 
 ## Detection benchmark versions
 
-The original detection protocol is preserved as **v1**. The independent
+Detection **v2** is the default for run, summary and leaderboard commands.
+The original detection protocol is preserved as explicit `--detection-version v1`. The
 **v2** release contains the approved 600-case benchmark and all 55 evaluated
 models, with native minimum/maximum configurations. See
 [Detection v2](docs/detection-v2.md) for protocols, saved results, validation,

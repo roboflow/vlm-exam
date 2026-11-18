@@ -76,3 +76,7 @@ scripts/render_zero_map_detection_cards.py
 scripts/render_zero_map_model_comparison.py
 
 text-summary.json
+
+/.detection-v2-publication.lock
+
+/working-runs/

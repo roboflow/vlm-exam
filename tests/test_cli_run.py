@@ -824,3 +824,28 @@ def test_detection_v2_cli_forwards_explicit_new_model_profile(
     assert result.exit_code == 0, result.output
     assert calls[0][4] is None
     assert calls[0][6:] == (60, profile)
+
+
+def test_v2_rejects_custom_model_config_instead_of_ignoring_it(tmp_path):
+    from click.testing import CliRunner
+
+    from vlm_exam.cli import main
+
+    config = tmp_path / "models.yaml"
+    config.write_text("models: {}\n")
+    result = CliRunner().invoke(
+        main,
+        [
+            "run",
+            "--task",
+            "detection",
+            "--models",
+            "alpha",
+            "--effort",
+            "low",
+            "--config",
+            str(config),
+        ],
+    )
+    assert result.exit_code == 2
+    assert "--profile" in result.output

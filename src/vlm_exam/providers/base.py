@@ -15,11 +15,15 @@
 from __future__ import annotations
 
 import logging
+import os
 import random
+import re
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from typing import Any, TypeVar
 
 import httpx
@@ -107,7 +111,56 @@ class RetryStats:
     transient_error_types: tuple[str, ...] = ()
 
 
-def call_with_retries(operation: Callable[[], _T]) -> tuple[_T, RetryStats]:
+def error_diagnostics(error: Exception) -> dict[str, Any]:
+    """Return bounded provider diagnostics with credentials and payloads redacted."""
+    message = str(error)
+    for name, value in os.environ.items():
+        if value and any(
+            word in name.upper() for word in ("KEY", "TOKEN", "SECRET", "PASSWORD")
+        ):
+            message = message.replace(value, "[redacted]")
+    message = re.sub(r"(?i)bearer\s+[^\s'\"]+", "Bearer [redacted]", message)
+    message = re.sub(
+        r"(?i)(api[_-]?key|token|authorization)([\"'\s:=]+)[^\s,}]+",
+        r"\1\2[redacted]",
+        message,
+    )
+    message = re.sub(
+        r"data:image/[^;]+;base64,[A-Za-z0-9+/=]+", "[image payload]", message
+    )
+    result: dict[str, Any] = {
+        "error_type": type(error).__name__,
+        "message": message[:2000],
+    }
+    status = getattr(error, "status_code", getattr(error, "code", None))
+    if isinstance(status, int):
+        result["http_status"] = status
+    request_id = getattr(error, "request_id", None)
+    if isinstance(request_id, str):
+        result["request_id"] = request_id[:200]
+    return result
+
+
+def _retry_after_seconds(error: Exception) -> float:
+    headers = getattr(getattr(error, "response", None), "headers", {}) or {}
+    value = headers.get("retry-after")
+    if value is None:
+        return 0.0
+    try:
+        seconds = float(value)
+    except (ValueError, TypeError):
+        try:
+            seconds = (
+                parsedate_to_datetime(value) - datetime.now(timezone.utc)
+            ).total_seconds()
+        except (ValueError, TypeError, OverflowError):
+            return 0.0
+    return min(60.0, max(0.0, seconds))
+
+
+def call_with_retries(
+    operation: Callable[[], _T], *, retry_rate_limits: bool = False
+) -> tuple[_T, RetryStats]:
     """Run a provider call, retrying transient failures with backoff.
 
     Each attempt is bounded by the provider SDK's per-request timeout, so a
@@ -119,6 +172,8 @@ def call_with_retries(operation: Callable[[], _T]) -> tuple[_T, RetryStats]:
     Args:
         operation: Zero-argument callable that performs the provider request
             and returns its result.
+        retry_rate_limits: Retry HTTP 429 on the same route, honoring bounded
+            Retry-After delays. Disabled by default for legacy route failover.
 
     Returns:
         A tuple of the operation result and a :class:`RetryStats` describing
@@ -137,16 +192,24 @@ def call_with_retries(operation: Callable[[], _T]) -> tuple[_T, RetryStats]:
                 transient_error_types=tuple(transient_error_types),
             )
         except Exception as error:
-            if attempt > MAX_RETRIES or not is_retryable_error(error):
+            rate_limited = any(
+                getattr(error, attribute, None) == 429
+                for attribute in ("status_code", "code")
+            )
+            if attempt > MAX_RETRIES or not (
+                is_retryable_error(error) or (retry_rate_limits and rate_limited)
+            ):
                 raise
             transient_error_types.append(type(error).__name__)
-            sleep_seconds = delay + random.uniform(0, RETRY_JITTER_SECONDS)
+            sleep_seconds = max(
+                delay, _retry_after_seconds(error) if retry_rate_limits else 0.0
+            ) + random.uniform(0, RETRY_JITTER_SECONDS)
             _logger.warning(
                 "Retryable error on attempt %d/%d (%s: %s); retrying in %.1fs.",
                 attempt,
                 MAX_RETRIES + 1,
                 type(error).__name__,
-                error,
+                error_diagnostics(error)["message"],
                 sleep_seconds,
             )
             time.sleep(sleep_seconds)

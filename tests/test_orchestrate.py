@@ -51,9 +51,9 @@ class TestPlanJobs:
     def test_full_protocol_for_one_model(self) -> None:
         jobs = plan_jobs(["alpha"])
 
-        assert len(jobs) == PROTOCOL.required_runs
-        assert [job.effort for job in jobs[:18]] == ["low"] * 18
-        assert [job.effort for job in jobs[18:]] == ["high"] * 18
+        assert len(jobs) == PROTOCOL.required_runs - 4
+        assert [job.effort for job in jobs[:16]] == ["low"] * 16
+        assert [job.effort for job in jobs[16:]] == ["high"] * 16
         assert jobs[0].log_path == Path("logs/ocr_alpha_low_r1.log")
         assert jobs[2].repeat == 3
         assert "--max-samples" not in jobs[0].command

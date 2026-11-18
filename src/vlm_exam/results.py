@@ -235,7 +235,9 @@ def result_paths(path: Path, pattern: str = "*.jsonl") -> list[Path]:
     return sorted([*path.glob(pattern), *(path / "detection" / "v1").glob(pattern)])
 
 
-def load_results_directory(path: Path, pattern: str = "*.jsonl") -> list[RunResult]:
+def load_results_directory(
+    path: Path, pattern: str = "*.jsonl", *, include_detection_v1: bool = False
+) -> list[RunResult]:
     """Load every non-empty JSONL results file in a directory.
 
     Empty files are skipped with a message rather than failing the
@@ -244,6 +246,7 @@ def load_results_directory(path: Path, pattern: str = "*.jsonl") -> list[RunResu
     Args:
         path: Directory containing result files.
         pattern: Glob pattern selecting the files to load.
+        include_detection_v1: Explicitly include historical detection runs.
 
     Returns:
         Run results sorted by file name.
@@ -251,7 +254,9 @@ def load_results_directory(path: Path, pattern: str = "*.jsonl") -> list[RunResu
     runs: list[RunResult] = []
     for file_path in result_paths(path, pattern):
         try:
-            runs.append(load_results(file_path))
+            run = load_results(file_path)
+            if run.task != "detection" or include_detection_v1:
+                runs.append(run)
         except ValueError:
             print(f"Skipping empty file: {file_path}")
     return runs

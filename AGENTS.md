@@ -59,116 +59,67 @@ avoid a loop"). Never narrate what the code does.
 
 ## Benchmark protocol
 
-The six original tasks in `results/` follow the protocol defined once
-as `PROTOCOL` in `src/vlm_exam/protocol.py` and read by `validate`,
-`benchmark`, and the historical leaderboards. The website overview uses the
-five-task selection described under "Web summary". Text currently uses one run per
-model/effort, as described under "Mixed text benchmark" below:
+Detection v2 is the default. The historical six-task `PROTOCOL` remains the
+source of QA defaults and the explicit v1 contract. Current runs use:
 
-1. **Three runs per configuration.** Each `(task, effort)` is run three
-   times and all three result files are committed. A single run is not a
-   benchmark entry; model output is stochastic and one file cannot tell a
-   real gap from run-to-run noise.
-2. **Report the mean.** Quality metrics (judge and strict accuracy, OCR
-   similarity, mAP) are the arithmetic mean of the per-run values. Token,
-   cost, and time totals are the mean of one complete run, so three
-   repeats are not reported as three times the cost. Failed sample counts
-   are summed.
-3. **Low and high on every task.** Every task (OCR, extraction, counting,
-   identification, reasoning, detection) is run at both `--effort low` and
-   `--effort high`. That is 6 tasks x 2 efforts x 3 runs = 36 result files
-   per model. Both effort levels have their own leaderboard PNGs.
-4. **All of it in the web JSON.** `web/benchmark_summary.json` carries the
-   overview protocol (`protocol.repeats`, `protocol.repeats_by_task`,
-   `protocol.efforts`, `protocol.tasks`, `protocol.runs_per_model`), one entry
-   per `(model, effort)`, per-task
-   `metrics` (means), `metric_runs` (the per-run values), `run_count`, and
-   `timestamps`, and per model a `protocol` block with `name`
-   (`full` or `legacy`), `status` (`complete`, `incomplete`, `legacy`),
-   `runs_present`, and `runs_required`.
+- OCR, extraction, counting, identification and reasoning: three repeats at
+  Low and High, unchanged. Report means across repeats; token/cost/time totals
+  describe one mean full run, not three times the cost.
+- Detection v2: one run per recorded native minimum/maximum configuration.
+  `low`/`high` CLI aliases select those native profiles. Enabled-only models
+  remain neutral single-arm measurements; never duplicate them into two lanes.
+- Text: one run at Low and High, under the frozen mixed-text release policy.
+- The website overview uses Text, counting, identification, reasoning and
+  Detection v2. Its per-task repeat requirements are 1, 3, 3, 3 and 1 respectively.
+  Historical detection v1 remains available only with `--detection-version v1`.
 
 ### Rules for `results/`
 
-- `results/` is the single source of truth; every command globs every
-  file in it. Repeats are plain files: every file sharing a
-  `(task, model, effort)` triple is one repeat. There is no repeat field or
-  manifest. Never delete or cherry-pick repeats to move a number; if a run
-  is broken, fix the cause, re-run it, and remove only the broken file.
-- Only commit full-dataset runs. Never commit partial or smoke runs (any
-  run produced with `--max-samples`); `validate` flags a file with fewer
-  samples than the largest run of its task as a partial run.
-- Only average runs produced under one protocol. A change to prompts,
-  coordinate formats, judge settings, or image preprocessing invalidates
-  the existing repeats of the affected configurations. Obtain authorization
-  for fresh runs under that task's protocol; never silently rewrite provenance.
-- Images are EXIF-transposed on load before being sent to any provider.
-  Datasets whose images carry EXIF orientation tags will therefore produce
-  runs that are not comparable to runs made before this behavior existed;
-  re-run all models on such a dataset rather than mixing old and new runs.
-- `vlm-exam run --resume-file <file>` re-runs only the failed samples,
-  writes the merged complete file, and deletes the source file, so a
-  partial run and its completion are never both counted as repeats.
-  `validate` and `summary` warn about any run with failed samples and
-  print the resume command; resume it before committing unless the exact gaps
-  are explicitly accepted by the text release policy. Never retry accepted gaps
-  without new authorization.
+- QA flat JSONL files retain their repeat-pool semantics. Detection v1 files
+  live in `results/detection/v1/` and are excluded from current results.
+  V2 uses the hash-pinned manifest and inventory in `datasets/detection/v2/`;
+  its compressed primary archives and diagnostics must never be pooled.
+- Only publish full-dataset runs. `--max-samples` is smoke-only and cannot
+  publish. Keep partial checkpoints outside the frozen results tree.
+- Never cherry-pick by score or mix prompts, formats, ground truths,
+  preprocessing, or native efforts without explicit authorization and provenance.
+- Images are EXIF-transposed before provider submission. Preserve original
+  image identities and approved coordinate frames; do not silently alter pixels.
+- QA `--resume-file` retries failures and merges a complete replacement.
+  V2 resumes by working directory and only republishes via strict validation,
+  preserving superseded records. Frozen terminal outcomes and accepted gaps
+  require authorization before retry or promotion.
 
 ### Legacy models (`benchmark_protocol: legacy`)
 
-- Models benchmarked before this protocol have one low run per task and
-  one high run for reasoning (7 of 36 files). They are marked
-  `benchmark_protocol: legacy` in `configs/models.yaml`. The field is
-  temporary: it is a backlog of models to backfill, not a second tier.
-- `validate` reports coverage for every model, legacy or not, and emits
-  GitHub warnings for legacy gaps so they stay visible on every PR. It
-  fails only for models without the marker. `--strict` fails on legacy
-  gaps too, for the day the backfill is done.
-- Never add `benchmark_protocol: legacy` to a new model. A new model must
-  ship all 36 files (or not be added yet). To backfill a legacy model, run
-  its missing files with `vlm-exam benchmark --models <key>`, then delete
-  the `benchmark_protocol` line.
-- Legacy rows stay in the leaderboards with their `run_count` and
-  `protocol.status: legacy` until re-run; do not drop them.
+Historical QA gaps remain visible as warnings, or errors under `--strict`.
+Do not add a legacy exemption simply to make a new model pass. Detection v2
+publication is governed by its explicit measured inventory, not by pretending
+that historical v1 repeats satisfy v2 coverage. The web protocol reports missing
+current coverage without filling it from older datasets.
 
 ### Commands
 
-- Run the whole protocol for a new model (36 processes, parallel,
-  staggered 2 s so timestamps never collide, one log each under `logs/`,
-  low first and high as low finishes):
-
 ```bash
 vlm-exam benchmark --models <key>
-```
-
-  `--tasks`, `--efforts`, `--repeats`, and `--first-repeat` narrow it
-  (e.g. top up two missing high repeats of detection with
-  `--tasks detection --efforts high --repeats 2 --first-repeat 2`).
-  `--max-samples` exists for smoke tests only. The command prints every
-  log path up front and a per-run status table at the end. Under the
-  hood each process is `vlm-exam run --concurrency <n>` with the per-task
-  table in `TASK_CONCURRENCY` (detection 6, reasoning 4, OCR 3,
-  extraction, counting, identification 2), which keeps a full effort
-  level under 15 minutes with Claude-class latency; drop detection to 4
-  if the provider returns 429s. Running `vlm-exam run --repeats 3` by
-  hand is equivalent; filenames carry a second-resolution timestamp and
-  the CLI suffixes `_2`, `_3` on collision, so parallel launches are safe.
-- Check the repository before committing:
-
-```bash
+vlm-exam run --task detection --models <key> --effort low --concurrency 30
 vlm-exam validate
+vlm-exam summary --check
 ```
 
-  It prints a coverage table (`36/36`, `7/36 legacy`, ...) followed by
-  every problem with the exact command that fixes it: missing or surplus
-  runs, missing effort levels, partial runs, missing strict/judge
-  verdicts, failed samples, and files for models absent from
-  `models.yaml`. Exit code 1 on any violation. `--verbose` expands legacy
-  gaps; `--format github` adds annotations and a step summary.
-- CI (`.github/workflows/ci.yml`) runs `vlm-exam validate --format github`
-  and `vlm-exam summary --check` on every pull request and push to `main`,
-  plus `ruff check`, `ruff format --check`, and `pytest`. A PR that adds a
-  model without all 36 files, or that changes `results/` without
-  regenerating `web/benchmark_summary.json`, fails.
+`benchmark` schedules three QA repeats and one v2 detection run per arm, with
+per-job logs. Text has its own documented launcher. `--tasks`, `--efforts`, and
+QA repeat options narrow the schedule. V2 uses native pinned profiles; ambiguous
+profiles require an explicit `--configuration`, and new models use `--profile`.
+Do not pass custom `--config` to a v2 inference run and assume it changes the
+request profile. `--max-samples` never publishes.
+
+Default validation checks QA repeat coverage separately from the complete v2
+release inventory, hashes, case identities, profiles and response coverage.
+`validate --detection-version v1` verifies the archived six-task protocol.
+`--format github` emits annotations and a step summary. CI also checks both
+summary artifacts, Ruff and pytest. Do not silence a failing validation check;
+fix the artifact or obtain authorization for an explicit policy change.
 
 ## Scoring: strict and judge are two independent metrics
 
@@ -234,23 +185,24 @@ vlm-exam validate
   totals include only the five selected tasks, averaging repeats within each
   task before summing. Recompute per-sample averages from the selected totals.
 - The web protocol and every model's run status use the same five tasks across
-  Low and High: Text requires one run per effort, the other four require three,
-  for 26 files per complete model. `protocol.repeats` remains the default of 3;
+  Low and High: Text and Detection v2 require one run per effort; counting,
+  identification and reasoning require three, for 22 runs per complete model. `protocol.repeats` remains the default of 3;
   `protocol.repeats_by_task` explicitly records the per-task requirements.
   Status describes run inventory; response coverage and accepted gaps remain
   explicit in the task metrics and coverage fields. Keep legacy status for
   legacy models with missing runs. Missing Text runs cannot be filled by OCR
   or Extraction runs. This publication selection does not change the historical
-  six-task inference planner or authorize additional runs.
-- Omit `subsets` and `provenance` from the web JSON. Retain them in raw results
-  and internal summaries for audit and validation. Preserve task metrics,
+  QA task definitions or authorize additional runs.
+- Omit per-subset detail and response-level provenance from the web JSON.
+  Detection retains compact protocol/dataset/profile provenance so its version
+  cannot be confused with v1. Retain full detail in raw/internal results. Preserve task metrics,
   metric runs, counts and coverage in the website payload.
 - Regenerate `web/benchmark_summary.json` and commit it in every PR so the
   website payload never drifts from `results/` and `configs/models.yaml`.
-- Rebuild it with the detection dataset so detection mAP is included:
+- Rebuild it offline; v2 scores come from the approved release summary:
 
 ```bash
-vlm-exam summary --dataset-directory data/detection/train
+vlm-exam summary
 ```
 
 - The command compiles all efforts by default, emitting one entry per
@@ -261,9 +213,9 @@ vlm-exam summary --dataset-directory data/detection/train
   from the newest included run, so an unchanged diff after regeneration
   means the results did not change.
 - `vlm-exam summary --check` rebuilds the payload in memory and exits 1 if
-  the committed file differs. CI runs it without the detection dataset, so
-  detection mAP fields are excluded from that comparison; everything else
-  must match.
+  the committed file differs. V2 quality is included in this check without
+  private pixels. Separately run `detection-v2 summary --check` to recompute
+  quality from the pinned responses and annotations.
 - The file is a generated artifact; never hand-edit it.
 
 ## Leaderboard charts
@@ -271,10 +223,13 @@ vlm-exam summary --dataset-directory data/detection/train
 - Regenerate the leaderboard charts in `visualizations/leaderboards/` and
   commit them in every PR that changes `results/`, so the tracked PNGs
   never drift from the underlying runs. Both effort levels are tracked
-  (`*_low.png` and `*_high.png`):
+  (`*_low.png` and `*_high.png`). Historical detection charts are isolated
+  under `visualizations/leaderboards/detection/v1/`; current default charts
+  never show archived mAP@75 or mAP@50:95 as v2 metrics:
+
 
 ```bash
-vlm-exam leaderboard --dataset-directory data/detection/train
+vlm-exam leaderboard
 vlm-exam efficiency-report --effort low
 vlm-exam efficiency-report --effort high
 ```
@@ -344,7 +299,8 @@ vlm-exam efficiency-report --effort high
   separate result roots, web payloads, display registries or task documentation.
 - **For now, run each text model once at Low and once at High effort.**
   `TEXT_BENCHMARK_PROTOCOL` and `text-benchmark` default to one run per
-  `(task, model, effort)`. The original six tasks retain three repeats. Do not
+  `(task, model, effort)`. QA tasks and explicit detection v1 retain three repeats; default detection
+  v2 uses one. Do not
   start additional text repeats or rerun completed configurations without
   authorization. Single-run chart labels remain preliminary.
 - The frozen export is Roboflow project `roboflow-jvuqo/vlm-exam-text`, version 2:
@@ -420,7 +376,7 @@ unmatched predictions. Provider failures are unscored. Explicit transcription
 profiles can request `exact` or `italian_soft_wraps`; never silently change
 recorded scoring profiles or merge incompatible runs.
 
-Publish through `vlm-exam summary --dataset-directory data/detection/train` to
+Publish through `vlm-exam summary` to
 `web/benchmark_summary.json`. One `models[].tasks.text` entry has `overall` as
 its primary metric and four category metrics, following detection's `metrics`
 and `metric_runs` contract. Scores are 0–100; overall averages all 600 pair
@@ -459,19 +415,38 @@ PNGs or recomputing inference.
 
 ## Detection versions
 
-- The original `detection` task is v1. Historical flat files and
-  `results/detection/v1/*.jsonl` form its repeat pool. Moving files must preserve
-  every byte and all existing metrics.
-- Detection v2 is independent: 600 cases, 120 subsets, one run per measured native
-  minimum/maximum configuration. Its approved inventory and exact missing-response
-  IDs are pinned in `datasets/detection/v2/release.json`. Existing terminal outputs
-  are accepted as recorded; do not retry, drop, repair or promote diagnostics merely
-  to improve a score. This is an explicit exception to the legacy three-repeat and
-  resume-before-commit rules, not a change to v1 or other tasks.
-- V2 archives include raw prediction text, frozen parsed detections and provenance.
-  Diagnostics are separate. Never pool versions, configurations or diagnostic runs.
-- Keep private image bytes out of the repository. Preserve original image hashes
-  and distinct case IDs for tasks sharing a photo.
-- `detection-v2 summary` produces the detailed internal summary and the compact web
-  payload. The existing overview still describes v1. Validate both protocols and
-  run both summary freshness checks before publishing changes.
+- Standard `run --task detection`, `benchmark`, `summary` and `leaderboard` use
+  **v2**. `low` and `high` select the recorded native minimum and maximum settings;
+  they do not override a model's native effort values. V2 has one run per arm.
+- Use `--detection-version v1` explicitly to run or summarize the historical
+  pipeline. Historical flat files and `results/detection/v1/*.jsonl` are preserved
+  byte-for-byte, but never enter the default overview JSON or detection charts.
+- V2 has 600 cases, 120 subsets, five images each. Its exact approved selection,
+  response inventory and configuration hashes live in `datasets/detection/v2/`.
+  Never pool versions, configurations, diagnostics, or smoke runs.
+- With no image directory, standard detection runs use `data/detection/v2` and
+  fetch missing canonical originals from the private Roboflow project using the
+  pinned image IDs. Verify exact hashes. Do not use re-encoded COCO images or the
+  padded duplicate Blokus uploads; both Blokus tasks share the original photo
+  but retain separate case IDs and annotations from the canonical manifest.
+- New executions go to `working-runs/detection/v2/`; resume uses that directory.
+  Full completed runs are promoted through the validated publication helper,
+  preserving superseded responses. `--max-samples` is smoke-only and never
+  publishes. Ambiguous historical request profiles require `--configuration`;
+  new models require explicit `--profile` JSON rather than guessed parameters.
+- V2 archives retain raw prediction text, canonical detections and provenance.
+  Keep private pixels and credentials out of Git. Treat terminal invalid output
+  as a model outcome; promote infrastructure recoveries only under explicit
+  policy, never by score.
+- `detection-v2 summary` rebuilds its detailed/compact outputs. Standard `summary`
+  incorporates v2 detection in `web/benchmark_summary.json`; standard detection
+  charts also use v2. Run release validation, both summary freshness checks and
+  regression tests before publishing. Legacy results remain available opt-in.
+
+### Detection v2 parser recovery
+
+A local parser exception is an infrastructure gap, not a zero-scoring model
+response. Preserve the raw response and usage, and do not resend the paid request.
+After fixing parsing, use `vlm-exam detection-v2 reparse-run --output RUN_DIRECTORY`;
+this validates provenance, retains the original inference hash and records the
+new parser fingerprint. Publish only after the run passes full validation.

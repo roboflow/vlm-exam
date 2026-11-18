@@ -85,6 +85,13 @@ def _resolve_model_filter(
 ) -> set[str] | None:
     from vlm_exam.metrics import resolve_leaderboard_model_list
 
+    # Saved v2 identities need no invented inference/pricing configuration.
+    labels_path = Path("datasets/detection/v2/model_labels.json")
+    if models is not None and group is None and labels_path.exists():
+        selected = {name.strip() for name in models.split(",")}
+        known = set(config.models) | set(json.loads(labels_path.read_text()))
+        if selected and selected <= known:
+            return selected
     try:
         model_list = resolve_leaderboard_model_list(
             config,
@@ -184,9 +191,9 @@ def download(
 )
 @click.option(
     "--dataset-directory",
-    required=True,
-    type=click.Path(exists=True),
-    help="Path to the dataset directory.",
+    default=None,
+    type=click.Path(),
+    help="Dataset directory; detection v2 downloads missing images automatically.",
 )
 @click.option(
     "--output-directory",
@@ -255,11 +262,26 @@ def download(
         "file per repeat. Committed models use three repeats."
     ),
 )
+@click.option(
+    "--detection-version",
+    type=click.Choice(["v1", "v2"]),
+    default="v2",
+    show_default=True,
+)
+@click.option(
+    "--configuration", default=None, help="Explicit detection v2 native profile hash."
+)
+@click.option(
+    "--profile",
+    default=None,
+    type=click.Path(exists=True),
+    help="New detection v2 native settings JSON.",
+)
 def run(
     task_name: str,
     models: str,
     effort: str,
-    dataset_directory: str,
+    dataset_directory: str | None,
     output_directory: str,
     config_path: str | None,
     judge_model: str,
@@ -268,8 +290,44 @@ def run(
     resume_file: str | None,
     concurrency: int,
     repeats: int,
+    detection_version: str,
+    configuration: str | None,
+    profile: str | None,
 ) -> None:
     """Run a benchmark for one or more models."""
+    if task_name == "detection" and detection_version == "v2":
+        from vlm_exam.detection_v2_workflow import run_detection
+
+        if config_path is not None:
+            raise click.UsageError(
+                "Detection v2 uses frozen native profiles. "
+                "Use --profile FILE instead of --config."
+            )
+        if repeats != 1 or resume_file is not None or prompt_classes != "image":
+            raise click.UsageError(
+                "Detection v2 uses one run, per-image classes "
+                "and automatic directory resume."
+            )
+        try:
+            run_detection(
+                models,
+                effort,
+                Path(dataset_directory or "data/detection/v2"),
+                Path(
+                    "working-runs/detection/v2"
+                    if output_directory == "results"
+                    else output_directory
+                ),
+                concurrency,
+                configuration,
+                Path(profile) if profile else None,
+                max_samples,
+            )
+        except (ValueError, OSError) as error:
+            raise click.ClickException(str(error)) from error
+        return
+    if dataset_directory is None:
+        raise click.UsageError("--dataset-directory is required for this task/version")
     if task_name == "text" and effort not in TEXT_BENCHMARK_PROTOCOL.efforts:
         raise click.UsageError("Text benchmark effort must be low or high.")
     if resume_file is not None and repeats != 1:
@@ -487,6 +545,12 @@ def _unique_result_path(
     type=click.Path(exists=True),
     help="Path to custom models.yaml config.",
 )
+@click.option(
+    "--detection-version",
+    type=click.Choice(["v1", "v2"]),
+    default="v2",
+    show_default=True,
+)
 def benchmark(
     models: str,
     tasks: str | None,
@@ -499,15 +563,26 @@ def benchmark(
     max_parallel: int,
     max_samples: int | None,
     config_path: str | None,
+    detection_version: str,
 ) -> None:
     """Run the full benchmark protocol for one or more models in parallel."""
     from vlm_exam.metrics import parse_model_filter
     from vlm_exam.orchestrate import format_outcomes, plan_jobs, run_jobs
 
+    if (
+        config_path is not None
+        and detection_version == "v2"
+        and (tasks is None or "detection" in (t.strip() for t in tasks.split(",")))
+    ):
+        raise click.UsageError(
+            "V2 detection uses --profile on run; custom --config is only "
+            "supported for other tasks or explicit v1."
+        )
     config = load_config(Path(config_path) if config_path else None)
     model_ids = parse_model_filter(models, config)
     jobs = plan_jobs(
         model_ids,
+        detection_version=detection_version,
         tasks=_split_option(tasks),
         efforts=_split_option(efforts),
         repeats=repeats,
@@ -570,12 +645,19 @@ def _split_option(value: str | None) -> tuple[str, ...] | None:
         "and appends a Markdown table to $GITHUB_STEP_SUMMARY when set."
     ),
 )
+@click.option(
+    "--detection-version",
+    type=click.Choice(["v1", "v2"]),
+    default="v2",
+    show_default=True,
+)
 def validate(
     results_directory: str,
     config_path: str | None,
     strict: bool,
     verbose: bool,
     output_format: str,
+    detection_version: str,
 ) -> None:
     """Check results/ against the benchmark protocol; exit 1 on violations."""
     from vlm_exam.validation import (
@@ -586,7 +668,20 @@ def validate(
     )
 
     config = load_config(Path(config_path) if config_path else None)
-    report = validate_results(Path(results_directory), config, strict=strict)
+    report = validate_results(
+        Path(results_directory),
+        config,
+        strict=strict,
+        detection_version=detection_version,
+    )
+    if detection_version == "v2":
+        click.echo("QA repeat coverage below excludes historical detection v1.")
+        v2_issues = [
+            problem for problem in report.errors if problem.kind == "detection-v2"
+        ]
+        click.echo(
+            "Detection v2 pinned inventory: " + ("FAIL" if v2_issues else "PASS")
+        )
     click.echo(format_report(report, verbose=verbose))
     if output_format == "github":
         annotations = format_github_annotations(report)
@@ -729,6 +824,9 @@ def report(
 ) -> None:
     """Generate summary tables from saved results."""
     config = load_config(Path(config_path) if config_path else None)
+    from vlm_exam.detection_v2_workflow import detection_report
+
+    detection_report(Path(results_directory).resolve().parent)
     runs = load_results_directory(Path(results_directory))
 
     if not runs:
@@ -889,6 +987,12 @@ def _groups_by_model_effort(
         "Detection mAP fields are ignored when no --dataset-directory is given."
     ),
 )
+@click.option(
+    "--detection-version",
+    type=click.Choice(["v1", "v2"]),
+    default="v2",
+    show_default=True,
+)
 def summary(
     results_directory: str,
     dataset_directory: str | None,
@@ -898,6 +1002,7 @@ def summary(
     models: str | None,
     group: str | None,
     check: bool,
+    detection_version: str,
 ) -> None:
     """Compile all result files into a single frontend-facing JSON."""
     from vlm_exam.summary import build_summary, summary_drift, summary_to_dict
@@ -908,7 +1013,7 @@ def summary(
     results_path = Path(results_directory)
     detection_dataset = Path(dataset_directory) if dataset_directory else None
     has_detection_runs = bool(result_paths(results_path, "detection_*.jsonl"))
-    if detection_dataset is None and has_detection_runs:
+    if detection_version == "v1" and detection_dataset is None and has_detection_runs:
         click.echo(
             "No --dataset-directory given; detection quality metrics "
             "(mAP) will be omitted."
@@ -920,6 +1025,7 @@ def summary(
         effort,
         models=model_filter,
         detection_dataset_directory=detection_dataset,
+        detection_version=detection_version,
     )
 
     output_path = Path(output_file)
@@ -930,7 +1036,10 @@ def summary(
         with open(output_path) as file:
             committed = json.load(file)
         drift = summary_drift(
-            committed, payload, ignore_detection_quality=detection_dataset is None
+            committed,
+            payload,
+            ignore_detection_quality=detection_version == "v1"
+            and detection_dataset is None,
         )
         if drift:
             click.echo("\n".join(drift))
@@ -1043,23 +1152,51 @@ def efficiency_report(
     )
     click.echo("-" * 80)
 
+    from vlm_exam.config import load_display_config
+
+    label_path = (
+        Path(results_directory).resolve().parent
+        / "datasets/detection/v2/model_labels.json"
+    )
+    config = load_display_config(
+        Path(config_path) if config_path else None,
+        label_path if label_path.exists() else None,
+    )
     grand_cost = 0.0
-    for row in sorted(rows, key=lambda entry: entry.total_cost):
-        grand_cost += row.total_cost
+    for row in sorted(
+        rows, key=lambda entry: (entry.total_cost is None, entry.total_cost or 0)
+    ):
+        cost_text = f"{row.average_cost:.5f}" if row.average_cost is not None else "N/A"
+        time_text = (
+            f"{row.average_time_seconds:.1f}s"
+            if row.average_time_seconds is not None
+            else "N/A"
+        )
+        total_text = f"{row.total_cost:.2f}" if row.total_cost is not None else "N/A"
+        grand_cost += row.total_cost or 0
         click.echo(
             f"{row.model:<28} {row.task_count:>5} {row.sample_count:>7} "
             f"{row.average_tokens:>8.0f} "
-            f"{row.average_cost:>10.5f} "
-            f"{row.average_time_seconds:>7.1f}s "
-            f"{row.total_cost:>9.2f}"
+            f"{cost_text:>10} "
+            f"{time_text:>8} "
+            f"{total_text:>9}"
         )
 
-    click.echo(f"\nTotal estimated benchmark cost: ${grand_cost:.2f}")
+    click.echo(
+        f"\nTotal estimated benchmark cost (known prices only): ${grand_cost:.2f}"
+    )
 
     average_tokens = {row.model: row.average_tokens for row in rows}
-    average_cost = {row.model: row.average_cost for row in rows}
-    average_time = {row.model: row.average_time_seconds for row in rows}
-    zero = {model: 0.0 for model in average_tokens}
+    average_cost = {
+        row.model: row.average_cost for row in rows if row.average_cost is not None
+    }
+    average_time = {
+        row.model: row.average_time_seconds
+        for row in rows
+        if row.average_time_seconds is not None
+    }
+    complete_models = average_tokens.keys() & average_cost.keys() & average_time.keys()
+    zero = {model: 0.0 for model in complete_models}
 
     def format_cost(value: float) -> str:
         if value >= 0.001:
@@ -1108,11 +1245,11 @@ def efficiency_report(
     save_figure(
         plot_combined_metrics_chart(
             tokens_high=zero,
-            tokens_low=average_tokens,
+            tokens_low={key: average_tokens[key] for key in complete_models},
             cost_high=zero,
-            cost_low=average_cost,
+            cost_low={key: average_cost[key] for key in complete_models},
             time_high=zero,
-            time_low=average_time,
+            time_low={key: average_time[key] for key in complete_models},
             config=config,
             effort="low",
             column_order=("cost", "time", "tokens"),
@@ -1136,15 +1273,27 @@ def efficiency_report(
 )
 @click.option(
     "--dataset-directory",
-    required=True,
-    type=click.Path(exists=True),
+    default=None,
+    type=click.Path(),
     help="Path to the detection dataset directory (for ground truth).",
 )
+@click.option("--detection-version", type=click.Choice(["v1", "v2"]), default="v2")
 def detection_report(
     results_directory: str,
-    dataset_directory: str,
+    dataset_directory: str | None,
+    detection_version: str,
 ) -> None:
     """Compute dataset-level mAP for detection runs."""
+    parent = click.get_current_context().parent
+    if parent is not None and parent.info_name == "detection-v1":
+        detection_version = "v1"
+    if detection_version == "v2":
+        from vlm_exam.detection_v2_workflow import detection_report as report_v2
+
+        report_v2(Path(results_directory).resolve().parent)
+        return
+    if dataset_directory is None:
+        raise click.UsageError("v1 requires --dataset-directory")
     from vlm_exam.tasks.detection import (
         DetectionTask,
         build_sample_index,
@@ -1155,7 +1304,9 @@ def detection_report(
     samples = task.load_samples(dataset_directory)
     sample_by_image = build_sample_index(samples)
 
-    runs = load_results_directory(Path(results_directory), pattern="detection_*.jsonl")
+    runs = load_results_directory(
+        Path(results_directory), pattern="detection_*.jsonl", include_detection_v1=True
+    )
 
     if not runs:
         click.echo(f"No detection result files found in {results_directory}")
@@ -1234,6 +1385,12 @@ def detection_report(
     default=None,
     help="Named leaderboard model group (e.g. alternative). Overrides --models.",
 )
+@click.option(
+    "--detection-version",
+    type=click.Choice(["v1", "v2"]),
+    default="v2",
+    show_default=True,
+)
 def leaderboard(
     results_directory: str,
     dataset_directory: str | None,
@@ -1241,6 +1398,7 @@ def leaderboard(
     config_path: str | None,
     models: str | None,
     group: str | None,
+    detection_version: str,
 ) -> None:
     """Generate leaderboard charts for all locally saved runs."""
     import matplotlib
@@ -1254,7 +1412,20 @@ def leaderboard(
     config = load_config(Path(config_path) if config_path else None)
     model_filter = _resolve_model_filter(config, models, group)
     results_path = Path(results_directory)
-    runs = load_results_directory(results_path)
+    runs = load_results_directory(
+        results_path, include_detection_v1=detection_version == "v1"
+    )
+    if (
+        detection_version == "v2"
+        and (
+            results_path.resolve().parent / "datasets/detection/v2/summary.json"
+        ).exists()
+    ):
+        from vlm_exam.detection_v2_workflow import detection_charts
+
+        detection_charts(
+            results_path.resolve().parent, Path(output_directory), model_filter
+        )
 
     if not runs:
         click.echo(f"No usable .jsonl files found in {results_directory}")
@@ -1317,7 +1488,13 @@ def leaderboard(
     saved: list[Path] = []
 
     def save_figure(figure: plt.Figure, filename: str) -> None:
-        file_path = output_path / filename
+        chart_directory = (
+            output_path / "detection/v1"
+            if detection_version == "v1" and filename.startswith("detection_")
+            else output_path
+        )
+        chart_directory.mkdir(parents=True, exist_ok=True)
+        file_path = chart_directory / filename
         save_leaderboard_chart(figure, file_path)
         saved.append(file_path)
 
@@ -1548,8 +1725,8 @@ def visualize(
 )
 @click.option(
     "--dataset-directory",
-    required=True,
-    type=click.Path(exists=True),
+    default=None,
+    type=click.Path(),
     help="Path to the detection dataset directory.",
 )
 @click.option(
@@ -1600,9 +1777,10 @@ def visualize(
     type=int,
     help="Only visualize this sample index from the results file.",
 )
+@click.option("--detection-version", type=click.Choice(["v1", "v2"]), default="v2")
 def detection_visualize(
     results_file: str,
-    dataset_directory: str,
+    dataset_directory: str | None,
     output_directory: str,
     max_images: int,
     config_path: str | None,
@@ -1610,8 +1788,29 @@ def detection_visualize(
     output_format: str,
     image: str | None,
     sample_index: int | None,
+    detection_version: str,
 ) -> None:
     """Visualize detection predictions vs ground truth."""
+    parent = click.get_current_context().parent
+    if parent is not None and parent.info_name == "detection-v1":
+        detection_version = "v1"
+    if detection_version == "v2":
+        from vlm_exam.detection_v2_workflow import visualize_detection
+
+        visualize_detection(
+            Path.cwd(),
+            Path(results_file),
+            Path(dataset_directory or "data/detection/v2"),
+            Path(output_directory),
+            max_images,
+            label_mode,
+            output_format,
+            image,
+            sample_index,
+        )
+        return
+    if dataset_directory is None:
+        raise click.UsageError("v1 requires --dataset-directory")
     import cv2
 
     from vlm_exam.tasks.detection import (

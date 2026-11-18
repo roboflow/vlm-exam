@@ -50,6 +50,53 @@ def load_release(root: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     return policy, manifest["cases"]
 
 
+def _record_problems(
+    case: dict[str, Any], row: dict[str, Any], profile: dict[str, Any]
+) -> list[str]:
+    from vlm_exam.tasks.detection import DetectionSample, DetectionTask
+
+    if row.get("status") == "missing":
+        return [] if not row.get("detections") else ["Missing response has detections"]
+    problems = []
+    try:
+        for field, setting in (
+            ("native_effort", row["arm"]),
+            ("coordinate_format", "format"),
+            ("wire_model", "wire"),
+            ("provider", "provider"),
+        ):
+            if row.get(field) != profile.get(setting):
+                problems.append(f"Response/profile mismatch: {field}")
+        for field in ("max_output_tokens", "routing"):
+            if field in row and row[field] != profile.get(field):
+                problems.append(f"Response/profile mismatch: {field}")
+        labels = sorted({obj["label"] for obj in case["objects"]})
+        sample = DetectionSample(
+            image_path=case["image"],
+            ground_truth=_detections(case["objects"], labels),
+            classes=tuple(labels),
+            image_width=case["width"],
+            image_height=case["height"],
+        )
+        prompt = DetectionTask(
+            prompt_classes="image", coordinate_format=row["coordinate_format"]
+        ).build_prompt(sample, uploaded_size=tuple(row["uploaded_size"]))
+        if row.get("prompt") != prompt:
+            problems.append("Prompt differs from current manifest")
+        digest = hashlib.sha256(
+            json.dumps(prompt, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        if row.get("prompt_sha256") != digest:
+            problems.append("Prompt checksum mismatch")
+        if "image_sha256" in row and row["image_sha256"] != case["image_sha256"]:
+            problems.append("Response image checksum differs from manifest")
+        if row.get("status") != response_status(row):
+            problems.append("Response status disagrees with saved response")
+    except (KeyError, TypeError, ValueError) as error:
+        problems.append(f"Invalid response metadata: {type(error).__name__}")
+    return problems
+
+
 def validate_release(root: Path) -> list[str]:
     """Check content hashes, exact coverage, identities and frozen configurations.
 
@@ -64,6 +111,7 @@ def validate_release(root: Path) -> list[str]:
     ):
         problems.append("Dataset checksum mismatch")
     identities = {case["id"] for case in cases}
+    case_index = {case["id"]: case for case in cases}
     sizes = Counter(case["subset"] for case in cases)
     if len(cases) != policy["images"] or len(identities) != len(cases):
         problems.append("Missing or duplicate case identities")
@@ -98,13 +146,20 @@ def validate_release(root: Path) -> list[str]:
             if lane in lanes:
                 problems.append(f"Duplicate configuration: {lane}")
             lanes.add(lane)
-            if {row["case"] for row in records} != identities:
+            if (
+                len(records) != len(identities)
+                or {row["case"] for row in records} != identities
+            ):
                 problems.append(f"Incorrect case selection: {lane}")
             if (
                 dict(Counter(row["status"] for row in records))
                 != entry["status_counts"]
             ):
                 problems.append(f"Changed response status inventory: {lane}")
+            if "configurations" in entry and set(entry["configurations"]) != {
+                row["configuration"] for row in records
+            }:
+                problems.append(f"Run configuration inventory mismatch: {lane}")
             if any(
                 (row["model"], row["arm"]) != lane or row["repeat"] != 1
                 for row in records
@@ -113,10 +168,20 @@ def validate_release(root: Path) -> list[str]:
         for row in records:
             if row["case"] not in identities:
                 problems.append(f"Unknown case: {row['case']}")
+                continue
             if "model" in entry and row["status"] == "missing":
                 missing.append(f"{row['model']}/{row['arm']}/{row['case']}")
             if row["configuration"] not in policy["configurations"]:
                 problems.append(f"Unknown configuration: {row['case']}")
+            elif "model" in entry:
+                problems.extend(
+                    f"{row['model']}/{row['arm']}/{row['case']}: {message}"
+                    for message in _record_problems(
+                        case_index[row["case"]],
+                        row,
+                        policy["configurations"][row["configuration"]],
+                    )
+                )
             if (
                 row.get("predicted") is not None
                 and hashlib.sha256(row["predicted"].encode()).hexdigest()
@@ -405,6 +470,21 @@ def register_detection_commands(main: click.Group) -> None:
                 path.write_text(json.dumps(value, indent=2, allow_nan=False) + "\n")
         click.echo("V2 summaries are up to date" if check else "Saved v2 summaries")
 
+    @detection_v2.command("publish")
+    @click.option("--root", type=click.Path(path_type=Path), default=".")
+    @click.option(
+        "--output", required=True, type=click.Path(exists=True, path_type=Path)
+    )
+    def publish(root: Path, output: Path) -> None:
+        """Publish a finished full run, retaining the previous responses for audit."""
+        from vlm_exam.detection_v2_publication import publish_run
+
+        try:
+            publish_run(root, output)
+        except ValueError as error:
+            raise click.ClickException(str(error)) from error
+        click.echo("Published complete run and refreshed detection summaries")
+
     @detection_v2.command("prepare-images")
     @click.option("--root", type=click.Path(path_type=Path), default=".")
     @click.option(
@@ -456,7 +536,11 @@ def register_detection_commands(main: click.Group) -> None:
         "--images", required=True, type=click.Path(exists=True, path_type=Path)
     )
     @click.option("--model", required=True)
-    @click.option("--effort", type=click.Choice(["minimum", "maximum"]), required=True)
+    @click.option(
+        "--effort",
+        type=click.Choice(["minimum", "maximum", "enabled", "disabled"]),
+        required=True,
+    )
     @click.option("--case", "case_id", required=True)
     @click.option("--output", required=True, type=click.Path(path_type=Path))
     def visualize(
@@ -510,7 +594,11 @@ def register_detection_commands(main: click.Group) -> None:
 
     @detection_v2.command("leaderboard")
     @click.option("--root", type=click.Path(path_type=Path), default=".")
-    @click.option("--effort", type=click.Choice(["minimum", "maximum"]), required=True)
+    @click.option(
+        "--effort",
+        type=click.Choice(["minimum", "maximum", "enabled", "disabled"]),
+        required=True,
+    )
     @click.option("--top", type=click.IntRange(1), default=15)
     @click.option("--output", required=True, type=click.Path(path_type=Path))
     def leaderboard(root: Path, effort: str, top: int, output: Path) -> None:
@@ -545,13 +633,32 @@ def register_detection_commands(main: click.Group) -> None:
         plt.close(figure)
         click.echo(f"Saved {output}")
 
+    @detection_v2.command("reparse-run")
+    @click.option("--root", type=click.Path(path_type=Path), default=".")
+    @click.option(
+        "--output", required=True, type=click.Path(exists=True, path_type=Path)
+    )
+    def reparse_saved_run(root: Path, output: Path) -> None:
+        """Recover parser errors locally without changing inference provenance."""
+        from vlm_exam.detection_v2_runner import reparse_run
+
+        try:
+            recovered = reparse_run(root, output)
+        except ValueError as error:
+            raise click.ClickException(str(error)) from error
+        click.echo(f"Locally recovered {recovered} responses; no API requests sent")
+
     @detection_v2.command("run")
     @click.option("--root", type=click.Path(path_type=Path), default=".")
     @click.option(
         "--images", required=True, type=click.Path(exists=True, path_type=Path)
     )
     @click.option("--model", required=True)
-    @click.option("--effort", type=click.Choice(["minimum", "maximum"]), required=True)
+    @click.option(
+        "--effort",
+        type=click.Choice(["minimum", "maximum", "enabled", "disabled"]),
+        required=True,
+    )
     @click.option(
         "--configuration",
         required=False,

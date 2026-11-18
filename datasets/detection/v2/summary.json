@@ -1239,7 +1239,7 @@
           "missing": 0
         }
       },
-      "rank": 41
+      "rank": 42
     },
     {
       "model": "claude-fable-5",
@@ -2467,7 +2467,7 @@
           "missing": 0
         }
       },
-      "rank": 38
+      "rank": 39
     },
     {
       "model": "claude-fable-5-1",
@@ -3696,7 +3696,7 @@
           "missing": 0
         }
       },
-      "rank": 33
+      "rank": 34
     },
     {
       "model": "claude-fable-5-1",
@@ -4926,7 +4926,7 @@
           "missing": 0
         }
       },
-      "rank": 29
+      "rank": 30
     },
     {
       "model": "claude-fable-5-2",
@@ -11071,7 +11071,7 @@
           "missing": 0
         }
       },
-      "rank": 48
+      "rank": 49
     },
     {
       "model": "claude-opus-4-8",
@@ -12300,7 +12300,7 @@
           "missing": 0
         }
       },
-      "rank": 45
+      "rank": 46
     },
     {
       "model": "claude-opus-5",
@@ -13528,7 +13528,7 @@
           "missing": 0
         }
       },
-      "rank": 39
+      "rank": 40
     },
     {
       "model": "claude-opus-5",
@@ -14756,7 +14756,7 @@
           "missing": 0
         }
       },
-      "rank": 37
+      "rank": 38
     },
     {
       "model": "claude-opus-5-5",
@@ -18444,7 +18444,7 @@
           "missing": 0
         }
       },
-      "rank": 49
+      "rank": 50
     },
     {
       "model": "claude-sonnet-5",
@@ -19672,7 +19672,7 @@
           "missing": 0
         }
       },
-      "rank": 46
+      "rank": 47
     },
     {
       "model": "claude-sonnet-5-5",
@@ -23362,7 +23362,7 @@
           "missing": 0
         }
       },
-      "rank": 44
+      "rank": 45
     },
     {
       "model": "gemini-2.5-pro",
@@ -24591,7 +24591,7 @@
           "missing": 0
         }
       },
-      "rank": 39
+      "rank": 40
     },
     {
       "model": "gemini-3-flash-preview",
@@ -25820,7 +25820,7 @@
           "missing": 0
         }
       },
-      "rank": 40
+      "rank": 41
     },
     {
       "model": "gemini-3-flash-preview",
@@ -27050,7 +27050,7 @@
           "missing": 0
         }
       },
-      "rank": 36
+      "rank": 37
     },
     {
       "model": "gemini-3.1-pro-preview",
@@ -44274,19 +44274,20 @@
         "truncated": 3
       },
       "metrics": {
-        "map50": 0.692280367356337,
-        "map50_missing_as_empty": 0.692280367356337,
-        "map50_capped100": 0.6566018626831162,
-        "f1": 0.7324696356275303,
-        "precision": 0.8055209260908281,
-        "recall": 0.6715664439495175,
-        "seconds_per_image": 172.92284045259157,
-        "input_tokens": 738451,
-        "output_tokens": 10421142
+        "map50": 0.6943665334004133,
+        "map50_missing_as_empty": 0.6943665334004133,
+        "map50_capped100": 0.6586880287271925,
+        "f1": 0.7343903920113353,
+        "precision": 0.8075678884107435,
+        "recall": 0.6733729274931948,
+        "seconds_per_image": 172.3507777619362,
+        "input_tokens": 738429,
+        "output_tokens": 10356568
       },
       "configurations": [
         "00733ec9a8d56e0b6299af936c83ef87f5dcafc88e771102adf1f5f9b34c7e90",
-        "22dec00bfabb4fc013b615c9846508a53c6cfca28334aa06083289a7343a2f9b"
+        "22dec00bfabb4fc013b615c9846508a53c6cfca28334aa06083289a7343a2f9b",
+        "77b1c51bda756d7c04b422d9303f38c72b3c762241dd75b56090433cd4fd80f8"
       ],
       "subsets": {
         "OLD001": {
@@ -45301,12 +45302,12 @@
         },
         "S196": {
           "images": 5,
-          "map50": 0.0,
-          "map50_capped100": 0.0,
-          "tp": 0,
-          "fp": 112,
-          "fn": 188,
-          "f1": 0.0,
+          "map50": 0.25033992528915405,
+          "map50_capped100": 0.25033992528915405,
+          "tp": 73,
+          "fp": 44,
+          "fn": 115,
+          "f1": 0.4786885245901639,
           "missing": 0
         },
         "S200": {
@@ -45503,19 +45504,20 @@
         "invalid_json": 2
       },
       "metrics": {
-        "map50": 0.6893694967645387,
-        "map50_missing_as_empty": 0.6893694967645387,
-        "map50_capped100": 0.6512723891920662,
-        "f1": 0.7725625934356019,
-        "precision": 0.8475723277874642,
-        "recall": 0.7097500618658747,
-        "seconds_per_image": 35.82731269439061,
-        "input_tokens": 738451,
-        "output_tokens": 1227654
+        "map50": 0.6914931119102221,
+        "map50_missing_as_empty": 0.6914931119102221,
+        "map50_capped100": 0.6533960043377495,
+        "f1": 0.7745393815321625,
+        "precision": 0.8497547136355577,
+        "recall": 0.711556545409552,
+        "seconds_per_image": 36.14598257342974,
+        "input_tokens": 738429,
+        "output_tokens": 1227389
       },
       "configurations": [
         "00733ec9a8d56e0b6299af936c83ef87f5dcafc88e771102adf1f5f9b34c7e90",
-        "22dec00bfabb4fc013b615c9846508a53c6cfca28334aa06083289a7343a2f9b"
+        "22dec00bfabb4fc013b615c9846508a53c6cfca28334aa06083289a7343a2f9b",
+        "77b1c51bda756d7c04b422d9303f38c72b3c762241dd75b56090433cd4fd80f8"
       ],
       "subsets": {
         "OLD001": {
@@ -46530,12 +46532,12 @@
         },
         "S196": {
           "images": 5,
-          "map50": 0.0,
-          "map50_capped100": 0.0,
-          "tp": 0,
-          "fp": 115,
-          "fn": 188,
-          "f1": 0.0,
+          "map50": 0.25483381748199463,
+          "map50_capped100": 0.25483381748199463,
+          "tp": 73,
+          "fp": 41,
+          "fn": 115,
+          "f1": 0.48344370860927155,
           "missing": 0
         },
         "S200": {
@@ -51630,7 +51632,7 @@
           "missing": 0
         }
       },
-      "rank": 51
+      "rank": 52
     },
     {
       "model": "gpt-5.4-mini",
@@ -52858,7 +52860,7 @@
           "missing": 0
         }
       },
-      "rank": 49
+      "rank": 50
     },
     {
       "model": "gpt-5.5",
@@ -54085,7 +54087,7 @@
           "missing": 0
         }
       },
-      "rank": 46
+      "rank": 47
     },
     {
       "model": "gpt-5.5",
@@ -55312,7 +55314,7 @@
           "missing": 0
         }
       },
-      "rank": 40
+      "rank": 41
     },
     {
       "model": "gpt-5.6-luna",
@@ -56540,7 +56542,7 @@
           "missing": 0
         }
       },
-      "rank": 34
+      "rank": 35
     },
     {
       "model": "gpt-5.6-luna",
@@ -57768,7 +57770,7 @@
           "missing": 0
         }
       },
-      "rank": 33
+      "rank": 34
     },
     {
       "model": "gpt-5.6-sol",
@@ -61452,7 +61454,7 @@
           "missing": 0
         }
       },
-      "rank": 37
+      "rank": 38
     },
     {
       "model": "gpt-5.6-terra",
@@ -62681,7 +62683,7 @@
           "missing": 0
         }
       },
-      "rank": 35
+      "rank": 36
     },
     {
       "model": "gpt-6-astra",
@@ -81106,7 +81108,7 @@
           "missing": 0
         }
       },
-      "rank": 52
+      "rank": 53
     },
     {
       "model": "grok-4.5",
@@ -82333,7 +82335,7 @@
           "missing": 0
         }
       },
-      "rank": 48
+      "rank": 49
     },
     {
       "model": "grok-4.6",
@@ -83561,7 +83563,7 @@
           "missing": 0
         }
       },
-      "rank": 50
+      "rank": 51
     },
     {
       "model": "grok-4.6",
@@ -84788,7 +84790,7 @@
           "missing": 0
         }
       },
-      "rank": 47
+      "rank": 48
     },
     {
       "model": "grok-4.7",
@@ -86015,7 +86017,7 @@
           "missing": 0
         }
       },
-      "rank": 47
+      "rank": 48
     },
     {
       "model": "grok-4.7",
@@ -87242,28 +87244,27 @@
           "missing": 0
         }
       },
-      "rank": 42
+      "rank": 43
     },
     {
       "model": "kimi-k3",
       "effort": "maximum",
       "images": 600,
       "run_count": 1,
-      "complete": false,
+      "complete": true,
       "response_counts": {
-        "returned": 595,
-        "missing": 5
+        "returned": 600
       },
       "metrics": {
-        "map50": null,
-        "map50_missing_as_empty": 0.36742353036849335,
-        "map50_capped100": null,
-        "f1": null,
-        "precision": null,
-        "recall": null,
-        "seconds_per_image": null,
-        "input_tokens": 3021352,
-        "output_tokens": 4267036
+        "map50": 0.3695368130111698,
+        "map50_missing_as_empty": 0.3695368130111698,
+        "map50_capped100": 0.36402396158106665,
+        "f1": 0.33706536091549294,
+        "precision": 0.3794203257571066,
+        "recall": 0.3032170254887404,
+        "seconds_per_image": 162.2232667418321,
+        "input_tokens": 3086551,
+        "output_tokens": 4385865
       },
       "configurations": [
         "47f5986de117893a36130924214e83f2f872df5712a6fc7c48aff22b4c5fd3a3"
@@ -87731,13 +87732,13 @@
         },
         "S033": {
           "images": 5,
-          "map50": 0.001825028914026916,
-          "map50_capped100": 0.0006538389716297388,
-          "tp": 89,
-          "fp": 2483,
-          "fn": 2347,
-          "f1": 0.03554313099041533,
-          "missing": 1
+          "map50": 0.0025862278416752815,
+          "map50_capped100": 0.0012266235426068306,
+          "tp": 131,
+          "fp": 3517,
+          "fn": 2305,
+          "f1": 0.0430637738330046,
+          "missing": 0
         },
         "S040": {
           "images": 5,
@@ -88031,13 +88032,13 @@
         },
         "S128": {
           "images": 5,
-          "map50": 0.08671992272138596,
-          "map50_capped100": 0.08671992272138596,
-          "tp": 11,
-          "fp": 114,
-          "fn": 46,
-          "f1": 0.12087912087912088,
-          "missing": 1
+          "map50": 0.13215875625610352,
+          "map50_capped100": 0.13215875625610352,
+          "tp": 17,
+          "fp": 119,
+          "fn": 40,
+          "f1": 0.17616580310880828,
+          "missing": 0
         },
         "S129": {
           "images": 5,
@@ -88081,13 +88082,13 @@
         },
         "S136": {
           "images": 5,
-          "map50": 0.5411456823348999,
-          "map50_capped100": 0.5411456823348999,
-          "tp": 92,
-          "fp": 22,
-          "fn": 51,
-          "f1": 0.7159533073929961,
-          "missing": 1
+          "map50": 0.6694232225418091,
+          "map50_capped100": 0.6694232225418091,
+          "tp": 111,
+          "fp": 28,
+          "fn": 32,
+          "f1": 0.7872340425531915,
+          "missing": 0
         },
         "S138": {
           "images": 5,
@@ -88241,13 +88242,13 @@
         },
         "S190": {
           "images": 5,
-          "map50": 0.6271693110466003,
-          "map50_capped100": 0.6271693110466003,
-          "tp": 89,
-          "fp": 9,
-          "fn": 45,
-          "f1": 0.7672413793103449,
-          "missing": 1
+          "map50": 0.6870301961898804,
+          "map50_capped100": 0.6870301961898804,
+          "tp": 101,
+          "fp": 14,
+          "fn": 33,
+          "f1": 0.8112449799196787,
+          "missing": 0
         },
         "S193": {
           "images": 5,
@@ -88371,13 +88372,13 @@
         },
         "S211": {
           "images": 5,
-          "map50": 0.08342580497264862,
-          "map50_capped100": 0.07008010894060135,
-          "tp": 170,
-          "fp": 487,
-          "fn": 561,
-          "f1": 0.24495677233429394,
-          "missing": 1
+          "map50": 0.10268126428127289,
+          "map50_capped100": 0.09024970978498459,
+          "tp": 216,
+          "fp": 551,
+          "fn": 515,
+          "f1": 0.2883845126835781,
+          "missing": 0
         },
         "S212": {
           "images": 5,
@@ -88469,28 +88470,28 @@
           "f1": 0.3888888888888889,
           "missing": 0
         }
-      }
+      },
+      "rank": 33
     },
     {
       "model": "kimi-k3",
       "effort": "minimum",
       "images": 600,
       "run_count": 1,
-      "complete": false,
+      "complete": true,
       "response_counts": {
-        "returned": 594,
-        "missing": 6
+        "returned": 600
       },
       "metrics": {
-        "map50": null,
-        "map50_missing_as_empty": 0.3367823487475107,
-        "map50_capped100": null,
-        "f1": null,
-        "precision": null,
-        "recall": null,
-        "seconds_per_image": null,
-        "input_tokens": 3029494,
-        "output_tokens": 995690
+        "map50": 0.3393974214071932,
+        "map50_missing_as_empty": 0.3393974214071932,
+        "map50_capped100": 0.334298919201198,
+        "f1": 0.3394671208710992,
+        "precision": 0.44034561666535155,
+        "recall": 0.27619401138332095,
+        "seconds_per_image": 41.7959389881293,
+        "input_tokens": 3087151,
+        "output_tokens": 1011438
       },
       "configurations": [
         "47f5986de117893a36130924214e83f2f872df5712a6fc7c48aff22b4c5fd3a3"
@@ -88758,13 +88759,13 @@
         },
         "OLD033": {
           "images": 5,
-          "map50": 0.3848886787891388,
-          "map50_capped100": 0.3848886787891388,
-          "tp": 28,
-          "fp": 38,
-          "fn": 51,
-          "f1": 0.38620689655172413,
-          "missing": 1
+          "map50": 0.6211658120155334,
+          "map50_capped100": 0.6211658120155334,
+          "tp": 33,
+          "fp": 50,
+          "fn": 46,
+          "f1": 0.4074074074074074,
+          "missing": 0
         },
         "OLD034": {
           "images": 5,
@@ -88958,13 +88959,13 @@
         },
         "S033": {
           "images": 5,
-          "map50": 0.0042276401072740555,
+          "map50": 0.004787166137248278,
           "map50_capped100": 0.0023819110356271267,
-          "tp": 117,
-          "fp": 1991,
-          "fn": 2319,
-          "f1": 0.05149647887323944,
-          "missing": 1
+          "tp": 133,
+          "fp": 2383,
+          "fn": 2303,
+          "f1": 0.0537156704361874,
+          "missing": 0
         },
         "S040": {
           "images": 5,
@@ -89078,13 +89079,13 @@
         },
         "S095": {
           "images": 5,
-          "map50": 0.13222889602184296,
-          "map50_capped100": 0.13222889602184296,
-          "tp": 50,
-          "fp": 168,
-          "fn": 166,
-          "f1": 0.2304147465437788,
-          "missing": 1
+          "map50": 0.2119859755039215,
+          "map50_capped100": 0.2119859755039215,
+          "tp": 79,
+          "fp": 188,
+          "fn": 137,
+          "f1": 0.32712215320910976,
+          "missing": 0
         },
         "S096": {
           "images": 5,
@@ -89151,10 +89152,10 @@
           "map50": 0.0089108906686306,
           "map50_capped100": 0.0089108906686306,
           "tp": 2,
-          "fp": 13,
+          "fp": 14,
           "fn": 57,
-          "f1": 0.05405405405405406,
-          "missing": 1
+          "f1": 0.05333333333333334,
+          "missing": 0
         },
         "S108": {
           "images": 5,
@@ -89468,13 +89469,13 @@
         },
         "S190": {
           "images": 5,
-          "map50": 0.3319898545742035,
-          "map50_capped100": 0.3319898545742035,
+          "map50": 0.31267061829566956,
+          "map50_capped100": 0.31267061829566956,
           "tp": 52,
-          "fp": 14,
+          "fp": 19,
           "fn": 82,
-          "f1": 0.52,
-          "missing": 1
+          "f1": 0.5073170731707317,
+          "missing": 0
         },
         "S193": {
           "images": 5,
@@ -89598,13 +89599,13 @@
         },
         "S211": {
           "images": 5,
-          "map50": 0.06243274360895157,
-          "map50_capped100": 0.055482834577560425,
-          "tp": 116,
-          "fp": 416,
-          "fn": 615,
-          "f1": 0.18368962787015045,
-          "missing": 1
+          "map50": 0.07896696031093597,
+          "map50_capped100": 0.07304823398590088,
+          "tp": 158,
+          "fp": 484,
+          "fn": 573,
+          "f1": 0.23015294974508377,
+          "missing": 0
         },
         "S212": {
           "images": 5,
@@ -89696,7 +89697,8 @@
           "f1": 0.3888888888888889,
           "missing": 0
         }
-      }
+      },
+      "rank": 29
     },
     {
       "model": "mimo-v2.6-flash",
@@ -90925,7 +90927,7 @@
           "missing": 0
         }
       },
-      "rank": 42
+      "rank": 43
     },
     {
       "model": "mimo-v2.6-flash",
@@ -92153,7 +92155,7 @@
           "missing": 0
         }
       },
-      "rank": 44
+      "rank": 45
     },
     {
       "model": "mimo-v2.6-pro",
@@ -93382,7 +93384,7 @@
           "missing": 0
         }
       },
-      "rank": 43
+      "rank": 44
     },
     {
       "model": "mimo-v2.6-pro",
@@ -94611,7 +94613,7 @@
           "missing": 0
         }
       },
-      "rank": 41
+      "rank": 42
     },
     {
       "model": "mistral-large-4",
@@ -98297,7 +98299,7 @@
           "missing": 0
         }
       },
-      "rank": 31
+      "rank": 32
     },
     {
       "model": "muse-glimmer-30b",
@@ -99525,7 +99527,7 @@
           "missing": 0
         }
       },
-      "rank": 45
+      "rank": 46
     },
     {
       "model": "muse-glimmer-30b",
@@ -100753,7 +100755,7 @@
           "missing": 0
         }
       },
-      "rank": 43
+      "rank": 44
     },
     {
       "model": "muse-spark-1.1",
@@ -104437,7 +104439,7 @@
           "missing": 0
         }
       },
-      "rank": 36
+      "rank": 37
     },
     {
       "model": "muse-spark-1.2",
@@ -105665,7 +105667,7 @@
           "missing": 0
         }
       },
-      "rank": 34
+      "rank": 35
     },
     {
       "model": "muse-spark-1.3",
@@ -106894,7 +106896,7 @@
           "missing": 0
         }
       },
-      "rank": 38
+      "rank": 39
     },
     {
       "model": "muse-spark-1.3",
@@ -108122,7 +108124,7 @@
           "missing": 0
         }
       },
-      "rank": 32
+      "rank": 33
     },
     {
       "model": "muse-spark-open",
@@ -109350,7 +109352,7 @@
           "missing": 0
         }
       },
-      "rank": 35
+      "rank": 36
     },
     {
       "model": "muse-spark-open",
@@ -110578,7 +110580,7 @@
           "missing": 0
         }
       },
-      "rank": 30
+      "rank": 31
     },
     {
       "model": "muse-wonder",

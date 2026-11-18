@@ -368,6 +368,8 @@ class TestValidateCommand:
             main,
             [
                 "validate",
+                "--detection-version",
+                "v1",
                 "--results-directory",
                 str(results),
                 "--config",
@@ -393,6 +395,8 @@ class TestValidateCommand:
             main,
             [
                 "validate",
+                "--detection-version",
+                "v1",
                 "--results-directory",
                 str(results),
                 "--config",
@@ -407,6 +411,8 @@ class TestValidateCommand:
             main,
             [
                 "validate",
+                "--detection-version",
+                "v1",
                 "--results-directory",
                 str(results),
                 "--config",
@@ -555,3 +561,19 @@ def test_detection_v2_inventory_rejects_unlisted_archives(tmp_path: Path) -> Non
         "Missing-response identities differ from the frozen inventory"
         in validate_release(tmp_path)
     )
+
+
+def test_current_validation_includes_release_failures(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        "vlm_exam.detection_v2.validate_release",
+        lambda root: ["Dataset checksum mismatch"],
+    )
+    report = validate_results(tmp_path, _config(), detection_version="v2")
+    assert not report.ok
+    assert any(
+        p.kind == "detection-v2" and "checksum" in p.message for p in report.errors
+    )
+    assert "detection" not in report.protocol.tasks
+    legacy = validate_results(tmp_path, _config(), detection_version="v1")
+    assert legacy.ok
+    assert "detection" in legacy.protocol.tasks

@@ -115,6 +115,7 @@ def build_reference_report_rows(
     vlm_runs = load_results_directory(
         vlm_results_directory,
         pattern="detection_*.jsonl",
+        include_detection_v1=True,
     )
     latest_vlm = build_latest_runs_index(vlm_runs, config)
     for (_, effort, model), run in latest_vlm.items():

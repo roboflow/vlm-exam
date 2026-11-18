@@ -35,6 +35,7 @@ from supervision import Detections
 
 from vlm_exam.detection_v2_upload import _prepare_xai_image
 from vlm_exam.providers.anthropic import compute_resize_dimensions
+from vlm_exam.providers.base import error_diagnostics
 from vlm_exam.providers.image_upload import (
     OPENAI_MAX_EDGE_PIXELS,
     OPENROUTER_JPEG_QUALITY,
@@ -46,6 +47,53 @@ from vlm_exam.providers.openai import _png_data_url
 from vlm_exam.tasks.detection import DetectionSample, DetectionTask, parse_prediction
 
 _LOCAL = threading.local()
+
+_GOOGLE_RESPONSE_ALIASES = {
+    "gemini-3.5-flash": {"gemini-3.6-flash"},
+    "gemini-3.7-flash": {"gemini-3.8-flash"},
+}
+
+
+_CURRENT_GOOGLE_ENDPOINTS = {
+    "gemini-4-carbon-eap": "gemini-4-carbon",
+    "gemini-4-hydrogen-eap": "gemini-4-hydrogen",
+}
+
+
+def current_request_profile(profile: dict[str, Any]) -> dict[str, Any]:
+    """Copy a historical profile using explicitly verified current Google endpoints.
+
+    The caller must hash this new profile and preserve the historical source hash;
+    stored results and their original request configurations are never rewritten.
+    """
+    current = dict(profile)
+    if current.get("provider") == "google":
+        current["wire"] = _CURRENT_GOOGLE_ENDPOINTS.get(
+            current["wire"], current["wire"]
+        )
+    return current
+
+
+class ModelIdentityError(ValueError):
+    """An unexpected upstream identity, retaining the generated audit record."""
+
+    def __init__(self, record: dict[str, Any]) -> None:
+        super().__init__(f"Model identity mismatch: {record['response_model']}")
+        self.response_record = record
+
+
+class ResponseParseError(ValueError):
+    """A completed generation that needs parser repair, not another API request."""
+
+    def __init__(self, record: dict[str, Any], cause: Exception) -> None:
+        super().__init__(f"Response parsing failed: {type(cause).__name__}")
+        self.response_record = record
+        self.request_retryable = False
+
+
+def google_response_matches(wire: str, actual: str | None) -> bool:
+    """Check exact configured model identities and explicitly reviewed aliases."""
+    return actual in {wire, *_GOOGLE_RESPONSE_ALIASES.get(wire, set())}
 
 
 class ImagePayloadError(ValueError):
@@ -277,8 +325,6 @@ def infer(
                 output_tokens = (usage.candidates_token_count or 0) + reasoning_tokens
             response_model = getattr(chunk, "model_version", None) or response_model
         text = "".join(chunks)
-        if not response_model or not response_model.startswith(config["wire"]):
-            raise RuntimeError("Model identity mismatch: " + str(response_model))
     else:
         chunks = []
         stream = api.chat.completions.create(
@@ -375,8 +421,15 @@ def infer(
         if isinstance(raw, list)
         else []
     )
-    result["detections"] = parse_objects(case, result, config["format"])
-    result.pop("raw", None)
+    try:
+        result["detections"] = parse_objects(case, result, config["format"])
+    except Exception as error:
+        result["parse_error"] = error_diagnostics(error)
+        raise ResponseParseError(result, error) from error
+    if provider == "google" and not google_response_matches(
+        config["wire"], response_model
+    ):
+        raise ModelIdentityError(result)
     return result
 
 

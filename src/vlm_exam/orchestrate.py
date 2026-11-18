@@ -67,6 +67,7 @@ def plan_jobs(
     log_directory: Path = Path("logs"),
     max_samples: int | None = None,
     config_path: Path | None = None,
+    detection_version: str = "v2",
 ) -> list[Job]:
     """Expand models into one job per ``(model, task, effort, repeat)``.
 
@@ -95,7 +96,10 @@ def plan_jobs(
     for effort in efforts:
         for task in tasks:
             for model in models:
-                for offset in range(repeats):
+                task_repeats = (
+                    1 if task == "detection" and detection_version == "v2" else repeats
+                )
+                for offset in range(task_repeats):
                     repeat = first_repeat + offset
                     command = run_command(
                         task,
@@ -104,6 +108,12 @@ def plan_jobs(
                         root=dataset_root,
                         output_directory=output_directory,
                     )
+                    if task == "detection":
+                        command.extend(["--detection-version", detection_version])
+                        if detection_version == "v2":
+                            command[command.index("--dataset-directory") + 1] = str(
+                                dataset_root / "detection" / "v2"
+                            )
                     if config_path is not None:
                         command.extend(["--config", str(config_path)])
                     if max_samples is not None:

@@ -561,7 +561,7 @@
       "model": "gemini-4-carbon-eap",
       "effort": "maximum",
       "path": "results/detection/v2/gemini-4-carbon-eap__maximum.jsonl.gz",
-      "sha256": "8de6df63a9da1d204e8e0856294e8083abbbd54fe09d1641cd189deea2894b1b",
+      "sha256": "476ef211a6558ad76311d5c177d306cf396ea49a3066b328e93453038b174aca",
       "samples": 600,
       "status_counts": {
         "returned": 583,
@@ -570,14 +570,15 @@
       },
       "configurations": [
         "00733ec9a8d56e0b6299af936c83ef87f5dcafc88e771102adf1f5f9b34c7e90",
-        "22dec00bfabb4fc013b615c9846508a53c6cfca28334aa06083289a7343a2f9b"
+        "22dec00bfabb4fc013b615c9846508a53c6cfca28334aa06083289a7343a2f9b",
+        "77b1c51bda756d7c04b422d9303f38c72b3c762241dd75b56090433cd4fd80f8"
       ]
     },
     {
       "model": "gemini-4-carbon-eap",
       "effort": "minimum",
       "path": "results/detection/v2/gemini-4-carbon-eap__minimum.jsonl.gz",
-      "sha256": "69a4f6983740424c0367b9bf94835ca6551f3f074c18412de3ceeabae166fd08",
+      "sha256": "2337387b022144488bcaaac0abfa0cb854fe69b1f58c82a515b586ee25c435bb",
       "samples": 600,
       "status_counts": {
         "returned": 598,
@@ -585,7 +586,8 @@
       },
       "configurations": [
         "00733ec9a8d56e0b6299af936c83ef87f5dcafc88e771102adf1f5f9b34c7e90",
-        "22dec00bfabb4fc013b615c9846508a53c6cfca28334aa06083289a7343a2f9b"
+        "22dec00bfabb4fc013b615c9846508a53c6cfca28334aa06083289a7343a2f9b",
+        "77b1c51bda756d7c04b422d9303f38c72b3c762241dd75b56090433cd4fd80f8"
       ]
     },
     {
@@ -1054,11 +1056,10 @@
       "model": "kimi-k3",
       "effort": "maximum",
       "path": "results/detection/v2/kimi-k3__maximum.jsonl.gz",
-      "sha256": "c14de5c7f1a7b1be4449884420fe73969f8c402e75fc422d1043e478c0026f31",
+      "sha256": "cf7a8350884eabd249fa660478dea633a3acf3e9be8a9bc730382332de24d22f",
       "samples": 600,
       "status_counts": {
-        "returned": 595,
-        "missing": 5
+        "returned": 600
       },
       "configurations": [
         "47f5986de117893a36130924214e83f2f872df5712a6fc7c48aff22b4c5fd3a3"
@@ -1068,11 +1069,10 @@
       "model": "kimi-k3",
       "effort": "minimum",
       "path": "results/detection/v2/kimi-k3__minimum.jsonl.gz",
-      "sha256": "4ad8e3cea7409077e68595452e4deb20e02a54ee26911212d11182fffa091a8a",
+      "sha256": "58436099ee48c34a5f9706dadba67dfad1a2058e115b0830ecf6d3c2fc60325b",
       "samples": 600,
       "status_counts": {
-        "returned": 594,
-        "missing": 6
+        "returned": 600
       },
       "configurations": [
         "47f5986de117893a36130924214e83f2f872df5712a6fc7c48aff22b4c5fd3a3"
@@ -2617,6 +2617,17 @@
         "allow_fallbacks": false,
         "require_parameters": true
       }
+    },
+    "77b1c51bda756d7c04b422d9303f38c72b3c762241dd75b56090433cd4fd80f8": {
+      "provider": "google",
+      "wire": "gemini-4-carbon",
+      "minimum": "low",
+      "maximum": "high",
+      "format": "yxyx_normalized_0_to_1000",
+      "arms": [
+        "minimum",
+        "maximum"
+      ]
     }
   },
   "diagnostics": [
@@ -2634,20 +2645,33 @@
       "path": "results/detection/v2/diagnostics/benchmark-muse-format-revision__rerun-7.jsonl.gz",
       "sha256": "49dac5fad8d02d89319867a5f28491f00fe4c5da97dcac0733a71a70c8ff8879",
       "samples": 6
+    },
+    {
+      "path": "results/detection/v2/diagnostics/carbon-stale-s196-cd136da358d1135058809f913ecd2f1f391bed76f02eb76c2937db0331b07dfe.jsonl.gz",
+      "sha256": "cd136da358d1135058809f913ecd2f1f391bed76f02eb76c2937db0331b07dfe",
+      "samples": 10
+    },
+    {
+      "path": "results/detection/v2/diagnostics/superseded-8ef1996bdfbf90c545efad75ca65a32b8f2c6aaba70b7894eba0102b1c1e3708.jsonl.gz",
+      "sha256": "8ef1996bdfbf90c545efad75ca65a32b8f2c6aaba70b7894eba0102b1c1e3708",
+      "samples": 5
+    },
+    {
+      "path": "results/detection/v2/diagnostics/superseded-0b437ea3b2baa7dcdc124fb483d026e72a952c305037e2ed3c6767244b3ccabd.jsonl.gz",
+      "sha256": "0b437ea3b2baa7dcdc124fb483d026e72a952c305037e2ed3c6767244b3ccabd",
+      "samples": 6
+    },
+    {
+      "path": "results/detection/v2/diagnostics/superseded-b7d86e5b634129ebbcf368ffa23b12277f7bef4a11649ab6774e1ee0663d4d69.jsonl.gz",
+      "sha256": "b7d86e5b634129ebbcf368ffa23b12277f7bef4a11649ab6774e1ee0663d4d69",
+      "samples": 5
+    },
+    {
+      "path": "results/detection/v2/diagnostics/superseded-5a87482e29472b54e1c390dc718756bcf9b61c736ba7c7246e5048e4cc399b3b.jsonl.gz",
+      "sha256": "5a87482e29472b54e1c390dc718756bcf9b61c736ba7c7246e5048e4cc399b3b",
+      "samples": 5
     }
   ],
-  "missing": [
-    "kimi-k3/maximum/S033-020",
-    "kimi-k3/maximum/S128-015",
-    "kimi-k3/maximum/S136-010",
-    "kimi-k3/maximum/S190-007",
-    "kimi-k3/maximum/S211-011",
-    "kimi-k3/minimum/OLD033-001",
-    "kimi-k3/minimum/S033-020",
-    "kimi-k3/minimum/S095-001",
-    "kimi-k3/minimum/S106-028",
-    "kimi-k3/minimum/S190-007",
-    "kimi-k3/minimum/S211-011"
-  ],
+  "missing": [],
   "parser_source_sha256": "9627eec7467bf2c7113114432153339fe988fb731cc6019ed1d0083ba625eb39"
 }

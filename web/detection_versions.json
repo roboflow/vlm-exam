@@ -20,6 +20,6 @@
       ]
     }
   },
-  "overview_detection_version": "v1",
+  "overview_detection_version": "v2",
   "default_detection_version": "v2"
 }

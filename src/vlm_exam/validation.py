@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import shlex
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from vlm_exam.config import BenchmarkConfig
@@ -288,6 +288,7 @@ def validate_results(
     *,
     protocol: BenchmarkProtocol = PROTOCOL,
     strict: bool = False,
+    detection_version: str = "v1",
 ) -> ValidationReport:
     """Check ``results/`` against the benchmark protocol.
 
@@ -302,11 +303,21 @@ def validate_results(
         config: Benchmark config naming every model and its protocol.
         protocol: Requirements to validate against.
         strict: Treat legacy models' gaps as errors too.
+        detection_version: V1 retains the historical API contract; the CLI defaults
+            to v2, validating its pinned inventory separately from QA repeats.
 
     Returns:
         The validation report.
     """
+    if detection_version not in {"v1", "v2"}:
+        raise ValueError("Unknown detection version")
+    if detection_version == "v2":
+        protocol = replace(
+            protocol, tasks=tuple(t for t in protocol.tasks if t != "detection")
+        )
     loaded_runs = _load_runs(results_directory)
+    if detection_version == "v2":
+        loaded_runs = [r for r in loaded_runs if r.run.task != "detection"]
     full_sample_counts = _full_sample_counts(loaded_runs)
 
     by_configuration: dict[tuple[str, str, str], list[_LoadedRun]] = {}
@@ -406,6 +417,27 @@ def validate_results(
             validate_text_release(results_directory, load_text_release_policy())
         )
 
+    if detection_version == "v2":
+        from vlm_exam.detection_v2 import validate_release
+
+        try:
+            issues = validate_release(results_directory.resolve().parent)
+        except (OSError, ValueError, KeyError) as error:
+            issues = [f"Cannot validate detection v2 release: {error}"]
+        orphans.extend(
+            Problem(
+                kind="detection-v2",
+                model="detection-v2",
+                task="detection",
+                severity=ERROR,
+                message=issue,
+                fix=(
+                    "Restore the pinned v2 release or explicitly validate "
+                    "--detection-version v1"
+                ),
+            )
+            for issue in issues
+        )
     return ValidationReport(
         coverage=tuple(coverage),
         orphans=tuple(orphans),
