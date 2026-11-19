@@ -10,7 +10,7 @@
     "minimum",
     "maximum"
   ],
-  "models": 55,
+  "models": 56,
   "runs": [
     {
       "model": "claude-fable-5",
@@ -529,94 +529,123 @@
       "model": "gemini-4-argon-eap",
       "effort": "maximum",
       "path": "results/detection/v2/gemini-4-argon-eap__maximum.jsonl.gz",
-      "sha256": "ebc4b61fe0e3f8a9d62d8ed055bc7e5ed56bbf306cf325d09589cad02ce93c76",
+      "sha256": "65c4ceace04570dc519c4a3b33375fa1ae409d9d95580e68eb5601a584fe707d",
       "samples": 600,
       "status_counts": {
-        "returned": 599,
-        "empty": 1
+        "returned": 600
       },
       "configurations": [
-        "33db47dfa429ac1732df58413588a173ab324b600d64172a30c4be5b8db22974",
-        "7e9d7eeaf7294bf76d91a7dc7a599cdeeb3692326265c7d6d5222b8543d332e9",
-        "f49bbbbc0a082a9119ad9ef0e15b9db345cf97775d4991f03c2b8cd1b38e5525"
+        "3e58cda7f0aa33e6ff087e14eb6ec73de4246b0dca46f82c17b100ad075251b2"
       ]
     },
     {
       "model": "gemini-4-argon-eap",
       "effort": "minimum",
       "path": "results/detection/v2/gemini-4-argon-eap__minimum.jsonl.gz",
-      "sha256": "bdd43b096cc0225f8ccc6d150e1efd4c152e85180f20224c03c34b96bb76ae68",
+      "sha256": "2f1994828f89af1f3b3e823ecbaf682a17e4c42f602ba910d43c8eef64f8a199",
       "samples": 600,
       "status_counts": {
-        "returned": 597,
-        "invalid_json": 3
+        "returned": 600
       },
       "configurations": [
-        "33db47dfa429ac1732df58413588a173ab324b600d64172a30c4be5b8db22974",
-        "7e9d7eeaf7294bf76d91a7dc7a599cdeeb3692326265c7d6d5222b8543d332e9",
-        "f49bbbbc0a082a9119ad9ef0e15b9db345cf97775d4991f03c2b8cd1b38e5525"
+        "cb5c60788314993982e60ec0b3525ee206272ba0e3cbcc59b27695c2b2131976"
       ]
     },
     {
       "model": "gemini-4-carbon-eap",
       "effort": "maximum",
       "path": "results/detection/v2/gemini-4-carbon-eap__maximum.jsonl.gz",
-      "sha256": "476ef211a6558ad76311d5c177d306cf396ea49a3066b328e93453038b174aca",
+      "sha256": "186aab72c7ad5f9c96eb56067b517bd4aa9482ce2c5fd7aab87bead97792f73d",
       "samples": 600,
       "status_counts": {
-        "returned": 583,
-        "empty": 14,
-        "truncated": 3
+        "returned": 590,
+        "missing": 7,
+        "empty": 2,
+        "invalid_json": 1
       },
       "configurations": [
-        "00733ec9a8d56e0b6299af936c83ef87f5dcafc88e771102adf1f5f9b34c7e90",
-        "22dec00bfabb4fc013b615c9846508a53c6cfca28334aa06083289a7343a2f9b",
-        "77b1c51bda756d7c04b422d9303f38c72b3c762241dd75b56090433cd4fd80f8"
-      ]
+        "6c8ae97cd14a2a471b2ea75c4bd6875d82f02adf5a94132bdf1113827aea1fbb"
+      ],
+      "accepted_missing_as_empty": [
+        "S031-002",
+        "S031-008",
+        "S031-019",
+        "S113-001",
+        "S113-003",
+        "S113-004",
+        "S113-007"
+      ],
+      "acceptance_reason": "User explicitly accepted first-pass API timeouts as zero-detection failures and cancelled retries. Preserve missing status and error diagnostics; score every canonical case."
     },
     {
       "model": "gemini-4-carbon-eap",
       "effort": "minimum",
       "path": "results/detection/v2/gemini-4-carbon-eap__minimum.jsonl.gz",
-      "sha256": "2337387b022144488bcaaac0abfa0cb854fe69b1f58c82a515b586ee25c435bb",
+      "sha256": "d06a2aa17e03f8ec40c958d44a36ef0461e497c2e4f6238fe175a6331d3d71ba",
       "samples": 600,
       "status_counts": {
-        "returned": 598,
-        "invalid_json": 2
+        "returned": 597,
+        "invalid_json": 3
       },
       "configurations": [
-        "00733ec9a8d56e0b6299af936c83ef87f5dcafc88e771102adf1f5f9b34c7e90",
-        "22dec00bfabb4fc013b615c9846508a53c6cfca28334aa06083289a7343a2f9b",
-        "77b1c51bda756d7c04b422d9303f38c72b3c762241dd75b56090433cd4fd80f8"
+        "6f88dcf68a9a183b4130a610188b4a622efa9f7c5cb9b0609d1d134af2afad31"
       ]
     },
     {
       "model": "gemini-4-hydrogen-eap",
       "effort": "maximum",
       "path": "results/detection/v2/gemini-4-hydrogen-eap__maximum.jsonl.gz",
-      "sha256": "b053dc070442410a3402c25010bacae01606f2981f724a0e0306e15a27fc9364",
+      "sha256": "993056f0a67bc0184c0daa1814c5326c009d4f5ec45b1d96805a171bce05cf84",
       "samples": 600,
       "status_counts": {
         "returned": 594,
-        "empty": 3,
-        "truncated": 2,
-        "invalid_json": 1
+        "empty": 4,
+        "invalid_json": 2
       },
       "configurations": [
-        "a1b1a011f26c58111a32df5f162eea62148765343a4cedf40bb160e102dd45ec"
+        "890bbf533b294ed6527b43ecdc302f7d48fd39007d2d592293e9741e1f30d87a"
       ]
     },
     {
       "model": "gemini-4-hydrogen-eap",
       "effort": "minimum",
       "path": "results/detection/v2/gemini-4-hydrogen-eap__minimum.jsonl.gz",
-      "sha256": "428bf6ffb56b8a91a1f47282049895ab13ce34d36f70c24198a41d6760d5cc8c",
+      "sha256": "8d86e79fcdf6edc78408dd20eaa5194b351cfb40699ceb31aca51171885f6c07",
+      "samples": 600,
+      "status_counts": {
+        "returned": 599,
+        "invalid_json": 1
+      },
+      "configurations": [
+        "0b2350b16ec624e6039ef746a71524d0792a67bc0c44d8a280e695d6bb39fe10"
+      ]
+    },
+    {
+      "model": "gemini-4-neon",
+      "effort": "maximum",
+      "path": "results/detection/v2/gemini-4-neon__maximum.jsonl.gz",
+      "sha256": "1bd5a80f4efd4c09337c836179fa30ab0deb0c595d9d1a80aa6ca4b4ebe03389",
+      "samples": 600,
+      "status_counts": {
+        "returned": 594,
+        "invalid_json": 1,
+        "empty": 5
+      },
+      "configurations": [
+        "55fb8740d9891ac4882ad89f1b37991b5888cec8064abfa363a280f2bcedb6f6"
+      ]
+    },
+    {
+      "model": "gemini-4-neon",
+      "effort": "minimum",
+      "path": "results/detection/v2/gemini-4-neon__minimum.jsonl.gz",
+      "sha256": "bbcb1404fdd1277e34cf5dc7a80d9fa00aa00b7b32bdd0b66ad6bc9ee0f757e9",
       "samples": 600,
       "status_counts": {
         "returned": 600
       },
       "configurations": [
-        "a1b1a011f26c58111a32df5f162eea62148765343a4cedf40bb160e102dd45ec"
+        "5f637c34674023b24a9a5fffedae7fe17412349b356723eddb48875605d3364b"
       ]
     },
     {
@@ -2628,6 +2657,86 @@
         "minimum",
         "maximum"
       ]
+    },
+    "cb5c60788314993982e60ec0b3525ee206272ba0e3cbcc59b27695c2b2131976": {
+      "provider": "google",
+      "wire": "gemini-4-argon",
+      "arms": [
+        "minimum"
+      ],
+      "format": "yxyx_normalized_0_to_1000",
+      "max_output_tokens": 128000,
+      "minimum": "low"
+    },
+    "6f88dcf68a9a183b4130a610188b4a622efa9f7c5cb9b0609d1d134af2afad31": {
+      "provider": "google",
+      "wire": "gemini-4-carbon",
+      "arms": [
+        "minimum"
+      ],
+      "format": "yxyx_normalized_0_to_1000",
+      "max_output_tokens": 128000,
+      "minimum": "low"
+    },
+    "5f637c34674023b24a9a5fffedae7fe17412349b356723eddb48875605d3364b": {
+      "provider": "google",
+      "wire": "gemini-4-neon",
+      "arms": [
+        "minimum"
+      ],
+      "format": "yxyx_normalized_0_to_1000",
+      "max_output_tokens": 128000,
+      "minimum": "low"
+    },
+    "0b2350b16ec624e6039ef746a71524d0792a67bc0c44d8a280e695d6bb39fe10": {
+      "provider": "google",
+      "wire": "gemini-4-hydrogen",
+      "arms": [
+        "minimum"
+      ],
+      "format": "yxyx_normalized_0_to_1000",
+      "max_output_tokens": 128000,
+      "minimum": "low"
+    },
+    "3e58cda7f0aa33e6ff087e14eb6ec73de4246b0dca46f82c17b100ad075251b2": {
+      "provider": "google",
+      "wire": "gemini-4-argon",
+      "arms": [
+        "maximum"
+      ],
+      "format": "yxyx_normalized_0_to_1000",
+      "max_output_tokens": 128000,
+      "maximum": "high"
+    },
+    "6c8ae97cd14a2a471b2ea75c4bd6875d82f02adf5a94132bdf1113827aea1fbb": {
+      "provider": "google",
+      "wire": "gemini-4-carbon",
+      "arms": [
+        "maximum"
+      ],
+      "format": "yxyx_normalized_0_to_1000",
+      "max_output_tokens": 128000,
+      "maximum": "high"
+    },
+    "55fb8740d9891ac4882ad89f1b37991b5888cec8064abfa363a280f2bcedb6f6": {
+      "provider": "google",
+      "wire": "gemini-4-neon",
+      "arms": [
+        "maximum"
+      ],
+      "format": "yxyx_normalized_0_to_1000",
+      "max_output_tokens": 128000,
+      "maximum": "high"
+    },
+    "890bbf533b294ed6527b43ecdc302f7d48fd39007d2d592293e9741e1f30d87a": {
+      "provider": "google",
+      "wire": "gemini-4-hydrogen",
+      "arms": [
+        "maximum"
+      ],
+      "format": "yxyx_normalized_0_to_1000",
+      "max_output_tokens": 128000,
+      "maximum": "high"
     }
   },
   "diagnostics": [
@@ -2670,8 +2779,46 @@
       "path": "results/detection/v2/diagnostics/superseded-5a87482e29472b54e1c390dc718756bcf9b61c736ba7c7246e5048e4cc399b3b.jsonl.gz",
       "sha256": "5a87482e29472b54e1c390dc718756bcf9b61c736ba7c7246e5048e4cc399b3b",
       "samples": 5
+    },
+    {
+      "path": "results/detection/v2/diagnostics/superseded-bdd43b096cc0225f8ccc6d150e1efd4c152e85180f20224c03c34b96bb76ae68.jsonl.gz",
+      "sha256": "bdd43b096cc0225f8ccc6d150e1efd4c152e85180f20224c03c34b96bb76ae68",
+      "samples": 600
+    },
+    {
+      "path": "results/detection/v2/diagnostics/superseded-2337387b022144488bcaaac0abfa0cb854fe69b1f58c82a515b586ee25c435bb.jsonl.gz",
+      "sha256": "2337387b022144488bcaaac0abfa0cb854fe69b1f58c82a515b586ee25c435bb",
+      "samples": 600
+    },
+    {
+      "path": "results/detection/v2/diagnostics/superseded-428bf6ffb56b8a91a1f47282049895ab13ce34d36f70c24198a41d6760d5cc8c.jsonl.gz",
+      "sha256": "428bf6ffb56b8a91a1f47282049895ab13ce34d36f70c24198a41d6760d5cc8c",
+      "samples": 600
+    },
+    {
+      "path": "results/detection/v2/diagnostics/superseded-ebc4b61fe0e3f8a9d62d8ed055bc7e5ed56bbf306cf325d09589cad02ce93c76.jsonl.gz",
+      "sha256": "ebc4b61fe0e3f8a9d62d8ed055bc7e5ed56bbf306cf325d09589cad02ce93c76",
+      "samples": 600
+    },
+    {
+      "path": "results/detection/v2/diagnostics/superseded-476ef211a6558ad76311d5c177d306cf396ea49a3066b328e93453038b174aca.jsonl.gz",
+      "sha256": "476ef211a6558ad76311d5c177d306cf396ea49a3066b328e93453038b174aca",
+      "samples": 600
+    },
+    {
+      "path": "results/detection/v2/diagnostics/superseded-b053dc070442410a3402c25010bacae01606f2981f724a0e0306e15a27fc9364.jsonl.gz",
+      "sha256": "b053dc070442410a3402c25010bacae01606f2981f724a0e0306e15a27fc9364",
+      "samples": 600
     }
   ],
-  "missing": [],
+  "missing": [
+    "gemini-4-carbon-eap/maximum/S031-002",
+    "gemini-4-carbon-eap/maximum/S031-008",
+    "gemini-4-carbon-eap/maximum/S031-019",
+    "gemini-4-carbon-eap/maximum/S113-001",
+    "gemini-4-carbon-eap/maximum/S113-003",
+    "gemini-4-carbon-eap/maximum/S113-004",
+    "gemini-4-carbon-eap/maximum/S113-007"
+  ],
   "parser_source_sha256": "9627eec7467bf2c7113114432153339fe988fb731cc6019ed1d0083ba625eb39"
 }

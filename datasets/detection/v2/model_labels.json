@@ -79,6 +79,10 @@
     "name": "Gemini 4 Hydrogen",
     "lab": "google"
   },
+  "gemini-4-neon": {
+    "name": "Gemini 4 Neon",
+    "lab": "google"
+  },
   "glm-5v-turbo": {
     "name": "GLM 5V Turbo",
     "lab": "zai"

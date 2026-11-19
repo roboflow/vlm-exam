@@ -1,0 +1,96 @@
+{
+  "date": "2026-11-20",
+  "selection": "Original full low/high uniform128k runs; exclude xhigh and all subsequent retry rounds.",
+  "normalization": "Map low/high to minimum/maximum release lanes and retain existing registry keys. Preserve native effort, endpoint, prompts, raw prediction text, boxes, usage, and source hashes. Omit redundant streamed SDK envelopes.",
+  "runs": [
+    {
+      "model": "gemini-4-argon-eap",
+      "effort": "minimum",
+      "source": "benchmark-gemini4-low-uniform128k-20261119/gemini-4-argon",
+      "source_archive_sha256": "2e29af92472ee3bfe693b9eb92efb691fb622e1b172a7c97bb48794628a49c23",
+      "published_sha256": "2f1994828f89af1f3b3e823ecbaf682a17e4c42f602ba910d43c8eef64f8a199",
+      "status_counts": {
+        "returned": 600
+      }
+    },
+    {
+      "model": "gemini-4-carbon-eap",
+      "effort": "minimum",
+      "source": "benchmark-gemini4-low-uniform128k-20261119/gemini-4-carbon",
+      "source_archive_sha256": "eddf75b54edef6ddf7d5a18f944163f3683827193045574721613c99f9ea7d9b",
+      "published_sha256": "d06a2aa17e03f8ec40c958d44a36ef0461e497c2e4f6238fe175a6331d3d71ba",
+      "status_counts": {
+        "returned": 597,
+        "invalid_json": 3
+      }
+    },
+    {
+      "model": "gemini-4-neon",
+      "effort": "minimum",
+      "source": "benchmark-gemini4-low-uniform128k-20261119/gemini-4-neon",
+      "source_archive_sha256": "2b7b21c60f311d36d865aea454fd30713f54be41af8c4ea39283745457aa5161",
+      "published_sha256": "bbcb1404fdd1277e34cf5dc7a80d9fa00aa00b7b32bdd0b66ad6bc9ee0f757e9",
+      "status_counts": {
+        "returned": 600
+      }
+    },
+    {
+      "model": "gemini-4-hydrogen-eap",
+      "effort": "minimum",
+      "source": "benchmark-gemini4-low-uniform128k-20261119/gemini-4-hydrogen",
+      "source_archive_sha256": "ad58a8709dbcc0de2fe31deded6468ff15af2d9a54ffcf60d1cd31a4ac9c8b42",
+      "published_sha256": "8d86e79fcdf6edc78408dd20eaa5194b351cfb40699ceb31aca51171885f6c07",
+      "status_counts": {
+        "returned": 599,
+        "invalid_json": 1
+      }
+    },
+    {
+      "model": "gemini-4-argon-eap",
+      "effort": "maximum",
+      "source": "benchmark-gemini4-high-uniform128k-20261119/gemini-4-argon",
+      "source_archive_sha256": "fc9d38787c64de715d7c03f03e4bfd6ba87468f094484b8e83714bea310594a1",
+      "published_sha256": "65c4ceace04570dc519c4a3b33375fa1ae409d9d95580e68eb5601a584fe707d",
+      "status_counts": {
+        "returned": 600
+      }
+    },
+    {
+      "model": "gemini-4-carbon-eap",
+      "effort": "maximum",
+      "source": "benchmark-gemini4-high-uniform128k-20261119/gemini-4-carbon",
+      "source_archive_sha256": "ec05ca4331528e2ec171c91089f57f864ce7c573e9f30f2d5294cf2d529d715b",
+      "published_sha256": "186aab72c7ad5f9c96eb56067b517bd4aa9482ce2c5fd7aab87bead97792f73d",
+      "status_counts": {
+        "returned": 590,
+        "missing": 7,
+        "empty": 2,
+        "invalid_json": 1
+      }
+    },
+    {
+      "model": "gemini-4-neon",
+      "effort": "maximum",
+      "source": "benchmark-gemini4-high-uniform128k-20261119/gemini-4-neon",
+      "source_archive_sha256": "060633bd523fd2d5f7e794ddac7d0859593743ee9701b1e4473a592afb6c3b22",
+      "published_sha256": "1bd5a80f4efd4c09337c836179fa30ab0deb0c595d9d1a80aa6ca4b4ebe03389",
+      "status_counts": {
+        "returned": 594,
+        "invalid_json": 1,
+        "empty": 5
+      }
+    },
+    {
+      "model": "gemini-4-hydrogen-eap",
+      "effort": "maximum",
+      "source": "benchmark-gemini4-high-uniform128k-20261119/gemini-4-hydrogen",
+      "source_archive_sha256": "45d90b42cc8e9bfd1973ef59f7797d4bb52c62e345cb1f1ad0e9a7b7f40b3f21",
+      "published_sha256": "993056f0a67bc0184c0daa1814c5326c009d4f5ec45b1d96805a171bce05cf84",
+      "status_counts": {
+        "returned": 594,
+        "empty": 4,
+        "invalid_json": 2
+      }
+    }
+  ]
+}
