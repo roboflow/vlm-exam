@@ -45,6 +45,22 @@ labs:
     logo_url: https://unpkg.com/@lobehub/icons-static-svg@1.91.0/icons/deepseek.svg
 
 models:
+  gemini-4-neon:
+    name: Gemini 4 Neon
+    lab: google
+    pricing:
+      input_per_million_tokens: 3.0
+      output_per_million_tokens: 15.0
+    routes:
+      - provider: google
+        provider_model_id: gemini-4-neon
+        options:
+          api_version: v1beta
+          max_output_tokens: 128000
+          thinking_levels:
+            low: low
+            high: high
+    detection_coordinate_format: yxyx_normalized_0_to_1000
   claude-fable-5-2:
     name: Claude Fable 5.2
     lab: anthropic

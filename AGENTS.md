@@ -450,3 +450,57 @@ response. Preserve the raw response and usage, and do not resend the paid reques
 After fixing parsing, use `vlm-exam detection-v2 reparse-run --output RUN_DIRECTORY`;
 this validates provenance, retains the original inference hash and records the
 new parser fingerprint. Publish only after the run passes full validation.
+
+
+### V2 strict and recovery parser evaluation
+
+New v2 inference uses uniform complete-object recovery, including Google. V1
+parsing is unchanged. Run `vlm-exam detection-v2 evaluate-parsers --mode both
+--workers 4 --output /tmp/parser-comparison.json` to score saved responses in
+both modes without API calls. `--mode strict` requires a JSON array and the
+requested box schema; any malformed entry rejects the whole response.
+`--mode recovery` accepts complete boxes from recoverable malformed output.
+Neither mode invents boxes from points. Unknown labels remain false positives.
+Reports include schema compliance, failure reasons, recovered response counts,
+and per-mode mAP@50/F1@50. Valid empty arrays are compliant. Missing API responses
+stay missing, separately from model formatting errors. Reports must be written
+to new paths and do not replace release archives or published scores. A frozen
+release `validate --reparse` may expose intentional parser-version drift after
+this change; do not rewrite historical predictions to hide it. Review a new
+scoring revision explicitly before publishing it.
+
+
+### Bounded parser policy (v2-bounded-recovery-2)
+
+All v2 models now share the decoder in `detection_v2_parsing.py`; the v1
+Supervision/provider parsers are not used by v2. The format adapter specifies
+only the requested box structure, coordinate order, and scaling. Recovery may
+remove one unambiguous JSON wrapper, read complete direct objects from JSONL or
+an incomplete array, accept explicit field aliases and decimal numeric strings,
+and skip malformed entries. It must never recursively search nested structures,
+rebuild a foreign schema, resolve conflicting fields, complete partial boxes,
+guess coordinate order/scale, clip geometry, reorder corners, or deduplicate.
+Exactly four finite non-boolean coordinates are required. Native named-coordinate
+box containers may use a single dictionary in recovery, but flat coordinate
+arrays are not converted into that foreign schema. Strict requires the requested
+schema and rejects the entire response if an entry is invalid. Both modes use
+the same non-repairing coordinate decoder and confidence policy: a valid numeric
+confidence in [0,1] (including zero) is preserved, otherwise the fallback is 1.
+Unknown labels remain potential false positives. New inference records carry
+`parser` version/mode/operation counts; offline comparisons include per-case
+`parser_audit`. Published raw responses/scores are never rewritten implicitly.
+Existing parser comparison reports describe their recorded parser version and
+must not be presented as measurements of a later version without recalculation.
+
+### Gemini 4 detection refresh (November 20, 2026)
+
+The four Gemini 4 release entries use the approved first-pass low/high runs with
+128000 output tokens. High here is native `high`, not `xhigh` or an assertion of
+the model's absolute maximum. The release lanes retain their historical
+minimum/maximum names for API compatibility; inspect pinned native profiles.
+Do not substitute later retry-round responses. `gemini4_refresh.json` records
+source hashes and identity normalization; superseded archives remain diagnostics.
+Carbon High has seven explicitly accepted 504 failures. Its run entry lists their
+exact IDs in `accepted_missing_as_empty` with an approval reason. They retain
+`missing` status and diagnostics but count as empty predictions in quality scores.
+Unapproved missing cases still block ranking. Missing latency/usage is not invented.

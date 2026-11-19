@@ -1404,7 +1404,7 @@ def test_native_request_contract(
     monkeypatch.setattr(inference, "_client", lambda provider: client)
     if parser_failure:
 
-        def broken_parser(*args: object) -> list[dict]:
+        def broken_parser(*args: object, **kwargs: object) -> list[dict]:
             raise ValueError("simulated parser failure")
 
         monkeypatch.setattr(inference, "parse_objects", broken_parser)
@@ -2078,3 +2078,416 @@ def test_publication_holds_run_lock_before_reading_until_publish_finishes(
     assert len(published) == 1
     with lock_path.open("a") as next_writer:
         fcntl.flock(next_writer, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+
+@pytest.mark.parametrize(
+    "fmt",
+    [
+        "yxyx_normalized_0_to_1000",
+        "xyxy_normalized_0_to_1000",
+        "xyxy_absolute_original_image",
+    ],
+)
+@pytest.mark.parametrize(
+    "raw,count",
+    [
+        ('{"label":"cat","box_2d":[10,20,40,50]}', 1),
+        ('[{"label":"cat","box_2d":[10,20,40,50]}', 1),
+        (
+            '[{"label":"cat","box_2d":[10,20,40,50]} '
+            '{"label":"cat","box_2d":[50,60,80,90]}]',
+            2,
+        ),
+        (
+            '{"label":"cat","box_2d":[10,20,40,50]}\n{"label":"cat","box_2d":[50,60,80,90]}',
+            2,
+        ),
+    ],
+)
+def test_v2_parser_recovery_and_strict(fmt: str, raw: str, count: int) -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    assert len(parse_response(raw, (1000, 1000), ["cat"], fmt, (1000, 1000))) == count
+    assert (
+        len(parse_response(raw, (1000, 1000), ["cat"], fmt, (1000, 1000), "strict"))
+        == 0
+    )
+
+
+def test_v2_parser_schema_and_points() -> None:
+    from vlm_exam.detection_v2_parsing import parse_response, strict_format_error
+
+    fmt = "yxyx_normalized_0_to_1000"
+    assert strict_format_error("[]", fmt) is None
+    raw = '[{"label":"cat","point_2d":[10,20]}]'
+    assert strict_format_error(raw, fmt) == "invalid_box"
+    assert len(parse_response(raw, (100, 100), ["cat"], fmt, (100, 100))) == 0
+    valid = '[{"label":"cat","box_2d":[10,20,40,50]}]'
+    assert strict_format_error(valid, fmt) is None
+    assert (
+        len(parse_response(valid, (100, 100), ["cat"], fmt, (100, 100), "strict")) == 1
+    )
+    assert (
+        strict_format_error(
+            '[{"label":"cat","box_2d":[1.5,2,3,4]}]', "xyxy_normalized_0_to_100"
+        )
+        is None
+    )
+
+
+def test_v2_google_recovers_good_entry_beside_bad_entry() -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    raw = '[{"label":"cat","box_2d":[10,20,40,50]}, {"label":"cat","box_2d":[1]}]'
+    assert (
+        len(
+            parse_response(
+                raw, (100, 100), ["cat"], "yxyx_normalized_0_to_1000", (100, 100)
+            )
+        )
+        == 1
+    )
+
+
+def test_v2_parser_comparison_scores_same_response_without_mutating_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from pathlib import Path
+
+    from vlm_exam import detection_v2
+
+    case = dict(
+        id="test",
+        subset="subset",
+        width=100,
+        height=100,
+        objects=[dict(label="cat", box=[10, 20, 40, 50])],
+    )
+    row = dict(
+        case="test",
+        status="invalid_json",
+        uploaded_size=[100, 100],
+        coordinate_format="xyxy_absolute_original_image",
+        predicted='{"label":"cat","box_2d":[10,20,40,50]}',
+        detections=[],
+    )
+    entry = dict(
+        path="unused",
+        model="test",
+        effort="minimum",
+        sha256="hash",
+        status_counts={"invalid_json": 1},
+        configurations=[],
+    )
+    monkeypatch.setattr(detection_v2, "read_records", lambda path: [row])
+    report = detection_v2._compare_parser_run((Path("."), entry, [case], "both"))
+    assert report["format_compliant"] == 0
+    assert report["recovered_noncompliant_responses"] == 1
+    assert report["modes"]["strict"]["metrics"]["f1"] == 0
+    assert report["modes"]["recovery"]["metrics"]["f1"] == 1
+    assert report["modes"]["recovery"]["metrics"]["map50"] > 0.99
+    assert row["detections"] == []
+
+
+def test_v2_parser_retains_unknown_meta_label() -> None:
+    from vlm_exam.detection_v2_inference import parse_objects
+
+    case = dict(width=100, height=100, objects=[dict(label="cat")])
+    result = dict(
+        uploaded_size=[100, 100],
+        predicted=(
+            '[{"object_name":"dog","bbox":'
+            '[{"x_min":10,"y_min":20,"x_max":40,"y_max":50}]}]'
+        ),
+    )
+    objects = parse_objects(
+        case, result, "xyxy_normalized_0_to_1000_meta_bbox", "strict"
+    )
+    assert len(objects) == 1
+    assert objects[0]["label"] == "dog"
+
+
+@pytest.mark.parametrize("coordinate_format", list(DetectionCoordinateFormat))
+def test_v2_strict_accepts_requested_schema_for_every_format(
+    coordinate_format: DetectionCoordinateFormat,
+) -> None:
+    from vlm_exam.detection_v2_parsing import parse_response, strict_format_error
+
+    value = coordinate_format.value
+    entry = {"label": "cat", "box_2d": [10, 20, 40, 50]}
+    if value.endswith("meta_bbox"):
+        entry = {
+            "object_name": "cat",
+            "bbox": [{"x_min": 10, "y_min": 20, "x_max": 40, "y_max": 50}],
+        }
+    elif value.endswith("meta_flat"):
+        entry = {"label": "cat", "x_min": 10, "y_min": 20, "x_max": 40, "y_max": 50}
+    elif value.endswith("image_bbox"):
+        entry = {"label": "cat", "bbox": [10, 20, 40, 50]}
+    raw = json.dumps([entry])
+    assert strict_format_error(raw, value) is None
+    assert (
+        len(parse_response(raw, (100, 100), ["cat"], value, (100, 100), "strict")) == 1
+    )
+
+
+@pytest.mark.parametrize("fmt", list(DetectionCoordinateFormat))
+@pytest.mark.parametrize(
+    "values",
+    [
+        [True, 2, 3, 4],
+        [None, 2, 3, 4],
+        [float("nan"), 2, 3, 4],
+        [float("inf"), 2, 3, 4],
+    ],
+)
+def test_bounded_parser_rejects_invalid_numbers_in_every_format(
+    fmt: DetectionCoordinateFormat, values: list[object]
+) -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    if fmt.value.endswith("meta_bbox"):
+        entry = {
+            "object_name": "cat",
+            "bbox": [dict(zip(("x_min", "y_min", "x_max", "y_max"), values))],
+        }
+    elif fmt.value.endswith("meta_flat"):
+        entry = dict(
+            label="cat", **dict(zip(("x_min", "y_min", "x_max", "y_max"), values))
+        )
+    else:
+        entry = {
+            "label": "cat",
+            "bbox" if fmt.value.endswith("image_bbox") else "box_2d": values,
+        }
+    for mode in ("strict", "recovery"):
+        assert (
+            len(
+                parse_response(
+                    json.dumps([entry]), (100, 100), ["cat"], fmt, (100, 100), mode
+                )
+            )
+            == 0
+        )
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        '{"detections":[{"label":"cat","box_2d":[1,2,3,4]}]}',
+        '[{"nested":{"label":"cat","box_2d":[1,2,3,4]}}]',
+        '[{"label":"cat","box_2d":[1,2,3,4,5]}]',
+        '[{"label":"cat","box_2d":[1,2,3]}]',
+        '[{"label":"cat","box_2d":[1,2,3,4],"bbox_2d":[2,3,4,5]}]',
+        '[{"label":"cat","label":"dog","box_2d":[1,2,3,4]}]',
+        '[{"label":"cat","box_2d":[1,2,3,4]}] [{"label":"cat","box_2d":[5,6,7,8]}]',
+        "The cat is at x=1, y=2, x2=3, y2=4.",
+    ],
+)
+def test_bounded_parser_does_not_reconstruct_ambiguous_or_wrong_answers(
+    raw: str,
+) -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    for fmt in (
+        "yxyx_normalized_0_to_1000",
+        "xyxy_normalized_0_to_1000",
+        "xyxy_absolute_resized_image",
+    ):
+        assert (
+            len(parse_response(raw, (100, 100), ["cat", "dog"], fmt, (100, 100))) == 0
+        )
+
+
+@pytest.mark.parametrize(
+    "fmt",
+    [
+        "yxyx_normalized_0_to_1000",
+        "xyxy_normalized_0_to_1000",
+        "xyxy_normalized_0_to_100",
+        "xyxy_absolute_resized_image",
+    ],
+)
+def test_bounded_parser_common_aliases_strings_and_confidence(fmt: str) -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    raw = (
+        '[{"description":"cat","bbox_2d":["10","20","30","40"],"confidence":0},'
+        ' {"label":"cat","box_2d":[10,20,30,40]}]'
+    )
+    diagnostic = {}
+    parsed = parse_response(
+        raw, (100, 100), ["cat"], fmt, (100, 100), diagnostics=diagnostic
+    )
+    assert len(parsed) == 2
+    assert parsed.confidence.tolist() == [0, 1]
+    assert diagnostic["operations"]["field_alias"] == 2
+    assert diagnostic["operations"]["numeric_string"] == 4
+    assert len(parse_response(raw, (100, 100), ["cat"], fmt, (100, 100), "strict")) == 0
+
+
+def test_bounded_parser_meta_zero_and_no_schema_reconstruction() -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    fmt = "xyxy_normalized_0_to_1000_meta_bbox"
+    raw = (
+        '[{"label":"cat","bbox":{"x_min":"10","y_min":"20","x_max":"30",'
+        '"y_max":"40","confidence":0},"confidence":0.9}]'
+    )
+    parsed = parse_response(raw, (100, 100), ["cat"], fmt, (100, 100))
+    assert len(parsed) == 1
+    assert parsed.confidence.tolist() == [0]
+    assert (
+        len(
+            parse_response(
+                '[{"label":"cat","box_2d":[1,2,3,4]}]',
+                (100, 100),
+                ["cat"],
+                fmt,
+                (100, 100),
+            )
+        )
+        == 0
+    )
+
+
+@pytest.mark.parametrize("mode", ["strict", "recovery"])
+def test_bounded_parser_preserves_outside_and_reversed_geometry(mode: str) -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    raw = (
+        '[{"label":"cat","box_2d":[-10,-20,200,300]},'
+        ' {"label":"cat","box_2d":[40,50,10,20]}]'
+    )
+    for fmt in ("xyxy_normalized_0_to_1000", "xyxy_absolute_resized_image"):
+        parsed = parse_response(raw, (1000, 1000), ["cat"], fmt, (1000, 1000), mode)
+        assert parsed.xyxy.tolist() == [[-10, -20, 200, 300], [40, 50, 10, 20]]
+
+
+def test_bounded_parser_malformed_complete_entry_does_not_erase_other_objects() -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    raw = (
+        '[{"label":"cat","box_2d":[1,2,3,4]}, {"label":oops},'
+        ' {"label":"cat","box_2d":[5,6,7,8]},]'
+    )
+    assert (
+        len(
+            parse_response(
+                raw, (100, 100), ["cat"], "xyxy_absolute_resized_image", (100, 100)
+            )
+        )
+        == 2
+    )
+
+
+def test_bounded_reversed_boxes_remain_false_positives() -> None:
+    from vlm_exam.detection_v2 import score_subset
+    from vlm_exam.detection_v2_inference import parse_objects
+
+    case = dict(
+        id="a", width=100, height=100, objects=[dict(label="cat", box=[10, 20, 40, 50])]
+    )
+    objects = parse_objects(
+        case,
+        dict(
+            predicted='[{"label":"cat","box_2d":[40,50,10,20]}]',
+            uploaded_size=[100, 100],
+        ),
+        "xyxy_absolute_resized_image",
+    )
+    score = score_subset(
+        [case], [dict(case="a", status="returned", detections=objects)]
+    )
+    assert score["fp"] == 1
+    assert score["fn"] == 1
+    assert score["tp"] == 0
+
+
+@pytest.mark.parametrize("fmt", list(DetectionCoordinateFormat))
+def test_bounded_formats_decode_same_geometry(fmt: DetectionCoordinateFormat) -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    expected = [100, 100, 400, 300]
+    if "normalized" in fmt.value:
+        maximum = fmt.normalized_maximum
+        values = [
+            100 / 1000 * maximum,
+            100 / 500 * maximum,
+            400 / 1000 * maximum,
+            300 / 500 * maximum,
+        ]
+    elif "resized" in fmt.value:
+        values = [20, 20, 80, 60]
+    else:
+        values = expected
+    if fmt.value.startswith("yxyx"):
+        values = [values[1], values[0], values[3], values[2]]
+    if fmt.value.endswith("meta_bbox"):
+        entry = {
+            "object_name": "cat",
+            "bbox": [dict(zip(("x_min", "y_min", "x_max", "y_max"), values))],
+        }
+    elif fmt.value.endswith("meta_flat"):
+        entry = dict(
+            label="cat", **dict(zip(("x_min", "y_min", "x_max", "y_max"), values))
+        )
+    else:
+        entry = {
+            "label": "cat",
+            "bbox" if fmt.value.endswith("image_bbox") else "box_2d": values,
+        }
+    result = parse_response(json.dumps([entry]), (1000, 500), ["cat"], fmt, (200, 100))
+    assert result.xyxy[0].tolist() == pytest.approx(expected)
+
+
+@pytest.mark.parametrize(
+    "wrapper", ["{} Done.", "Here: {}", "Here: {} Done.", "```json\n{}\n```"]
+)
+def test_bounded_parser_one_unambiguous_wrapper(wrapper: str) -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    raw = wrapper.format('[{"label":"cat","box_2d":[1,2,3,4]}]')
+    assert (
+        len(
+            parse_response(
+                raw, (100, 100), ["cat"], "xyxy_absolute_resized_image", (100, 100)
+            )
+        )
+        == 1
+    )
+
+
+def test_approved_timeout_is_scored_without_hiding_missing_status(
+    tmp_path: Path,
+) -> None:
+    from vlm_exam.detection_v2 import load_release, summarize_release, validate_release
+
+    _publication_release(tmp_path)
+    initial = summarize_release(tmp_path)["models"][0]
+    assert initial["metrics"]["map50"] is None
+    policy, _ = load_release(tmp_path)
+    entry = policy["runs"][0]
+    entry["accepted_missing_as_empty"] = ["a"]
+    entry["acceptance_reason"] = "User accepted the timeout as an empty prediction"
+    path = tmp_path / "datasets/detection/v2/release.json"
+    path.write_text(json.dumps(policy))
+    assert validate_release(tmp_path) == []
+    updated = summarize_release(tmp_path)["models"][0]
+    assert updated["complete"]
+    assert updated["accepted_failure_count"] == 1
+    assert updated["response_counts"] == {"missing": 1}
+    assert updated["metrics"]["map50"] == 0
+    assert updated["metrics"]["f1"] == 0
+    assert updated["metrics"]["seconds_per_image"] is None
+    entry["accepted_missing_as_empty"] = ["not-a-case"]
+    path.write_text(json.dumps(policy))
+    assert any(
+        "Invalid accepted failure policy" in e for e in validate_release(tmp_path)
+    )
+    entry["accepted_missing_as_empty"] = ["a"]
+    del entry["acceptance_reason"]
+    path.write_text(json.dumps(policy))
+    assert any(
+        "Invalid accepted failure policy" in e for e in validate_release(tmp_path)
+    )

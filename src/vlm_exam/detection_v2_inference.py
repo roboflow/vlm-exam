@@ -33,6 +33,7 @@ from google.genai import types
 from PIL import Image, ImageOps
 from supervision import Detections
 
+from vlm_exam.detection_v2_parsing import effective_format, parse_response
 from vlm_exam.detection_v2_upload import _prepare_xai_image
 from vlm_exam.providers.anthropic import compute_resize_dimensions
 from vlm_exam.providers.base import error_diagnostics
@@ -44,7 +45,7 @@ from vlm_exam.providers.image_upload import (
     resize_image_to_max_edge,
 )
 from vlm_exam.providers.openai import _png_data_url
-from vlm_exam.tasks.detection import DetectionSample, DetectionTask, parse_prediction
+from vlm_exam.tasks.detection import DetectionSample, DetectionTask
 
 _LOCAL = threading.local()
 
@@ -422,7 +423,10 @@ def infer(
         else []
     )
     try:
-        result["detections"] = parse_objects(case, result, config["format"])
+        result["parser"] = {}
+        result["detections"] = parse_objects(
+            case, result, config["format"], diagnostics=result["parser"]
+        )
     except Exception as error:
         result["parse_error"] = error_diagnostics(error)
         raise ResponseParseError(result, error) from error
@@ -454,23 +458,32 @@ def _sample(case: dict[str, Any]) -> DetectionSample:
 
 
 def parse_objects(
-    case: dict[str, Any], result: dict[str, Any], coordinate_format: str
+    case: dict[str, Any],
+    result: dict[str, Any],
+    coordinate_format: str,
+    parser_mode: str = "recovery",
+    diagnostics: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Decode boxes while retaining unknown labels as potential false positives."""
     labels = sorted({obj["label"] for obj in case["objects"]})
-    for token in re.findall(r'"label"\s*:\s*("(?:[^"\\]|\\.)*")', result["predicted"]):
+    for token in re.findall(
+        r'"(?:label|object_name|description)"\s*:\s*("(?:[^"\\]|\\.)*")',
+        result["predicted"],
+    ):
         try:
             label = json.loads(token, strict=False)
             if label not in labels:
                 labels.append(label)
         except ValueError:
             pass
-    parsed = parse_prediction(
+    parsed = parse_response(
         result["predicted"],
         (case["width"], case["height"]),
         labels,
-        coordinate_format=coordinate_format,
+        coordinate_format=effective_format(coordinate_format, result.get("prompt", "")),
         uploaded_wh=tuple(result["uploaded_size"]),
+        mode=parser_mode,
+        diagnostics=diagnostics,
     )
     confidence = (
         parsed.confidence if parsed.confidence is not None else np.ones(len(parsed))

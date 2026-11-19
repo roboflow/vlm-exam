@@ -146,6 +146,14 @@ def validate_release(root: Path) -> list[str]:
             if lane in lanes:
                 problems.append(f"Duplicate configuration: {lane}")
             lanes.add(lane)
+            accepted = entry.get("accepted_missing_as_empty", [])
+            missing_ids = {r["case"] for r in records if r["status"] == "missing"}
+            if (
+                len(set(accepted)) != len(accepted)
+                or not set(accepted).issubset(missing_ids)
+                or (accepted and not entry.get("acceptance_reason"))
+            ):
+                problems.append(f"Invalid accepted failure policy: {lane}")
             if (
                 len(records) != len(identities)
                 or {row["case"] for row in records} != identities
@@ -289,6 +297,14 @@ def _summarize_run(
 ) -> dict[str, Any]:
     root, entry, cases = job
     records = read_records(root / entry["path"])
+    return _summarize_records(entry, cases, records)
+
+
+def _summarize_records(
+    entry: dict[str, Any],
+    cases: list[dict[str, Any]],
+    records: list[dict[str, Any]],
+) -> dict[str, Any]:
     by_case = {row["case"]: row for row in records}
     by_subset: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for case in cases:
@@ -300,7 +316,10 @@ def _summarize_run(
     true_positive = sum(value["tp"] for value in subsets.values())
     false_positive = sum(value["fp"] for value in subsets.values())
     false_negative = sum(value["fn"] for value in subsets.values())
-    missing = sum(value["missing"] for value in subsets.values())
+    accepted = set(entry.get("accepted_missing_as_empty", []))
+    unaccepted = sum(
+        row["status"] == "missing" and row["case"] not in accepted for row in records
+    )
     latency = [
         row["elapsed_seconds"]
         for row in records
@@ -311,11 +330,12 @@ def _summarize_run(
         "effort": entry["effort"],
         "images": len(cases),
         "run_count": 1,
-        "complete": missing == 0,
+        "complete": unaccepted == 0,
+        "accepted_failure_count": len(accepted),
         "response_counts": entry["status_counts"],
         "metrics": {
             "map50": statistics.mean(value["map50"] for value in subsets.values())
-            if not missing
+            if not unaccepted
             else None,
             "map50_missing_as_empty": statistics.mean(
                 value["map50"] for value in subsets.values()
@@ -323,18 +343,18 @@ def _summarize_run(
             "map50_capped100": statistics.mean(
                 value["map50_capped100"] for value in subsets.values()
             )
-            if not missing
+            if not unaccepted
             else None,
             "f1": 2
             * true_positive
             / max(1, 2 * true_positive + false_positive + false_negative)
-            if not missing
+            if not unaccepted
             else None,
             "precision": true_positive / max(1, true_positive + false_positive)
-            if not missing
+            if not unaccepted
             else None,
             "recall": true_positive / max(1, true_positive + false_negative)
-            if not missing
+            if not unaccepted
             else None,
             "seconds_per_image": statistics.mean(latency)
             if len(latency) == len(cases)
@@ -344,6 +364,98 @@ def _summarize_run(
         },
         "configurations": entry["configurations"],
         "subsets": subsets,
+    }
+
+
+def _compare_parser_run(
+    job: tuple[Path, dict[str, Any], list[dict[str, Any]], str],
+) -> dict[str, Any]:
+    from vlm_exam.detection_v2_inference import parse_objects
+    from vlm_exam.detection_v2_parsing import effective_format, strict_format_error
+
+    root, entry, cases, mode = job
+    records = read_records(root / entry["path"])
+    by_case = {case["id"]: case for case in cases}
+    reasons: Counter[str] = Counter()
+    compliant = recovered = 0
+    variants: dict[str, Any] = {}
+    audit: dict[str, list[dict[str, Any]]] = {}
+    modes = ("strict", "recovery") if mode == "both" else (mode,)
+    for row in records:
+        if row["status"] == "missing":
+            reasons["missing_response"] += 1
+            continue
+        error = strict_format_error(
+            row["predicted"],
+            effective_format(row["coordinate_format"], row.get("prompt", "")),
+        )
+        if error:
+            reasons[error] += 1
+        else:
+            compliant += 1
+    for variant in modes:
+        parsed_records = []
+        audit[variant] = []
+        for row in records:
+            if row["status"] == "missing":
+                parsed_records.append(row)
+                continue
+            details: dict[str, Any] = {}
+            detections = parse_objects(
+                by_case[row["case"]],
+                row,
+                row["coordinate_format"],
+                parser_mode=variant,
+                diagnostics=details,
+            )
+            if details.get("operations") or details.get("rejected"):
+                audit[variant].append(dict(case=row["case"], **details))
+            if (
+                variant == "recovery"
+                and detections
+                and strict_format_error(
+                    row["predicted"],
+                    effective_format(row["coordinate_format"], row.get("prompt", "")),
+                )
+            ):
+                recovered += 1
+            parsed_records.append(dict(row, detections=detections))
+        variants[variant] = _summarize_records(entry, cases, parsed_records)
+    return {
+        "model": entry["model"],
+        "effort": entry["effort"],
+        "source_sha256": entry["sha256"],
+        "format_compliant": compliant,
+        "format_compliance_rate": compliant / len(cases),
+        "format_errors": dict(reasons),
+        "recovered_noncompliant_responses": recovered if "recovery" in modes else None,
+        "modes": variants,
+        "parser_audit": audit,
+    }
+
+
+def compare_parsers(root: Path, mode: str = "both", workers: int = 1) -> dict[str, Any]:
+    """Score strict and recovered interpretations of identical saved responses."""
+    from vlm_exam.detection_v2_parsing import PARSER_VERSION
+
+    if mode not in {"both", "strict", "recovery"}:
+        raise ValueError(f"Unknown parser mode: {mode}")
+    problems = validate_release(root)
+    if problems:
+        raise ValueError("\n".join(problems))
+    policy, cases = load_release(root)
+    jobs = [(root, entry, cases, mode) for entry in policy["runs"]]
+    if workers == 1:
+        rows = list(map(_compare_parser_run, jobs))
+    else:
+        with ProcessPoolExecutor(workers) as pool:
+            rows = list(pool.map(_compare_parser_run, jobs))
+    return {
+        "parser_version": PARSER_VERSION,
+        "dataset_sha256": policy["dataset_sha256"],
+        "images": len(cases),
+        "mode": mode,
+        "models": rows,
     }
 
 
@@ -449,6 +561,24 @@ def register_detection_commands(main: click.Group) -> None:
             f"{policy['images']} images; "
             f"{len(policy['missing'])} explicit missing responses."
         )
+
+    @detection_v2.command("evaluate-parsers")
+    @click.option("--root", type=click.Path(path_type=Path), default=".")
+    @click.option(
+        "--mode", type=click.Choice(["strict", "recovery", "both"]), default="both"
+    )
+    @click.option("--workers", type=click.IntRange(1, 16), default=1)
+    @click.option("--output", required=True, type=click.Path(path_type=Path))
+    def evaluate_parsers(root: Path, mode: str, workers: int, output: Path) -> None:
+        """Compare parser modes offline without changing published scores."""
+        if output.exists():
+            raise click.ClickException(
+                "Choose a new report path; existing artifacts are preserved"
+            )
+        result = compare_parsers(root, mode, workers)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
+        click.echo(f"Saved parser evaluation: {output}")
 
     @detection_v2.command("summary")
     @click.option("--root", type=click.Path(path_type=Path), default=".")

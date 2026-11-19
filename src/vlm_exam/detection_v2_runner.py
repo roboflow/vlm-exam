@@ -44,6 +44,7 @@ def _inference_fingerprint() -> str:
     package = Path(__file__).parent
     sources = [
         "detection_v2_inference.py",
+        "detection_v2_parsing.py",
         "detection_v2_runner.py",
         "providers/base.py",
         "detection_v2_upload.py",

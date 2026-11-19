@@ -201,6 +201,7 @@ class TestBenchmarkProtocolField:
         config = load_config()
         full = [key for key, model in config.models.items() if not model.is_legacy]
         assert full == [
+            "gemini-4-neon",
             "claude-fable-5-2",
             "muse-ember",
             "claude-fable-5-1",

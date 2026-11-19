@@ -140,7 +140,9 @@ def with_detection_results(
     labels = json.loads((root / "datasets/detection/v2/model_labels.json").read_text())
     indexed = {(m.key, m.effort): m for m in summary.models}
     for row in data["models"]:
-        model = row["model"]
+        model = {"gemini-4-hydrogen-eap": "gemini-4-hydrogen"}.get(
+            row["model"], row["model"]
+        )
         legacy_effort = {"minimum": "low", "maximum": "high"}.get(
             row["effort"], row["effort"]
         )
@@ -192,6 +194,7 @@ def with_detection_results(
                 "native_effort": row["effort"],
                 "configurations": row["configurations"],
                 "complete": row["complete"],
+                "accepted_failure_count": row.get("accepted_failure_count", 0),
             },
             subsets=row["subsets"],
         )
