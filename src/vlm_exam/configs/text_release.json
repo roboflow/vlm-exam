@@ -69,7 +69,8 @@
     "gemini-4-carbon-eap",
     "qwen-4-max",
     "gpt-6.2-astra",
-    "gpt-6.2-sol"
+    "gpt-6.2-sol",
+    "gemini-4-neon"
   ],
   "configurations": {
     "claude-fable-5-1/high": {
@@ -668,6 +669,16 @@
     "gpt-6.2-sol/high": {
       "inference_hash": "a6ee11debc00c8a35754ccd5eca48c3b61912046a39d357f88ef40586ac2f902",
       "coordinate_format": "xyxy_absolute_resized_image",
+      "allowed_failures": []
+    },
+    "gemini-4-neon/low": {
+      "inference_hash": "9e5522a23436f79e0167f303d6756e1fe6363ae8958990c90b7af1a6ace55578",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
+      "allowed_failures": []
+    },
+    "gemini-4-neon/high": {
+      "inference_hash": "9e5522a23436f79e0167f303d6756e1fe6363ae8958990c90b7af1a6ace55578",
+      "coordinate_format": "yxyx_normalized_0_to_1000",
       "allowed_failures": []
     }
   }

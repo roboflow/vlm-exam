@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-17T18:53:54Z",
+  "generated_at": "2026-11-19T09:20:57Z",
   "overview_tasks": [
     "text",
     "counting",
@@ -181,6 +181,854 @@
     }
   ],
   "models": [
+    {
+      "id": "gemini-4-neon:low",
+      "key": "gemini-4-neon",
+      "name": "Gemini 4 Neon",
+      "lab": "google",
+      "effort": "low",
+      "tasks": {
+        "ocr": {
+          "primary_metric": {
+            "name": "similarity",
+            "value": 91.11
+          },
+          "metrics": {
+            "similarity": 91.11
+          },
+          "metric_runs": {
+            "similarity": [
+              91.17,
+              90.87,
+              91.29
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-11-19T08:34:21Z",
+            "2026-11-19T08:34:21Z",
+            "2026-11-19T08:34:38Z"
+          ],
+          "sample_count": 37,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 43538,
+            "output": 51047,
+            "total": 94585,
+            "average_per_sample": 2556.4
+          },
+          "cost": {
+            "total_usd": 0.896319,
+            "average_per_sample_usd": 0.024225
+          },
+          "speed": {
+            "total_seconds": 726.984,
+            "average_seconds_per_sample": 19.648
+          },
+          "timestamp": "2026-11-19T08:34:38Z"
+        },
+        "extraction": {
+          "primary_metric": {
+            "name": "accuracy_judge",
+            "value": 97.94
+          },
+          "metrics": {
+            "accuracy_judge": 97.94,
+            "accuracy_strict": 96.91
+          },
+          "metric_runs": {
+            "accuracy_judge": [
+              97.94,
+              97.94,
+              97.94
+            ],
+            "accuracy_strict": [
+              96.91,
+              96.91,
+              96.91
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-11-19T08:36:02Z",
+            "2026-11-19T08:36:20Z",
+            "2026-11-19T08:40:22Z"
+          ],
+          "sample_count": 97,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 113223,
+            "output": 22918,
+            "total": 136141,
+            "average_per_sample": 1403.5
+          },
+          "cost": {
+            "total_usd": 0.683439,
+            "average_per_sample_usd": 0.007046
+          },
+          "speed": {
+            "total_seconds": 940.265,
+            "average_seconds_per_sample": 9.693
+          },
+          "timestamp": "2026-11-19T08:40:22Z"
+        },
+        "counting": {
+          "primary_metric": {
+            "name": "accuracy_judge",
+            "value": 92.34
+          },
+          "metrics": {
+            "accuracy_judge": 92.34,
+            "accuracy_strict": 92.34
+          },
+          "metric_runs": {
+            "accuracy_judge": [
+              93.24,
+              91.89,
+              91.89
+            ],
+            "accuracy_strict": [
+              93.24,
+              91.89,
+              91.89
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-11-19T08:39:21Z",
+            "2026-11-19T08:44:37Z",
+            "2026-11-19T08:44:47Z"
+          ],
+          "sample_count": 74,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 86215,
+            "output": 35804,
+            "total": 122019,
+            "average_per_sample": 1648.9
+          },
+          "cost": {
+            "total_usd": 0.795705,
+            "average_per_sample_usd": 0.010753
+          },
+          "speed": {
+            "total_seconds": 1688.076,
+            "average_seconds_per_sample": 22.812
+          },
+          "timestamp": "2026-11-19T08:44:47Z"
+        },
+        "identification": {
+          "primary_metric": {
+            "name": "accuracy_judge",
+            "value": 96.88
+          },
+          "metrics": {
+            "accuracy_judge": 96.88,
+            "accuracy_strict": 93.75
+          },
+          "metric_runs": {
+            "accuracy_judge": [
+              96.88,
+              96.88,
+              96.88
+            ],
+            "accuracy_strict": [
+              93.75,
+              93.75,
+              93.75
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-11-19T08:40:44Z",
+            "2026-11-19T08:41:00Z",
+            "2026-11-19T08:41:09Z"
+          ],
+          "sample_count": 32,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 37447,
+            "output": 6201,
+            "total": 43648,
+            "average_per_sample": 1364.0
+          },
+          "cost": {
+            "total_usd": 0.205351,
+            "average_per_sample_usd": 0.006417
+          },
+          "speed": {
+            "total_seconds": 185.908,
+            "average_seconds_per_sample": 5.81
+          },
+          "timestamp": "2026-11-19T08:41:09Z"
+        },
+        "reasoning": {
+          "primary_metric": {
+            "name": "accuracy_judge",
+            "value": 92.94
+          },
+          "metrics": {
+            "accuracy_judge": 92.94,
+            "accuracy_strict": 92.94
+          },
+          "metric_runs": {
+            "accuracy_judge": [
+              92.72,
+              92.72,
+              93.38
+            ],
+            "accuracy_strict": [
+              92.72,
+              92.72,
+              93.38
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-11-19T08:42:46Z",
+            "2026-11-19T08:45:27Z",
+            "2026-11-19T08:46:39Z"
+          ],
+          "sample_count": 151,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 176613,
+            "output": 79153,
+            "total": 255766,
+            "average_per_sample": 1693.8
+          },
+          "cost": {
+            "total_usd": 1.717134,
+            "average_per_sample_usd": 0.011372
+          },
+          "speed": {
+            "total_seconds": 2013.971,
+            "average_seconds_per_sample": 13.338
+          },
+          "timestamp": "2026-11-19T08:46:39Z"
+        },
+        "text": {
+          "primary_metric": {
+            "name": "overall",
+            "value": 88.1
+          },
+          "metrics": {
+            "overall": 88.1,
+            "single_string": 80.87,
+            "transcription": 98.46,
+            "structured": 93.78,
+            "localization_recognition": 86.27
+          },
+          "metric_runs": {
+            "overall": [
+              88.1
+            ],
+            "single_string": [
+              80.87
+            ],
+            "transcription": [
+              98.46
+            ],
+            "structured": [
+              93.78
+            ],
+            "localization_recognition": [
+              86.27
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-11-19T09:05:38Z"
+          ],
+          "sample_count": 600,
+          "evaluated_sample_count": 600,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 760573,
+            "output": 703599,
+            "total": 1464172,
+            "average_per_sample": 2440.3
+          },
+          "cost": {
+            "total_usd": 12.835704,
+            "average_per_sample_usd": 0.021393
+          },
+          "speed": {
+            "total_seconds": 12568.36,
+            "average_seconds_per_sample": 20.947
+          },
+          "timestamp": "2026-11-19T09:05:38Z",
+          "coverage": [
+            {
+              "sample_count": 600,
+              "evaluated_sample_count": 600,
+              "failed_sample_count": 0,
+              "score": 88.09556666666666,
+              "observed_score": 88.09556666666666,
+              "score_bounds": [
+                88.09556666666666,
+                88.09556666666666
+              ],
+              "by_metric": {
+                "single_string": {
+                  "sample_count": 230,
+                  "evaluated_sample_count": 230,
+                  "failed_sample_count": 0,
+                  "score": 80.8695652173913,
+                  "observed_score": 80.8695652173913,
+                  "score_bounds": [
+                    80.8695652173913,
+                    80.8695652173913
+                  ]
+                },
+                "transcription": {
+                  "sample_count": 50,
+                  "evaluated_sample_count": 50,
+                  "failed_sample_count": 0,
+                  "score": 98.463,
+                  "observed_score": 98.463,
+                  "score_bounds": [
+                    98.463,
+                    98.463
+                  ]
+                },
+                "structured": {
+                  "sample_count": 230,
+                  "evaluated_sample_count": 230,
+                  "failed_sample_count": 0,
+                  "score": 93.78260869565217,
+                  "observed_score": 93.78260869565217,
+                  "score_bounds": [
+                    93.78260869565217,
+                    93.78260869565217
+                  ]
+                },
+                "localization_recognition": {
+                  "sample_count": 90,
+                  "evaluated_sample_count": 90,
+                  "failed_sample_count": 0,
+                  "score": 86.26877777777777,
+                  "observed_score": 86.26877777777777,
+                  "score_bounds": [
+                    86.26877777777777,
+                    86.26877777777777
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "detection": {
+          "primary_metric": {
+            "name": "map50",
+            "value": 66.78
+          },
+          "metrics": {
+            "map50": 66.78,
+            "f1": 73.69,
+            "precision": 87.4,
+            "recall": 63.7
+          },
+          "metric_runs": {
+            "map50": [
+              66.78
+            ],
+            "f1": [
+              73.69
+            ],
+            "precision": [
+              87.4
+            ],
+            "recall": [
+              63.7
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [],
+          "sample_count": 600,
+          "evaluated_sample_count": 600,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 738429,
+            "output": 2176439,
+            "total": 2914868,
+            "average_per_sample": 4858.1
+          },
+          "cost": {
+            "total_usd": 34.861872,
+            "average_per_sample_usd": 0.058103
+          },
+          "speed": {
+            "total_seconds": 23380.12,
+            "average_seconds_per_sample": 38.967
+          },
+          "timestamp": null,
+          "provenance": {
+            "protocol": "detection-v2",
+            "dataset_sha256": "366cb4e49552a6fa9640bbe1c94737e5c7c586d2f9b43ce78a6c35d8c8060c83",
+            "native_effort": "minimum",
+            "configurations": [
+              "5f637c34674023b24a9a5fffedae7fe17412349b356723eddb48875605d3364b"
+            ],
+            "complete": true,
+            "accepted_failure_count": 0
+          }
+        }
+      },
+      "overall": {
+        "task_count": 5,
+        "sample_count": 1457,
+        "tokens": {
+          "input": 1799277,
+          "output": 3001196,
+          "total": 4800473,
+          "average_per_sample": 3294.8
+        },
+        "cost": {
+          "total_usd": 50.415766,
+          "average_per_sample_usd": 0.034602
+        },
+        "speed": {
+          "total_seconds": 39836.434,
+          "average_seconds_per_sample": 27.341
+        }
+      },
+      "protocol": {
+        "name": "full",
+        "status": "complete",
+        "runs_present": 22,
+        "runs_required": 22
+      }
+    },
+    {
+      "id": "gemini-4-neon:high",
+      "key": "gemini-4-neon",
+      "name": "Gemini 4 Neon",
+      "lab": "google",
+      "effort": "high",
+      "tasks": {
+        "ocr": {
+          "primary_metric": {
+            "name": "similarity",
+            "value": 89.7
+          },
+          "metrics": {
+            "similarity": 89.7
+          },
+          "metric_runs": {
+            "similarity": [
+              90.99,
+              88.62,
+              89.48
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-11-19T08:39:45Z",
+            "2026-11-19T08:41:51Z",
+            "2026-11-19T08:42:17Z"
+          ],
+          "sample_count": 37,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 43538,
+            "output": 196550,
+            "total": 240088,
+            "average_per_sample": 6488.9
+          },
+          "cost": {
+            "total_usd": 3.078869,
+            "average_per_sample_usd": 0.083213
+          },
+          "speed": {
+            "total_seconds": 2089.683,
+            "average_seconds_per_sample": 56.478
+          },
+          "timestamp": "2026-11-19T08:42:17Z"
+        },
+        "extraction": {
+          "primary_metric": {
+            "name": "accuracy_judge",
+            "value": 97.94
+          },
+          "metrics": {
+            "accuracy_judge": 97.94,
+            "accuracy_strict": 97.25
+          },
+          "metric_runs": {
+            "accuracy_judge": [
+              97.94,
+              97.94,
+              97.94
+            ],
+            "accuracy_strict": [
+              97.94,
+              96.91,
+              96.91
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-11-19T08:40:28Z",
+            "2026-11-19T08:40:28Z",
+            "2026-11-19T08:41:57Z"
+          ],
+          "sample_count": 97,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 113223,
+            "output": 97447,
+            "total": 210670,
+            "average_per_sample": 2171.9
+          },
+          "cost": {
+            "total_usd": 1.801374,
+            "average_per_sample_usd": 0.018571
+          },
+          "speed": {
+            "total_seconds": 1754.614,
+            "average_seconds_per_sample": 18.089
+          },
+          "timestamp": "2026-11-19T08:41:57Z"
+        },
+        "counting": {
+          "primary_metric": {
+            "name": "accuracy_judge",
+            "value": 89.19
+          },
+          "metrics": {
+            "accuracy_judge": 89.19,
+            "accuracy_strict": 89.19
+          },
+          "metric_runs": {
+            "accuracy_judge": [
+              89.19,
+              87.84,
+              90.54
+            ],
+            "accuracy_strict": [
+              89.19,
+              87.84,
+              90.54
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-11-19T08:44:54Z",
+            "2026-11-19T08:45:53Z",
+            "2026-11-19T08:46:38Z"
+          ],
+          "sample_count": 74,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 86215,
+            "output": 254097,
+            "total": 340312,
+            "average_per_sample": 4598.8
+          },
+          "cost": {
+            "total_usd": 4.070105,
+            "average_per_sample_usd": 0.055001
+          },
+          "speed": {
+            "total_seconds": 2784.032,
+            "average_seconds_per_sample": 37.622
+          },
+          "timestamp": "2026-11-19T08:46:38Z"
+        },
+        "identification": {
+          "primary_metric": {
+            "name": "accuracy_judge",
+            "value": 96.88
+          },
+          "metrics": {
+            "accuracy_judge": 96.88,
+            "accuracy_strict": 93.75
+          },
+          "metric_runs": {
+            "accuracy_judge": [
+              96.88,
+              96.88,
+              96.88
+            ],
+            "accuracy_strict": [
+              93.75,
+              93.75,
+              93.75
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-11-19T08:41:23Z",
+            "2026-11-19T08:41:53Z",
+            "2026-11-19T08:42:59Z"
+          ],
+          "sample_count": 32,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 37447,
+            "output": 14884,
+            "total": 52331,
+            "average_per_sample": 1635.3
+          },
+          "cost": {
+            "total_usd": 0.335601,
+            "average_per_sample_usd": 0.010488
+          },
+          "speed": {
+            "total_seconds": 304.901,
+            "average_seconds_per_sample": 9.528
+          },
+          "timestamp": "2026-11-19T08:42:59Z"
+        },
+        "reasoning": {
+          "primary_metric": {
+            "name": "accuracy_judge",
+            "value": 94.04
+          },
+          "metrics": {
+            "accuracy_judge": 94.04,
+            "accuracy_strict": 94.04
+          },
+          "metric_runs": {
+            "accuracy_judge": [
+              94.7,
+              93.38,
+              94.04
+            ],
+            "accuracy_strict": [
+              94.7,
+              93.38,
+              94.04
+            ]
+          },
+          "run_count": 3,
+          "timestamps": [
+            "2026-11-19T08:50:23Z",
+            "2026-11-19T08:52:02Z",
+            "2026-11-19T08:52:23Z"
+          ],
+          "sample_count": 151,
+          "evaluated_sample_count": null,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 176613,
+            "output": 352146,
+            "total": 528759,
+            "average_per_sample": 3501.7
+          },
+          "cost": {
+            "total_usd": 5.812034,
+            "average_per_sample_usd": 0.03849
+          },
+          "speed": {
+            "total_seconds": 4141.477,
+            "average_seconds_per_sample": 27.427
+          },
+          "timestamp": "2026-11-19T08:52:23Z"
+        },
+        "text": {
+          "primary_metric": {
+            "name": "overall",
+            "value": 89.15
+          },
+          "metrics": {
+            "overall": 89.15,
+            "single_string": 83.48,
+            "transcription": 98.77,
+            "structured": 93.94,
+            "localization_recognition": 86.03
+          },
+          "metric_runs": {
+            "overall": [
+              89.15
+            ],
+            "single_string": [
+              83.48
+            ],
+            "transcription": [
+              98.77
+            ],
+            "structured": [
+              93.94
+            ],
+            "localization_recognition": [
+              86.03
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [
+            "2026-11-19T09:20:57Z"
+          ],
+          "sample_count": 600,
+          "evaluated_sample_count": 600,
+          "failed_sample_count": 0,
+          "tokens": {
+            "input": 760573,
+            "output": 3128105,
+            "total": 3888678,
+            "average_per_sample": 6481.1
+          },
+          "cost": {
+            "total_usd": 49.203294,
+            "average_per_sample_usd": 0.082005
+          },
+          "speed": {
+            "total_seconds": 29921.342,
+            "average_seconds_per_sample": 49.869
+          },
+          "timestamp": "2026-11-19T09:20:57Z",
+          "coverage": [
+            {
+              "sample_count": 600,
+              "evaluated_sample_count": 600,
+              "failed_sample_count": 0,
+              "score": 89.14656666666667,
+              "observed_score": 89.14656666666667,
+              "score_bounds": [
+                89.14656666666667,
+                89.14656666666667
+              ],
+              "by_metric": {
+                "single_string": {
+                  "sample_count": 230,
+                  "evaluated_sample_count": 230,
+                  "failed_sample_count": 0,
+                  "score": 83.47826086956522,
+                  "observed_score": 83.47826086956522,
+                  "score_bounds": [
+                    83.47826086956522,
+                    83.47826086956522
+                  ]
+                },
+                "transcription": {
+                  "sample_count": 50,
+                  "evaluated_sample_count": 50,
+                  "failed_sample_count": 0,
+                  "score": 98.76719999999999,
+                  "observed_score": 98.76719999999999,
+                  "score_bounds": [
+                    98.76719999999999,
+                    98.76719999999999
+                  ]
+                },
+                "structured": {
+                  "sample_count": 230,
+                  "evaluated_sample_count": 230,
+                  "failed_sample_count": 0,
+                  "score": 93.94108695652174,
+                  "observed_score": 93.94108695652174,
+                  "score_bounds": [
+                    93.94108695652174,
+                    93.94108695652174
+                  ]
+                },
+                "localization_recognition": {
+                  "sample_count": 90,
+                  "evaluated_sample_count": 90,
+                  "failed_sample_count": 0,
+                  "score": 86.03477777777778,
+                  "observed_score": 86.03477777777778,
+                  "score_bounds": [
+                    86.03477777777778,
+                    86.03477777777778
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "detection": {
+          "primary_metric": {
+            "name": "map50",
+            "value": 71.22
+          },
+          "metrics": {
+            "map50": 71.22,
+            "f1": 80.0,
+            "precision": 86.46,
+            "recall": 74.44
+          },
+          "metric_runs": {
+            "map50": [
+              71.22
+            ],
+            "f1": [
+              80.0
+            ],
+            "precision": [
+              86.46
+            ],
+            "recall": [
+              74.44
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [],
+          "sample_count": 600,
+          "evaluated_sample_count": 600,
+          "failed_sample_count": 6,
+          "tokens": {
+            "input": 738429,
+            "output": 4810341,
+            "total": 5548770,
+            "average_per_sample": 9248.0
+          },
+          "cost": {
+            "total_usd": 74.370402,
+            "average_per_sample_usd": 0.123951
+          },
+          "speed": {
+            "total_seconds": 39999.746,
+            "average_seconds_per_sample": 66.666
+          },
+          "timestamp": null,
+          "provenance": {
+            "protocol": "detection-v2",
+            "dataset_sha256": "366cb4e49552a6fa9640bbe1c94737e5c7c586d2f9b43ce78a6c35d8c8060c83",
+            "native_effort": "maximum",
+            "configurations": [
+              "55fb8740d9891ac4882ad89f1b37991b5888cec8064abfa363a280f2bcedb6f6"
+            ],
+            "complete": true,
+            "accepted_failure_count": 0
+          }
+        }
+      },
+      "overall": {
+        "task_count": 5,
+        "sample_count": 1457,
+        "tokens": {
+          "input": 1799277,
+          "output": 8559573,
+          "total": 10358850,
+          "average_per_sample": 7109.7
+        },
+        "cost": {
+          "total_usd": 133.791436,
+          "average_per_sample_usd": 0.091827
+        },
+        "speed": {
+          "total_seconds": 77151.497,
+          "average_seconds_per_sample": 52.952
+        }
+      },
+      "protocol": {
+        "name": "full",
+        "status": "complete",
+        "runs_present": 22,
+        "runs_required": 22
+      }
+    },
     {
       "id": "claude-fable-5-2:low",
       "key": "claude-fable-5-2",
@@ -576,7 +1424,8 @@
               "12cd0314a0a453768fee76b0397b8d52d615b7902b97c12046c3abf8390a7f81",
               "35a5db6a17d58d4a11c381cc3246066cad8c5cd4c3e67cee48cb1eb0665043a8"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -1000,7 +1849,8 @@
               "12cd0314a0a453768fee76b0397b8d52d615b7902b97c12046c3abf8390a7f81",
               "35a5db6a17d58d4a11c381cc3246066cad8c5cd4c3e67cee48cb1eb0665043a8"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -1423,7 +2273,8 @@
             "configurations": [
               "462112356f6ee0526c65b0db157da77e16bd12a4304edaeaaeaf262894f7342b"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -1846,7 +2697,8 @@
             "configurations": [
               "462112356f6ee0526c65b0db157da77e16bd12a4304edaeaaeaf262894f7342b"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -2241,7 +3093,8 @@
             "configurations": [
               "7fc44947f3765b299fd6d3a0f2a4933485007c4eb94bc6fc66a27f4912f88500"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -2480,7 +3333,8 @@
             "configurations": [
               "7fc44947f3765b299fd6d3a0f2a4933485007c4eb94bc6fc66a27f4912f88500"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -2904,7 +3758,8 @@
               "9a687e7f86435412375273c500e67546ad4746127f5a8b4d5f4578b9461aa8a6",
               "f4efe42e1999622dba239f2f9151b3ee5634bcbf4061e990181f6513835b18d5"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -3328,7 +4183,8 @@
               "9a687e7f86435412375273c500e67546ad4746127f5a8b4d5f4578b9461aa8a6",
               "f4efe42e1999622dba239f2f9151b3ee5634bcbf4061e990181f6513835b18d5"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -3723,7 +4579,8 @@
             "configurations": [
               "2c2ba586019d3be3e33cd3e725b98597835dff3194dabc26ba4fc35a8d140690"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -3962,7 +4819,8 @@
             "configurations": [
               "2c2ba586019d3be3e33cd3e725b98597835dff3194dabc26ba4fc35a8d140690"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -4357,7 +5215,8 @@
             "configurations": [
               "5cdf0e6a41b2179a70b4d40ee1aca9405cccb02369930faa927e9cdecc09ad5b"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -4596,7 +5455,8 @@
             "configurations": [
               "5cdf0e6a41b2179a70b4d40ee1aca9405cccb02369930faa927e9cdecc09ad5b"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -4991,7 +5851,8 @@
             "configurations": [
               "1d250ba4cf38a9e0149f301e5bba12fa5d3ca6a9292475747cf51ecea6589048"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -5230,7 +6091,8 @@
             "configurations": [
               "1d250ba4cf38a9e0149f301e5bba12fa5d3ca6a9292475747cf51ecea6589048"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -5655,7 +6517,8 @@
               "634cc88d717e624de9fe81f75559fccd6dec38e255fd7c03bc95b1eb02b9e225",
               "70b61505a3aa244acea6a48b684ec95c283b6cef21e5ff76aac64244c7dee713"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -6080,7 +6943,8 @@
               "634cc88d717e624de9fe81f75559fccd6dec38e255fd7c03bc95b1eb02b9e225",
               "70b61505a3aa244acea6a48b684ec95c283b6cef21e5ff76aac64244c7dee713"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -6505,7 +7369,8 @@
               "0c971ca651742dbc1e8fcaec142a118b8e8fda1a259a027adde8165dc3a9df9e",
               "beebd8f78cf1a6916e7b52ee85a1c839ce04dff0817f20298edc1765a420d768"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -6919,7 +7784,8 @@
               "0c971ca651742dbc1e8fcaec142a118b8e8fda1a259a027adde8165dc3a9df9e",
               "beebd8f78cf1a6916e7b52ee85a1c839ce04dff0817f20298edc1765a420d768"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -7343,7 +8209,8 @@
               "887fadddf66d6e825aed1488f1a9c6d2dcd71ffe3349fe6838a6a87c48df8314",
               "caf6e9491212e21084e3389f07c687be173479bf9925af777e30c0c10e7aedd6"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -7767,7 +8634,8 @@
               "887fadddf66d6e825aed1488f1a9c6d2dcd71ffe3349fe6838a6a87c48df8314",
               "caf6e9491212e21084e3389f07c687be173479bf9925af777e30c0c10e7aedd6"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -8191,7 +9059,8 @@
               "7a5f775b841956eab696e66bffc2bf2f8f0b9bebed3870b1ef7d0183a687959e",
               "aac61f237a817f643970d83c3b34bdab61f7991e80c02407ce621e6b9d194623"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -8615,7 +9484,8 @@
               "7a5f775b841956eab696e66bffc2bf2f8f0b9bebed3870b1ef7d0183a687959e",
               "aac61f237a817f643970d83c3b34bdab61f7991e80c02407ce621e6b9d194623"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -9039,7 +9909,8 @@
               "4f99983515bb0099c1b0bbf661e3be8d9c57a3c7b8609400167f9ce664595e18",
               "b50b0e8f294b8d2f3db3379d52ac8d87b1c893b2b540d605e6fc0e4ae9c2e720"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -9463,7 +10334,8 @@
               "4f99983515bb0099c1b0bbf661e3be8d9c57a3c7b8609400167f9ce664595e18",
               "b50b0e8f294b8d2f3db3379d52ac8d87b1c893b2b540d605e6fc0e4ae9c2e720"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -9888,7 +10760,8 @@
               "59db559b23c123707010aa36aac59290d4b7e9868fc5d1eba5c0ea1e21b859ac",
               "6c961ffb1c331dc4358a7045e5833784054ed8ed04f650cd2330fa3f59ec2f02"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -10313,7 +11186,8 @@
               "59db559b23c123707010aa36aac59290d4b7e9868fc5d1eba5c0ea1e21b859ac",
               "6c961ffb1c331dc4358a7045e5833784054ed8ed04f650cd2330fa3f59ec2f02"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -10738,7 +11612,8 @@
               "8354e59530b7e4629b5a585bcc0464615e75393538b20787365ab7d399f83732",
               "c28078f6d5c6872b6da3002bfa6a5480cafc05427a64fcdcf24191741fe600c6"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -11163,7 +12038,8 @@
               "8354e59530b7e4629b5a585bcc0464615e75393538b20787365ab7d399f83732",
               "c28078f6d5c6872b6da3002bfa6a5480cafc05427a64fcdcf24191741fe600c6"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -11558,7 +12434,8 @@
             "configurations": [
               "74e22a5775babc4795b078a1fe73c83aab8286e3b02a68bce677fa5e8de6860e"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -11797,7 +12674,8 @@
             "configurations": [
               "74e22a5775babc4795b078a1fe73c83aab8286e3b02a68bce677fa5e8de6860e"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -12192,7 +13070,8 @@
             "configurations": [
               "707c533ec0f1111efac939812a88edcea1bfa29e60609cc84491f7621a360875"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -12431,7 +13310,8 @@
             "configurations": [
               "707c533ec0f1111efac939812a88edcea1bfa29e60609cc84491f7621a360875"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -12826,7 +13706,8 @@
             "configurations": [
               "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -13065,7 +13946,8 @@
             "configurations": [
               "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -13460,7 +14342,8 @@
             "configurations": [
               "907f96a39c809b125d4a7897fd788495b2f35f0a4393d168ed722c4f8b4bcbdf"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -13699,7 +14582,8 @@
             "configurations": [
               "907f96a39c809b125d4a7897fd788495b2f35f0a4393d168ed722c4f8b4bcbdf"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -14122,7 +15006,8 @@
             "configurations": [
               "040ee8d2926407a30b0a9656860a734595e98a57aa3273671b14755b783ed15d"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -14545,7 +15430,8 @@
             "configurations": [
               "040ee8d2926407a30b0a9656860a734595e98a57aa3273671b14755b783ed15d"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -14968,7 +15854,8 @@
             "configurations": [
               "9a8bc9fc92abf0782a244bfb92b0cc8ae416609ff47b2dd23fa285daed2d0865"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -15391,7 +16278,8 @@
             "configurations": [
               "9a8bc9fc92abf0782a244bfb92b0cc8ae416609ff47b2dd23fa285daed2d0865"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -15815,7 +16703,8 @@
               "1db4b22a0aa03d7e968ac1c5e9566992064e2be4f49dcec635f4c94ce698a25b",
               "9b4e61b4f46301e7b76b81e1091a339862befa2146c6b8469fd4a714a5f32149"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -16239,7 +17128,8 @@
               "1db4b22a0aa03d7e968ac1c5e9566992064e2be4f49dcec635f4c94ce698a25b",
               "9b4e61b4f46301e7b76b81e1091a339862befa2146c6b8469fd4a714a5f32149"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -16663,7 +17553,8 @@
               "c44fe0b4fa464c98b9854bc1e26a77b88b8c01dc9c83935537d00103cb6ff5a0",
               "ce3c48b747f668678d070641370a6e45f7db03d050dcffcb077550096cf2733d"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -17087,7 +17978,8 @@
               "c44fe0b4fa464c98b9854bc1e26a77b88b8c01dc9c83935537d00103cb6ff5a0",
               "ce3c48b747f668678d070641370a6e45f7db03d050dcffcb077550096cf2733d"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -17511,7 +18403,8 @@
               "9ab4692b6d95ce12fd603eb8a0a889920f470949d6a2ff97ffe7b385799a9c47",
               "9ada29c28c60b9c22611fe358f2be2861f2b40b191d178b20bc58d2f25c24ff5"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -17935,7 +18828,8 @@
               "9ab4692b6d95ce12fd603eb8a0a889920f470949d6a2ff97ffe7b385799a9c47",
               "9ada29c28c60b9c22611fe358f2be2861f2b40b191d178b20bc58d2f25c24ff5"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -18360,7 +19254,8 @@
               "7e7c5b1e76895940204b5e4aa29a21a128467edcc2199bda79a220ec4d2a4efa",
               "af540dd6bba944aabcd51d58b9170564ae6f55f4648d0eee982c0dc15b1fe92f"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -18785,7 +19680,8 @@
               "7e7c5b1e76895940204b5e4aa29a21a128467edcc2199bda79a220ec4d2a4efa",
               "af540dd6bba944aabcd51d58b9170564ae6f55f4648d0eee982c0dc15b1fe92f"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -19209,7 +20105,8 @@
               "625e55b020974512f36148ec94c30c0e266a0262f7b72993fa54e25e2930b391",
               "c9b2d352499b68d0bfd6aef2c2f392b49f1e9496c128b421a5509e7dd4a8b453"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -19633,7 +20530,8 @@
               "625e55b020974512f36148ec94c30c0e266a0262f7b72993fa54e25e2930b391",
               "c9b2d352499b68d0bfd6aef2c2f392b49f1e9496c128b421a5509e7dd4a8b453"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -20057,7 +20955,8 @@
               "1ddd4611e328325cf1c58b5b352703f9eeb98a82ef18850cf3f80aa514f80003",
               "f4bebf52f5962150a0ebef9238bfadd56fb705f3fde0cf92b5f7e84af86ce3c9"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -20481,7 +21380,8 @@
               "1ddd4611e328325cf1c58b5b352703f9eeb98a82ef18850cf3f80aa514f80003",
               "f4bebf52f5962150a0ebef9238bfadd56fb705f3fde0cf92b5f7e84af86ce3c9"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -20906,7 +21806,8 @@
               "64dd8375fac9883919d5cb5008317090639d1b84f2fe48a6be936f9c06c3fd81",
               "6736caf480180083cddb3da7857bbf7d344f04c214fd7c9a783a6fb3b03efe9b"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -21331,7 +22232,8 @@
               "64dd8375fac9883919d5cb5008317090639d1b84f2fe48a6be936f9c06c3fd81",
               "6736caf480180083cddb3da7857bbf7d344f04c214fd7c9a783a6fb3b03efe9b"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -21754,7 +22656,8 @@
             "configurations": [
               "135e4dccc7997a0578271550da0d5a5b77868a12e9099dcec7c37c0dd71b4bbb"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -22177,7 +23080,8 @@
             "configurations": [
               "135e4dccc7997a0578271550da0d5a5b77868a12e9099dcec7c37c0dd71b4bbb"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -22601,7 +23505,8 @@
               "25896eb63080a3cfd21c1e56fd43adf0e28feb6be1ad4fdd46d93eeac3a4b1b8",
               "490cbe9a762bd8c59d8445752e824f4f9572feda093c637316aa757eb4d2ba7d"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -23025,7 +23930,8 @@
               "25896eb63080a3cfd21c1e56fd43adf0e28feb6be1ad4fdd46d93eeac3a4b1b8",
               "490cbe9a762bd8c59d8445752e824f4f9572feda093c637316aa757eb4d2ba7d"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -23605,7 +24511,8 @@
               "790201b420b29abc2ec8edaef5c371e72d5a3e0594b289916a33ec2c3d707b25",
               "9cf0d216b1a1032df4ae2c0fa5797ab2949d718259fc3733709d5aa5794ba1c5"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -24000,7 +24907,8 @@
             "configurations": [
               "23d1e2f8226866251757bce9cd72ed57bd03320aa4af35e91665eb62562484b9"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -24239,7 +25147,8 @@
             "configurations": [
               "23d1e2f8226866251757bce9cd72ed57bd03320aa4af35e91665eb62562484b9"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -24663,7 +25572,8 @@
               "6a72ecc4a1fdb919eb25d4ed37c0ca8a9796c8369f8622d805eaf7cee64d7b4e",
               "86ef2a9c29662292eb093efda2959599058d377ceb01bd7c3d99debc6dc3a684"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -25087,7 +25997,8 @@
               "6a72ecc4a1fdb919eb25d4ed37c0ca8a9796c8369f8622d805eaf7cee64d7b4e",
               "86ef2a9c29662292eb093efda2959599058d377ceb01bd7c3d99debc6dc3a684"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -26530,7 +27441,8 @@
             "configurations": [
               "fab94d6f2f64a7e09524f9528747829fc6635012bf4ae569a5625003ca08ee2e"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -26769,7 +27681,8 @@
             "configurations": [
               "fab94d6f2f64a7e09524f9528747829fc6635012bf4ae569a5625003ca08ee2e"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -27348,7 +28261,8 @@
             "configurations": [
               "ce2d2bd14fdc706bfc44f1d5db04f44a1cb950de8ec09f213378c6c2f38203d8"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -29315,7 +30229,8 @@
             "configurations": [
               "47f5986de117893a36130924214e83f2f872df5712a6fc7c48aff22b4c5fd3a3"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -29554,7 +30469,8 @@
             "configurations": [
               "47f5986de117893a36130924214e83f2f872df5712a6fc7c48aff22b4c5fd3a3"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -29977,7 +30893,8 @@
             "configurations": [
               "58760e48503482ddabd840ffa52712f94fc72bebb5201e8f8f60a245c0d41f71"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -30400,7 +31317,8 @@
             "configurations": [
               "58760e48503482ddabd840ffa52712f94fc72bebb5201e8f8f60a245c0d41f71"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -30823,7 +31741,8 @@
             "configurations": [
               "e0b90c10fbedd788da06f01d2b6247cda7a01e0d8ab0b665492b073bcd7e1c4c"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -31246,7 +32165,8 @@
             "configurations": [
               "e0b90c10fbedd788da06f01d2b6247cda7a01e0d8ab0b665492b073bcd7e1c4c"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -31669,7 +32589,8 @@
             "configurations": [
               "0364339feea07fcad572f489cb2444523871edccc263a16261efa10cc366c357"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -32092,7 +33013,8 @@
             "configurations": [
               "0364339feea07fcad572f489cb2444523871edccc263a16261efa10cc366c357"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -32515,7 +33437,8 @@
             "configurations": [
               "95b51033765518039d9bbd5fd6b138224b9ce5d9f45a7472eb24307a91d54671"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -32938,7 +33861,8 @@
             "configurations": [
               "95b51033765518039d9bbd5fd6b138224b9ce5d9f45a7472eb24307a91d54671"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -33333,7 +34257,8 @@
             "configurations": [
               "81a5c3f20591a597ad84d6cd877c76ce2651f8753cd1fa645c082094c888c251"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -33572,7 +34497,8 @@
             "configurations": [
               "81a5c3f20591a597ad84d6cd877c76ce2651f8753cd1fa645c082094c888c251"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -33995,7 +34921,8 @@
             "configurations": [
               "9db2ce098759337c4055af3a9d9f0b8405496882b6cb259049cbee92ffd89b37"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -34418,7 +35345,8 @@
             "configurations": [
               "9db2ce098759337c4055af3a9d9f0b8405496882b6cb259049cbee92ffd89b37"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -34841,7 +35769,8 @@
             "configurations": [
               "f7110fb460dcbee3940a51aab5a6cd49e7c8d42c1abd1487fea386e2b9f0ad0d"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -35264,7 +36193,8 @@
             "configurations": [
               "f7110fb460dcbee3940a51aab5a6cd49e7c8d42c1abd1487fea386e2b9f0ad0d"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -35687,7 +36617,8 @@
             "configurations": [
               "edc60634bc0f8a5210a121ddc8860bde8292ea74a2234c5d786e8c79153e8905"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -36095,7 +37026,8 @@
             "configurations": [
               "edc60634bc0f8a5210a121ddc8860bde8292ea74a2234c5d786e8c79153e8905"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -37042,7 +37974,8 @@
             "configurations": [
               "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -37465,7 +38398,8 @@
             "configurations": [
               "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -37888,7 +38822,8 @@
             "configurations": [
               "bb8690d78d613550f0f9c94fa8edd311290392eda3ace2acbce1e0f626f641f1"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -38311,7 +39246,8 @@
             "configurations": [
               "bb8690d78d613550f0f9c94fa8edd311290392eda3ace2acbce1e0f626f641f1"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -39103,7 +40039,8 @@
               "cb9bcde172b6e5a17791a192445e70ff7dd1707c649e0b3c11ff784b0a9ee321",
               "e0f2eab404441aac616c516fd41f4bec24cd0e0d3c70cf6affed356f6ca0c48b"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -39477,46 +40414,46 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 65.01
+            "value": 63.67
           },
           "metrics": {
-            "map50": 65.01,
-            "f1": 75.02,
-            "precision": 85.11,
-            "recall": 67.07
+            "map50": 63.67,
+            "f1": 73.26,
+            "precision": 84.57,
+            "recall": 64.63
           },
           "metric_runs": {
             "map50": [
-              65.01
+              63.67
             ],
             "f1": [
-              75.02
+              73.26
             ],
             "precision": [
-              85.11
+              84.57
             ],
             "recall": [
-              67.07
+              64.63
             ]
           },
           "run_count": 1,
           "timestamps": [],
           "sample_count": 600,
           "evaluated_sample_count": 600,
-          "failed_sample_count": 3,
+          "failed_sample_count": 0,
           "tokens": {
             "input": 738429,
-            "output": 1146410,
-            "total": 1884839,
-            "average_per_sample": 3141.4
+            "output": 1105585,
+            "total": 1844014,
+            "average_per_sample": 3073.4
           },
           "cost": {
-            "total_usd": 12.940958,
-            "average_per_sample_usd": 0.021568
+            "total_usd": 12.532708,
+            "average_per_sample_usd": 0.020888
           },
           "speed": {
-            "total_seconds": 30449.333,
-            "average_seconds_per_sample": 50.749
+            "total_seconds": 23014.129,
+            "average_seconds_per_sample": 38.357
           },
           "timestamp": null,
           "provenance": {
@@ -39524,11 +40461,10 @@
             "dataset_sha256": "366cb4e49552a6fa9640bbe1c94737e5c7c586d2f9b43ce78a6c35d8c8060c83",
             "native_effort": "minimum",
             "configurations": [
-              "33db47dfa429ac1732df58413588a173ab324b600d64172a30c4be5b8db22974",
-              "7e9d7eeaf7294bf76d91a7dc7a599cdeeb3692326265c7d6d5222b8543d332e9",
-              "f49bbbbc0a082a9119ad9ef0e15b9db345cf97775d4991f03c2b8cd1b38e5525"
+              "cb5c60788314993982e60ec0b3525ee206272ba0e3cbcc59b27695c2b2131976"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -39537,17 +40473,17 @@
         "sample_count": 1457,
         "tokens": {
           "input": 1799277,
-          "output": 1302435,
-          "total": 3101712,
-          "average_per_sample": 2128.8
+          "output": 1261610,
+          "total": 3060887,
+          "average_per_sample": 2100.8
         },
         "cost": {
-          "total_usd": 16.622901,
-          "average_per_sample_usd": 0.011409
+          "total_usd": 16.214651,
+          "average_per_sample_usd": 0.011129
         },
         "speed": {
-          "total_seconds": 37257.124,
-          "average_seconds_per_sample": 25.571
+          "total_seconds": 29821.921,
+          "average_seconds_per_sample": 20.468
         }
       },
       "protocol": {
@@ -39902,46 +40838,46 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 68.08
+            "value": 68.5
           },
           "metrics": {
-            "map50": 68.08,
-            "f1": 74.02,
-            "precision": 83.35,
-            "recall": 66.56
+            "map50": 68.5,
+            "f1": 73.93,
+            "precision": 83.07,
+            "recall": 66.6
           },
           "metric_runs": {
             "map50": [
-              68.08
+              68.5
             ],
             "f1": [
-              74.02
+              73.93
             ],
             "precision": [
-              83.35
+              83.07
             ],
             "recall": [
-              66.56
+              66.6
             ]
           },
           "run_count": 1,
           "timestamps": [],
           "sample_count": 600,
           "evaluated_sample_count": 600,
-          "failed_sample_count": 1,
+          "failed_sample_count": 0,
           "tokens": {
             "input": 738429,
-            "output": 2906162,
-            "total": 3644591,
-            "average_per_sample": 6074.3
+            "output": 2924670,
+            "total": 3663099,
+            "average_per_sample": 6105.2
           },
           "cost": {
-            "total_usd": 30.538478,
-            "average_per_sample_usd": 0.050897
+            "total_usd": 30.723558,
+            "average_per_sample_usd": 0.051206
           },
           "speed": {
-            "total_seconds": 48409.364,
-            "average_seconds_per_sample": 80.682
+            "total_seconds": 36754.751,
+            "average_seconds_per_sample": 61.258
           },
           "timestamp": null,
           "provenance": {
@@ -39949,11 +40885,10 @@
             "dataset_sha256": "366cb4e49552a6fa9640bbe1c94737e5c7c586d2f9b43ce78a6c35d8c8060c83",
             "native_effort": "maximum",
             "configurations": [
-              "33db47dfa429ac1732df58413588a173ab324b600d64172a30c4be5b8db22974",
-              "7e9d7eeaf7294bf76d91a7dc7a599cdeeb3692326265c7d6d5222b8543d332e9",
-              "f49bbbbc0a082a9119ad9ef0e15b9db345cf97775d4991f03c2b8cd1b38e5525"
+              "3e58cda7f0aa33e6ff087e14eb6ec73de4246b0dca46f82c17b100ad075251b2"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -39962,17 +40897,17 @@
         "sample_count": 1457,
         "tokens": {
           "input": 1799277,
-          "output": 4306273,
-          "total": 6105550,
-          "average_per_sample": 4190.5
+          "output": 4324781,
+          "total": 6124058,
+          "average_per_sample": 4203.2
         },
         "cost": {
-          "total_usd": 46.661287,
-          "average_per_sample_usd": 0.032026
+          "total_usd": 46.846367,
+          "average_per_sample_usd": 0.032153
         },
         "speed": {
-          "total_seconds": 64149.132,
-          "average_seconds_per_sample": 44.028
+          "total_seconds": 52494.519,
+          "average_seconds_per_sample": 36.029
         }
       },
       "protocol": {
@@ -40327,46 +41262,46 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 69.15
+            "value": 68.72
           },
           "metrics": {
-            "map50": 69.15,
-            "f1": 77.45,
-            "precision": 84.98,
-            "recall": 71.16
+            "map50": 68.72,
+            "f1": 78.26,
+            "precision": 86.06,
+            "recall": 71.75
           },
           "metric_runs": {
             "map50": [
-              69.15
+              68.72
             ],
             "f1": [
-              77.45
+              78.26
             ],
             "precision": [
-              84.98
+              86.06
             ],
             "recall": [
-              71.16
+              71.75
             ]
           },
           "run_count": 1,
           "timestamps": [],
           "sample_count": 600,
           "evaluated_sample_count": 600,
-          "failed_sample_count": 2,
+          "failed_sample_count": 3,
           "tokens": {
             "input": 738429,
-            "output": 1227389,
-            "total": 1965818,
-            "average_per_sample": 3276.4
+            "output": 1206444,
+            "total": 1944873,
+            "average_per_sample": 3241.5
           },
           "cost": {
-            "total_usd": 13.750748,
-            "average_per_sample_usd": 0.022918
+            "total_usd": 13.541298,
+            "average_per_sample_usd": 0.022569
           },
           "speed": {
-            "total_seconds": 21687.59,
-            "average_seconds_per_sample": 36.146
+            "total_seconds": 21812.712,
+            "average_seconds_per_sample": 36.355
           },
           "timestamp": null,
           "provenance": {
@@ -40374,11 +41309,10 @@
             "dataset_sha256": "366cb4e49552a6fa9640bbe1c94737e5c7c586d2f9b43ce78a6c35d8c8060c83",
             "native_effort": "minimum",
             "configurations": [
-              "00733ec9a8d56e0b6299af936c83ef87f5dcafc88e771102adf1f5f9b34c7e90",
-              "22dec00bfabb4fc013b615c9846508a53c6cfca28334aa06083289a7343a2f9b",
-              "77b1c51bda756d7c04b422d9303f38c72b3c762241dd75b56090433cd4fd80f8"
+              "6f88dcf68a9a183b4130a610188b4a622efa9f7c5cb9b0609d1d134af2afad31"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -40387,17 +41321,17 @@
         "sample_count": 1457,
         "tokens": {
           "input": 1799277,
-          "output": 1398380,
-          "total": 3197657,
-          "average_per_sample": 2194.7
+          "output": 1377435,
+          "total": 3176712,
+          "average_per_sample": 2180.3
         },
         "cost": {
-          "total_usd": 17.582354,
-          "average_per_sample_usd": 0.012068
+          "total_usd": 17.372904,
+          "average_per_sample_usd": 0.011924
         },
         "speed": {
-          "total_seconds": 27874.802,
-          "average_seconds_per_sample": 19.132
+          "total_seconds": 27999.925,
+          "average_seconds_per_sample": 19.218
         }
       },
       "protocol": {
@@ -40752,46 +41686,46 @@
         "detection": {
           "primary_metric": {
             "name": "map50",
-            "value": 69.44
+            "value": 69.41
           },
           "metrics": {
-            "map50": 69.44,
-            "f1": 73.44,
-            "precision": 80.76,
-            "recall": 67.34
+            "map50": 69.41,
+            "f1": 74.29,
+            "precision": 81.76,
+            "recall": 68.07
           },
           "metric_runs": {
             "map50": [
-              69.44
+              69.41
             ],
             "f1": [
-              73.44
+              74.29
             ],
             "precision": [
-              80.76
+              81.76
             ],
             "recall": [
-              67.34
+              68.07
             ]
           },
           "run_count": 1,
           "timestamps": [],
           "sample_count": 600,
-          "evaluated_sample_count": 600,
-          "failed_sample_count": 17,
+          "evaluated_sample_count": 593,
+          "failed_sample_count": 10,
           "tokens": {
-            "input": 738429,
-            "output": 10356568,
-            "total": 11094997,
-            "average_per_sample": 18491.7
+            "input": 729319,
+            "output": 9316887,
+            "total": 10046206,
+            "average_per_sample": 16743.7
           },
           "cost": {
-            "total_usd": 105.042538,
-            "average_per_sample_usd": 0.175071
+            "total_usd": 94.627508,
+            "average_per_sample_usd": 0.157713
           },
           "speed": {
-            "total_seconds": 103410.467,
-            "average_seconds_per_sample": 172.351
+            "total_seconds": null,
+            "average_seconds_per_sample": null
           },
           "timestamp": null,
           "provenance": {
@@ -40799,11 +41733,10 @@
             "dataset_sha256": "366cb4e49552a6fa9640bbe1c94737e5c7c586d2f9b43ce78a6c35d8c8060c83",
             "native_effort": "maximum",
             "configurations": [
-              "00733ec9a8d56e0b6299af936c83ef87f5dcafc88e771102adf1f5f9b34c7e90",
-              "22dec00bfabb4fc013b615c9846508a53c6cfca28334aa06083289a7343a2f9b",
-              "77b1c51bda756d7c04b422d9303f38c72b3c762241dd75b56090433cd4fd80f8"
+              "6c8ae97cd14a2a471b2ea75c4bd6875d82f02adf5a94132bdf1113827aea1fbb"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 7
           }
         }
       },
@@ -40811,18 +41744,18 @@
         "task_count": 5,
         "sample_count": 1457,
         "tokens": {
-          "input": 1799277,
-          "output": 17772839,
-          "total": 19572116,
-          "average_per_sample": 13433.2
+          "input": 1790167,
+          "output": 16733158,
+          "total": 18523325,
+          "average_per_sample": 12713.3
         },
         "cost": {
-          "total_usd": 181.326947,
-          "average_per_sample_usd": 0.124452
+          "total_usd": 170.911917,
+          "average_per_sample_usd": 0.117304
         },
         "speed": {
-          "total_seconds": 172012.499,
-          "average_seconds_per_sample": 118.059
+          "total_seconds": null,
+          "average_seconds_per_sample": null
         }
       },
       "protocol": {
@@ -41226,7 +42159,8 @@
             "configurations": [
               "3a5b206037fffdfa8f042d82772d9fac39f7e1a55afb10d5fe5a013592f4c546"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -41649,7 +42583,8 @@
             "configurations": [
               "3a5b206037fffdfa8f042d82772d9fac39f7e1a55afb10d5fe5a013592f4c546"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -42074,7 +43009,8 @@
               "932e41be86848e44ee92924f8004ed01da8b478663a743c8f4a2030ed14f883b",
               "b08d95af7e58cc7efd1041ad58c9f8dedb368055f1bbee50cf1048060ede2c7b"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -42499,7 +43435,8 @@
               "932e41be86848e44ee92924f8004ed01da8b478663a743c8f4a2030ed14f883b",
               "b08d95af7e58cc7efd1041ad58c9f8dedb368055f1bbee50cf1048060ede2c7b"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -42869,24 +43806,80 @@
               }
             }
           ]
+        },
+        "detection": {
+          "primary_metric": {
+            "name": "map50",
+            "value": 59.94
+          },
+          "metrics": {
+            "map50": 59.94,
+            "f1": 59.37,
+            "precision": 82.79,
+            "recall": 46.29
+          },
+          "metric_runs": {
+            "map50": [
+              59.94
+            ],
+            "f1": [
+              59.37
+            ],
+            "precision": [
+              82.79
+            ],
+            "recall": [
+              46.29
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [],
+          "sample_count": 600,
+          "evaluated_sample_count": 600,
+          "failed_sample_count": 1,
+          "tokens": {
+            "input": 738429,
+            "output": 1671890,
+            "total": 2410319,
+            "average_per_sample": 4017.2
+          },
+          "cost": {
+            "total_usd": 13.646819,
+            "average_per_sample_usd": 0.022745
+          },
+          "speed": {
+            "total_seconds": 19361.271,
+            "average_seconds_per_sample": 32.269
+          },
+          "timestamp": null,
+          "provenance": {
+            "protocol": "detection-v2",
+            "dataset_sha256": "366cb4e49552a6fa9640bbe1c94737e5c7c586d2f9b43ce78a6c35d8c8060c83",
+            "native_effort": "minimum",
+            "configurations": [
+              "0b2350b16ec624e6039ef746a71524d0792a67bc0c44d8a280e695d6bb39fe10"
+            ],
+            "complete": true,
+            "accepted_failure_count": 0
+          }
         }
       },
       "overall": {
-        "task_count": 4,
-        "sample_count": 857,
+        "task_count": 5,
+        "sample_count": 1457,
         "tokens": {
-          "input": 1060848,
-          "output": 646279,
-          "total": 1707127,
-          "average_per_sample": 1992.0
+          "input": 1799277,
+          "output": 2318169,
+          "total": 4117446,
+          "average_per_sample": 2826.0
         },
         "cost": {
-          "total_usd": 6.43837,
-          "average_per_sample_usd": 0.007513
+          "total_usd": 20.085188,
+          "average_per_sample_usd": 0.013785
         },
         "speed": {
-          "total_seconds": 10185.882,
-          "average_seconds_per_sample": 11.886
+          "total_seconds": 29547.153,
+          "average_seconds_per_sample": 20.279
         }
       },
       "protocol": {
@@ -43237,24 +44230,80 @@
               }
             }
           ]
+        },
+        "detection": {
+          "primary_metric": {
+            "name": "map50",
+            "value": 64.42
+          },
+          "metrics": {
+            "map50": 64.42,
+            "f1": 67.0,
+            "precision": 75.05,
+            "recall": 60.51
+          },
+          "metric_runs": {
+            "map50": [
+              64.42
+            ],
+            "f1": [
+              67.0
+            ],
+            "precision": [
+              75.05
+            ],
+            "recall": [
+              60.51
+            ]
+          },
+          "run_count": 1,
+          "timestamps": [],
+          "sample_count": 600,
+          "evaluated_sample_count": 600,
+          "failed_sample_count": 6,
+          "tokens": {
+            "input": 738429,
+            "output": 3874815,
+            "total": 4613244,
+            "average_per_sample": 7688.7
+          },
+          "cost": {
+            "total_usd": 30.168756,
+            "average_per_sample_usd": 0.050281
+          },
+          "speed": {
+            "total_seconds": 23904.505,
+            "average_seconds_per_sample": 39.841
+          },
+          "timestamp": null,
+          "provenance": {
+            "protocol": "detection-v2",
+            "dataset_sha256": "366cb4e49552a6fa9640bbe1c94737e5c7c586d2f9b43ce78a6c35d8c8060c83",
+            "native_effort": "maximum",
+            "configurations": [
+              "890bbf533b294ed6527b43ecdc302f7d48fd39007d2d592293e9741e1f30d87a"
+            ],
+            "complete": true,
+            "accepted_failure_count": 0
+          }
         }
       },
       "overall": {
-        "task_count": 4,
-        "sample_count": 857,
+        "task_count": 5,
+        "sample_count": 1457,
         "tokens": {
-          "input": 1127519,
-          "output": 2241714,
-          "total": 3369233,
-          "average_per_sample": 3931.4
+          "input": 1865948,
+          "output": 6116529,
+          "total": 7982477,
+          "average_per_sample": 5478.7
         },
         "cost": {
-          "total_usd": 18.504134,
-          "average_per_sample_usd": 0.021592
+          "total_usd": 48.672889,
+          "average_per_sample_usd": 0.033406
         },
         "speed": {
-          "total_seconds": 12490.592,
-          "average_seconds_per_sample": 14.575
+          "total_seconds": 36395.098,
+          "average_seconds_per_sample": 24.979
         }
       },
       "protocol": {
@@ -43658,7 +44707,8 @@
             "configurations": [
               "ce859d4c9b587984868625251c8045f6155dc3b9e675186a9ecfa1007c991ccd"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -44081,7 +45131,8 @@
             "configurations": [
               "ce859d4c9b587984868625251c8045f6155dc3b9e675186a9ecfa1007c991ccd"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -44504,7 +45555,8 @@
             "configurations": [
               "a6297720265f7b1a4e424c9feffd41959babd8a99ac2a53041c43beb955114ca"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -44927,7 +45979,8 @@
             "configurations": [
               "a6297720265f7b1a4e424c9feffd41959babd8a99ac2a53041c43beb955114ca"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -44953,182 +46006,6 @@
         "name": "full",
         "status": "complete",
         "runs_present": 22,
-        "runs_required": 22
-      }
-    },
-    {
-      "id": "gemini-4-hydrogen-eap:high",
-      "key": "gemini-4-hydrogen-eap",
-      "name": "Gemini 4 Hydrogen",
-      "lab": "google",
-      "effort": "high",
-      "tasks": {
-        "detection": {
-          "primary_metric": {
-            "name": "map50",
-            "value": 64.83
-          },
-          "metrics": {
-            "map50": 64.83,
-            "f1": 67.82,
-            "precision": 76.53,
-            "recall": 60.89
-          },
-          "metric_runs": {
-            "map50": [
-              64.83
-            ],
-            "f1": [
-              67.82
-            ],
-            "precision": [
-              76.53
-            ],
-            "recall": [
-              60.89
-            ]
-          },
-          "run_count": 1,
-          "timestamps": [],
-          "sample_count": 600,
-          "evaluated_sample_count": 600,
-          "failed_sample_count": 6,
-          "tokens": {
-            "input": 738429,
-            "output": 3836470,
-            "total": 4574899,
-            "average_per_sample": 7624.8
-          },
-          "cost": {
-            "total_usd": null,
-            "average_per_sample_usd": null
-          },
-          "speed": {
-            "total_seconds": 17882.192,
-            "average_seconds_per_sample": 29.804
-          },
-          "timestamp": null,
-          "provenance": {
-            "protocol": "detection-v2",
-            "dataset_sha256": "366cb4e49552a6fa9640bbe1c94737e5c7c586d2f9b43ce78a6c35d8c8060c83",
-            "native_effort": "maximum",
-            "configurations": [
-              "a1b1a011f26c58111a32df5f162eea62148765343a4cedf40bb160e102dd45ec"
-            ],
-            "complete": true
-          }
-        }
-      },
-      "overall": {
-        "task_count": 1,
-        "sample_count": 600,
-        "tokens": {
-          "input": 738429,
-          "output": 3836470,
-          "total": 4574899,
-          "average_per_sample": 7624.8
-        },
-        "cost": {
-          "total_usd": null,
-          "average_per_sample_usd": null
-        },
-        "speed": {
-          "total_seconds": 17882.192,
-          "average_seconds_per_sample": 29.804
-        }
-      },
-      "protocol": {
-        "name": "detection-v2",
-        "status": "incomplete",
-        "runs_present": 2,
-        "runs_required": 22
-      }
-    },
-    {
-      "id": "gemini-4-hydrogen-eap:low",
-      "key": "gemini-4-hydrogen-eap",
-      "name": "Gemini 4 Hydrogen",
-      "lab": "google",
-      "effort": "low",
-      "tasks": {
-        "detection": {
-          "primary_metric": {
-            "name": "map50",
-            "value": 59.61
-          },
-          "metrics": {
-            "map50": 59.61,
-            "f1": 60.26,
-            "precision": 82.16,
-            "recall": 47.57
-          },
-          "metric_runs": {
-            "map50": [
-              59.61
-            ],
-            "f1": [
-              60.26
-            ],
-            "precision": [
-              82.16
-            ],
-            "recall": [
-              47.57
-            ]
-          },
-          "run_count": 1,
-          "timestamps": [],
-          "sample_count": 600,
-          "evaluated_sample_count": 600,
-          "failed_sample_count": 0,
-          "tokens": {
-            "input": 738429,
-            "output": 1728801,
-            "total": 2467230,
-            "average_per_sample": 4112.1
-          },
-          "cost": {
-            "total_usd": null,
-            "average_per_sample_usd": null
-          },
-          "speed": {
-            "total_seconds": 9807.91,
-            "average_seconds_per_sample": 16.347
-          },
-          "timestamp": null,
-          "provenance": {
-            "protocol": "detection-v2",
-            "dataset_sha256": "366cb4e49552a6fa9640bbe1c94737e5c7c586d2f9b43ce78a6c35d8c8060c83",
-            "native_effort": "minimum",
-            "configurations": [
-              "a1b1a011f26c58111a32df5f162eea62148765343a4cedf40bb160e102dd45ec"
-            ],
-            "complete": true
-          }
-        }
-      },
-      "overall": {
-        "task_count": 1,
-        "sample_count": 600,
-        "tokens": {
-          "input": 738429,
-          "output": 1728801,
-          "total": 2467230,
-          "average_per_sample": 4112.1
-        },
-        "cost": {
-          "total_usd": null,
-          "average_per_sample_usd": null
-        },
-        "speed": {
-          "total_seconds": 9807.91,
-          "average_seconds_per_sample": 16.347
-        }
-      },
-      "protocol": {
-        "name": "detection-v2",
-        "status": "incomplete",
-        "runs_present": 2,
         "runs_required": 22
       }
     },
@@ -45191,7 +46068,8 @@
             "configurations": [
               "b669fc1c754f24aaa4c5154bb2b0eca83d8df7f4960be1b0aedb3eeb7916c312"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
@@ -45279,7 +46157,8 @@
             "configurations": [
               "efe8b55406ddcc3aaef532561d4d9052fd407af5b26a864bb5a5421c3494c053"
             ],
-            "complete": true
+            "complete": true,
+            "accepted_failure_count": 0
           }
         }
       },
