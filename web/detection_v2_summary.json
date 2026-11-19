@@ -18,6 +18,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 599,
         "empty": 1
@@ -33,7 +34,7 @@
         "input_tokens": 1681604,
         "output_tokens": 3639336
       },
-      "rank": 42
+      "rank": 43
     },
     {
       "model": "claude-fable-5",
@@ -41,6 +42,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 596,
         "invalid_json": 4
@@ -56,7 +58,7 @@
         "input_tokens": 1681604,
         "output_tokens": 788758
       },
-      "rank": 39
+      "rank": 40
     },
     {
       "model": "claude-fable-5-1",
@@ -64,6 +66,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 598,
         "empty": 2
@@ -79,7 +82,7 @@
         "input_tokens": 1682804,
         "output_tokens": 7165679
       },
-      "rank": 34
+      "rank": 35
     },
     {
       "model": "claude-fable-5-1",
@@ -87,6 +90,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 595,
         "empty": 2,
@@ -103,7 +107,7 @@
         "input_tokens": 1682804,
         "output_tokens": 961812
       },
-      "rank": 30
+      "rank": 31
     },
     {
       "model": "claude-fable-5-2",
@@ -111,6 +115,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 597,
         "empty": 2,
@@ -127,7 +132,7 @@
         "input_tokens": 1680935,
         "output_tokens": 7231190
       },
-      "rank": 5
+      "rank": 7
     },
     {
       "model": "claude-fable-5-2",
@@ -135,6 +140,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 599,
         "invalid_json": 1
@@ -150,7 +156,7 @@
         "input_tokens": 1682804,
         "output_tokens": 839352
       },
-      "rank": 7
+      "rank": 8
     },
     {
       "model": "claude-haiku-5-5",
@@ -158,6 +164,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 594,
         "empty": 4,
@@ -175,7 +182,7 @@
         "input_tokens": 1682804,
         "output_tokens": 12532169
       },
-      "rank": 21
+      "rank": 22
     },
     {
       "model": "claude-haiku-5-5",
@@ -183,6 +190,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -197,7 +205,7 @@
         "input_tokens": 1682804,
         "output_tokens": 766127
       },
-      "rank": 22
+      "rank": 23
     },
     {
       "model": "claude-opus-4-8",
@@ -205,6 +213,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -219,7 +228,7 @@
         "input_tokens": 1681604,
         "output_tokens": 1698661
       },
-      "rank": 49
+      "rank": 50
     },
     {
       "model": "claude-opus-4-8",
@@ -227,6 +236,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 595,
         "empty": 1,
@@ -243,7 +253,7 @@
         "input_tokens": 1681604,
         "output_tokens": 516292
       },
-      "rank": 46
+      "rank": 47
     },
     {
       "model": "claude-opus-5",
@@ -251,6 +261,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 590,
         "invalid_json": 10
@@ -266,7 +277,7 @@
         "input_tokens": 1681604,
         "output_tokens": 3445297
       },
-      "rank": 40
+      "rank": 41
     },
     {
       "model": "claude-opus-5",
@@ -274,6 +285,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 593,
         "invalid_json": 7
@@ -289,7 +301,7 @@
         "input_tokens": 1681604,
         "output_tokens": 742477
       },
-      "rank": 38
+      "rank": 39
     },
     {
       "model": "claude-opus-5-5",
@@ -297,6 +309,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 596,
         "empty": 4
@@ -312,7 +325,7 @@
         "input_tokens": 1682804,
         "output_tokens": 11434606
       },
-      "rank": 11
+      "rank": 12
     },
     {
       "model": "claude-opus-5-5",
@@ -320,6 +333,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 599,
         "invalid_json": 1
@@ -335,7 +349,7 @@
         "input_tokens": 1682804,
         "output_tokens": 475869
       },
-      "rank": 14
+      "rank": 15
     },
     {
       "model": "claude-sonnet-5",
@@ -343,6 +357,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 599,
         "invalid_json": 1
@@ -358,7 +373,7 @@
         "input_tokens": 1681604,
         "output_tokens": 4837482
       },
-      "rank": 50
+      "rank": 51
     },
     {
       "model": "claude-sonnet-5",
@@ -366,6 +381,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 598,
         "invalid_json": 2
@@ -381,7 +397,7 @@
         "input_tokens": 1681604,
         "output_tokens": 485863
       },
-      "rank": 47
+      "rank": 48
     },
     {
       "model": "claude-sonnet-5-5",
@@ -389,6 +405,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 585,
         "empty": 13,
@@ -405,7 +422,7 @@
         "input_tokens": 1682804,
         "output_tokens": 13038776
       },
-      "rank": 12
+      "rank": 13
     },
     {
       "model": "claude-sonnet-5-5",
@@ -413,6 +430,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 597,
         "invalid_json": 3
@@ -428,7 +446,7 @@
         "input_tokens": 1682804,
         "output_tokens": 377480
       },
-      "rank": 19
+      "rank": 20
     },
     {
       "model": "gemini-2.5-pro",
@@ -436,6 +454,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 521,
         "invalid_json": 75,
@@ -452,7 +471,7 @@
         "input_tokens": 223538,
         "output_tokens": 2873005
       },
-      "rank": 45
+      "rank": 46
     },
     {
       "model": "gemini-2.5-pro",
@@ -460,6 +479,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 452,
         "invalid_json": 140,
@@ -476,7 +496,7 @@
         "input_tokens": 223538,
         "output_tokens": 1705401
       },
-      "rank": 40
+      "rank": 41
     },
     {
       "model": "gemini-3-flash-preview",
@@ -484,6 +504,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 421,
         "invalid_json": 177,
@@ -500,7 +521,7 @@
         "input_tokens": 719184,
         "output_tokens": 3759249
       },
-      "rank": 41
+      "rank": 42
     },
     {
       "model": "gemini-3-flash-preview",
@@ -508,6 +529,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 356,
         "invalid_json": 242,
@@ -525,7 +547,7 @@
         "input_tokens": 719184,
         "output_tokens": 847863
       },
-      "rank": 37
+      "rank": 38
     },
     {
       "model": "gemini-3.1-pro-preview",
@@ -533,6 +555,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 557,
         "invalid_json": 43
@@ -548,7 +571,7 @@
         "input_tokens": 719184,
         "output_tokens": 2642882
       },
-      "rank": 23
+      "rank": 24
     },
     {
       "model": "gemini-3.1-pro-preview",
@@ -556,6 +579,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 538,
         "invalid_json": 62
@@ -571,7 +595,7 @@
         "input_tokens": 719184,
         "output_tokens": 595729
       },
-      "rank": 21
+      "rank": 22
     },
     {
       "model": "gemini-3.5-flash",
@@ -579,6 +603,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 597,
         "truncated": 1,
@@ -595,7 +620,7 @@
         "input_tokens": 719184,
         "output_tokens": 2327287
       },
-      "rank": 19
+      "rank": 20
     },
     {
       "model": "gemini-3.5-flash",
@@ -603,6 +628,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 579,
         "invalid_json": 21
@@ -618,7 +644,7 @@
         "input_tokens": 719184,
         "output_tokens": 1215331
       },
-      "rank": 17
+      "rank": 18
     },
     {
       "model": "gemini-3.5-flash-lite",
@@ -626,6 +652,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 591,
         "invalid_json": 9
@@ -641,7 +668,7 @@
         "input_tokens": 719184,
         "output_tokens": 1310228
       },
-      "rank": 28
+      "rank": 29
     },
     {
       "model": "gemini-3.5-flash-lite",
@@ -649,6 +676,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 589,
         "invalid_json": 11
@@ -664,7 +692,7 @@
         "input_tokens": 719184,
         "output_tokens": 1056847
       },
-      "rank": 24
+      "rank": 25
     },
     {
       "model": "gemini-3.6-flash",
@@ -672,6 +700,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 597,
         "invalid_json": 3
@@ -687,7 +716,7 @@
         "input_tokens": 719184,
         "output_tokens": 2384989
       },
-      "rank": 18
+      "rank": 19
     },
     {
       "model": "gemini-3.6-flash",
@@ -695,6 +724,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 580,
         "invalid_json": 20
@@ -710,7 +740,7 @@
         "input_tokens": 719184,
         "output_tokens": 1142671
       },
-      "rank": 18
+      "rank": 19
     },
     {
       "model": "gemini-3.7-flash",
@@ -718,6 +748,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 589,
         "invalid_json": 10,
@@ -734,7 +765,7 @@
         "input_tokens": 719184,
         "output_tokens": 6879908
       },
-      "rank": 14
+      "rank": 15
     },
     {
       "model": "gemini-3.7-flash",
@@ -742,6 +773,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 580,
         "invalid_json": 20
@@ -757,7 +789,7 @@
         "input_tokens": 719184,
         "output_tokens": 941717
       },
-      "rank": 16
+      "rank": 17
     },
     {
       "model": "gemini-3.8-flash",
@@ -765,6 +797,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 597,
         "invalid_json": 3
@@ -780,7 +813,7 @@
         "input_tokens": 719184,
         "output_tokens": 6583292
       },
-      "rank": 13
+      "rank": 14
     },
     {
       "model": "gemini-3.8-flash",
@@ -788,6 +821,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 582,
         "invalid_json": 18
@@ -803,7 +837,7 @@
         "input_tokens": 719184,
         "output_tokens": 985027
       },
-      "rank": 12
+      "rank": 13
     },
     {
       "model": "gemini-4-argon-eap",
@@ -811,20 +845,20 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
-        "returned": 599,
-        "empty": 1
+        "returned": 600
       },
       "metrics": {
-        "map50": 0.6808338733734369,
-        "map50_missing_as_empty": 0.6808338733734369,
-        "map50_capped100": 0.6464572516303936,
-        "f1": 0.740151629814109,
-        "precision": 0.8335451080050826,
-        "recall": 0.6655778272704777,
-        "seconds_per_image": 80.68227368950843,
+        "map50": 0.685025689938387,
+        "map50_missing_as_empty": 0.685025689938387,
+        "map50_capped100": 0.650414809461654,
+        "f1": 0.7392838994108033,
+        "precision": 0.8306533748958366,
+        "recall": 0.6660232615689186,
+        "seconds_per_image": 61.25791789650917,
         "input_tokens": 738429,
-        "output_tokens": 2906162
+        "output_tokens": 2924670
       },
       "rank": 6
     },
@@ -834,22 +868,22 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
-        "returned": 597,
-        "invalid_json": 3
+        "returned": 600
       },
       "metrics": {
-        "map50": 0.6501001239517791,
-        "map50_missing_as_empty": 0.6501001239517791,
-        "map50_capped100": 0.6132130827207827,
-        "f1": 0.7502110522163943,
-        "precision": 0.8510691744905329,
-        "recall": 0.6707250680524622,
-        "seconds_per_image": 50.748888316949206,
+        "map50": 0.6367322507724263,
+        "map50_missing_as_empty": 0.6367322507724263,
+        "map50_capped100": 0.6016022529552477,
+        "f1": 0.7326413241688876,
+        "precision": 0.8456930051813472,
+        "recall": 0.6462509279881218,
+        "seconds_per_image": 38.35688246448835,
         "input_tokens": 738429,
-        "output_tokens": 1146410
+        "output_tokens": 1105585
       },
-      "rank": 4
+      "rank": 6
     },
     {
       "model": "gemini-4-carbon-eap",
@@ -857,23 +891,25 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 7,
       "response_counts": {
-        "returned": 583,
-        "empty": 14,
-        "truncated": 3
+        "returned": 590,
+        "missing": 7,
+        "empty": 2,
+        "invalid_json": 1
       },
       "metrics": {
-        "map50": 0.6943665334004133,
-        "map50_missing_as_empty": 0.6943665334004133,
-        "map50_capped100": 0.6586880287271925,
-        "f1": 0.7343903920113353,
-        "precision": 0.8075678884107435,
-        "recall": 0.6733729274931948,
-        "seconds_per_image": 172.3507777619362,
-        "input_tokens": 738429,
-        "output_tokens": 10356568
+        "map50": 0.6941333379606173,
+        "map50_missing_as_empty": 0.6941333379606173,
+        "map50_capped100": 0.6572861849029626,
+        "f1": 0.7429003551510405,
+        "precision": 0.8176143625717088,
+        "recall": 0.6806978470675575,
+        "seconds_per_image": null,
+        "input_tokens": 729319,
+        "output_tokens": 9316887
       },
-      "rank": 4
+      "rank": 5
     },
     {
       "model": "gemini-4-carbon-eap",
@@ -881,20 +917,21 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
-        "returned": 598,
-        "invalid_json": 2
+        "returned": 597,
+        "invalid_json": 3
       },
       "metrics": {
-        "map50": 0.6914931119102221,
-        "map50_missing_as_empty": 0.6914931119102221,
-        "map50_capped100": 0.6533960043377495,
-        "f1": 0.7745393815321625,
-        "precision": 0.8497547136355577,
-        "recall": 0.711556545409552,
-        "seconds_per_image": 36.14598257342974,
+        "map50": 0.6871924418956041,
+        "map50_missing_as_empty": 0.6871924418956041,
+        "map50_capped100": 0.6475438233464956,
+        "f1": 0.7825758393608983,
+        "precision": 0.8605686472368967,
+        "recall": 0.717545162088592,
+        "seconds_per_image": 36.35451994776726,
         "input_tokens": 738429,
-        "output_tokens": 1227389
+        "output_tokens": 1206444
       },
       "rank": 1
     },
@@ -904,24 +941,24 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 594,
-        "empty": 3,
-        "truncated": 2,
-        "invalid_json": 1
+        "empty": 4,
+        "invalid_json": 2
       },
       "metrics": {
-        "map50": 0.6482874704106507,
-        "map50_missing_as_empty": 0.6482874704106507,
-        "map50_capped100": 0.6219834902836737,
-        "f1": 0.6782062236432292,
-        "precision": 0.7653023140084598,
-        "recall": 0.6089086859688196,
-        "seconds_per_image": 29.803653198480607,
+        "map50": 0.6442375576779038,
+        "map50_missing_as_empty": 0.6442375576779038,
+        "map50_capped100": 0.6184945428778519,
+        "f1": 0.6700002739951229,
+        "precision": 0.750460348637368,
+        "recall": 0.6051224944320712,
+        "seconds_per_image": 39.84084248701731,
         "input_tokens": 738429,
-        "output_tokens": 3836470
+        "output_tokens": 3874815
       },
-      "rank": 9
+      "rank": 10
     },
     {
       "model": "gemini-4-hydrogen-eap",
@@ -929,21 +966,71 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
+      "response_counts": {
+        "returned": 599,
+        "invalid_json": 1
+      },
+      "metrics": {
+        "map50": 0.5993861096882028,
+        "map50_missing_as_empty": 0.5993861096882028,
+        "map50_capped100": 0.58681431558313,
+        "f1": 0.5937495039918734,
+        "precision": 0.8278670384632408,
+        "recall": 0.46285572878000497,
+        "seconds_per_image": 32.26878529628118,
+        "input_tokens": 738429,
+        "output_tokens": 1671890
+      },
+      "rank": 10
+    },
+    {
+      "model": "gemini-4-neon",
+      "effort": "maximum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "accepted_failure_count": 0,
+      "response_counts": {
+        "returned": 594,
+        "invalid_json": 1,
+        "empty": 5
+      },
+      "metrics": {
+        "map50": 0.7122268350319548,
+        "map50_missing_as_empty": 0.7122268350319548,
+        "map50_capped100": 0.6677752472334153,
+        "f1": 0.7999946810632554,
+        "precision": 0.864570459575202,
+        "recall": 0.7443949517446177,
+        "seconds_per_image": 66.66624283393224,
+        "input_tokens": 738429,
+        "output_tokens": 4810341
+      },
+      "rank": 3
+    },
+    {
+      "model": "gemini-4-neon",
+      "effort": "minimum",
+      "images": 600,
+      "run_count": 1,
+      "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
       "metrics": {
-        "map50": 0.5960786898217824,
-        "map50_missing_as_empty": 0.5960786898217824,
-        "map50_capped100": 0.5813611542713867,
-        "f1": 0.6025701300736561,
-        "precision": 0.8215811965811965,
-        "recall": 0.47574857708488,
-        "seconds_per_image": 16.346516004800797,
+        "map50": 0.667776355946747,
+        "map50_missing_as_empty": 0.667776355946747,
+        "map50_capped100": 0.6351382854782666,
+        "f1": 0.7369204563347218,
+        "precision": 0.8740280465858544,
+        "recall": 0.6369957931205147,
+        "seconds_per_image": 38.966866407394406,
         "input_tokens": 738429,
-        "output_tokens": 1728801
+        "output_tokens": 2176439
       },
-      "rank": 9
+      "rank": 3
     },
     {
       "model": "glm-5v-turbo",
@@ -951,6 +1038,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 485,
         "invalid_json": 115
@@ -973,6 +1061,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -987,7 +1076,7 @@
         "input_tokens": 1201377,
         "output_tokens": 18273274
       },
-      "rank": 52
+      "rank": 53
     },
     {
       "model": "gpt-5.4-mini",
@@ -995,6 +1084,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 599,
         "invalid_json": 1
@@ -1010,7 +1100,7 @@
         "input_tokens": 1201377,
         "output_tokens": 631252
       },
-      "rank": 50
+      "rank": 51
     },
     {
       "model": "gpt-5.5",
@@ -1018,6 +1108,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1032,7 +1123,7 @@
         "input_tokens": 1399024,
         "output_tokens": 6750283
       },
-      "rank": 47
+      "rank": 48
     },
     {
       "model": "gpt-5.5",
@@ -1040,6 +1131,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1054,7 +1146,7 @@
         "input_tokens": 1399024,
         "output_tokens": 689531
       },
-      "rank": 41
+      "rank": 42
     },
     {
       "model": "gpt-5.6-luna",
@@ -1062,6 +1154,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1076,7 +1169,7 @@
         "input_tokens": 1399024,
         "output_tokens": 15534070
       },
-      "rank": 35
+      "rank": 36
     },
     {
       "model": "gpt-5.6-luna",
@@ -1084,6 +1177,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1098,7 +1192,7 @@
         "input_tokens": 1399024,
         "output_tokens": 812350
       },
-      "rank": 34
+      "rank": 35
     },
     {
       "model": "gpt-5.6-sol",
@@ -1106,6 +1200,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1120,7 +1215,7 @@
         "input_tokens": 1399024,
         "output_tokens": 12478340
       },
-      "rank": 27
+      "rank": 28
     },
     {
       "model": "gpt-5.6-sol",
@@ -1128,6 +1223,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1142,7 +1238,7 @@
         "input_tokens": 1399024,
         "output_tokens": 969864
       },
-      "rank": 25
+      "rank": 26
     },
     {
       "model": "gpt-5.6-terra",
@@ -1150,6 +1246,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1164,7 +1261,7 @@
         "input_tokens": 1399024,
         "output_tokens": 15373499
       },
-      "rank": 38
+      "rank": 39
     },
     {
       "model": "gpt-5.6-terra",
@@ -1172,6 +1269,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 598,
         "invalid_json": 2
@@ -1187,7 +1285,7 @@
         "input_tokens": 1399024,
         "output_tokens": 822552
       },
-      "rank": 36
+      "rank": 37
     },
     {
       "model": "gpt-6-astra",
@@ -1195,6 +1293,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1209,7 +1308,7 @@
         "input_tokens": 1399024,
         "output_tokens": 7532949
       },
-      "rank": 3
+      "rank": 4
     },
     {
       "model": "gpt-6-astra",
@@ -1217,6 +1316,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 582,
         "invalid_json": 18
@@ -1232,7 +1332,7 @@
         "input_tokens": 1399024,
         "output_tokens": 840664
       },
-      "rank": 3
+      "rank": 4
     },
     {
       "model": "gpt-6-luna",
@@ -1240,6 +1340,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1254,7 +1355,7 @@
         "input_tokens": 1399024,
         "output_tokens": 10387838
       },
-      "rank": 26
+      "rank": 27
     },
     {
       "model": "gpt-6-luna",
@@ -1262,6 +1363,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 599,
         "invalid_json": 1
@@ -1277,7 +1379,7 @@
         "input_tokens": 1399024,
         "output_tokens": 818819
       },
-      "rank": 26
+      "rank": 27
     },
     {
       "model": "gpt-6-sol",
@@ -1285,6 +1387,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1299,7 +1402,7 @@
         "input_tokens": 1399024,
         "output_tokens": 8596434
       },
-      "rank": 15
+      "rank": 16
     },
     {
       "model": "gpt-6-sol",
@@ -1307,6 +1410,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1321,7 +1425,7 @@
         "input_tokens": 1399024,
         "output_tokens": 690005
       },
-      "rank": 15
+      "rank": 16
     },
     {
       "model": "gpt-6.1-sol",
@@ -1329,6 +1433,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1343,7 +1448,7 @@
         "input_tokens": 1399024,
         "output_tokens": 7532981
       },
-      "rank": 7
+      "rank": 8
     },
     {
       "model": "gpt-6.1-sol",
@@ -1351,6 +1456,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 575,
         "invalid_json": 25
@@ -1366,7 +1472,7 @@
         "input_tokens": 1399024,
         "output_tokens": 817692
       },
-      "rank": 6
+      "rank": 7
     },
     {
       "model": "gpt-6.1-terra",
@@ -1374,6 +1480,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1388,7 +1495,7 @@
         "input_tokens": 1399024,
         "output_tokens": 12289154
       },
-      "rank": 8
+      "rank": 9
     },
     {
       "model": "gpt-6.1-terra",
@@ -1396,6 +1503,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 599,
         "invalid_json": 1
@@ -1411,7 +1519,7 @@
         "input_tokens": 1399024,
         "output_tokens": 599397
       },
-      "rank": 10
+      "rank": 11
     },
     {
       "model": "gpt-6.2-astra",
@@ -1419,6 +1527,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1441,6 +1550,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1463,6 +1573,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1485,6 +1596,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1507,6 +1619,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1521,7 +1634,7 @@
         "input_tokens": 1321618,
         "output_tokens": 2134722
       },
-      "rank": 53
+      "rank": 54
     },
     {
       "model": "grok-4.5",
@@ -1529,6 +1642,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1543,7 +1657,7 @@
         "input_tokens": 1321618,
         "output_tokens": 1247286
       },
-      "rank": 49
+      "rank": 50
     },
     {
       "model": "grok-4.6",
@@ -1551,6 +1665,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 599,
         "invalid_json": 1
@@ -1566,7 +1681,7 @@
         "input_tokens": 1407418,
         "output_tokens": 4610053
       },
-      "rank": 51
+      "rank": 52
     },
     {
       "model": "grok-4.6",
@@ -1574,6 +1689,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1588,7 +1704,7 @@
         "input_tokens": 1406818,
         "output_tokens": 1447485
       },
-      "rank": 48
+      "rank": 49
     },
     {
       "model": "grok-4.7",
@@ -1596,6 +1712,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1610,7 +1727,7 @@
         "input_tokens": 1771018,
         "output_tokens": 5528307
       },
-      "rank": 48
+      "rank": 49
     },
     {
       "model": "grok-4.7",
@@ -1618,6 +1735,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1632,7 +1750,7 @@
         "input_tokens": 1770418,
         "output_tokens": 2228734
       },
-      "rank": 43
+      "rank": 44
     },
     {
       "model": "kimi-k3",
@@ -1640,6 +1758,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1654,7 +1773,7 @@
         "input_tokens": 3086551,
         "output_tokens": 4385865
       },
-      "rank": 33
+      "rank": 34
     },
     {
       "model": "kimi-k3",
@@ -1662,6 +1781,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -1676,7 +1796,7 @@
         "input_tokens": 3087151,
         "output_tokens": 1011438
       },
-      "rank": 29
+      "rank": 30
     },
     {
       "model": "mimo-v2.6-flash",
@@ -1684,6 +1804,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 586,
         "empty": 13,
@@ -1700,7 +1821,7 @@
         "input_tokens": 1358384,
         "output_tokens": 3409983
       },
-      "rank": 43
+      "rank": 44
     },
     {
       "model": "mimo-v2.6-flash",
@@ -1708,6 +1829,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 574,
         "invalid_json": 26
@@ -1723,7 +1845,7 @@
         "input_tokens": 1359584,
         "output_tokens": 352979
       },
-      "rank": 45
+      "rank": 46
     },
     {
       "model": "mimo-v2.6-pro",
@@ -1731,6 +1853,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 586,
         "empty": 11,
@@ -1747,7 +1870,7 @@
         "input_tokens": 1358384,
         "output_tokens": 4375250
       },
-      "rank": 44
+      "rank": 45
     },
     {
       "model": "mimo-v2.6-pro",
@@ -1755,6 +1878,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 594,
         "truncated": 5,
@@ -1771,7 +1895,7 @@
         "input_tokens": 1359584,
         "output_tokens": 1221085
       },
-      "rank": 42
+      "rank": 43
     },
     {
       "model": "mistral-large-4",
@@ -1779,6 +1903,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 513,
         "invalid_json": 86,
@@ -1795,7 +1920,7 @@
         "input_tokens": 1068314,
         "output_tokens": 1837690
       },
-      "rank": 25
+      "rank": 26
     },
     {
       "model": "muse-ember",
@@ -1803,6 +1928,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 597,
         "invalid_json": 3
@@ -1818,7 +1944,7 @@
         "input_tokens": 1516185,
         "output_tokens": 4274433
       },
-      "rank": 31
+      "rank": 32
     },
     {
       "model": "muse-ember",
@@ -1826,6 +1952,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 551,
         "invalid_json": 49
@@ -1841,7 +1968,7 @@
         "input_tokens": 1516185,
         "output_tokens": 761868
       },
-      "rank": 32
+      "rank": 33
     },
     {
       "model": "muse-glimmer-30b",
@@ -1849,6 +1976,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "invalid_json": 33,
         "returned": 567
@@ -1864,7 +1992,7 @@
         "input_tokens": 1545585,
         "output_tokens": 1842200
       },
-      "rank": 46
+      "rank": 47
     },
     {
       "model": "muse-glimmer-30b",
@@ -1872,6 +2000,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 422,
         "invalid_json": 178
@@ -1887,7 +2016,7 @@
         "input_tokens": 1544985,
         "output_tokens": 476156
       },
-      "rank": 44
+      "rank": 45
     },
     {
       "model": "muse-spark-1.1",
@@ -1895,6 +2024,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 587,
         "invalid_json": 13
@@ -1910,7 +2040,7 @@
         "input_tokens": 1516185,
         "output_tokens": 3195547
       },
-      "rank": 32
+      "rank": 33
     },
     {
       "model": "muse-spark-1.1",
@@ -1918,6 +2048,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 543,
         "invalid_json": 57
@@ -1933,7 +2064,7 @@
         "input_tokens": 1516185,
         "output_tokens": 1492111
       },
-      "rank": 28
+      "rank": 29
     },
     {
       "model": "muse-spark-1.2",
@@ -1941,6 +2072,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 596,
         "invalid_json": 4
@@ -1956,7 +2088,7 @@
         "input_tokens": 1516185,
         "output_tokens": 3192258
       },
-      "rank": 37
+      "rank": 38
     },
     {
       "model": "muse-spark-1.2",
@@ -1964,6 +2096,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 557,
         "invalid_json": 43
@@ -1979,7 +2112,7 @@
         "input_tokens": 1516185,
         "output_tokens": 569902
       },
-      "rank": 35
+      "rank": 36
     },
     {
       "model": "muse-spark-1.3",
@@ -1987,6 +2120,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 587,
         "invalid_json": 12,
@@ -2003,7 +2137,7 @@
         "input_tokens": 1516185,
         "output_tokens": 5329167
       },
-      "rank": 39
+      "rank": 40
     },
     {
       "model": "muse-spark-1.3",
@@ -2011,6 +2145,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 576,
         "invalid_json": 24
@@ -2026,7 +2161,7 @@
         "input_tokens": 1516185,
         "output_tokens": 1044845
       },
-      "rank": 33
+      "rank": 34
     },
     {
       "model": "muse-spark-open",
@@ -2034,6 +2169,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 597,
         "invalid_json": 3
@@ -2049,7 +2185,7 @@
         "input_tokens": 1597785,
         "output_tokens": 2189841
       },
-      "rank": 36
+      "rank": 37
     },
     {
       "model": "muse-spark-open",
@@ -2057,6 +2193,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 578,
         "invalid_json": 22
@@ -2072,7 +2209,7 @@
         "input_tokens": 1597785,
         "output_tokens": 638793
       },
-      "rank": 31
+      "rank": 32
     },
     {
       "model": "muse-wonder",
@@ -2080,6 +2217,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -2094,7 +2232,7 @@
         "input_tokens": 1516185,
         "output_tokens": 3152545
       },
-      "rank": 24
+      "rank": 25
     },
     {
       "model": "muse-wonder",
@@ -2102,6 +2240,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 593,
         "invalid_json": 7
@@ -2117,7 +2256,7 @@
         "input_tokens": 1516185,
         "output_tokens": 714323
       },
-      "rank": 23
+      "rank": 24
     },
     {
       "model": "qwen-3.5-27b",
@@ -2125,6 +2264,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 549,
         "truncated": 1,
@@ -2149,6 +2289,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 598,
         "invalid_json": 2
@@ -2164,7 +2305,7 @@
         "input_tokens": 1039655,
         "output_tokens": 908647
       },
-      "rank": 29
+      "rank": 30
     },
     {
       "model": "qwen-3.7-flash",
@@ -2172,6 +2313,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -2186,7 +2328,7 @@
         "input_tokens": 1040723,
         "output_tokens": 3678379
       },
-      "rank": 30
+      "rank": 31
     },
     {
       "model": "qwen-3.7-flash",
@@ -2194,6 +2336,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 591,
         "invalid_json": 9
@@ -2209,7 +2352,7 @@
         "input_tokens": 1041923,
         "output_tokens": 699204
       },
-      "rank": 27
+      "rank": 28
     },
     {
       "model": "qwen-3.7-plus",
@@ -2217,6 +2360,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 598,
         "empty": 2
@@ -2232,7 +2376,7 @@
         "input_tokens": 1040723,
         "output_tokens": 2560847
       },
-      "rank": 20
+      "rank": 21
     },
     {
       "model": "qwen-3.8-27b",
@@ -2240,6 +2384,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -2254,7 +2399,7 @@
         "input_tokens": 1063523,
         "output_tokens": 2191829
       },
-      "rank": 22
+      "rank": 23
     },
     {
       "model": "qwen-3.8-27b",
@@ -2262,6 +2407,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 598,
         "invalid_json": 2
@@ -2277,7 +2423,7 @@
         "input_tokens": 1056323,
         "output_tokens": 1742260
       },
-      "rank": 20
+      "rank": 21
     },
     {
       "model": "qwen-3.8-flash",
@@ -2285,6 +2431,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 596,
         "empty": 1,
@@ -2301,7 +2448,7 @@
         "input_tokens": 1071323,
         "output_tokens": 2168012
       },
-      "rank": 17
+      "rank": 18
     },
     {
       "model": "qwen-3.8-flash",
@@ -2309,6 +2456,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 598,
         "invalid_json": 2
@@ -2324,7 +2472,7 @@
         "input_tokens": 1071323,
         "output_tokens": 2081137
       },
-      "rank": 13
+      "rank": 14
     },
     {
       "model": "qwen-3.8-max",
@@ -2332,6 +2480,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 599,
         "invalid_json": 1
@@ -2347,7 +2496,7 @@
         "input_tokens": 1048523,
         "output_tokens": 5294828
       },
-      "rank": 16
+      "rank": 17
     },
     {
       "model": "qwen-3.8-max",
@@ -2355,6 +2504,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 545,
         "invalid_json": 55
@@ -2370,7 +2520,7 @@
         "input_tokens": 1064123,
         "output_tokens": 1768228
       },
-      "rank": 11
+      "rank": 12
     },
     {
       "model": "qwen-4-max",
@@ -2378,6 +2528,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 594,
         "invalid_json": 6
@@ -2393,7 +2544,7 @@
         "input_tokens": 2438699,
         "output_tokens": 5087870
       },
-      "rank": 10
+      "rank": 11
     },
     {
       "model": "qwen-4-max",
@@ -2401,6 +2552,7 @@
       "images": 600,
       "run_count": 1,
       "complete": true,
+      "accepted_failure_count": 0,
       "response_counts": {
         "returned": 600
       },
@@ -2415,7 +2567,7 @@
         "input_tokens": 2440266,
         "output_tokens": 1807365
       },
-      "rank": 8
+      "rank": 9
     }
   ]
 }
