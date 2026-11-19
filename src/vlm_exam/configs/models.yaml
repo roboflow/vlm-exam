@@ -56,7 +56,7 @@ models:
         provider_model_id: gemini-4-neon
         options:
           api_version: v1beta
-          max_output_tokens: 128000
+          max_output_tokens: 65536
           thinking_levels:
             low: low
             high: high
