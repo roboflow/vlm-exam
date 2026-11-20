@@ -563,3 +563,12 @@ in `diagnostics/token-128k-before-*.jsonl.gz`. Other responses keep their origin
 settings. This is a mixed historical run with targeted 128K recovery, not a claim
 that every historical request used 128000 tokens. Both detection summaries,
 the website summary and the low/high detection charts were regenerated.
+
+### 131,072-token profile normalization (November 20, 2026)
+
+Future V2 requests for GLM-5V Turbo, MiMo V2.6 Pro, MiMo V2.6 Flash and
+Qwen4 Max now explicitly use 128000 output tokens. Preserve historical
+131072 configuration hashes on existing responses. The separately authorized
+recovery targets only 17 token-exhaustion cases (16 MiMo Pro, one MiMo Flash),
+with one attempt each and automatic retries disabled. It does not authorize
+rerunning unrelated empty, API or format failures or successful responses.
