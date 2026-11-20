@@ -1144,7 +1144,7 @@
         "input_tokens": 1399024,
         "output_tokens": 689531
       },
-      "rank": 42
+      "rank": 43
     },
     {
       "model": "gpt-5.6-luna",
@@ -1804,20 +1804,20 @@
       "complete": true,
       "accepted_failure_count": 0,
       "response_counts": {
-        "returned": 586,
-        "empty": 13,
+        "returned": 587,
+        "empty": 12,
         "invalid_json": 1
       },
       "metrics": {
-        "map50": 0.23114278395120588,
-        "map50_missing_as_empty": 0.23114278395120588,
-        "map50_capped100": 0.23027120852342098,
-        "f1": 0.20451400486710883,
-        "precision": 0.2862294644049686,
-        "recall": 0.15909428359317002,
-        "seconds_per_image": 30.44554368376732,
+        "map50": 0.23114811683426523,
+        "map50_missing_as_empty": 0.23114811683426523,
+        "map50_capped100": 0.2302794852123649,
+        "f1": 0.20372478340605832,
+        "precision": 0.2820681201295859,
+        "recall": 0.15944073249195745,
+        "seconds_per_image": 29.733381680647533,
         "input_tokens": 1358384,
-        "output_tokens": 3409983
+        "output_tokens": 3306559
       },
       "rank": 44
     },
@@ -1853,20 +1853,20 @@
       "complete": true,
       "accepted_failure_count": 0,
       "response_counts": {
-        "returned": 586,
-        "empty": 11,
+        "returned": 595,
+        "empty": 2,
         "invalid_json": 3
       },
       "metrics": {
-        "map50": 0.22235542332073238,
-        "map50_missing_as_empty": 0.22235542332073238,
-        "map50_capped100": 0.22175037740592718,
-        "f1": 0.20420757363253858,
-        "precision": 0.23567497572029783,
-        "recall": 0.180153427369463,
-        "seconds_per_image": 72.95024190545082,
+        "map50": 0.22274641720547758,
+        "map50_missing_as_empty": 0.22274641720547758,
+        "map50_capped100": 0.2220911273458114,
+        "f1": 0.2051359186129191,
+        "precision": 0.22923415439154085,
+        "recall": 0.1856223707003217,
+        "seconds_per_image": 58.7909730998675,
         "input_tokens": 1358384,
-        "output_tokens": 4375250
+        "output_tokens": 3347744
       },
       "rank": 45
     },
@@ -1878,22 +1878,21 @@
       "complete": true,
       "accepted_failure_count": 0,
       "response_counts": {
-        "returned": 594,
-        "truncated": 5,
+        "returned": 599,
         "invalid_json": 1
       },
       "metrics": {
-        "map50": 0.16937515263174038,
-        "map50_missing_as_empty": 0.16937515263174038,
-        "map50_capped100": 0.16916870395846975,
-        "f1": 0.13591512723495808,
-        "precision": 0.2712868354805272,
-        "recall": 0.0906706260826528,
-        "seconds_per_image": 22.939863376220067,
+        "map50": 0.17007836388462844,
+        "map50_missing_as_empty": 0.17007836388462844,
+        "map50_capped100": 0.1698719152113578,
+        "f1": 0.1370969235613343,
+        "precision": 0.2725130697297695,
+        "recall": 0.09158624102944815,
+        "seconds_per_image": 13.688677167495092,
         "input_tokens": 1359584,
-        "output_tokens": 1221085
+        "output_tokens": 568320
       },
-      "rank": 43
+      "rank": 42
     },
     {
       "model": "mistral-large-4",

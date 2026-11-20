@@ -1112,14 +1112,15 @@
       "model": "mimo-v2.6-flash",
       "effort": "maximum",
       "path": "results/detection/v2/mimo-v2.6-flash__maximum.jsonl.gz",
-      "sha256": "395fc881233d4e5f73d05216ccd6438d9e8446709008b0588a679bcc91ca430e",
+      "sha256": "fe3f07046f9983b359aacf77412188dce7b376e7cdc8098e6837222b0b748375",
       "samples": 600,
       "status_counts": {
-        "returned": 586,
-        "empty": 13,
+        "returned": 587,
+        "empty": 12,
         "invalid_json": 1
       },
       "configurations": [
+        "3957fdc71bc4470376875e32093f40b82c4b2a46529dfd01d139c24a1795d5d9",
         "bb8690d78d613550f0f9c94fa8edd311290392eda3ace2acbce1e0f626f641f1"
       ]
     },
@@ -1141,30 +1142,31 @@
       "model": "mimo-v2.6-pro",
       "effort": "maximum",
       "path": "results/detection/v2/mimo-v2.6-pro__maximum.jsonl.gz",
-      "sha256": "7d98dbc009b5af955f55e474aec5778c426d8f1cda072c5548d34865ae3ff9b3",
+      "sha256": "ec3e55dddab416d1a1be4290d2d42f94d7d010eacfd3d46eeca855e10711cd57",
       "samples": 600,
       "status_counts": {
-        "returned": 586,
-        "empty": 11,
+        "returned": 595,
+        "empty": 2,
         "invalid_json": 3
       },
       "configurations": [
-        "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1"
+        "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+        "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
       ]
     },
     {
       "model": "mimo-v2.6-pro",
       "effort": "minimum",
       "path": "results/detection/v2/mimo-v2.6-pro__minimum.jsonl.gz",
-      "sha256": "22c74bf7c778e06eb198f641abf54e4a8f2d03836620bd4f82623e47f2b7f6ee",
+      "sha256": "aeae6009d5fc69d1fc85dc17e409e5d967d7e9b554bc5f987780d52699d51f19",
       "samples": 600,
       "status_counts": {
-        "returned": 594,
-        "truncated": 5,
+        "returned": 599,
         "invalid_json": 1
       },
       "configurations": [
-        "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1"
+        "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+        "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
       ]
     },
     {
@@ -2841,6 +2843,44 @@
       ],
       "baseline_dir": "outputs/benchmark20",
       "max_output_tokens": 128000
+    },
+    "3957fdc71bc4470376875e32093f40b82c4b2a46529dfd01d139c24a1795d5d9": {
+      "provider": "openrouter",
+      "wire": "xiaomi/mimo-v2.6-flash",
+      "minimum": "disabled",
+      "maximum": "enabled",
+      "arms": [
+        "minimum",
+        "maximum"
+      ],
+      "format": "xyxy_normalized_0_to_1000",
+      "routing": {
+        "only": [
+          "xiaomi/fp8"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true
+      },
+      "max_output_tokens": 128000
+    },
+    "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6": {
+      "provider": "openrouter",
+      "wire": "xiaomi/mimo-v2.6-pro",
+      "minimum": "disabled",
+      "maximum": "enabled",
+      "arms": [
+        "minimum",
+        "maximum"
+      ],
+      "format": "xyxy_normalized_0_to_1000",
+      "routing": {
+        "only": [
+          "xiaomi/fp8"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true
+      },
+      "max_output_tokens": 128000
     }
   },
   "diagnostics": [
@@ -3453,6 +3493,11 @@
       "path": "results/detection/v2/diagnostics/token-128k-before-9e5ea1086c336080071175a1aff56c6f091c3370748d26223d531a320eaf098e.jsonl.gz",
       "sha256": "9e5ea1086c336080071175a1aff56c6f091c3370748d26223d531a320eaf098e",
       "samples": 13
+    },
+    {
+      "path": "results/detection/v2/diagnostics/token-128k-before-b44e7292034ed3a8fa5db0ad1d0566aee9221743194b74c4539ed5646ffd8456.jsonl.gz",
+      "sha256": "b44e7292034ed3a8fa5db0ad1d0566aee9221743194b74c4539ed5646ffd8456",
+      "samples": 15
     }
   ],
   "missing": [

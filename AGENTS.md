@@ -572,3 +572,13 @@ Qwen4 Max now explicitly use 128000 output tokens. Preserve historical
 recovery targets only 17 token-exhaustion cases (16 MiMo Pro, one MiMo Flash),
 with one attempt each and automatic retries disabled. It does not authorize
 rerunning unrelated empty, API or format failures or successful responses.
+
+This recovery promoted 15 valid responses out of 17 attempts.
+`token_128k_from131072_recovery.json` records promoted cases and any remaining
+failures. Superseded records remain in the diagnostic archives; successful
+historical responses retain their original settings.
+
+Kimi K3 future V2 requests also use 128000 output tokens for both low and max
+effort, replacing the historical 943718 cap. Preserve historical response
+metadata and configuration hashes; this configuration change does not authorize
+a new inference run.

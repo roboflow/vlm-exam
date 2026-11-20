@@ -80,6 +80,7 @@ _TOKEN_LIMIT_128000_PROFILES = {
     ("openai", "gpt-6.1-sol"),
     ("openai", "gpt-6.1-terra"),
     ("openrouter", "mistralai/mistral-large-4-0"),
+    ("openrouter", "moonshotai/kimi-k3"),
     ("openrouter", "z-ai/glm-5v-turbo"),
     ("openrouter", "xiaomi/mimo-v2.6-pro"),
     ("openrouter", "xiaomi/mimo-v2.6-flash"),
