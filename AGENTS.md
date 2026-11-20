@@ -582,3 +582,14 @@ Kimi K3 future V2 requests also use 128000 output tokens for both low and max
 effort, replacing the historical 943718 cap. Preserve historical response
 metadata and configuration hashes; this configuration change does not authorize
 a new inference run.
+
+### Requested 128K with unverified effective ceilings (November 20, 2026)
+
+Gemini 2.5 Pro, Gemini 3.5 Flash Lite and Qwen 3.5 27B (Alibaba) now request
+128000 output tokens for future V2 calls. Each provider accepted a small live
+128000-token request, but their published output limits remain 65536. Do not
+claim that API acceptance proves an effective 128000-token generation ceiling.
+The authorized one-attempt recovery covers 12 Gemini 2.5 Pro token-exhaustion
+cases and two Qwen 3.5 27B cases (one exhausted, one empty). Flash Lite has no
+eligible incomplete cases. Preserve completed historical responses and their
+actual settings; format-only errors are outside this token-budget recovery.

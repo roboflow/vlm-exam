@@ -66,6 +66,8 @@ _CURRENT_GOOGLE_ENDPOINTS = {
 
 _TOKEN_LIMIT_128000_PROFILES = {
     ("google", "gemini-3.1-pro-preview"),
+    ("google", "gemini-2.5-pro"),
+    ("google", "gemini-3.5-flash-lite"),
     ("google", "gemini-3.5-flash"),
     ("google", "gemini-3.6-flash"),
     ("google", "gemini-3.7-flash"),
@@ -85,6 +87,7 @@ _TOKEN_LIMIT_128000_PROFILES = {
     ("openrouter", "xiaomi/mimo-v2.6-pro"),
     ("openrouter", "xiaomi/mimo-v2.6-flash"),
     ("openrouter", "qwen/qwen4-max"),
+    ("openrouter", "qwen/qwen3.5-27b"),
     ("openrouter", "qwen/qwen3.6-27b"),
     ("openrouter", "qwen/qwen3.7-plus"),
     ("openrouter", "qwen/qwen3.8-27b"),
