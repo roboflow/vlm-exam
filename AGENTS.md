@@ -239,6 +239,17 @@ vlm-exam efficiency-report --effort high
 
 ## Adding and benchmarking models
 
+- For every new model, explicitly set the output token limit to **128,000**
+  tokens for every task and effort level, including smoke tests and retries.
+  Here, 128K means 128000, not 131072. Never omit the limit, pass null, or rely
+  on a provider default. In detection v2 profiles set `max_output_tokens: 128000`;
+  ensure the adapter sends the corresponding provider parameter on the wire.
+  Verify acceptance with a small request before launching the full benchmark.
+  If the provider rejects this limit or documents a lower hard ceiling, record
+  the evidence and report the limitation before running with a different cap;
+  never silently lower it. Document whether the cap includes reasoning tokens.
+  This rule applies prospectively: preserve historical profiles and results;
+  changing their limits requires a separately authorized rerun.
 - In `configs/models.yaml`, each model has an ordered `routes` list (or
   legacy single `provider` field). The vlm-exam model **key** is used in
   result filenames and leaderboards. Each route's `provider_model_id` is
@@ -470,7 +481,7 @@ this change; do not rewrite historical predictions to hide it. Review a new
 scoring revision explicitly before publishing it.
 
 
-### Bounded parser policy (v2-bounded-recovery-2)
+### Bounded parser policy (v2-bounded-recovery-4)
 
 All v2 models now share the decoder in `detection_v2_parsing.py`; the v1
 Supervision/provider parsers are not used by v2. The format adapter specifies
@@ -492,6 +503,33 @@ Unknown labels remain potential false positives. New inference records carry
 Existing parser comparison reports describe their recorded parser version and
 must not be presented as measurements of a later version without recalculation.
 
+Use `ParserMode.STRICT` / `ParserMode.RECOVERY` and
+`DetectionCoordinateFormat` in Python calls. Serialized string values remain
+accepted at API boundaries and are validated as enums. Version 3 also accepts
+one orphan closing Markdown fence after a complete JSON array in recovery mode,
+recording `orphan_closing_fence`; strict mode rejects it. This does not authorize
+repairing incomplete JSON, competing payloads, duplicate keys, or foreign schemas.
+Existing release scores retain their recorded parser versions until an explicitly
+approved offline reparse and scoring revision.
+
+Parser version 4 shares explicit format specifications and entry validation
+between strict compliance and decoding. Add a format to the enum and `_FORMATS`,
+then extend the format geometry fixtures; the coverage test rejects missing
+adapters. Keep recovery strategies shared across models. Decoded string labels
+are preserved in `Detections.data["class_name"]`, even if absent from ground truth;
+`classes` only seeds IDs. JSON constants such as NaN/Infinity are rejected, not
+silently treated as valid metadata. Recovery records accepted fractional
+coordinates for integer-coordinate formats, without rounding them. Existing
+running evaluations must retain their pinned runtime and parser revision.
+
+The November 20 offline scoring revision applies version 4 in recovery mode to
+all 64,193 available primary responses across 107 configurations. Seven missing
+responses and their accepted-failure policy are unchanged. Original archives
+are retained as `diagnostics/parser-before-v4-*.jsonl.gz`. The release records
+parser source hashes; `parser_v4_rescore.json` records before/after mAP and F1,
+separating substantive detection changes from sub-millipixel precision changes.
+No inference requests, prompts, settings, or raw response text changed.
+
 ### Gemini 4 detection refresh (November 20, 2026)
 
 The four Gemini 4 release entries use the approved first-pass low/high runs with
@@ -504,3 +542,24 @@ Carbon High has seven explicitly accepted 504 failures. Its run entry lists thei
 exact IDs in `accepted_missing_as_empty` with an approval reason. They retain
 `missing` status and diagnostics but count as empty predictions in quality scores.
 Unapproved missing cases still block ranking. Missing latency/usage is not invented.
+
+### Explicit 128,000-token profiles (November 20, 2026)
+
+`current_request_profile` now sets `max_output_tokens: 128000` for the 20
+previously uncapped Google, OpenAI and OpenRouter profiles enumerated in
+`_TOKEN_LIMIT_128000_PROFILES`. Standard future V2 executions derive a new
+configuration hash; historical configuration hashes are not relabeled. Explicit
+`--profile` files must also set 128000 under the new-model policy above. Existing
+working directories with a different request identity cannot be resumed under
+these settings; start a new working directory. This does not authorize full
+reruns. The approved recovery is one request per each of the 13 audited
+incomplete/empty/error outcomes, with no automatic retries. Preserve superseded
+responses and promote completed valid replacements regardless of score.
+
+The authorized 128K recovery completed with 13/13 valid responses. The primary
+archives contain those replacements; `token_128k_recovery.json` lists the exact
+cases and old/new configuration hashes. The original 13 records are preserved
+in `diagnostics/token-128k-before-*.jsonl.gz`. Other responses keep their original
+settings. This is a mixed historical run with targeted 128K recovery, not a claim
+that every historical request used 128000 tokens. Both detection summaries,
+the website summary and the low/high detection charts were regenerated.

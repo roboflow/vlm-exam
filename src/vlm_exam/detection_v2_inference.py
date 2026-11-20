@@ -17,7 +17,6 @@ import hashlib
 import io
 import json
 import os
-import re
 import threading
 import time
 from collections.abc import Callable
@@ -33,7 +32,7 @@ from google.genai import types
 from PIL import Image, ImageOps
 from supervision import Detections
 
-from vlm_exam.detection_v2_parsing import effective_format, parse_response
+from vlm_exam.detection_v2_parsing import ParserMode, effective_format, parse_response
 from vlm_exam.detection_v2_upload import _prepare_xai_image
 from vlm_exam.providers.anthropic import compute_resize_dimensions
 from vlm_exam.providers.base import error_diagnostics
@@ -45,7 +44,11 @@ from vlm_exam.providers.image_upload import (
     resize_image_to_max_edge,
 )
 from vlm_exam.providers.openai import _png_data_url
-from vlm_exam.tasks.detection import DetectionSample, DetectionTask
+from vlm_exam.tasks.detection import (
+    DetectionCoordinateFormat,
+    DetectionSample,
+    DetectionTask,
+)
 
 _LOCAL = threading.local()
 
@@ -61,8 +64,32 @@ _CURRENT_GOOGLE_ENDPOINTS = {
 }
 
 
+_TOKEN_LIMIT_128000_PROFILES = {
+    ("google", "gemini-3.1-pro-preview"),
+    ("google", "gemini-3.5-flash"),
+    ("google", "gemini-3.6-flash"),
+    ("google", "gemini-3.7-flash"),
+    ("google", "gemini-3.8-flash"),
+    ("openai", "gpt-5.5"),
+    ("openai", "gpt-5.6-luna"),
+    ("openai", "gpt-5.6-sol"),
+    ("openai", "gpt-5.6-terra"),
+    ("openai", "gpt-6-astra"),
+    ("openai", "gpt-6-luna"),
+    ("openai", "gpt-6-sol"),
+    ("openai", "gpt-6.1-sol"),
+    ("openai", "gpt-6.1-terra"),
+    ("openrouter", "mistralai/mistral-large-4-0"),
+    ("openrouter", "qwen/qwen3.6-27b"),
+    ("openrouter", "qwen/qwen3.7-plus"),
+    ("openrouter", "qwen/qwen3.8-27b"),
+    ("openrouter", "qwen/qwen3.8-flash"),
+    ("openrouter", "qwen/qwen3.8-max"),
+}
+
+
 def current_request_profile(profile: dict[str, Any]) -> dict[str, Any]:
-    """Copy a historical profile using explicitly verified current Google endpoints.
+    """Copy a historical profile with approved endpoints and output token limits.
 
     The caller must hash this new profile and preserve the historical source hash;
     stored results and their original request configurations are never rewritten.
@@ -72,6 +99,8 @@ def current_request_profile(profile: dict[str, Any]) -> dict[str, Any]:
         current["wire"] = _CURRENT_GOOGLE_ENDPOINTS.get(
             current["wire"], current["wire"]
         )
+    if (current.get("provider"), current.get("wire")) in _TOKEN_LIMIT_128000_PROFILES:
+        current["max_output_tokens"] = 128000
     return current
 
 
@@ -460,26 +489,16 @@ def _sample(case: dict[str, Any]) -> DetectionSample:
 def parse_objects(
     case: dict[str, Any],
     result: dict[str, Any],
-    coordinate_format: str,
-    parser_mode: str = "recovery",
+    coordinate_format: DetectionCoordinateFormat | str,
+    parser_mode: ParserMode | str = ParserMode.RECOVERY,
     diagnostics: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Decode boxes while retaining unknown labels as potential false positives."""
-    labels = sorted({obj["label"] for obj in case["objects"]})
-    for token in re.findall(
-        r'"(?:label|object_name|description)"\s*:\s*("(?:[^"\\]|\\.)*")',
-        result["predicted"],
-    ):
-        try:
-            label = json.loads(token, strict=False)
-            if label not in labels:
-                labels.append(label)
-        except ValueError:
-            pass
+    parser_mode = ParserMode(parser_mode)
     parsed = parse_response(
         result["predicted"],
         (case["width"], case["height"]),
-        labels,
+        [],
         coordinate_format=effective_format(coordinate_format, result.get("prompt", "")),
         uploaded_wh=tuple(result["uploaded_size"]),
         mode=parser_mode,
@@ -489,6 +508,8 @@ def parse_objects(
         parsed.confidence if parsed.confidence is not None else np.ones(len(parsed))
     )
     return [
-        dict(box=box.tolist(), label=labels[int(index)], confidence=float(score))
-        for box, index, score in zip(parsed.xyxy, parsed.class_id, confidence)
+        dict(box=box.tolist(), label=str(label), confidence=float(score))
+        for box, label, score in zip(
+            parsed.xyxy, parsed.data.get("class_name", []), confidence
+        )
     ]

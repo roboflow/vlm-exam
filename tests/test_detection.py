@@ -2405,7 +2405,10 @@ def test_bounded_reversed_boxes_remain_false_positives() -> None:
 
 
 @pytest.mark.parametrize("fmt", list(DetectionCoordinateFormat))
-def test_bounded_formats_decode_same_geometry(fmt: DetectionCoordinateFormat) -> None:
+@pytest.mark.parametrize("wrapper", ["{}", "{}\n```"])
+def test_bounded_formats_decode_same_geometry(
+    fmt: DetectionCoordinateFormat, wrapper: str
+) -> None:
     from vlm_exam.detection_v2_parsing import parse_response
 
     expected = [100, 100, 400, 300]
@@ -2437,7 +2440,9 @@ def test_bounded_formats_decode_same_geometry(fmt: DetectionCoordinateFormat) ->
             "label": "cat",
             "bbox" if fmt.value.endswith("image_bbox") else "box_2d": values,
         }
-    result = parse_response(json.dumps([entry]), (1000, 500), ["cat"], fmt, (200, 100))
+    result = parse_response(
+        wrapper.format(json.dumps([entry])), (1000, 500), ["cat"], fmt, (200, 100)
+    )
     assert result.xyxy[0].tolist() == pytest.approx(expected)
 
 
@@ -2455,6 +2460,117 @@ def test_bounded_parser_one_unambiguous_wrapper(wrapper: str) -> None:
             )
         )
         == 1
+    )
+
+
+@pytest.mark.parametrize("payload", ["[]", '[{"label":"cat","box_2d":[1,2,3,4]}]'])
+def test_orphan_fence_recovery_is_audited_and_strict_rejects(payload: str) -> None:
+    from vlm_exam.detection_v2_parsing import PARSER_VERSION, ParserMode, parse_response
+
+    raw = payload + "\n```\n"
+    options = dict(
+        resolution_wh=(100, 100),
+        uploaded_wh=(100, 100),
+        classes=["cat"],
+        coordinate_format=DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE,
+    )
+    details: dict = {}
+    recovered = parse_response(
+        raw, **options, mode=ParserMode.RECOVERY, diagnostics=details
+    )
+    assert len(recovered) == len(json.loads(payload))
+    assert details == {
+        "version": PARSER_VERSION,
+        "mode": "recovery",
+        "operations": {"orphan_closing_fence": 1},
+    }
+    strict = parse_response(raw, **options, mode=ParserMode.STRICT, diagnostics=details)
+    assert len(strict) == 0
+    assert details["rejected"] == "invalid_json"
+    assert raw == payload + "\n```\n"
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        '[{"label":"cat","box_2d":[1,2,3,4]}] []\n```',
+        "[]\n```\n[]\n```",
+        "```json\n[]\n```\n```json\n[]\n```",
+        '[{"label":"cat","box_2d":[1,2,3,4]},\n```',
+        '[{"label":"cat","label":"dog","box_2d":[1,2,3,4]}]\n```',
+        '{"detections":[{"label":"cat","box_2d":[1,2,3,4]}]}\n```',
+        "[]\n```\nHere is another answer: []",
+    ],
+)
+def test_orphan_fence_does_not_enable_ambiguous_or_incomplete_recovery(
+    raw: str,
+) -> None:
+    from vlm_exam.detection_v2_parsing import ParserMode, parse_response
+
+    for mode in ParserMode:
+        parsed = parse_response(
+            raw,
+            (100, 100),
+            ["cat", "dog"],
+            DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE,
+            (100, 100),
+            mode,
+        )
+        assert len(parsed) == 0
+
+
+def test_parser_enums_validate_serialized_configuration() -> None:
+    from vlm_exam.detection_v2_parsing import ParserMode, parse_response
+
+    profile = json.loads(
+        json.dumps(
+            {
+                "format": DetectionCoordinateFormat.YXYX_NORMALIZED_0_TO_1000,
+                "mode": ParserMode.RECOVERY,
+            }
+        )
+    )
+    raw = '[{"label":"cat","box_2d":[100,200,500,600]}]'
+    parsed = parse_response(
+        raw,
+        (1000, 800),
+        ["cat"],
+        profile["format"],
+        (1000, 800),
+        profile["mode"],
+    )
+    assert parsed.xyxy.tolist() == [[200, 80, 600, 400]]
+    with pytest.raises(ValueError, match="ParserMode"):
+        parse_response(
+            raw, (100, 100), ["cat"], profile["format"], (100, 100), "recover"
+        )
+    with pytest.raises(ValueError, match="DetectionCoordinateFormat"):
+        parse_response(raw, (100, 100), ["cat"], "guess", (100, 100), ParserMode.STRICT)
+
+
+def test_orphan_fence_preserves_unknown_labels_and_zero_confidence() -> None:
+    from vlm_exam.detection_v2_inference import parse_objects
+    from vlm_exam.detection_v2_parsing import ParserMode
+
+    case = dict(width=100, height=100, objects=[dict(label="cat", box=[1, 2, 3, 4])])
+    result = dict(
+        predicted='[{"label":"dog","box_2d":[10,20,30,40],"confidence":0}]\n```',
+        uploaded_size=[50, 50],
+    )
+    assert parse_objects(
+        case,
+        result,
+        DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE,
+        parser_mode=ParserMode.RECOVERY,
+    ) == [dict(label="dog", box=[20, 40, 60, 80], confidence=0)]
+    assert (
+        parse_objects(
+            case,
+            result,
+            DetectionCoordinateFormat.XYXY_ABSOLUTE_RESIZED_IMAGE,
+            parser_mode=ParserMode.STRICT,
+        )
+        == []
     )
 
 
@@ -2491,3 +2607,158 @@ def test_approved_timeout_is_scored_without_hiding_missing_status(
     assert any(
         "Invalid accepted failure policy" in e for e in validate_release(tmp_path)
     )
+
+
+def test_parser_format_table_covers_every_supported_format() -> None:
+    from vlm_exam.detection_v2_parsing import _FORMATS
+
+    assert set(_FORMATS) == set(DetectionCoordinateFormat)
+
+
+@pytest.mark.parametrize("mode", ["strict", "recovery"])
+@pytest.mark.parametrize("unknown_label", ["dog", "cat\u0000"])
+def test_decoded_labels_preserve_unknown_predictions(
+    mode: str, unknown_label: str
+) -> None:
+    from vlm_exam.detection_v2 import score_subset
+    from vlm_exam.detection_v2_inference import parse_objects
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    raw = (
+        '[{"label":"cat","box_2d":[1,2,3,4]},'
+        '{"la\\u0062el":' + json.dumps(unknown_label) + ',"box_2d":[1,2,3,4]}]'
+    )
+    classes = ["cat"]
+    parsed = parse_response(
+        raw, (100, 100), classes, "xyxy_absolute_original_image", (100, 100), mode
+    )
+    assert classes == ["cat"]
+    assert parsed.class_id.tolist() == [0, 1]
+    assert parsed.data["class_name"].tolist() == ["cat", unknown_label]
+    case = dict(
+        id="test", width=100, height=100, objects=[dict(label="cat", box=[1, 2, 3, 4])]
+    )
+    predictions = parse_objects(
+        case,
+        dict(predicted=raw, uploaded_size=[100, 100]),
+        "xyxy_absolute_original_image",
+        parser_mode=mode,
+    )
+    assert [obj["label"] for obj in predictions] == ["cat", unknown_label]
+    score = score_subset(
+        [case], [dict(case="test", status="returned", detections=predictions)]
+    )
+    assert (score["tp"], score["fp"], score["fn"]) == (1, 1, 0)
+
+
+@pytest.mark.parametrize("extra", [dict(description="dog"), dict(bbox=[2, 3, 4, 5])])
+def test_conflicting_fields_fail_both_compliance_and_strict_decode(extra: dict) -> None:
+    from vlm_exam.detection_v2_parsing import parse_response, strict_format_error
+
+    raw = json.dumps([dict(label="cat", box_2d=[1, 2, 3, 4], **extra)])
+    fmt = "xyxy_absolute_original_image"
+    assert strict_format_error(raw, fmt) == "conflicting_fields"
+    for mode in ("strict", "recovery"):
+        assert len(parse_response(raw, (100, 100), ["cat"], fmt, (100, 100), mode)) == 0
+
+
+@pytest.mark.parametrize("constant", ["NaN", "Infinity", "-Infinity"])
+@pytest.mark.parametrize("field", ["confidence", "metadata"])
+def test_non_json_constants_are_not_compliant_metadata(
+    constant: str, field: str
+) -> None:
+    from vlm_exam.detection_v2_parsing import parse_response, strict_format_error
+
+    raw = '[{"label":"cat","box_2d":[1,2,3,4],"' + field + '":' + constant + "}]"
+    fmt = "xyxy_absolute_original_image"
+    assert strict_format_error(raw, fmt) == "invalid_json"
+    for mode in ("strict", "recovery"):
+        assert len(parse_response(raw, (100, 100), ["cat"], fmt, (100, 100), mode)) == 0
+
+
+@pytest.mark.parametrize("mode", ["strict", "recovery"])
+def test_diagnostics_reuse_does_not_keep_previous_rejection(mode: str) -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    details = {"caller_context": "keep"}
+    fmt = "xyxy_absolute_original_image"
+    parse_response("broken", (100, 100), [], fmt, (100, 100), "strict", details)
+    assert details["rejected"] == "invalid_json"
+    raw = '[{"label":"cat","box_2d":[1,2,3,4]}]'
+    if mode == "recovery":
+        raw += "\n```"
+    assert len(parse_response(raw, (100, 100), [], fmt, (100, 100), mode, details)) == 1
+    assert "rejected" not in details
+    assert details["caller_context"] == "keep"
+
+
+def test_fractional_normalized_recovery_is_audited_without_rounding() -> None:
+    from vlm_exam.detection_v2_parsing import parse_response, strict_format_error
+
+    raw = '[{"label":"cat","box_2d":[1.5,2,3,4]}]'
+    fmt = "xyxy_normalized_0_to_1000"
+    details = {}
+    assert strict_format_error(raw, fmt) == "non_integer_coordinate"
+    result = parse_response(
+        raw, (1000, 1000), [], fmt, (1000, 1000), diagnostics=details
+    )
+    assert result.xyxy.tolist() == [[1.5, 2, 3, 4]]
+    assert details["operations"] == {"non_integer_coordinate": 1}
+
+
+@pytest.mark.parametrize("prefix", ["", "Here: "])
+@pytest.mark.parametrize("tail", [" }", " ]", " {}", " []"])
+def test_prose_does_not_hide_trailing_structures(prefix: str, tail: str) -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    raw = prefix + '[{"label":"cat","box_2d":[1,2,3,4]}]' + tail
+    assert (
+        len(
+            parse_response(
+                raw, (100, 100), [], "xyxy_absolute_original_image", (100, 100)
+            )
+        )
+        == 0
+    )
+
+
+def test_duplicate_seed_classes_cannot_create_colliding_ids() -> None:
+    from vlm_exam.detection_v2_parsing import parse_response
+
+    with pytest.raises(ValueError, match="unique labels"):
+        parse_response(
+            '[{"label":"dog","box_2d":[1,2,3,4]}]',
+            (100, 100),
+            ["cat", "cat"],
+            "xyxy_absolute_original_image",
+            (100, 100),
+        )
+
+
+@pytest.mark.parametrize(
+    "provider,wire", sorted(inference._TOKEN_LIMIT_128000_PROFILES)
+)
+@pytest.mark.parametrize("previous_limit", [None, 65536, 131072])
+def test_current_token_limits_preserve_historical_profiles(
+    provider: str, wire: str, previous_limit: int | None
+) -> None:
+    historical = {
+        "provider": provider,
+        "wire": wire,
+        "max_output_tokens": previous_limit,
+    }
+    current = inference.current_request_profile(historical)
+    assert current["max_output_tokens"] == 128000
+    assert historical["max_output_tokens"] == previous_limit
+    assert {k: v for k, v in current.items() if k != "max_output_tokens"} == {
+        k: v for k, v in historical.items() if k != "max_output_tokens"
+    }
+
+
+def test_current_token_limits_leave_other_models_unchanged() -> None:
+    historical = {
+        "provider": "openrouter",
+        "wire": "other/model",
+        "max_output_tokens": 65536,
+    }
+    assert inference.current_request_profile(historical) == historical
