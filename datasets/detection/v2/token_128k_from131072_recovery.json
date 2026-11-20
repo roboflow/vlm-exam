@@ -1,0 +1,157 @@
+{
+  "requested": 17,
+  "attempts_per_request": 1,
+  "promoted": [
+    {
+      "model": "mimo-v2.6-flash",
+      "arm": "maximum",
+      "case": "S033-020",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "bb8690d78d613550f0f9c94fa8edd311290392eda3ace2acbce1e0f626f641f1",
+      "new_configuration": "3957fdc71bc4470376875e32093f40b82c4b2a46529dfd01d139c24a1795d5d9"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "maximum",
+      "case": "S023-017",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "maximum",
+      "case": "S033-006",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "maximum",
+      "case": "S033-008",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "maximum",
+      "case": "S062-color-011",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "maximum",
+      "case": "S095-002",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "maximum",
+      "case": "S130-001",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "maximum",
+      "case": "S131-010",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "maximum",
+      "case": "S209-001",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "maximum",
+      "case": "S211-005",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "minimum",
+      "case": "OLD011-001",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "minimum",
+      "case": "S005-003",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "minimum",
+      "case": "S101-002",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "minimum",
+      "case": "S113-004",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "minimum",
+      "case": "S219-010",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "0b820c0ffd60b9f975baab168c5585d46abde49f9113027eb65a2ce7b7af9df1",
+      "new_configuration": "f44f365a9015643f6c5f8bb334f61722f56274b79fdecfe3769146681a74a3e6"
+    }
+  ],
+  "not_promoted": [
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "maximum",
+      "case": "OLD015-005",
+      "status": "empty"
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "arm": "maximum",
+      "case": "S211-008",
+      "status": "empty"
+    }
+  ],
+  "historical_successes_unchanged": true,
+  "superseded_archive": "results/detection/v2/diagnostics/token-128k-before-b44e7292034ed3a8fa5db0ad1d0566aee9221743194b74c4539ed5646ffd8456.jsonl.gz"
+}

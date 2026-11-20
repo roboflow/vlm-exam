@@ -368,6 +368,8 @@ class TestValidateCommand:
             main,
             [
                 "validate",
+                "--detection-version",
+                "v1",
                 "--results-directory",
                 str(results),
                 "--config",
@@ -393,6 +395,8 @@ class TestValidateCommand:
             main,
             [
                 "validate",
+                "--detection-version",
+                "v1",
                 "--results-directory",
                 str(results),
                 "--config",
@@ -407,6 +411,8 @@ class TestValidateCommand:
             main,
             [
                 "validate",
+                "--detection-version",
+                "v1",
                 "--results-directory",
                 str(results),
                 "--config",
@@ -489,3 +495,85 @@ def test_text_release_rejects_coverage_and_provenance_changes(tmp_path: Path) ->
         mutate(rows)
         path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
         assert validate_text_release(tmp_path, policy)
+
+
+def test_detection_v2_inventory_rejects_unlisted_archives(tmp_path: Path) -> None:
+    import gzip
+    import hashlib
+    import json
+
+    from vlm_exam.detection_v2 import validate_release
+
+    def digest(data: bytes) -> str:
+        return hashlib.sha256(data).hexdigest()
+
+    profile = {"minimum": "low"}
+    fingerprint = digest(
+        json.dumps(profile, sort_keys=True, separators=(",", ":")).encode()
+    )
+    manifest = tmp_path / "datasets/detection/v2/manifest.json"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text(json.dumps({"cases": [{"id": "a", "subset": "one"}]}))
+    archive = tmp_path / "results/detection/v2/model.jsonl.gz"
+    archive.parent.mkdir(parents=True)
+    row = {
+        "case": "a",
+        "model": "model",
+        "arm": "minimum",
+        "repeat": 1,
+        "status": "missing",
+        "configuration": fingerprint,
+        "detections": [],
+    }
+    archive.write_bytes(gzip.compress((json.dumps(row) + "\n").encode()))
+    policy = {
+        "dataset": str(manifest.relative_to(tmp_path)),
+        "dataset_sha256": digest(manifest.read_bytes()),
+        "images": 1,
+        "subsets": 1,
+        "images_per_subset": 1,
+        "models": 1,
+        "configurations": {fingerprint: profile},
+        "missing": ["model/minimum/a"],
+        "diagnostics": [],
+        "runs": [
+            {
+                "model": "model",
+                "effort": "minimum",
+                "path": str(archive.relative_to(tmp_path)),
+                "sha256": digest(archive.read_bytes()),
+                "samples": 1,
+                "status_counts": {"missing": 1},
+            }
+        ],
+    }
+    (manifest.parent / "release.json").write_text(json.dumps(policy))
+    assert validate_release(tmp_path) == []
+    extra = archive.parent / "unreviewed.jsonl.gz"
+    extra.write_bytes(archive.read_bytes())
+    assert "Response archives differ from the frozen inventory" in validate_release(
+        tmp_path
+    )
+    extra.unlink()
+    policy["missing"] = []
+    (manifest.parent / "release.json").write_text(json.dumps(policy))
+    assert (
+        "Missing-response identities differ from the frozen inventory"
+        in validate_release(tmp_path)
+    )
+
+
+def test_current_validation_includes_release_failures(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        "vlm_exam.detection_v2.validate_release",
+        lambda root: ["Dataset checksum mismatch"],
+    )
+    report = validate_results(tmp_path, _config(), detection_version="v2")
+    assert not report.ok
+    assert any(
+        p.kind == "detection-v2" and "checksum" in p.message for p in report.errors
+    )
+    assert "detection" not in report.protocol.tasks
+    legacy = validate_results(tmp_path, _config(), detection_version="v1")
+    assert legacy.ok
+    assert "detection" in legacy.protocol.tasks

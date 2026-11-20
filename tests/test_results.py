@@ -195,3 +195,24 @@ class TestSaveResults:
 
         assert load_results(path).samples[0].image == "a.jpg"
         assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_versioned_detection_archive_excludes_v2_and_diagnostics(
+    tmp_path: Path,
+) -> None:
+    from vlm_exam.results import result_paths
+
+    paths = [
+        "counting_model_low.jsonl",
+        "detection/v1/detection_model_low.jsonl",
+        "detection/v2/detection_model_minimum.jsonl",
+        "detection/v2/diagnostics/detection_model_minimum.jsonl",
+    ]
+    for name in paths:
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
+    assert {str(path.relative_to(tmp_path)) for path in result_paths(tmp_path)} == set(
+        paths[:2]
+    )
+    assert result_paths(tmp_path, "detection_*.jsonl") == [tmp_path / paths[1]]

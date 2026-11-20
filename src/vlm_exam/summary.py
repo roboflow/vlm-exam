@@ -135,16 +135,16 @@ class TokenSummary:
 class CostSummary:
     """Aggregated estimated USD cost for a set of samples."""
 
-    total_usd: float
-    average_per_sample_usd: float
+    total_usd: float | None
+    average_per_sample_usd: float | None
 
 
 @dataclass(frozen=True)
 class SpeedSummary:
     """Aggregated inference wall-clock time for a set of samples."""
 
-    total_seconds: float
-    average_seconds_per_sample: float
+    total_seconds: float | None
+    average_seconds_per_sample: float | None
 
 
 @dataclass(frozen=True)
@@ -254,6 +254,7 @@ class ProtocolSummary:
     repeats: int
     efforts: tuple[str, ...]
     tasks: tuple[str, ...]
+    detection_repeats: int = 3
 
     @property
     def runs_per_model(self) -> int:
@@ -266,7 +267,13 @@ class ProtocolSummary:
         from vlm_exam.text_benchmark import TEXT_BENCHMARK_PROTOCOL
 
         return {
-            task: TEXT_BENCHMARK_PROTOCOL.repeats if task == "text" else self.repeats
+            task: (
+                TEXT_BENCHMARK_PROTOCOL.repeats
+                if task == "text"
+                else self.detection_repeats
+                if task == "detection"
+                else self.repeats
+            )
             for task in self.tasks
         }
 
@@ -472,8 +479,16 @@ def _overall(task_results: dict[str, ModelTaskResult]) -> ModelOverall:
     sample_count = sum(result.sample_count for result in results)
     total_input = sum(result.tokens.input for result in results)
     total_output = sum(result.tokens.output for result in results)
-    total_cost = sum(result.cost.total_usd for result in results)
-    total_seconds = sum(result.speed.total_seconds for result in results)
+    total_cost = (
+        sum(result.cost.total_usd for result in results)
+        if all(result.cost.total_usd is not None for result in results)
+        else None
+    )
+    total_seconds = (
+        sum(result.speed.total_seconds for result in results)
+        if all(result.speed.total_seconds is not None for result in results)
+        else None
+    )
     return ModelOverall(
         task_count=len(results),
         sample_count=sample_count,
@@ -487,12 +502,16 @@ def _overall(task_results: dict[str, ModelTaskResult]) -> ModelOverall:
         ),
         cost=CostSummary(
             total_usd=total_cost,
-            average_per_sample_usd=total_cost / sample_count if sample_count else 0.0,
+            average_per_sample_usd=total_cost / sample_count
+            if sample_count and total_cost is not None
+            else None,
         ),
         speed=SpeedSummary(
             total_seconds=total_seconds,
             average_seconds_per_sample=(
-                total_seconds / sample_count if sample_count else 0.0
+                total_seconds / sample_count
+                if sample_count and total_seconds is not None
+                else None
             ),
         ),
     )
@@ -553,6 +572,7 @@ def build_summary(
     *,
     models: set[str] | None = None,
     detection_dataset_directory: Path | None = None,
+    detection_version: str = "v2",
 ) -> BenchmarkSummary:
     """Compile all result files into a single frontend-facing summary.
 
@@ -573,7 +593,9 @@ def build_summary(
     Returns:
         The assembled benchmark summary.
     """
-    runs = load_results_directory(results_directory)
+    runs = load_results_directory(
+        results_directory, include_detection_v1=detection_version == "v1"
+    )
     all_groups = group_runs(runs, config, models=models)
     groups = (
         all_groups
@@ -681,7 +703,7 @@ def build_summary(
 
     if requires_text_release(results_directory, config):
         summary = _with_text_results(summary, results_directory, config, effort, models)
-    return replace(
+    summary = replace(
         summary,
         models=[
             replace(
@@ -700,6 +722,14 @@ def build_summary(
             for model in summary.models
         ],
     )
+
+    if detection_version == "v2":
+        from vlm_exam.detection_v2_workflow import with_detection_results
+
+        summary = with_detection_results(
+            summary, results_directory, config, effort, models, all_groups
+        )
+    return summary
 
 
 _TEXT_METRICS = {
@@ -909,15 +939,21 @@ def _token_dict(tokens: TokenSummary) -> dict[str, Any]:
 
 def _cost_dict(cost: CostSummary) -> dict[str, Any]:
     return {
-        "total_usd": round(cost.total_usd, 6),
-        "average_per_sample_usd": round(cost.average_per_sample_usd, 6),
+        "total_usd": round(cost.total_usd, 6) if cost.total_usd is not None else None,
+        "average_per_sample_usd": round(cost.average_per_sample_usd, 6)
+        if cost.average_per_sample_usd is not None
+        else None,
     }
 
 
 def _speed_dict(speed: SpeedSummary) -> dict[str, Any]:
     return {
-        "total_seconds": round(speed.total_seconds, 3),
-        "average_seconds_per_sample": round(speed.average_seconds_per_sample, 3),
+        "total_seconds": round(speed.total_seconds, 3)
+        if speed.total_seconds is not None
+        else None,
+        "average_seconds_per_sample": round(speed.average_seconds_per_sample, 3)
+        if speed.average_seconds_per_sample is not None
+        else None,
     }
 
 
@@ -947,7 +983,12 @@ def _task_result_dict(result: ModelTaskResult) -> dict[str, Any]:
         "tokens": _token_dict(result.tokens),
         "cost": _cost_dict(result.cost),
         "speed": _speed_dict(result.speed),
-        "timestamp": _iso_timestamp(result.timestamp),
+        "timestamp": _iso_timestamp(result.timestamp) if result.timestamp else None,
+        **(
+            {"provenance": result.provenance}
+            if result.provenance and result.provenance.get("protocol") == "detection-v2"
+            else {}
+        ),
         **({"coverage": list(result.coverage)} if result.coverage else {}),
     }
 

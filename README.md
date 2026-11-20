@@ -52,9 +52,10 @@ end") show a min-max whisker over their runs.
 Reference open-vocabulary detectors (YOLO-E, etc.) are benchmarked separately.
 See [reference/README.md](reference/README.md) for setup and commands.
 
-Stricter IoU thresholds:
-[mAP@75](visualizations/leaderboards/detection_map75_low.png) |
-[mAP@50:95](visualizations/leaderboards/detection_map50_95_low.png)
+Historical v1 (different dataset/protocol):
+[mAP@50](visualizations/leaderboards/detection/v1/detection_map50_low.png) |
+[mAP@75](visualizations/leaderboards/detection/v1/detection_map75_low.png) |
+[mAP@50:95](visualizations/leaderboards/detection/v1/detection_map50_95_low.png)
 
 ## Supported providers
 
@@ -227,7 +228,7 @@ Side-by-side ground truth vs. prediction cards with per-image mAP@50:
 
 ```bash
 vlm-exam detection-visualize \
-    --results-file results/detection_gemini-3.5-flash_low_20260721_114044.jsonl \
+    --results-file results/detection/v1/detection_gemini-3.5-flash_low_20260721_114044.jsonl \
     --dataset-directory data/detection/train \
     --output-directory visualizations/detection \
     --max-images 20
@@ -490,3 +491,12 @@ same bottom metric position as the other text cards.
 Single-value comparisons display embedded newlines and tabs as visible markers
 before measuring the text. Transcription keeps line breaks and marks only changed
 whitespace (newline, tab or space), using the same insertion/deletion colors.
+
+## Detection benchmark versions
+
+Detection **v2** is the default for run, summary and leaderboard commands.
+The original detection protocol is preserved as explicit `--detection-version v1`. The
+**v2** release contains the approved 600-case benchmark and all 55 evaluated
+models, with native minimum/maximum configurations. See
+[Detection v2](docs/detection-v2.md) for protocols, saved results, validation,
+scoring, rendering, private image preparation and inference/resume commands.
