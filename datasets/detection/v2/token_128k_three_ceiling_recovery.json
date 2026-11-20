@@ -1,0 +1,127 @@
+{
+  "requested": 14,
+  "attempts_per_request": 1,
+  "promoted": [
+    {
+      "model": "gemini-2.5-pro",
+      "arm": "maximum",
+      "case": "OLD019-002",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28",
+      "new_configuration": "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a"
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "arm": "maximum",
+      "case": "S090-007",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28",
+      "new_configuration": "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a"
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "arm": "maximum",
+      "case": "S138-003",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28",
+      "new_configuration": "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a"
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "arm": "maximum",
+      "case": "S209-025",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28",
+      "new_configuration": "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a"
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "arm": "minimum",
+      "case": "OLD002-004",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28",
+      "new_configuration": "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a"
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "arm": "minimum",
+      "case": "S031-002",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28",
+      "new_configuration": "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a"
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "arm": "minimum",
+      "case": "S031-020",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28",
+      "new_configuration": "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a"
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "arm": "minimum",
+      "case": "S106-006",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28",
+      "new_configuration": "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a"
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "arm": "minimum",
+      "case": "S109-005",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28",
+      "new_configuration": "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a"
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "arm": "minimum",
+      "case": "S179-005",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28",
+      "new_configuration": "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a"
+    },
+    {
+      "model": "qwen-3.5-27b",
+      "arm": "enabled",
+      "case": "OLD002-003",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "efe8b55406ddcc3aaef532561d4d9052fd407af5b26a864bb5a5421c3494c053",
+      "new_configuration": "b48dcf398fd1369de106298d2b51fd3fcf4bb6eb7f2e580bbe07525ac2d7fad6"
+    }
+  ],
+  "not_promoted": [
+    {
+      "model": "gemini-2.5-pro",
+      "arm": "minimum",
+      "case": "OLD028-001",
+      "status": "truncated"
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "arm": "minimum",
+      "case": "OLD028-002",
+      "status": "invalid_json"
+    },
+    {
+      "model": "qwen-3.5-27b",
+      "arm": "enabled",
+      "case": "OLD010-005",
+      "status": "invalid_json"
+    }
+  ],
+  "historical_successes_unchanged": true,
+  "superseded_archive": "results/detection/v2/diagnostics/token-128k-before-803cea2a5e0c4f216a02e5072a8ebcb07cdf087648a179666dd4b588ee53e76f.jsonl.gz"
+}

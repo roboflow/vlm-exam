@@ -456,20 +456,19 @@
       "complete": true,
       "accepted_failure_count": 0,
       "response_counts": {
-        "returned": 521,
-        "invalid_json": 75,
-        "truncated": 4
+        "returned": 525,
+        "invalid_json": 75
       },
       "metrics": {
-        "map50": 0.20417160971179935,
-        "map50_missing_as_empty": 0.20417160971179935,
-        "map50_capped100": 0.19720090211158095,
-        "f1": 0.28155603528385775,
-        "precision": 0.33337847445576735,
-        "recall": 0.2436773075971294,
-        "seconds_per_image": 56.87335861245791,
+        "map50": 0.20426914608894245,
+        "map50_missing_as_empty": 0.20426914608894245,
+        "map50_capped100": 0.1973240586255997,
+        "f1": 0.2791508417890142,
+        "precision": 0.32662333355442064,
+        "recall": 0.2437268002969562,
+        "seconds_per_image": 53.95167678594589,
         "input_tokens": 223538,
-        "output_tokens": 2873005
+        "output_tokens": 2652680
       },
       "rank": 46
     },
@@ -481,20 +480,20 @@
       "complete": true,
       "accepted_failure_count": 0,
       "response_counts": {
-        "returned": 452,
+        "returned": 458,
         "invalid_json": 140,
-        "truncated": 8
+        "truncated": 2
       },
       "metrics": {
-        "map50": 0.17253551263614403,
-        "map50_missing_as_empty": 0.17253551263614403,
-        "map50_capped100": 0.16961064115336436,
-        "f1": 0.22238085719996573,
-        "precision": 0.2628239740820734,
-        "recall": 0.19272457312546398,
-        "seconds_per_image": 40.74564753890038,
+        "map50": 0.17428594474622514,
+        "map50_missing_as_empty": 0.17428594474622514,
+        "map50_capped100": 0.17060034002036747,
+        "f1": 0.22648822480304456,
+        "precision": 0.26182668268450277,
+        "recall": 0.19955456570155902,
+        "seconds_per_image": 36.37225939671198,
         "input_tokens": 223538,
-        "output_tokens": 1705401
+        "output_tokens": 1358654
       },
       "rank": 41
     },
@@ -2262,21 +2261,20 @@
       "complete": true,
       "accepted_failure_count": 0,
       "response_counts": {
-        "returned": 549,
-        "truncated": 1,
+        "returned": 550,
         "invalid_json": 49,
         "empty": 1
       },
       "metrics": {
-        "map50": 0.32117883833222244,
-        "map50_missing_as_empty": 0.32117883833222244,
-        "map50_capped100": 0.31642304473789407,
-        "f1": 0.3298505572441743,
-        "precision": 0.4577730907812637,
-        "recall": 0.25780747339767385,
-        "seconds_per_image": 96.55097100575765,
+        "map50": 0.32130862775666175,
+        "map50_missing_as_empty": 0.32130862775666175,
+        "map50_capped100": 0.3165694156778045,
+        "f1": 0.3310381857806134,
+        "precision": 0.4574458798882682,
+        "recall": 0.2593664934422173,
+        "seconds_per_image": 93.12262784202893,
         "input_tokens": 1040723,
-        "output_tokens": 2784277
+        "output_tokens": 2713731
       }
     },
     {

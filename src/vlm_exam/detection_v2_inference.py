@@ -90,6 +90,7 @@ _TOKEN_LIMIT_128000_PROFILES = {
     ("openrouter", "qwen/qwen3.5-27b"),
     ("openrouter", "qwen/qwen3.6-27b"),
     ("openrouter", "qwen/qwen3.7-plus"),
+    ("openrouter", "qwen/qwen3.7-flash"),
     ("openrouter", "qwen/qwen3.8-27b"),
     ("openrouter", "qwen/qwen3.8-flash"),
     ("openrouter", "qwen/qwen3.8-max"),

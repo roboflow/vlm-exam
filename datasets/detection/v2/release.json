@@ -286,14 +286,14 @@
       "model": "gemini-2.5-pro",
       "effort": "maximum",
       "path": "results/detection/v2/gemini-2.5-pro__maximum.jsonl.gz",
-      "sha256": "beb55fa6574b3b144ccabed152f3557894a6f12e14326bca3c37158412a6e7fd",
+      "sha256": "9d895971e71c438aa47a704fbf0081c8c430b36d633d128847cc0b2e829c278e",
       "samples": 600,
       "status_counts": {
-        "returned": 521,
-        "invalid_json": 75,
-        "truncated": 4
+        "returned": 525,
+        "invalid_json": 75
       },
       "configurations": [
+        "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a",
         "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28"
       ]
     },
@@ -301,14 +301,15 @@
       "model": "gemini-2.5-pro",
       "effort": "minimum",
       "path": "results/detection/v2/gemini-2.5-pro__minimum.jsonl.gz",
-      "sha256": "2b722840849b45ab859e145e272bfc250d15fa75497e75c8e98b9fd019c88c2b",
+      "sha256": "8914336cc038b4b18a9131015fe05e1f6c30afb96d48d161681f07475e771c7f",
       "samples": 600,
       "status_counts": {
-        "returned": 452,
+        "returned": 458,
         "invalid_json": 140,
-        "truncated": 8
+        "truncated": 2
       },
       "configurations": [
+        "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a",
         "5853ac86de014405fdaf859ea07f2b1c870eb95d1e493541480d8d57926c4a28"
       ]
     },
@@ -1385,15 +1386,15 @@
       "model": "qwen-3.5-27b",
       "effort": "enabled",
       "path": "results/detection/v2/qwen-3.5-27b__enabled.jsonl.gz",
-      "sha256": "0944813a5f06ad829985c9c26962f5b7d2b947d690fd6ef01297cf1aa0d330c1",
+      "sha256": "0f48b8a459e06ad798dc8b5039e0088cf58d7b151cafa42a19373808ee2c1a20",
       "samples": 600,
       "status_counts": {
-        "returned": 549,
-        "truncated": 1,
+        "returned": 550,
         "invalid_json": 49,
         "empty": 1
       },
       "configurations": [
+        "b48dcf398fd1369de106298d2b51fd3fcf4bb6eb7f2e580bbe07525ac2d7fad6",
         "efe8b55406ddcc3aaef532561d4d9052fd407af5b26a864bb5a5421c3494c053"
       ]
     },
@@ -2881,6 +2882,37 @@
         "require_parameters": true
       },
       "max_output_tokens": 128000
+    },
+    "245242b02f767885dba26bb29ccfe0d89c130852861af35a5a57df9d71a54f2a": {
+      "provider": "google",
+      "wire": "gemini-2.5-pro",
+      "minimum": 128,
+      "maximum": 32768,
+      "format": "yxyx_normalized_0_to_1000",
+      "arms": [
+        "minimum",
+        "maximum"
+      ],
+      "max_output_tokens": 128000
+    },
+    "b48dcf398fd1369de106298d2b51fd3fcf4bb6eb7f2e580bbe07525ac2d7fad6": {
+      "provider": "openrouter",
+      "wire": "qwen/qwen3.5-27b",
+      "format": "xyxy_normalized_0_to_1000",
+      "minimum": "enabled",
+      "maximum": "enabled",
+      "max_output_tokens": 128000,
+      "arms": [
+        "enabled"
+      ],
+      "enabled": "enabled",
+      "routing": {
+        "only": [
+          "alibaba"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true
+      }
     }
   },
   "diagnostics": [
@@ -3498,6 +3530,11 @@
       "path": "results/detection/v2/diagnostics/token-128k-before-b44e7292034ed3a8fa5db0ad1d0566aee9221743194b74c4539ed5646ffd8456.jsonl.gz",
       "sha256": "b44e7292034ed3a8fa5db0ad1d0566aee9221743194b74c4539ed5646ffd8456",
       "samples": 15
+    },
+    {
+      "path": "results/detection/v2/diagnostics/token-128k-before-803cea2a5e0c4f216a02e5072a8ebcb07cdf087648a179666dd4b588ee53e76f.jsonl.gz",
+      "sha256": "803cea2a5e0c4f216a02e5072a8ebcb07cdf087648a179666dd4b588ee53e76f",
+      "samples": 11
     }
   ],
   "missing": [

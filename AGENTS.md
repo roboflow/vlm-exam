@@ -593,3 +593,15 @@ The authorized one-attempt recovery covers 12 Gemini 2.5 Pro token-exhaustion
 cases and two Qwen 3.5 27B cases (one exhausted, one empty). Flash Lite has no
 eligible incomplete cases. Preserve completed historical responses and their
 actual settings; format-only errors are outside this token-budget recovery.
+
+This recovery promoted 11 valid responses out of 14 attempts.
+`token_128k_three_ceiling_recovery.json` records promoted cases and any remaining
+failures. Superseded records remain in the diagnostic archives; successful
+historical responses retain their original settings.
+
+Qwen 3.7 Flash now requests 128000 tokens for both reasoning-disabled and
+reasoning-enabled V2 runs. Both live probes on pinned Alibaba returned HTTP 200
+and valid output. This confirms parameter acceptance, not the effective maximum
+generation length. Its audit contained no token-exhaustion or empty/API cases;
+no benchmark reruns were required. All 56 released models now derive future
+profiles requesting 128000; historical successful responses remain unchanged.
