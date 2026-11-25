@@ -495,8 +495,22 @@ whitespace (newline, tab or space), using the same insertion/deletion colors.
 ## Detection benchmark versions
 
 Detection **v2** is the default for run, summary and leaderboard commands.
-The original detection protocol is preserved as explicit `--detection-version v1`. The
-**v2** release contains the approved 600-case benchmark and all 55 evaluated
-models, with native minimum/maximum configurations. See
-[Detection v2](docs/detection-v2.md) for protocols, saved results, validation,
-scoring, rendering, private image preparation and inference/resume commands.
+Use `--detection-version v1` explicitly for the original protocol and historical
+results. V1 results do not enter the current detection leaderboard.
+
+V2 contains 600 images across 120 subsets and results for 56 models. The public
+`low`/`high` options select pinned native profiles; Gemini 4 uses native low/high,
+not xhigh. Missing images download automatically using `ROBOFLOW_API_KEY` into
+`data/detection/v2`, with hashes verified against the approved manifest.
+
+```bash
+vlm-exam run --task detection --models MODEL --effort low --concurrency 30
+vlm-exam detection-v2 validate
+vlm-exam detection-v2 summary --workers 4 --check
+```
+
+Runs resume from `working-runs/detection/v2` only when their configuration and
+inputs match. Use `--max-samples 1` for a non-publishing smoke test. New models
+require an explicit `--profile`; configuration and publication rules are in
+`AGENTS.md`. Versioned results and audit records live in `datasets/detection/v2/`
+and `results/detection/v2/`.
