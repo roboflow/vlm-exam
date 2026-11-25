@@ -177,6 +177,7 @@ def with_detection_results(
         TokenSummary,
         _overall,
     )
+    from vlm_exam.summary_metadata import detection_configurations
 
     root = results.resolve().parent
     source = root / "datasets/detection/v2/summary.json"
@@ -247,6 +248,9 @@ def with_detection_results(
                 "complete": row["complete"],
                 "accepted_failure_count": row.get("accepted_failure_count", 0),
             },
+            configuration_details=detection_configurations(
+                root, policy, row["model"], row["effort"]
+            ),
             subsets=row["subsets"],
         )
         existing = indexed.get((model, legacy_effort))

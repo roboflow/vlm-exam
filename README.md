@@ -496,7 +496,8 @@ whitespace (newline, tab or space), using the same insertion/deletion colors.
 
 Detection **v2** is the default for run, summary and leaderboard commands.
 Use `--detection-version v1` explicitly for the original protocol and historical
-results. V1 results do not enter the current detection leaderboard.
+results. V1 results do not enter the current detection leaderboard; the combined
+JSON exposes them separately under `historical.detection.v1`.
 
 V2 contains 600 images across 120 subsets and results for 56 models. The public
 `low`/`high` options select pinned native profiles; Gemini 4 uses native low/high,

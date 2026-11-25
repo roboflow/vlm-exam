@@ -436,7 +436,8 @@ PNGs or recomputing inference.
   they do not override a model's native effort values. V2 has one run per arm.
 - Use `--detection-version v1` explicitly to run or summarize the historical
   pipeline. Historical flat files and `results/detection/v1/*.jsonl` are preserved
-  byte-for-byte, but never enter the default overview JSON or detection charts.
+  byte-for-byte. They appear only under `historical.detection.v1` in the combined
+  JSON, never in current totals, completion status or detection charts.
 - V2 has 600 cases, 120 subsets, five images each. Its exact approved selection,
   response inventory and configuration hashes live in `datasets/detection/v2/`.
   Never pool versions, configurations, diagnostics, or smoke runs.
@@ -678,3 +679,25 @@ detection_v2:
 
 This is a schema example, not a claim that every OpenAI model has these effort
 endpoints. OpenRouter profiles also require the explicit routing block.
+
+### Combined website export (schema version 2)
+
+`vlm-exam summary` generates current results at the existing root and the
+archived detection view under `historical.detection.v1`. Regenerate and commit
+`web/benchmark_summary.json` in every PR; `summary --check` covers both views.
+Do not mix historical scores into current totals or rankings. The frozen V1
+website snapshot at `datasets/detection/v1/web_snapshot.json` preserves the
+published main-branch scores and hashes all 260 original V1 archives. If those
+archives change, regenerate an explicitly V1-scored summary with the original
+dataset, then use `summary_metadata.write_historical_snapshot` to refresh the
+snapshot; never bypass its archive checks.
+
+Each task result carries `configuration_details`: distinct recorded settings,
+primary record counts across repeats, and exact reasoning parameter names.
+`model.effort` remains a leaderboard category, not a native API setting. Keep
+unknown historical settings unknown; never backfill from current models.yaml.
+Requested output limits are not token usage or verified effective model ceilings.
+Text aggregation is sample-weighted within a run, then averaged across runs;
+its four subtask definitions are exported explicitly. Existing provenance hash
+lists retain their original type. The detailed public contract lives in the
+existing `scripts/homepage_assets/summary_json_schema.md`.

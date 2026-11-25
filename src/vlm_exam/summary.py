@@ -17,7 +17,7 @@ from __future__ import annotations
 import difflib
 import hashlib
 import json
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -41,6 +41,11 @@ from vlm_exam.results import (
     is_failed_sample,
     load_results,
     load_results_directory,
+)
+from vlm_exam.summary_metadata import (
+    historical_detection,
+    task_metadata,
+    unknown_configurations,
 )
 
 if TYPE_CHECKING:
@@ -179,6 +184,7 @@ class ModelTaskResult:
     evaluated_sample_count: int | None = None
     provenance: dict[str, Any] | None = None
     coverage: tuple[dict[str, Any], ...] = ()
+    configuration_details: dict[str, Any] | None = None
     subsets: dict[str, Any] | None = None
 
 
@@ -286,6 +292,7 @@ class BenchmarkSummary:
     efforts: tuple[str, ...]
     tasks: list[TaskSummary]
     models: list[ModelSummary]
+    historical: dict[str, Any] = field(default_factory=dict)
     scoring: ScoringSummary = ScoringSummary(
         judge_model=DEFAULT_JUDGE_MODEL,
         judge_metric=_JUDGE_ACCURACY_METRIC,
@@ -471,6 +478,11 @@ def _model_task_result(
         timestamp=runs[-1].timestamp,
         timestamps=tuple(run.timestamp for run in runs),
         evaluated_sample_count=evaluated_sample_count,
+        configuration_details=unknown_configurations(
+            sample.metadata.get("inference_hash")
+            for run in runs
+            for sample in run.samples
+        ),
     )
 
 
@@ -729,6 +741,9 @@ def build_summary(
         summary = with_detection_results(
             summary, results_directory, config, effort, models, all_groups
         )
+        summary = replace(
+            summary, historical=historical_detection(results_directory, effort, models)
+        )
     return summary
 
 
@@ -815,6 +830,11 @@ def _text_result(
             "inference_hash": metadata["inference_hash"],
             "result_files": sources,
         },
+        configuration_details=unknown_configurations(
+            sample.metadata.get("inference_hash")
+            for run in runs
+            for sample in run.samples
+        ),
         coverage=coverage,
         subsets={
             subset: [
@@ -989,6 +1009,8 @@ def _task_result_dict(result: ModelTaskResult) -> dict[str, Any]:
             if result.provenance and result.provenance.get("protocol") == "detection-v2"
             else {}
         ),
+        "configuration_details": result.configuration_details
+        or unknown_configurations([None] * (result.sample_count * result.run_count)),
         **({"coverage": list(result.coverage)} if result.coverage else {}),
     }
 
@@ -1051,6 +1073,8 @@ def summary_to_dict(summary: BenchmarkSummary) -> dict[str, Any]:
         A dictionary suitable for :func:`json.dump`.
     """
     return {
+        "schema_version": 2,
+        "historical": summary.historical,
         "generated_at": summary.generated_at,
         "overview_tasks": list(OVERVIEW_TASKS),
         "efforts": list(summary.efforts),
@@ -1071,6 +1095,9 @@ def summary_to_dict(summary: BenchmarkSummary) -> dict[str, Any]:
                 "key": task.key,
                 "name": task.name,
                 "primary_metric": task.primary_metric,
+                **task_metadata(
+                    task.key, detection_v2=summary.protocol.detection_repeats == 1
+                ),
                 **(
                     {"include_in_overall": False} if not task.include_in_overall else {}
                 ),

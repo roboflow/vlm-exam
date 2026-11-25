@@ -342,6 +342,8 @@ class TestSummaryToDict:
         payload = summary_to_dict(build_summary(tmp_path, config))
 
         assert list(payload) == [
+            "schema_version",
+            "historical",
             "generated_at",
             "overview_tasks",
             "efforts",
@@ -886,7 +888,37 @@ def _release(root: Path) -> None:
 
     directory = root / "datasets/detection/v2"
     directory.mkdir(parents=True)
-    (directory / "release.json").write_text(json.dumps({"dataset_sha256": "approved"}))
+    import gzip
+
+    (directory / "records.jsonl.gz").write_bytes(
+        gzip.compress(
+            "\n".join(
+                json.dumps({"configuration": "profile"}) for _ in range(600)
+            ).encode()
+        )
+    )
+    (directory / "release.json").write_text(
+        json.dumps(
+            {
+                "dataset_sha256": "approved",
+                "runs": [
+                    {
+                        "model": "alpha",
+                        "effort": "minimum",
+                        "path": "datasets/detection/v2/records.jsonl.gz",
+                    }
+                ],
+                "configurations": {
+                    "profile": {
+                        "provider": "openai",
+                        "wire": "alpha",
+                        "minimum": "low",
+                        "max_output_tokens": 128000,
+                    }
+                },
+            }
+        )
+    )
     (directory / "model_labels.json").write_text(
         json.dumps({"alpha": {"name": "Alpha", "lab": "openai"}})
     )
