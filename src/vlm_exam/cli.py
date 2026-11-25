@@ -298,11 +298,6 @@ def run(
     if task_name == "detection" and detection_version == "v2":
         from vlm_exam.detection_v2_workflow import run_detection
 
-        if config_path is not None:
-            raise click.UsageError(
-                "Detection v2 uses frozen native profiles. "
-                "Use --profile FILE instead of --config."
-            )
         if repeats != 1 or resume_file is not None or prompt_classes != "image":
             raise click.UsageError(
                 "Detection v2 uses one run, per-image classes "
@@ -322,6 +317,7 @@ def run(
                 configuration,
                 Path(profile) if profile else None,
                 max_samples,
+                Path(config_path) if config_path else None,
             )
         except (ValueError, OSError) as error:
             raise click.ClickException(str(error)) from error
@@ -569,19 +565,11 @@ def benchmark(
     from vlm_exam.metrics import parse_model_filter
     from vlm_exam.orchestrate import format_outcomes, plan_jobs, run_jobs
 
-    if (
-        config_path is not None
-        and detection_version == "v2"
-        and (tasks is None or "detection" in (t.strip() for t in tasks.split(",")))
-    ):
-        raise click.UsageError(
-            "V2 detection uses --profile on run; custom --config is only "
-            "supported for other tasks or explicit v1."
-        )
     config = load_config(Path(config_path) if config_path else None)
     model_ids = parse_model_filter(models, config)
     jobs = plan_jobs(
         model_ids,
+        config_path=Path(config_path) if config_path else None,
         detection_version=detection_version,
         tasks=_split_option(tasks),
         efforts=_split_option(efforts),
@@ -592,6 +580,20 @@ def benchmark(
         log_directory=Path(log_directory),
         max_samples=max_samples,
     )
+    if detection_version == "v2" and any(job.task == "detection" for job in jobs):
+        from vlm_exam.detection_v2 import load_release
+        from vlm_exam.detection_v2_workflow import resolve_detection_profiles
+
+        policy, _ = load_release(Path.cwd())
+        try:
+            for job in jobs:
+                if job.task == "detection":
+                    arm = {"low": "minimum", "high": "maximum"}.get(
+                        job.effort, job.effort
+                    )
+                    resolve_detection_profiles(job.model, arm, policy, config)
+        except ValueError as error:
+            raise click.ClickException(str(error)) from error
     outcomes = run_jobs(jobs, max_parallel=max_parallel, echo=click.echo)
     click.echo("")
     click.echo(format_outcomes(outcomes))

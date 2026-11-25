@@ -112,7 +112,9 @@ vlm-exam summary --check
 `benchmark` schedules three QA repeats and one v2 detection run per arm, with
 per-job logs. Text has its own documented launcher. `--tasks`, `--efforts`, and
 QA repeat options narrow the schedule. V2 uses native pinned profiles; ambiguous
-profiles require an explicit `--configuration`, and new models use `--profile`.
+profiles require an explicit `--configuration` or reviewed registry settings.
+New models put their native request settings in the model's `detection_v2` entry
+in `configs/models.yaml`; standalone `--profile` remains an optional override.
 Do not pass custom `--config` to a v2 inference run and assume it changes the
 request profile. `--max-samples` never publishes.
 
@@ -279,8 +281,8 @@ vlm-exam efficiency-report --effort high
   -- the same weights use the same box convention on Google direct and
   OpenRouter. Cite the source URL when choosing a format (in the PR
   description).
-- Add fallback routes when a provider has tight rate limits. Example:
-  `gemini-3.1-pro-preview` uses Google first, then OpenRouter on 429.
+- Legacy V1 routes may contain historical fallbacks. V2 never switches routes
+  on rate limits; follow the mandatory native-first routing policy below.
 
 ## Running long jobs (logging)
 
@@ -447,7 +449,10 @@ PNGs or recomputing inference.
   Full completed runs are promoted through the validated publication helper,
   preserving superseded responses. `--max-samples` is smoke-only and never
   publishes. Ambiguous historical request profiles require `--configuration`;
-  new models require explicit `--profile` JSON rather than guessed parameters.
+  new models define explicit native settings in their `detection_v2` registry
+  entry. Both `run` and `benchmark` resolve these settings, including custom
+  `--config` files. Standalone `--profile` is a single-model override. Benchmark
+  validates all requested detection profiles before launching any task.
 - V2 archives retain raw prediction text, canonical detections and provenance.
   Keep private pixels and credentials out of Git. Treat terminal invalid output
   as a model outcome; promote infrastructure recoveries only under explicit
@@ -643,3 +648,33 @@ routing and exception metadata are part of the run configuration hash; do not
 resume a differently routed checkpoint or silently pool its responses. Apply
 this same native-first rule when preparing OpenRouter runs for other tasks;
 legacy V1 execution is not retroactively changed by the V2 runtime guard.
+
+### Registry-based V2 onboarding
+
+Keep V2 as the default; V1 requires explicit `--detection-version v1`. Add a
+`detection_v2` mapping to a new model in `configs/models.yaml` alongside its
+existing routes, pricing and detection format. It uses the explicit request
+profile schema: `provider`, `wire`, `format`, `minimum`, `maximum`,
+`max_output_tokens: 128000`, and `routing` for OpenRouter. Optional `arms`
+declares measured arms. Verify native efforts and routing rather than inheriting
+V1 defaults. This mapping takes precedence over historical release profiles;
+explicit `run --profile` or `--configuration` takes precedence over the mapping.
+Do not edit archived configurations to add a model. `benchmark --models MODEL`
+and `run --task detection --models MODEL` use the registry without a separate
+profile file. A custom `--config` is forwarded to every scheduled task.
+
+Example mapping inside a new model entry (replace the example wire ID and verify
+its native efforts):
+
+```yaml
+detection_v2:
+  provider: openai
+  wire: NEW_MODEL_API_ID
+  format: xyxy_absolute_original_image
+  minimum: low
+  maximum: high
+  max_output_tokens: 128000
+```
+
+This is a schema example, not a claim that every OpenAI model has these effort
+endpoints. OpenRouter profiles also require the explicit routing block.

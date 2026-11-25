@@ -21,35 +21,34 @@ from typing import Any
 
 import click
 
+from vlm_exam.config import BenchmarkConfig, load_config
 
-def run_detection(
+
+def resolve_detection_profiles(
     models: str,
-    effort: str,
-    images: Path,
-    output: Path,
-    concurrency: int,
+    arm: str,
+    policy: dict[str, Any],
+    config: BenchmarkConfig,
     configuration: str | None = None,
-    profile: Path | None = None,
-    max_samples: int | None = None,
-) -> None:
-    """Run the default detection protocol with explicit, auditable native settings."""
-    from vlm_exam.detection_v2 import load_release
-    from vlm_exam.detection_v2_data import ensure_images
-    from vlm_exam.detection_v2_publication import publish_run
-    from vlm_exam.detection_v2_runner import run_release
+    settings: dict[str, Any] | None = None,
+) -> list[tuple[str, str | None, dict[str, Any] | None]]:
+    """Resolve registry or explicit profiles for all models without side effects."""
+    from vlm_exam.detection_v2_inference import current_request_profile
+    from vlm_exam.detection_v2_runner import validate_request_profile
 
-    root = Path.cwd()
-    arm = {"low": "minimum", "high": "maximum"}.get(effort, effort)
-    if arm not in {"minimum", "maximum", "enabled", "disabled"}:
-        raise click.UsageError(
-            "Detection v2 effort must be low/minimum, high/maximum, enabled or disabled"
-        )
-    policy, _ = load_release(root)
-    settings = json.loads(profile.read_text()) if profile else None
+    model_ids = [name.strip() for name in models.split(",")]
+    if settings is not None and len(model_ids) != 1:
+        raise click.UsageError("A single --profile can only be used with one model")
+    if settings is not None and configuration is not None:
+        raise click.UsageError("Choose either --profile or --configuration")
     selected = []
-    for model in (name.strip() for name in models.split(",")):
+    for model in model_ids:
         chosen = configuration
-        if settings is None and chosen is None:
+        model_config = config.models.get(model)
+        model_settings = settings
+        if settings is None and chosen is None and model_config is not None:
+            model_settings = model_config.detection_v2
+        if model_settings is None and chosen is None:
             lane = next(
                 (
                     r
@@ -60,7 +59,8 @@ def run_detection(
             )
             if lane is None:
                 raise click.UsageError(
-                    f"No reviewed profile for {model}/{arm}; supply --profile FILE"
+                    f"No reviewed profile for {model}/{arm}; "
+                    "add detection_v2 settings to models.yaml or supply --profile FILE"
                 )
             profiles = lane["configurations"]
             keys = {
@@ -91,9 +91,60 @@ def run_detection(
                     f"Repeat this command with one of:\n{choices}"
                 )
             chosen = profiles[0]
-        selected.append((model, chosen))
+        if model_settings is None and not any(
+            row["model"] == model
+            and row["effort"] == arm
+            and chosen in row["configurations"]
+            for row in policy["runs"]
+        ):
+            raise click.UsageError(f"Invalid configuration for {model}/{arm}")
+        effective_profile = (
+            model_settings
+            if model_settings is not None
+            else current_request_profile(policy["configurations"][chosen])
+        )
+        if model_settings is not None:
+            validate_request_profile(effective_profile, arm)
+        else:
+            from vlm_exam.providers.openrouter_routing import (
+                validate_openrouter_routing,
+            )
+
+            validate_openrouter_routing(effective_profile)
+        selected.append((model, chosen, model_settings))
+    return selected
+
+
+def run_detection(
+    models: str,
+    effort: str,
+    images: Path,
+    output: Path,
+    concurrency: int,
+    configuration: str | None = None,
+    profile: Path | None = None,
+    max_samples: int | None = None,
+    config_path: Path | None = None,
+) -> None:
+    """Run the default detection protocol with explicit, auditable native settings."""
+    from vlm_exam.detection_v2 import load_release
+    from vlm_exam.detection_v2_data import ensure_images
+    from vlm_exam.detection_v2_publication import publish_run
+    from vlm_exam.detection_v2_runner import run_release
+
+    root = Path.cwd()
+    arm = {"low": "minimum", "high": "maximum"}.get(effort, effort)
+    if arm not in {"minimum", "maximum", "enabled", "disabled"}:
+        raise click.UsageError(
+            "Detection v2 effort must be low/minimum, high/maximum, enabled or disabled"
+        )
+    policy, _ = load_release(root)
+    settings = json.loads(profile.read_text()) if profile else None
+    selected = resolve_detection_profiles(
+        models, arm, policy, load_config(config_path), configuration, settings
+    )
     images = ensure_images(root, images)
-    for model, chosen in selected:
+    for model, chosen, settings in selected:
         target = output / f"{model}__{arm}"
         kwargs: dict[str, Any] = {"profile": settings}
         if max_samples is not None:

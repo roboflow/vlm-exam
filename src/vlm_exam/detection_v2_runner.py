@@ -61,6 +61,54 @@ def _inference_fingerprint() -> str:
     return digest.hexdigest()
 
 
+def validate_request_profile(profile: dict[str, Any], effort: str) -> None:
+    """Validate native request settings before downloads or paid jobs start."""
+    from vlm_exam.providers.openrouter_routing import validate_openrouter_routing
+    from vlm_exam.tasks.detection import DetectionCoordinateFormat
+
+    if not isinstance(profile, dict):
+        raise ValueError("Profile must be a JSON object")
+    arms = profile.get("arms", ["minimum", "maximum"])
+    if (
+        not isinstance(arms, list)
+        or not arms
+        or not set(arms).issubset({"minimum", "maximum", "enabled"})
+    ):
+        raise ValueError("Profile arms must be minimum, maximum or enabled")
+    required = {"provider", "wire", "format", "max_output_tokens", *arms}
+    if not required.issubset(profile) or set(profile) - required - {
+        "routing",
+        "routing_exception",
+        "arms",
+        "minimum",
+        "maximum",
+        "enabled",
+    }:
+        raise ValueError(
+            "Profile must explicitly specify provider, wire, format, "
+            "declared native efforts and max_output_tokens"
+        )
+    if profile["provider"] not in {
+        "openai",
+        "google",
+        "anthropic",
+        "openrouter",
+        "xai",
+    }:
+        raise ValueError("Unsupported provider")
+    DetectionCoordinateFormat(profile["format"])
+    if not isinstance(profile["wire"], str) or not profile["wire"]:
+        raise ValueError("Profile requires an upstream model identifier")
+    limit = profile["max_output_tokens"]
+    if limit is not None and (type(limit) is not int or limit <= 0):
+        raise ValueError("max_output_tokens must be a positive integer or null")
+    if profile["provider"] == "anthropic" and limit is None:
+        raise ValueError("Anthropic requires an explicit positive output limit")
+    if effort not in profile.get("arms", ["minimum", "maximum"]):
+        raise ValueError("This profile does not define the requested arm")
+    validate_openrouter_routing(profile)
+
+
 def run_release(
     root: Path,
     images: Path,
@@ -124,50 +172,11 @@ def run_release(
                 json.dumps(config, sort_keys=True, separators=(",", ":")).encode()
             ).hexdigest()
     else:
-        from vlm_exam.tasks.detection import DetectionCoordinateFormat
-
         if configuration is not None:
             raise ValueError("Choose either --configuration or --profile, not both")
         if not isinstance(profile, dict):
             raise ValueError("Profile must be a JSON object")
-        arms = profile.get("arms", policy["efforts"])
-        if (
-            not isinstance(arms, list)
-            or not arms
-            or not set(arms).issubset({"minimum", "maximum", "enabled"})
-        ):
-            raise ValueError("Profile arms must be minimum, maximum or enabled")
-        required = {"provider", "wire", "format", "max_output_tokens", *arms}
-        if not required.issubset(profile) or set(profile) - required - {
-            "routing",
-            "routing_exception",
-            "arms",
-            "minimum",
-            "maximum",
-            "enabled",
-        }:
-            raise ValueError(
-                "Profile must explicitly specify provider, wire, format, "
-                "declared native efforts and max_output_tokens"
-            )
-        if profile["provider"] not in {
-            "openai",
-            "google",
-            "anthropic",
-            "openrouter",
-            "xai",
-        }:
-            raise ValueError("Unsupported provider")
-        DetectionCoordinateFormat(profile["format"])
-        if not isinstance(profile["wire"], str) or not profile["wire"]:
-            raise ValueError("Profile requires an upstream model identifier")
-        limit = profile["max_output_tokens"]
-        if limit is not None and (type(limit) is not int or limit <= 0):
-            raise ValueError("max_output_tokens must be a positive integer or null")
-        if profile["provider"] == "anthropic" and limit is None:
-            raise ValueError("Anthropic requires an explicit positive output limit")
-        if effort not in profile.get("arms", policy["efforts"]):
-            raise ValueError("This profile does not define the requested arm")
+        validate_request_profile(profile, effort)
         config = profile
         configuration = hashlib.sha256(
             json.dumps(config, sort_keys=True, separators=(",", ":")).encode()

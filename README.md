@@ -516,6 +516,8 @@ vlm-exam detection-v2 summary --workers 4 --check
 
 Runs resume from `working-runs/detection/v2` only when their configuration and
 inputs match. Use `--max-samples 1` for a non-publishing smoke test. New models
-require an explicit `--profile`; configuration and publication rules are in
+define their native settings in a `detection_v2` mapping in `models.yaml`; both
+`run` and `benchmark` use it, with `--config` supported for custom registries.
+Standalone `--profile` remains a single-model override. Configuration and publication rules are in
 `AGENTS.md`. Versioned results and audit records live in `datasets/detection/v2/`
 and `results/detection/v2/`.
