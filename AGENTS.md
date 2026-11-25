@@ -701,3 +701,13 @@ Text aggregation is sample-weighted within a run, then averaged across runs;
 its four subtask definitions are exported explicitly. Existing provenance hash
 lists retain their original type. The detailed public contract lives in the
 existing `scripts/homepage_assets/summary_json_schema.md`.
+
+### Hydrogen identity compatibility
+
+The public registry identity is `gemini-4-hydrogen`; historical V2 archives use
+`gemini-4-hydrogen-eap`. Use `detection_v2_identity` to resolve public aliases and
+reuse the release's existing archive identity for execution/publication. Both
+spellings must select the same profiles and charts; coverage uses the public
+identity. Never rewrite historical raw records or upstream wire IDs to rename a
+model. Reject conflicting alias inventories rather than silently overwriting a
+summary entry. Incoming publication aliases retain `submitted_model_key`.

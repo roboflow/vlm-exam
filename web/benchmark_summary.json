@@ -69435,8 +69435,8 @@
       },
       "protocol": {
         "name": "full",
-        "status": "incomplete",
-        "runs_present": 20,
+        "status": "complete",
+        "runs_present": 22,
         "runs_required": 22
       }
     },
@@ -70015,8 +70015,8 @@
       },
       "protocol": {
         "name": "full",
-        "status": "incomplete",
-        "runs_present": 20,
+        "status": "complete",
+        "runs_present": 22,
         "runs_required": 22
       }
     },

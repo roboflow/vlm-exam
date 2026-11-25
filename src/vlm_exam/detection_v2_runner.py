@@ -31,6 +31,7 @@ from vlm_exam.detection_v2 import (
     validate_release,
 )
 from vlm_exam.detection_v2_data import verify_image
+from vlm_exam.detection_v2_identity import release_model_id
 from vlm_exam.providers.base import call_with_retries, error_diagnostics
 
 
@@ -141,6 +142,7 @@ def run_release(
     if problems:
         raise ValueError("\n".join(problems))
     policy, cases = load_release(root)
+    model = release_model_id(policy, model)
     if max_samples is not None:
         if type(max_samples) is not int or not 1 <= max_samples <= len(cases):
             raise ValueError("max_samples must be between one and the dataset size")

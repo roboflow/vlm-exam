@@ -33,6 +33,8 @@ from supervision import Detections, box_iou_batch
 from supervision.metrics import MeanAveragePrecision
 from supervision.metrics.mean_average_precision import COCOEvaluator, EvaluationDataset
 
+from vlm_exam.detection_v2_identity import release_model_id
+
 DETECTION_V2_PROTOCOL = "detection-v2"
 """Frozen 600-image detection release: one run per native minimum/maximum effort."""
 
@@ -130,6 +132,11 @@ def validate_release(root: Path) -> list[str]:
         encoded = json.dumps(profile, sort_keys=True, separators=(",", ":")).encode()
         if hashlib.sha256(encoded).hexdigest() != digest:
             problems.append(f"Configuration checksum mismatch: {digest}")
+    for model in {row["model"] for row in policy["runs"]}:
+        try:
+            release_model_id(policy, model)
+        except ValueError as error:
+            problems.append(str(error))
     for entry in policy["runs"] + policy["diagnostics"]:
         path = root / entry["path"]
         if (
@@ -684,6 +691,7 @@ def register_detection_commands(main: click.Group) -> None:
         from vlm_exam.visualization.detection import plot_detection_card
 
         policy, cases = load_release(root)
+        model = release_model_id(policy, model)
         entry = next(
             (
                 row

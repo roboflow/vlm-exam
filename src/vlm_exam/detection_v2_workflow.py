@@ -22,6 +22,7 @@ from typing import Any
 import click
 
 from vlm_exam.config import BenchmarkConfig, load_config
+from vlm_exam.detection_v2_identity import canonical_model_id, release_model_id
 
 
 def resolve_detection_profiles(
@@ -37,6 +38,8 @@ def resolve_detection_profiles(
     from vlm_exam.detection_v2_runner import validate_request_profile
 
     model_ids = [name.strip() for name in models.split(",")]
+    if len({canonical_model_id(m) for m in model_ids}) != len(model_ids):
+        raise click.UsageError("Duplicate model identities, including aliases")
     if settings is not None and len(model_ids) != 1:
         raise click.UsageError("A single --profile can only be used with one model")
     if settings is not None and configuration is not None:
@@ -44,7 +47,8 @@ def resolve_detection_profiles(
     selected = []
     for model in model_ids:
         chosen = configuration
-        model_config = config.models.get(model)
+        model_config = config.models.get(canonical_model_id(model))
+        model = release_model_id(policy, model)
         model_settings = settings
         if settings is None and chosen is None and model_config is not None:
             model_settings = model_config.detection_v2
@@ -190,11 +194,11 @@ def with_detection_results(
             "Detection v2 summary has stale ground truths; run detection-v2 summary"
         )
     labels = json.loads((root / "datasets/detection/v2/model_labels.json").read_text())
+    if models is not None:
+        models = {canonical_model_id(m) for m in models}
     indexed = {(m.key, m.effort): m for m in summary.models}
     for row in data["models"]:
-        model = {"gemini-4-hydrogen-eap": "gemini-4-hydrogen"}.get(
-            row["model"], row["model"]
-        )
+        model = canonical_model_id(row["model"])
         legacy_effort = {"minimum": "low", "maximum": "high"}.get(
             row["effort"], row["effort"]
         )
@@ -309,7 +313,8 @@ def with_detection_results(
                         (
                             r
                             for r in data["models"]
-                            if r["model"] == model.key and r["effort"] == native
+                            if canonical_model_id(r["model"]) == model.key
+                            and r["effort"] == native
                         ),
                         None,
                     )
@@ -360,13 +365,15 @@ def detection_charts(root: Path, output: Path, models: set[str] | None = None) -
         model_labels=root / "datasets/detection/v2/model_labels.json"
     )
     output.mkdir(parents=True, exist_ok=True)
+    if models is not None:
+        models = {canonical_model_id(m) for m in models}
     for arm, effort in (("minimum", "low"), ("maximum", "high")):
         scores = {
             r["model"]: r["metrics"]["map50"] * 100
             for r in data["models"]
             if r["effort"] == arm
             and r["complete"]
-            and (models is None or r["model"] in models)
+            and (models is None or canonical_model_id(r["model"]) in models)
         }
         if not scores:
             continue

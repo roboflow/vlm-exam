@@ -30,6 +30,7 @@ from vlm_exam.detection_v2 import (
     summarize_release,
     validate_release,
 )
+from vlm_exam.detection_v2_identity import release_model_id
 
 
 def _digest(value: Any) -> str:
@@ -81,7 +82,12 @@ def _publish(
                 raise ValueError("Configuration fingerprint mismatch")
         profiles = policy["configurations"] | configurations
         lanes: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
-        for row in records:
+        for original in records:
+            row = dict(original)
+            stored_model = release_model_id(policy, row.get("model", ""))
+            if stored_model != row.get("model"):
+                row["submitted_model_key"] = row["model"]
+                row["model"] = stored_model
             case = case_index.get(row.get("case"))
             config = profiles.get(row.get("configuration"))
             if case is None or config is None or row.get("status") == "missing":
