@@ -44,6 +44,7 @@ from vlm_exam.providers.image_upload import (
     resize_image_to_max_edge,
 )
 from vlm_exam.providers.openai import _png_data_url
+from vlm_exam.providers.openrouter_routing import validate_openrouter_routing
 from vlm_exam.tasks.detection import (
     DetectionCoordinateFormat,
     DetectionSample,
@@ -224,6 +225,7 @@ def infer(
     heartbeat: Callable[[], None] = lambda: None,
 ) -> dict[str, Any]:
     """Generate one response with explicit native effort, format and token settings."""
+    validate_openrouter_routing(config)
     effort = config[arm]
     provider = config["provider"]
     started = time.time()
@@ -390,7 +392,7 @@ def infer(
                     if effort == "disabled"
                     else {"effort": effort}
                 ),
-                "provider": config.get("routing", {"require_parameters": True}),
+                "provider": config["routing"],
             },
             stream=True,
             stream_options={"include_usage": True},

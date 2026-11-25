@@ -203,3 +203,21 @@ A standard CLI smoke also completed. These calls prove integration, not statisti
 equivalence of stochastic scores or live coverage of every effort. Offline
 payload contracts cover provider families and both effort arms. Canonical scoring
 is replayed from all saved responses; v1 and v2 scores are not directly equivalent.
+
+## OpenRouter routing for new runs
+
+Every new V2 OpenRouter request requires `routing.only` with exactly one provider
+ID, `allow_fallbacks: false`, and `require_parameters: true`. Missing routing is a
+preflight error, including for new runs based on historical unpinned profiles.
+Supply a reviewed `--profile` with verified routing instead. Historical release
+validation and offline rescoring do not apply this new-request rule retroactively.
+
+Prefer the model developer's native provider. For a non-native endpoint, the
+profile must include `routing_exception` with nonempty `reason` and `evidence`
+strings documenting why no suitable native endpoint is available. This exception
+is part of the configuration hash and is not sent to OpenRouter. The validator
+checks that the evidence is recorded; the operator must verify its accuracy and
+currency before starting. Unknown model families must be registered explicitly
+in `providers/openrouter_routing.py`. Endpoint variants such as `xiaomi/fp8`
+are recognized under their native provider family. Network errors never trigger
+an automatic provider switch.

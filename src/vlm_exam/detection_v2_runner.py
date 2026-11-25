@@ -87,6 +87,7 @@ def run_release(
         max_samples: Optional smoke-test prefix; cannot be published as a full run.
     """
     from vlm_exam.detection_v2_inference import current_request_profile, infer
+    from vlm_exam.providers.openrouter_routing import validate_openrouter_routing
 
     problems = validate_release(root)
     if problems:
@@ -139,6 +140,7 @@ def run_release(
         required = {"provider", "wire", "format", "max_output_tokens", *arms}
         if not required.issubset(profile) or set(profile) - required - {
             "routing",
+            "routing_exception",
             "arms",
             "minimum",
             "maximum",
@@ -170,6 +172,7 @@ def run_release(
         configuration = hashlib.sha256(
             json.dumps(config, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
+    validate_openrouter_routing(config)
     if output.resolve().is_relative_to((root / "results").resolve()):
         raise ValueError("New runs must be outside the frozen results tree")
     actual_image_hashes = {}

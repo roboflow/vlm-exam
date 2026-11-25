@@ -605,3 +605,28 @@ and valid output. This confirms parameter acceptance, not the effective maximum
 generation length. Its audit contained no token-exhaustion or empty/API cases;
 no benchmark reruns were required. All 56 released models now derive future
 profiles requesting 128000; historical successful responses remain unchanged.
+
+### Mandatory native-first OpenRouter routing
+
+For every new OpenRouter model or run, explicitly record the upstream provider
+ID in `routing.only`. Prefer the model developer's native provider. Verify the
+exact endpoint ID, availability, vision support and required parameters before
+running; a guessed provider ID or a historical observed provider is not proof.
+Use exactly one provider, `allow_fallbacks: false`, and
+`require_parameters: true`. Never omit routing or silently switch providers on
+errors, credit limits, rate limits or timeouts.
+
+Detection V2 rejects unpinned profiles before requests and at the inference
+boundary. This also applies when starting a new run from a historical profile.
+Supply a reviewed `--profile` rather than rewriting the frozen profile. A
+non-native route is allowed only when no suitable native endpoint is available:
+record `routing_exception.reason` and `routing_exception.evidence` (dated endpoint
+lookup or probe evidence) in the profile. Agents must substantiate this exception;
+the validator checks its presence, not whether the explanation is true. Unknown
+model families require an explicit native-provider registry entry first.
+
+Preserve historical requested routing and observed providers unchanged. New
+routing and exception metadata are part of the run configuration hash; do not
+resume a differently routed checkpoint or silently pool its responses. Apply
+this same native-first rule when preparing OpenRouter runs for other tasks;
+legacy V1 execution is not retroactively changed by the V2 runtime guard.

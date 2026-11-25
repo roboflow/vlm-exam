@@ -1356,19 +1356,26 @@ def test_native_request_contract(
         "height": 50,
         "objects": [{"box": [1, 2, 3, 4], "label": "seed"}],
     }
+    wire = "qwen/test-model" if provider == "openrouter" else "test-model"
     config = {
         "provider": provider,
-        "wire": "test-model",
+        "wire": wire,
         "minimum": "low",
         "maximum": "high",
         "format": "xyxy_absolute_resized_image",
         "max_output_tokens": 128000,
     }
+    if provider == "openrouter":
+        config["routing"] = {
+            "only": ["alibaba"],
+            "allow_fallbacks": False,
+            "require_parameters": True,
+        }
     config[arm] = effort
     response = SimpleNamespace(
         output_text=text,
         status="completed",
-        model="test-model",
+        model=wire,
         stop_reason="end_turn",
         content=[SimpleNamespace(type="text", text=text)],
         usage=SimpleNamespace(
@@ -1382,7 +1389,7 @@ def test_native_request_contract(
     responses.get_final_response.return_value = response
     messages.get_final_message.return_value = response
     chunk = SimpleNamespace(
-        model="test-model",
+        model=wire,
         model_version="test-model",
         usage=None,
         usage_metadata=None,
@@ -1451,7 +1458,7 @@ def test_native_request_contract(
         )
         assert request["extra_body"]["reasoning"] == expected
         assert request["max_tokens"] == 128000
-        assert request["extra_body"]["provider"] == {"require_parameters": True}
+        assert request["extra_body"]["provider"] == config["routing"]
 
 
 def test_google_identity_uses_explicit_aliases() -> None:
