@@ -9,7 +9,7 @@ are kept outside the publication inventory.
 |---|---|---|
 | Selection | Original detection dataset | Approved final 600 cases, 120 subsets, 5 per subset |
 | Repeats | Existing low/high repeats, unchanged | One measured run per configuration |
-| Effort | Historical low/high | Native minimum/maximum, recorded per response |
+| Effort | Historical low/high | Pinned native settings per response; Gemini 4 uses approved low/high |
 | Primary metric | Historical pooled mAP@50 | Mean of the 120 subset dense mAP@50 scores |
 | Prediction cap | Historical COCO settings | No 100-prediction cap |
 | Secondary metrics | Unchanged | Capped-100 mAP@50, micro F1@50, precision, recall, latency and tokens |
@@ -30,10 +30,13 @@ responses have no headline rank; missing-as-empty scores remain diagnostic.
 
 All returned responses remain included in scoring, including empty, truncated,
 and non-strict JSON responses. `invalid_json` describes strict JSON syntax,
-not necessarily an empty parser result. The historical parser can extract boxes
-from prose or partial output. Status counts are exposed rather than silently
-filtering these cases. Stored canonical detections preserve the historical parser
-output; raw prediction text and its checksum are also retained for auditing.
+not necessarily an empty parser result. The current release uses the shared `v2-bounded-recovery-4` parser in recovery
+mode. The approved offline revision reparsed all 64,193 then-available primary
+responses across 107 configurations and recalculated mAP and F1. Seven accepted
+missing responses were unchanged. Pre-revision archives remain in diagnostics;
+raw prediction text and its checksum are retained. Later approved targeted
+recoveries are recorded separately. Status counts remain visible rather than
+silently filtering unsuccessful cases.
 
 Diagnostic responses remain separate from primary results. Explicit validated
 publication can promote approved infrastructure recoveries while archiving the
@@ -94,8 +97,10 @@ uv run vlm-exam summary
 uv run vlm-exam leaderboard
 ```
 
-The public CLI retains `low`/`high`; v2 maps these to the native minimum/maximum
-profiles. When historical settings differ, the command lists explicit
+The public CLI retains `low`/`high` and the internal minimum/maximum lane names;
+v2 maps these to pinned native profiles. These names do not guarantee absolute
+effort endpoints: the approved Gemini 4 refresh uses native `low`/`high`, not
+`xhigh`. When historical settings differ, the command lists explicit
 `--configuration HASH` choices. A new model uses `--profile FILE` containing all
 native request settings. `--max-samples 1` is a non-publishing smoke test.
 Full runs are validated and published; existing directory checkpoints resume
@@ -160,9 +165,14 @@ uv run vlm-exam detection-v2 run --model gpt-6.2-sol --effort maximum \
 
 For a model not yet in the release, supply `--profile request-profile.json` instead
 of `--configuration`. The JSON must explicitly define `provider`, `wire`,
-`format`, `minimum`, `maximum`, and `max_output_tokens`; optional `routing` and
-`arms` pin provider routing and measured arms. A null output limit means omit the
-explicit limit, not unlimited output. Anthropic requires a positive limit.
+`format`, `minimum`, `maximum`, and `max_output_tokens`; `arms` can pin measured
+arms. OpenRouter requires explicit `routing` as described below. Current policy
+is to request `max_output_tokens: 128000` for every new model; derived future
+profiles for all 56 released models request this value. API acceptance does not
+prove an effective 128000-token generation ceiling. Historical successful
+responses retain their actual limits, including omitted limits; they are not
+relabeled as 128K. Approved targeted token-budget recoveries and superseded
+records are documented in the release audit files.
 The runner fingerprints this profile and its inference implementation for resume;
 it does not require adding an unevaluated model to the published inventory first.
 
@@ -191,8 +201,8 @@ historical behavior and writes legacy inference to `results/detection/v1`.
 The `detection-v1 report` and `detection-v1 visualize` aliases also opt into v1.
 Historical validation still checks the archived results. Default result loaders
 exclude v1; code that intentionally compares historical datasets must explicitly
-set `include_detection_v1=True`. All 254 migrated v1 result files are byte-for-byte
-identical to their original versions.
+set `include_detection_v1=True`. The original 254 migrated v1 result files and six subsequently merged Neon
+v1 files are preserved byte-for-byte (260 files total).
 
 ## Migration evidence
 
