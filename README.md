@@ -52,9 +52,10 @@ end") show a min-max whisker over their runs.
 Reference open-vocabulary detectors (YOLO-E, etc.) are benchmarked separately.
 See [reference/README.md](reference/README.md) for setup and commands.
 
-Stricter IoU thresholds:
-[mAP@75](visualizations/leaderboards/detection_map75_low.png) |
-[mAP@50:95](visualizations/leaderboards/detection_map50_95_low.png)
+Historical v1 (different dataset/protocol):
+[mAP@50](visualizations/leaderboards/detection/v1/detection_map50_low.png) |
+[mAP@75](visualizations/leaderboards/detection/v1/detection_map75_low.png) |
+[mAP@50:95](visualizations/leaderboards/detection/v1/detection_map50_95_low.png)
 
 ## Supported providers
 
@@ -227,7 +228,7 @@ Side-by-side ground truth vs. prediction cards with per-image mAP@50:
 
 ```bash
 vlm-exam detection-visualize \
-    --results-file results/detection_gemini-3.5-flash_low_20260721_114044.jsonl \
+    --results-file results/detection/v1/detection_gemini-3.5-flash_low_20260721_114044.jsonl \
     --dataset-directory data/detection/train \
     --output-directory visualizations/detection \
     --max-images 20
@@ -490,3 +491,34 @@ same bottom metric position as the other text cards.
 Single-value comparisons display embedded newlines and tabs as visible markers
 before measuring the text. Transcription keeps line breaks and marks only changed
 whitespace (newline, tab or space), using the same insertion/deletion colors.
+
+## Detection benchmark versions
+
+Detection **v2** is the default for run, summary and leaderboard commands.
+Use `--detection-version v1` explicitly for the original protocol and historical
+results. V1 results do not enter the current detection leaderboard; the combined
+JSON exposes them separately under `historical.detection.v1`.
+
+V2 contains 600 images across 120 subsets and results for 56 models. The public
+`low`/`high` options select pinned native profiles; Gemini 4 uses native low/high,
+not xhigh. This is an intentional stability exception: higher-effort trials
+produced too many failed or unusable responses to complete the benchmarks
+reliably, so low/high was approved for the Gemini 4 comparison. These results
+should not be described as absolute maximum effort.
+
+Missing images download automatically using `ROBOFLOW_API_KEY` into
+`data/detection/v2`, with hashes verified against the approved manifest.
+
+```bash
+vlm-exam run --task detection --models MODEL --effort low --concurrency 30
+vlm-exam detection-v2 validate
+vlm-exam detection-v2 summary --workers 4 --check
+```
+
+Runs resume from `working-runs/detection/v2` only when their configuration and
+inputs match. Use `--max-samples 1` for a non-publishing smoke test. New models
+define their native settings in a `detection_v2` mapping in `models.yaml`; both
+`run` and `benchmark` use it, with `--config` supported for custom registries.
+Standalone `--profile` remains a single-model override. Configuration and publication rules are in
+`AGENTS.md`. Versioned results and audit records live in `datasets/detection/v2/`
+and `results/detection/v2/`.

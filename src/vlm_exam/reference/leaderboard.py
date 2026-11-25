@@ -220,6 +220,7 @@ def build_mixed_detection_leaderboard(
     vlm_runs = load_results_directory(
         vlm_results_directory,
         pattern="detection_*.jsonl",
+        include_detection_v1=True,
     )
     latest_vlm = build_latest_runs_index(vlm_runs, vlm_config)
     for (task_name, effort, model), run in latest_vlm.items():

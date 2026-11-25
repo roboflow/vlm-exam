@@ -83,10 +83,10 @@ class ModelEfficiency:
     task_count: int
     sample_count: int
     average_tokens: float
-    average_cost: float
-    average_time_seconds: float
-    total_cost: float
-    total_time_seconds: float
+    average_cost: float | None
+    average_time_seconds: float | None
+    total_cost: float | None
+    total_time_seconds: float | None
 
 
 def run_accuracy(run: RunResult) -> float:
@@ -354,6 +354,31 @@ def aggregate_efficiency_by_model(
     Returns:
         Efficiency rows sorted by model identifier.
     """
+    if (
+        results_directory.resolve().parent / "datasets/detection/v2/summary.json"
+    ).exists():
+        from vlm_exam.summary import _overall, build_summary
+
+        summary = build_summary(results_directory, config, effort, models=models)
+        rows = []
+        for model in summary.models:
+            tasks = {k: v for k, v in model.tasks.items() if k in BENCHMARK_TASK_NAMES}
+            if not tasks:
+                continue
+            total = _overall(tasks)
+            rows.append(
+                ModelEfficiency(
+                    model=model.key,
+                    task_count=total.task_count,
+                    sample_count=total.sample_count,
+                    average_tokens=total.tokens.average_per_sample,
+                    average_cost=total.cost.average_per_sample_usd,
+                    average_time_seconds=total.speed.average_seconds_per_sample,
+                    total_cost=total.cost.total_usd,
+                    total_time_seconds=total.speed.total_seconds,
+                )
+            )
+        return sorted(rows, key=lambda row: row.model)
     runs = load_results_directory(results_directory)
     groups = group_runs(
         runs, config, models=models, effort=effort, tasks=BENCHMARK_TASK_NAMES

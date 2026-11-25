@@ -788,3 +788,64 @@ def test_localization_failure_matches_json_style(
         assert "0.0%" in [t.get_text() for t in rail.texts]
     finally:
         plt.close(figure)
+
+
+def test_detection_v2_cli_forwards_explicit_new_model_profile(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from vlm_exam import detection_v2_runner
+
+    profile = {"wire": "new-model"}
+    path = tmp_path / "profile.json"
+    path.write_text(json.dumps(profile))
+    calls = []
+    monkeypatch.setattr(
+        detection_v2_runner, "run_release", lambda *args: calls.append(args)
+    )
+    result = CliRunner().invoke(
+        cli.main,
+        [
+            "detection-v2",
+            "run",
+            "--images",
+            str(tmp_path),
+            "--model",
+            "new-model",
+            "--effort",
+            "maximum",
+            "--profile",
+            str(path),
+            "--output",
+            str(tmp_path / "run"),
+            "--concurrency",
+            "60",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert calls[0][4] is None
+    assert calls[0][6:] == (60, profile)
+
+
+def test_v2_custom_config_still_requires_reviewed_settings(tmp_path):
+    from click.testing import CliRunner
+
+    from vlm_exam.cli import main
+
+    config = tmp_path / "models.yaml"
+    config.write_text("labs: {}\nmodels: {}\n")
+    result = CliRunner().invoke(
+        main,
+        [
+            "run",
+            "--task",
+            "detection",
+            "--models",
+            "alpha",
+            "--effort",
+            "low",
+            "--config",
+            str(config),
+        ],
+    )
+    assert result.exit_code == 2
+    assert "--profile" in result.output

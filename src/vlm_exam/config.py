@@ -78,6 +78,7 @@ class ModelConfig:
     detection_coordinate_format: DetectionCoordinateFormat
     resolution_tier: str = "high"
     benchmark_protocol: str = FULL_PROTOCOL
+    detection_v2: dict[str, Any] | None = None
 
     @property
     def provider(self) -> str:
@@ -198,6 +199,7 @@ def _parse_model(raw: dict[str, Any]) -> ModelConfig:
         detection_coordinate_format=coordinate_format,
         resolution_tier=resolution_tier,
         benchmark_protocol=benchmark_protocol,
+        detection_v2=raw.get("detection_v2"),
     )
 
 

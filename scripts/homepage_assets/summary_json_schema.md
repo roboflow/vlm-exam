@@ -7,13 +7,15 @@ frontend can consume it without reading the Python source.
 ## How it is generated
 
 ```bash
-vlm-exam summary --dataset-directory data/detection/train
+vlm-exam summary
 ```
 
 - Output path defaults to `web/benchmark_summary.json`.
-- Passing `--dataset-directory data/detection/train` is required for the
-  detection mAP metrics to be included; omit it and detection quality
-  metrics are dropped (token/cost/speed for detection are still kept).
+- Current detection V2 scores come from the approved release summary. Historical
+  detection V1 scores come from an archive-hash-verified frozen website snapshot;
+  neither requires private images for the default export.
+- Explicit `--detection-version v1` remains available for rescoring historical
+  results with `--dataset-directory data/detection/train`.
 - By default every effort level is compiled, emitting one model entry per
   `(model, effort)` pair. Pass `--effort low` to restrict to one level.
 - The output is deterministic given the contents of `results/`:
@@ -159,3 +161,52 @@ summary was built without `--dataset-directory`).
   ]
 }
 ```
+
+## Schema version 2 additions
+
+`schema_version` is `2`. Existing fields retain their types. Root `tasks` and
+`models` describe current leaderboards. `historical.detection.v1` has its own
+`tasks`, `models`, `efforts`, scoring source and historical protocol. Historical
+model rows have only `tasks.detection`; they have no current `overall` or overall
+completion status. Select the view first, then reuse the same task-table component.
+Model IDs are scoped to a view; include benchmark identity in cross-view UI keys.
+
+`overview_tasks` lists the tasks included in current efficiency totals and
+completion requirements. It does not define a cross-task quality average.
+Text replaces OCR/extraction in this list; those old task results remain separate.
+
+Task definitions expose `benchmark_id` for detection and mixed text, and
+`aggregation` describes score composition. Text `subtasks` maps the four IDs
+`single_string`, `transcription`, `structured`, `localization_recognition` to
+their display labels and existing metric keys. Text overall is the mean sample
+score within each complete run, then the mean run score. It is not the equal
+mean of four categories. Incomplete runs withhold their score. Existing coverage
+contains per-category counts and failures. V2 mAP@50 is subset-macro AP; F1@50
+uses aggregated class-aware TP/FP/FN at IoU 0.5. Historical V1 mAP remains pooled
+dataset AP with the original prediction cap. Metric values remain percentages.
+
+Every model task result adds `configuration_details`:
+
+- `status`: `uniform`, `mixed`, or `unknown`. It describes recorded profile
+  identity; inspect field statuses for missing individual settings.
+- `record_count`: number of primary evaluation records across repeats, including
+  missing-result placeholders. Not unique images, attempts, or billing requests.
+- `variants`: inline profiles, each with `id`, `record_count`, `provider`,
+  `model_id`, `max_output_tokens`, `reasoning`, and `evidence`.
+- `max_output_tokens`: `{ "status": "explicit", "value": 128000 }`; statuses
+  `omitted` and `unknown` use null. Null never means unlimited.
+- `reasoning`: `kind` (`level`, `budget`, `enabled`, `unknown`), typed `value`,
+  and `api_parameters` mapping exact parameter paths to values. For example,
+  Anthropic includes both `thinking.type` and `output_config.effort`.
+- Optional `routing` reports requested provider IDs and fallback policy only;
+  these must not be presented as observed upstream providers.
+
+`effort` remains the display category. A model's text and detection settings can
+differ in the same Low row. Mixed settings must show all variants; do not choose
+the first one as representative or invent per-variant scores. A profile hash
+without its historical snapshot cannot establish native settings: export unknown.
+The existing `provenance.configurations` remains an array of hash strings.
+
+Frontend access: `model.tasks[taskKey].primary_metric`, `.metrics.f1` for V2
+detection F1, and `.configuration_details`. Historical view selection is
+`payload.historical.detection.v1`; current selection is `payload`.

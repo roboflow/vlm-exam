@@ -59,116 +59,71 @@ avoid a loop"). Never narrate what the code does.
 
 ## Benchmark protocol
 
-The six original tasks in `results/` follow the protocol defined once
-as `PROTOCOL` in `src/vlm_exam/protocol.py` and read by `validate`,
-`benchmark`, and the historical leaderboards. The website overview uses the
-five-task selection described under "Web summary". Text currently uses one run per
-model/effort, as described under "Mixed text benchmark" below:
+Detection v2 is the default. The historical six-task `PROTOCOL` remains the
+source of QA defaults and the explicit v1 contract. Current runs use:
 
-1. **Three runs per configuration.** Each `(task, effort)` is run three
-   times and all three result files are committed. A single run is not a
-   benchmark entry; model output is stochastic and one file cannot tell a
-   real gap from run-to-run noise.
-2. **Report the mean.** Quality metrics (judge and strict accuracy, OCR
-   similarity, mAP) are the arithmetic mean of the per-run values. Token,
-   cost, and time totals are the mean of one complete run, so three
-   repeats are not reported as three times the cost. Failed sample counts
-   are summed.
-3. **Low and high on every task.** Every task (OCR, extraction, counting,
-   identification, reasoning, detection) is run at both `--effort low` and
-   `--effort high`. That is 6 tasks x 2 efforts x 3 runs = 36 result files
-   per model. Both effort levels have their own leaderboard PNGs.
-4. **All of it in the web JSON.** `web/benchmark_summary.json` carries the
-   overview protocol (`protocol.repeats`, `protocol.repeats_by_task`,
-   `protocol.efforts`, `protocol.tasks`, `protocol.runs_per_model`), one entry
-   per `(model, effort)`, per-task
-   `metrics` (means), `metric_runs` (the per-run values), `run_count`, and
-   `timestamps`, and per model a `protocol` block with `name`
-   (`full` or `legacy`), `status` (`complete`, `incomplete`, `legacy`),
-   `runs_present`, and `runs_required`.
+- OCR, extraction, counting, identification and reasoning: three repeats at
+  Low and High, unchanged. Report means across repeats; token/cost/time totals
+  describe one mean full run, not three times the cost.
+- Detection v2: one run per recorded native configuration. Minimum/maximum
+  is the general policy; Gemini 4 uses the approved low/high stability exception
+  documented below.
+  `low`/`high` CLI aliases select those native profiles. Enabled-only models
+  remain neutral single-arm measurements; never duplicate them into two lanes.
+- Text: one run at Low and High, under the frozen mixed-text release policy.
+- The website overview uses Text, counting, identification, reasoning and
+  Detection v2. Its per-task repeat requirements are 1, 3, 3, 3 and 1 respectively.
+  Historical detection v1 remains available only with `--detection-version v1`.
 
 ### Rules for `results/`
 
-- `results/` is the single source of truth; every command globs every
-  file in it. Repeats are plain files: every file sharing a
-  `(task, model, effort)` triple is one repeat. There is no repeat field or
-  manifest. Never delete or cherry-pick repeats to move a number; if a run
-  is broken, fix the cause, re-run it, and remove only the broken file.
-- Only commit full-dataset runs. Never commit partial or smoke runs (any
-  run produced with `--max-samples`); `validate` flags a file with fewer
-  samples than the largest run of its task as a partial run.
-- Only average runs produced under one protocol. A change to prompts,
-  coordinate formats, judge settings, or image preprocessing invalidates
-  the existing repeats of the affected configurations. Obtain authorization
-  for fresh runs under that task's protocol; never silently rewrite provenance.
-- Images are EXIF-transposed on load before being sent to any provider.
-  Datasets whose images carry EXIF orientation tags will therefore produce
-  runs that are not comparable to runs made before this behavior existed;
-  re-run all models on such a dataset rather than mixing old and new runs.
-- `vlm-exam run --resume-file <file>` re-runs only the failed samples,
-  writes the merged complete file, and deletes the source file, so a
-  partial run and its completion are never both counted as repeats.
-  `validate` and `summary` warn about any run with failed samples and
-  print the resume command; resume it before committing unless the exact gaps
-  are explicitly accepted by the text release policy. Never retry accepted gaps
-  without new authorization.
+- QA flat JSONL files retain their repeat-pool semantics. Detection v1 files
+  live in `results/detection/v1/` and are excluded from current results.
+  V2 uses the hash-pinned manifest and inventory in `datasets/detection/v2/`;
+  its compressed primary archives and diagnostics must never be pooled.
+- Only publish full-dataset runs. `--max-samples` is smoke-only and cannot
+  publish. Keep partial checkpoints outside the frozen results tree.
+- Never cherry-pick by score or mix prompts, formats, ground truths,
+  preprocessing, or native efforts without explicit authorization and provenance.
+- Images are EXIF-transposed before provider submission. Preserve original
+  image identities and approved coordinate frames; do not silently alter pixels.
+- QA `--resume-file` retries failures and merges a complete replacement.
+  V2 resumes by working directory and only republishes via strict validation,
+  preserving superseded records. Frozen terminal outcomes and accepted gaps
+  require authorization before retry or promotion.
 
 ### Legacy models (`benchmark_protocol: legacy`)
 
-- Models benchmarked before this protocol have one low run per task and
-  one high run for reasoning (7 of 36 files). They are marked
-  `benchmark_protocol: legacy` in `configs/models.yaml`. The field is
-  temporary: it is a backlog of models to backfill, not a second tier.
-- `validate` reports coverage for every model, legacy or not, and emits
-  GitHub warnings for legacy gaps so they stay visible on every PR. It
-  fails only for models without the marker. `--strict` fails on legacy
-  gaps too, for the day the backfill is done.
-- Never add `benchmark_protocol: legacy` to a new model. A new model must
-  ship all 36 files (or not be added yet). To backfill a legacy model, run
-  its missing files with `vlm-exam benchmark --models <key>`, then delete
-  the `benchmark_protocol` line.
-- Legacy rows stay in the leaderboards with their `run_count` and
-  `protocol.status: legacy` until re-run; do not drop them.
+Historical QA gaps remain visible as warnings, or errors under `--strict`.
+Do not add a legacy exemption simply to make a new model pass. Detection v2
+publication is governed by its explicit measured inventory, not by pretending
+that historical v1 repeats satisfy v2 coverage. The web protocol reports missing
+current coverage without filling it from older datasets.
 
 ### Commands
 
-- Run the whole protocol for a new model (36 processes, parallel,
-  staggered 2 s so timestamps never collide, one log each under `logs/`,
-  low first and high as low finishes):
-
 ```bash
 vlm-exam benchmark --models <key>
-```
-
-  `--tasks`, `--efforts`, `--repeats`, and `--first-repeat` narrow it
-  (e.g. top up two missing high repeats of detection with
-  `--tasks detection --efforts high --repeats 2 --first-repeat 2`).
-  `--max-samples` exists for smoke tests only. The command prints every
-  log path up front and a per-run status table at the end. Under the
-  hood each process is `vlm-exam run --concurrency <n>` with the per-task
-  table in `TASK_CONCURRENCY` (detection 6, reasoning 4, OCR 3,
-  extraction, counting, identification 2), which keeps a full effort
-  level under 15 minutes with Claude-class latency; drop detection to 4
-  if the provider returns 429s. Running `vlm-exam run --repeats 3` by
-  hand is equivalent; filenames carry a second-resolution timestamp and
-  the CLI suffixes `_2`, `_3` on collision, so parallel launches are safe.
-- Check the repository before committing:
-
-```bash
+vlm-exam run --task detection --models <key> --effort low --concurrency 30
 vlm-exam validate
+vlm-exam summary --check
 ```
 
-  It prints a coverage table (`36/36`, `7/36 legacy`, ...) followed by
-  every problem with the exact command that fixes it: missing or surplus
-  runs, missing effort levels, partial runs, missing strict/judge
-  verdicts, failed samples, and files for models absent from
-  `models.yaml`. Exit code 1 on any violation. `--verbose` expands legacy
-  gaps; `--format github` adds annotations and a step summary.
-- CI (`.github/workflows/ci.yml`) runs `vlm-exam validate --format github`
-  and `vlm-exam summary --check` on every pull request and push to `main`,
-  plus `ruff check`, `ruff format --check`, and `pytest`. A PR that adds a
-  model without all 36 files, or that changes `results/` without
-  regenerating `web/benchmark_summary.json`, fails.
+`benchmark` schedules three QA repeats and one v2 detection run per arm, with
+per-job logs. Text has its own documented launcher. `--tasks`, `--efforts`, and
+QA repeat options narrow the schedule. V2 uses native pinned profiles; ambiguous
+profiles require an explicit `--configuration` or reviewed registry settings.
+New models put their native request settings in the model's `detection_v2` entry
+in `configs/models.yaml`; standalone `--profile` remains an optional override.
+Do not pass custom `--config` to a v2 inference run and assume it changes the
+request profile. `--max-samples` never publishes.
+
+Default validation checks QA repeat coverage separately from the complete v2
+release inventory, hashes, case identities, profiles and response coverage.
+`validate --detection-version v1` verifies the archived six-task protocol.
+`--format github` emits annotations and a step summary. CI also checks both
+summary artifacts, Ruff and pytest. Do not silence a failing validation check;
+fix the artifact or obtain authorization for an explicit policy change.
 
 ## Scoring: strict and judge are two independent metrics
 
@@ -234,23 +189,24 @@ vlm-exam validate
   totals include only the five selected tasks, averaging repeats within each
   task before summing. Recompute per-sample averages from the selected totals.
 - The web protocol and every model's run status use the same five tasks across
-  Low and High: Text requires one run per effort, the other four require three,
-  for 26 files per complete model. `protocol.repeats` remains the default of 3;
+  Low and High: Text and Detection v2 require one run per effort; counting,
+  identification and reasoning require three, for 22 runs per complete model. `protocol.repeats` remains the default of 3;
   `protocol.repeats_by_task` explicitly records the per-task requirements.
   Status describes run inventory; response coverage and accepted gaps remain
   explicit in the task metrics and coverage fields. Keep legacy status for
   legacy models with missing runs. Missing Text runs cannot be filled by OCR
   or Extraction runs. This publication selection does not change the historical
-  six-task inference planner or authorize additional runs.
-- Omit `subsets` and `provenance` from the web JSON. Retain them in raw results
-  and internal summaries for audit and validation. Preserve task metrics,
+  QA task definitions or authorize additional runs.
+- Omit per-subset detail and response-level provenance from the web JSON.
+  Detection retains compact protocol/dataset/profile provenance so its version
+  cannot be confused with v1. Retain full detail in raw/internal results. Preserve task metrics,
   metric runs, counts and coverage in the website payload.
 - Regenerate `web/benchmark_summary.json` and commit it in every PR so the
   website payload never drifts from `results/` and `configs/models.yaml`.
-- Rebuild it with the detection dataset so detection mAP is included:
+- Rebuild it offline; v2 scores come from the approved release summary:
 
 ```bash
-vlm-exam summary --dataset-directory data/detection/train
+vlm-exam summary
 ```
 
 - The command compiles all efforts by default, emitting one entry per
@@ -261,9 +217,9 @@ vlm-exam summary --dataset-directory data/detection/train
   from the newest included run, so an unchanged diff after regeneration
   means the results did not change.
 - `vlm-exam summary --check` rebuilds the payload in memory and exits 1 if
-  the committed file differs. CI runs it without the detection dataset, so
-  detection mAP fields are excluded from that comparison; everything else
-  must match.
+  the committed file differs. V2 quality is included in this check without
+  private pixels. Separately run `detection-v2 summary --check` to recompute
+  quality from the pinned responses and annotations.
 - The file is a generated artifact; never hand-edit it.
 
 ## Leaderboard charts
@@ -271,10 +227,13 @@ vlm-exam summary --dataset-directory data/detection/train
 - Regenerate the leaderboard charts in `visualizations/leaderboards/` and
   commit them in every PR that changes `results/`, so the tracked PNGs
   never drift from the underlying runs. Both effort levels are tracked
-  (`*_low.png` and `*_high.png`):
+  (`*_low.png` and `*_high.png`). Historical detection charts are isolated
+  under `visualizations/leaderboards/detection/v1/`; current default charts
+  never show archived mAP@75 or mAP@50:95 as v2 metrics:
+
 
 ```bash
-vlm-exam leaderboard --dataset-directory data/detection/train
+vlm-exam leaderboard
 vlm-exam efficiency-report --effort low
 vlm-exam efficiency-report --effort high
 ```
@@ -284,6 +243,17 @@ vlm-exam efficiency-report --effort high
 
 ## Adding and benchmarking models
 
+- For every new model, explicitly set the output token limit to **128,000**
+  tokens for every task and effort level, including smoke tests and retries.
+  Here, 128K means 128000, not 131072. Never omit the limit, pass null, or rely
+  on a provider default. In detection v2 profiles set `max_output_tokens: 128000`;
+  ensure the adapter sends the corresponding provider parameter on the wire.
+  Verify acceptance with a small request before launching the full benchmark.
+  If the provider rejects this limit or documents a lower hard ceiling, record
+  the evidence and report the limitation before running with a different cap;
+  never silently lower it. Document whether the cap includes reasoning tokens.
+  This rule applies prospectively: preserve historical profiles and results;
+  changing their limits requires a separately authorized rerun.
 - In `configs/models.yaml`, each model has an ordered `routes` list (or
   legacy single `provider` field). The vlm-exam model **key** is used in
   result filenames and leaderboards. Each route's `provider_model_id` is
@@ -311,8 +281,8 @@ vlm-exam efficiency-report --effort high
   -- the same weights use the same box convention on Google direct and
   OpenRouter. Cite the source URL when choosing a format (in the PR
   description).
-- Add fallback routes when a provider has tight rate limits. Example:
-  `gemini-3.1-pro-preview` uses Google first, then OpenRouter on 429.
+- Legacy V1 routes may contain historical fallbacks. V2 never switches routes
+  on rate limits; follow the mandatory native-first routing policy below.
 
 ## Running long jobs (logging)
 
@@ -344,7 +314,8 @@ vlm-exam efficiency-report --effort high
   separate result roots, web payloads, display registries or task documentation.
 - **For now, run each text model once at Low and once at High effort.**
   `TEXT_BENCHMARK_PROTOCOL` and `text-benchmark` default to one run per
-  `(task, model, effort)`. The original six tasks retain three repeats. Do not
+  `(task, model, effort)`. QA tasks and explicit detection v1 retain three repeats; default detection
+  v2 uses one. Do not
   start additional text repeats or rerun completed configurations without
   authorization. Single-run chart labels remain preliminary.
 - The frozen export is Roboflow project `roboflow-jvuqo/vlm-exam-text`, version 2:
@@ -420,7 +391,7 @@ unmatched predictions. Provider failures are unscored. Explicit transcription
 profiles can request `exact` or `italian_soft_wraps`; never silently change
 recorded scoring profiles or merge incompatible runs.
 
-Publish through `vlm-exam summary --dataset-directory data/detection/train` to
+Publish through `vlm-exam summary` to
 `web/benchmark_summary.json`. One `models[].tasks.text` entry has `overall` as
 its primary metric and four category metrics, following detection's `metrics`
 and `metric_runs` contract. Scores are 0–100; overall averages all 600 pair
@@ -455,3 +426,288 @@ for strings, JSON, localization, empty/invalid responses and bounded single-card
 changing rendering. Add focused regressions to existing test modules; do not
 create new test files. Moving unchanged result files does not require rebuilding
 PNGs or recomputing inference.
+
+
+## Detection versions
+
+- Standard `run --task detection`, `benchmark`, `summary` and `leaderboard` use
+  **v2**. `low` and `high` select the recorded native settings (including the Gemini 4
+  low/high stability exception);
+  they do not override a model's native effort values. V2 has one run per arm.
+- Use `--detection-version v1` explicitly to run or summarize the historical
+  pipeline. Historical flat files and `results/detection/v1/*.jsonl` are preserved
+  byte-for-byte. They appear only under `historical.detection.v1` in the combined
+  JSON, never in current totals, completion status or detection charts.
+- V2 has 600 cases, 120 subsets, five images each. Its exact approved selection,
+  response inventory and configuration hashes live in `datasets/detection/v2/`.
+  Never pool versions, configurations, diagnostics, or smoke runs.
+- With no image directory, standard detection runs use `data/detection/v2` and
+  fetch missing canonical originals from the private Roboflow project using the
+  pinned image IDs. Verify exact hashes. Do not use re-encoded COCO images or the
+  padded duplicate Blokus uploads; both Blokus tasks share the original photo
+  but retain separate case IDs and annotations from the canonical manifest.
+- New executions go to `working-runs/detection/v2/`; resume uses that directory.
+  Full completed runs are promoted through the validated publication helper,
+  preserving superseded responses. `--max-samples` is smoke-only and never
+  publishes. Ambiguous historical request profiles require `--configuration`;
+  new models define explicit native settings in their `detection_v2` registry
+  entry. Both `run` and `benchmark` resolve these settings, including custom
+  `--config` files. Standalone `--profile` is a single-model override. Benchmark
+  validates all requested detection profiles before launching any task.
+- V2 archives retain raw prediction text, canonical detections and provenance.
+  Keep private pixels and credentials out of Git. Treat terminal invalid output
+  as a model outcome; promote infrastructure recoveries only under explicit
+  policy, never by score.
+- `detection-v2 summary` rebuilds its detailed/compact outputs. Standard `summary`
+  incorporates v2 detection in `web/benchmark_summary.json`; standard detection
+  charts also use v2. Run release validation, both summary freshness checks and
+  regression tests before publishing. Legacy results remain available opt-in.
+
+### Detection v2 parser recovery
+
+A local parser exception is an infrastructure gap, not a zero-scoring model
+response. Preserve the raw response and usage, and do not resend the paid request.
+After fixing parsing, use `vlm-exam detection-v2 reparse-run --output RUN_DIRECTORY`;
+this validates provenance, retains the original inference hash and records the
+new parser fingerprint. Publish only after the run passes full validation.
+
+
+### V2 strict and recovery parser evaluation
+
+New v2 inference uses uniform complete-object recovery, including Google. V1
+parsing is unchanged. Run `vlm-exam detection-v2 evaluate-parsers --mode both
+--workers 4 --output /tmp/parser-comparison.json` to score saved responses in
+both modes without API calls. `--mode strict` requires a JSON array and the
+requested box schema; any malformed entry rejects the whole response.
+`--mode recovery` accepts complete boxes from recoverable malformed output.
+Neither mode invents boxes from points. Unknown labels remain false positives.
+Reports include schema compliance, failure reasons, recovered response counts,
+and per-mode mAP@50/F1@50. Valid empty arrays are compliant. Missing API responses
+stay missing, separately from model formatting errors. Reports must be written
+to new paths and do not replace release archives or published scores. A frozen
+release `validate --reparse` may expose intentional parser-version drift after
+this change; do not rewrite historical predictions to hide it. Review a new
+scoring revision explicitly before publishing it.
+
+
+### Bounded parser policy (v2-bounded-recovery-4)
+
+All v2 models now share the decoder in `detection_v2_parsing.py`; the v1
+Supervision/provider parsers are not used by v2. The format adapter specifies
+only the requested box structure, coordinate order, and scaling. Recovery may
+remove one unambiguous JSON wrapper, read complete direct objects from JSONL or
+an incomplete array, accept explicit field aliases and decimal numeric strings,
+and skip malformed entries. It must never recursively search nested structures,
+rebuild a foreign schema, resolve conflicting fields, complete partial boxes,
+guess coordinate order/scale, clip geometry, reorder corners, or deduplicate.
+Exactly four finite non-boolean coordinates are required. Native named-coordinate
+box containers may use a single dictionary in recovery, but flat coordinate
+arrays are not converted into that foreign schema. Strict requires the requested
+schema and rejects the entire response if an entry is invalid. Both modes use
+the same non-repairing coordinate decoder and confidence policy: a valid numeric
+confidence in [0,1] (including zero) is preserved, otherwise the fallback is 1.
+Unknown labels remain potential false positives. New inference records carry
+`parser` version/mode/operation counts; offline comparisons include per-case
+`parser_audit`. Published raw responses/scores are never rewritten implicitly.
+Existing parser comparison reports describe their recorded parser version and
+must not be presented as measurements of a later version without recalculation.
+
+Use `ParserMode.STRICT` / `ParserMode.RECOVERY` and
+`DetectionCoordinateFormat` in Python calls. Serialized string values remain
+accepted at API boundaries and are validated as enums. Version 3 also accepts
+one orphan closing Markdown fence after a complete JSON array in recovery mode,
+recording `orphan_closing_fence`; strict mode rejects it. This does not authorize
+repairing incomplete JSON, competing payloads, duplicate keys, or foreign schemas.
+Existing release scores retain their recorded parser versions until an explicitly
+approved offline reparse and scoring revision.
+
+Parser version 4 shares explicit format specifications and entry validation
+between strict compliance and decoding. Add a format to the enum and `_FORMATS`,
+then extend the format geometry fixtures; the coverage test rejects missing
+adapters. Keep recovery strategies shared across models. Decoded string labels
+are preserved in `Detections.data["class_name"]`, even if absent from ground truth;
+`classes` only seeds IDs. JSON constants such as NaN/Infinity are rejected, not
+silently treated as valid metadata. Recovery records accepted fractional
+coordinates for integer-coordinate formats, without rounding them. Existing
+running evaluations must retain their pinned runtime and parser revision.
+
+The November 20 offline scoring revision applies version 4 in recovery mode to
+all 64,193 available primary responses across 107 configurations. Seven missing
+responses and their accepted-failure policy are unchanged. Original archives
+are retained as `diagnostics/parser-before-v4-*.jsonl.gz`. The release records
+parser source hashes; `parser_v4_rescore.json` records before/after mAP and F1,
+separating substantive detection changes from sub-millipixel precision changes.
+No inference requests, prompts, settings, or raw response text changed.
+
+### Gemini 4 detection refresh (November 20, 2026)
+
+The four Gemini 4 release entries use the approved first-pass low/high runs with
+128000 output tokens. High here is native `high`, not `xhigh` or an assertion of
+the model's absolute maximum. The release lanes retain their historical
+minimum/maximum names for API compatibility; inspect pinned native profiles.
+
+This is an intentional stability exception, not a claim that `high` is the
+highest supported effort. Trials at higher supported efforts produced so many
+failed or unusable responses that the benchmarks could not be completed reliably.
+The user therefore approved low/high for the four-model Gemini 4 comparison.
+Preserve this rationale when describing results; do not label these runs as
+absolute maximum effort, silently substitute higher-effort results, or erase
+the failed-run provenance. Any future higher-effort evaluation is a separate
+explicitly configured experiment.
+
+Do not substitute later retry-round responses. `gemini4_refresh.json` records
+source hashes and identity normalization; superseded archives remain diagnostics.
+Carbon High has seven explicitly accepted 504 failures. Its run entry lists their
+exact IDs in `accepted_missing_as_empty` with an approval reason. They retain
+`missing` status and diagnostics but count as empty predictions in quality scores.
+Unapproved missing cases still block ranking. Missing latency/usage is not invented.
+
+### Explicit 128,000-token profiles (November 20, 2026)
+
+`current_request_profile` now sets `max_output_tokens: 128000` for the 20
+previously uncapped Google, OpenAI and OpenRouter profiles enumerated in
+`_TOKEN_LIMIT_128000_PROFILES`. Standard future V2 executions derive a new
+configuration hash; historical configuration hashes are not relabeled. Explicit
+`--profile` files must also set 128000 under the new-model policy above. Existing
+working directories with a different request identity cannot be resumed under
+these settings; start a new working directory. This does not authorize full
+reruns. The approved recovery is one request per each of the 13 audited
+incomplete/empty/error outcomes, with no automatic retries. Preserve superseded
+responses and promote completed valid replacements regardless of score.
+
+The authorized 128K recovery completed with 13/13 valid responses. The primary
+archives contain those replacements; `token_128k_recovery.json` lists the exact
+cases and old/new configuration hashes. The original 13 records are preserved
+in `diagnostics/token-128k-before-*.jsonl.gz`. Other responses keep their original
+settings. This is a mixed historical run with targeted 128K recovery, not a claim
+that every historical request used 128000 tokens. Both detection summaries,
+the website summary and the low/high detection charts were regenerated.
+
+### 131,072-token profile normalization (November 20, 2026)
+
+Future V2 requests for GLM-5V Turbo, MiMo V2.6 Pro, MiMo V2.6 Flash and
+Qwen4 Max now explicitly use 128000 output tokens. Preserve historical
+131072 configuration hashes on existing responses. The separately authorized
+recovery targets only 17 token-exhaustion cases (16 MiMo Pro, one MiMo Flash),
+with one attempt each and automatic retries disabled. It does not authorize
+rerunning unrelated empty, API or format failures or successful responses.
+
+This recovery promoted 15 valid responses out of 17 attempts.
+`token_128k_from131072_recovery.json` records promoted cases and any remaining
+failures. Superseded records remain in the diagnostic archives; successful
+historical responses retain their original settings.
+
+Kimi K3 future V2 requests also use 128000 output tokens for both low and max
+effort, replacing the historical 943718 cap. Preserve historical response
+metadata and configuration hashes; this configuration change does not authorize
+a new inference run.
+
+### Requested 128K with unverified effective ceilings (November 20, 2026)
+
+Gemini 2.5 Pro, Gemini 3.5 Flash Lite and Qwen 3.5 27B (Alibaba) now request
+128000 output tokens for future V2 calls. Each provider accepted a small live
+128000-token request, but their published output limits remain 65536. Do not
+claim that API acceptance proves an effective 128000-token generation ceiling.
+The authorized one-attempt recovery covers 12 Gemini 2.5 Pro token-exhaustion
+cases and two Qwen 3.5 27B cases (one exhausted, one empty). Flash Lite has no
+eligible incomplete cases. Preserve completed historical responses and their
+actual settings; format-only errors are outside this token-budget recovery.
+
+This recovery promoted 11 valid responses out of 14 attempts.
+`token_128k_three_ceiling_recovery.json` records promoted cases and any remaining
+failures. Superseded records remain in the diagnostic archives; successful
+historical responses retain their original settings.
+
+Qwen 3.7 Flash now requests 128000 tokens for both reasoning-disabled and
+reasoning-enabled V2 runs. Both live probes on pinned Alibaba returned HTTP 200
+and valid output. This confirms parameter acceptance, not the effective maximum
+generation length. Its audit contained no token-exhaustion or empty/API cases;
+no benchmark reruns were required. All 56 released models now derive future
+profiles requesting 128000; historical successful responses remain unchanged.
+
+### Mandatory native-first OpenRouter routing
+
+For every new OpenRouter model or run, explicitly record the upstream provider
+ID in `routing.only`. Prefer the model developer's native provider. Verify the
+exact endpoint ID, availability, vision support and required parameters before
+running; a guessed provider ID or a historical observed provider is not proof.
+Use exactly one provider, `allow_fallbacks: false`, and
+`require_parameters: true`. Never omit routing or silently switch providers on
+errors, credit limits, rate limits or timeouts.
+
+Detection V2 rejects unpinned profiles before requests and at the inference
+boundary. This also applies when starting a new run from a historical profile.
+Supply a reviewed `--profile` rather than rewriting the frozen profile. A
+non-native route is allowed only when no suitable native endpoint is available:
+record `routing_exception.reason` and `routing_exception.evidence` (dated endpoint
+lookup or probe evidence) in the profile. Agents must substantiate this exception;
+the validator checks its presence, not whether the explanation is true. Unknown
+model families require an explicit native-provider registry entry first.
+
+Preserve historical requested routing and observed providers unchanged. New
+routing and exception metadata are part of the run configuration hash; do not
+resume a differently routed checkpoint or silently pool its responses. Apply
+this same native-first rule when preparing OpenRouter runs for other tasks;
+legacy V1 execution is not retroactively changed by the V2 runtime guard.
+
+### Registry-based V2 onboarding
+
+Keep V2 as the default; V1 requires explicit `--detection-version v1`. Add a
+`detection_v2` mapping to a new model in `configs/models.yaml` alongside its
+existing routes, pricing and detection format. It uses the explicit request
+profile schema: `provider`, `wire`, `format`, `minimum`, `maximum`,
+`max_output_tokens: 128000`, and `routing` for OpenRouter. Optional `arms`
+declares measured arms. Verify native efforts and routing rather than inheriting
+V1 defaults. This mapping takes precedence over historical release profiles;
+explicit `run --profile` or `--configuration` takes precedence over the mapping.
+Do not edit archived configurations to add a model. `benchmark --models MODEL`
+and `run --task detection --models MODEL` use the registry without a separate
+profile file. A custom `--config` is forwarded to every scheduled task.
+
+Example mapping inside a new model entry (replace the example wire ID and verify
+its native efforts):
+
+```yaml
+detection_v2:
+  provider: openai
+  wire: NEW_MODEL_API_ID
+  format: xyxy_absolute_original_image
+  minimum: low
+  maximum: high
+  max_output_tokens: 128000
+```
+
+This is a schema example, not a claim that every OpenAI model has these effort
+endpoints. OpenRouter profiles also require the explicit routing block.
+
+### Combined website export (schema version 2)
+
+`vlm-exam summary` generates current results at the existing root and the
+archived detection view under `historical.detection.v1`. Regenerate and commit
+`web/benchmark_summary.json` in every PR; `summary --check` covers both views.
+Do not mix historical scores into current totals or rankings. The frozen V1
+website snapshot at `datasets/detection/v1/web_snapshot.json` preserves the
+published main-branch scores and hashes all 260 original V1 archives. If those
+archives change, regenerate an explicitly V1-scored summary with the original
+dataset, then use `summary_metadata.write_historical_snapshot` to refresh the
+snapshot; never bypass its archive checks.
+
+Each task result carries `configuration_details`: distinct recorded settings,
+primary record counts across repeats, and exact reasoning parameter names.
+`model.effort` remains a leaderboard category, not a native API setting. Keep
+unknown historical settings unknown; never backfill from current models.yaml.
+Requested output limits are not token usage or verified effective model ceilings.
+Text aggregation is sample-weighted within a run, then averaged across runs;
+its four subtask definitions are exported explicitly. Existing provenance hash
+lists retain their original type. The detailed public contract lives in the
+existing `scripts/homepage_assets/summary_json_schema.md`.
+
+### Hydrogen identity compatibility
+
+The public registry identity is `gemini-4-hydrogen`; historical V2 archives use
+`gemini-4-hydrogen-eap`. Use `detection_v2_identity` to resolve public aliases and
+reuse the release's existing archive identity for execution/publication. Both
+spellings must select the same profiles and charts; coverage uses the public
+identity. Never rewrite historical raw records or upstream wire IDs to rename a
+model. Reject conflicting alias inventories rather than silently overwriting a
+summary entry. Incoming publication aliases retain `submitted_model_key`.

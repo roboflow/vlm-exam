@@ -123,7 +123,7 @@ class TestBuildSummary:
                     )
         _save(_run("old", "counting"), tmp_path)
 
-        summary = build_summary(tmp_path, config, effort="low")
+        summary = build_summary(tmp_path, config, effort="low", detection_version="v1")
 
         by_key = {model.key: model for model in summary.models}
         assert by_key["alpha"].protocol.status == "incomplete"
@@ -268,7 +268,7 @@ class TestBuildSummary:
         config = _config("alpha")
         _save(_run("alpha", "detection"), tmp_path)
 
-        summary = build_summary(tmp_path, config)
+        summary = build_summary(tmp_path, config, detection_version="v1")
 
         result = summary.models[0].tasks["detection"]
         assert result.metrics == {}
@@ -314,7 +314,7 @@ class TestBuildSummary:
         config = _config("alpha")
         _save(_run("alpha", "detection"), tmp_path)
 
-        summary = build_summary(tmp_path, config)
+        summary = build_summary(tmp_path, config, detection_version="v1")
 
         (task,) = summary.tasks
         assert task.key == "detection"
@@ -342,6 +342,8 @@ class TestSummaryToDict:
         payload = summary_to_dict(build_summary(tmp_path, config))
 
         assert list(payload) == [
+            "schema_version",
+            "historical",
             "generated_at",
             "overview_tasks",
             "efforts",
@@ -831,7 +833,9 @@ def test_five_task_overview_counts_mixed_repeats_and_excludes_retired_tasks(
                     text_release,
                 )
     config = _config("alpha")
-    payload = summary_to_dict(build_summary(text_release, config))
+    payload = summary_to_dict(
+        build_summary(text_release, config, detection_version="v1")
+    )
     assert payload["protocol"]["runs_per_model"] == 26
     for model in payload["models"]:
         assert model["protocol"] == {
@@ -861,13 +865,132 @@ def test_five_task_overview_counts_mixed_repeats_and_excludes_retired_tasks(
     for task in ("ocr", "extraction"):
         for path in text_release.glob(f"{task}_*.jsonl"):
             path.unlink()
-    without_retired = summary_to_dict(build_summary(text_release, config))
+    without_retired = summary_to_dict(
+        build_summary(text_release, config, detection_version="v1")
+    )
     assert [(m["overall"], m["protocol"]) for m in without_retired["models"]] == [
         (m["overall"], m["protocol"]) for m in payload["models"]
     ]
-    filtered = summary_to_dict(build_summary(text_release, config, effort="low"))
+    filtered = summary_to_dict(
+        build_summary(text_release, config, effort="low", detection_version="v1")
+    )
     assert filtered["models"][0]["protocol"]["runs_present"] == 26
     next(text_release.glob("counting_alpha_high_*.jsonl")).unlink()
-    missing = summary_to_dict(build_summary(text_release, config))
+    missing = summary_to_dict(
+        build_summary(text_release, config, detection_version="v1")
+    )
     assert all(m["protocol"]["status"] == "incomplete" for m in missing["models"])
     assert all(m["protocol"]["runs_present"] == 25 for m in missing["models"])
+
+
+def _release(root: Path) -> None:
+    import json
+
+    directory = root / "datasets/detection/v2"
+    directory.mkdir(parents=True)
+    import gzip
+
+    (directory / "records.jsonl.gz").write_bytes(
+        gzip.compress(
+            "\n".join(
+                json.dumps({"configuration": "profile"}) for _ in range(600)
+            ).encode()
+        )
+    )
+    (directory / "release.json").write_text(
+        json.dumps(
+            {
+                "dataset_sha256": "approved",
+                "runs": [
+                    {
+                        "model": "alpha",
+                        "effort": "minimum",
+                        "path": "datasets/detection/v2/records.jsonl.gz",
+                    }
+                ],
+                "configurations": {
+                    "profile": {
+                        "provider": "openai",
+                        "wire": "alpha",
+                        "minimum": "low",
+                        "max_output_tokens": 128000,
+                    }
+                },
+            }
+        )
+    )
+    (directory / "model_labels.json").write_text(
+        json.dumps({"alpha": {"name": "Alpha", "lab": "openai"}})
+    )
+    (directory / "summary.json").write_text(
+        json.dumps(
+            {
+                "dataset_sha256": "approved",
+                "models": [
+                    {
+                        "model": "alpha",
+                        "effort": "minimum",
+                        "images": 600,
+                        "complete": True,
+                        "response_counts": {"returned": 600},
+                        "configurations": ["profile"],
+                        "subsets": {},
+                        "metrics": {
+                            "map50": 0.42,
+                            "f1": 0.5,
+                            "precision": 0.6,
+                            "recall": 0.7,
+                            "seconds_per_image": 2,
+                            "input_tokens": 600,
+                            "output_tokens": 1200,
+                        },
+                    }
+                ],
+            }
+        )
+    )
+
+
+def test_default_summary_uses_only_v2_detection(tmp_path: Path) -> None:
+    results = tmp_path / "results"
+    results.mkdir()
+    _save(_run("alpha", "detection"), results)
+    _release(tmp_path)
+    value = summary_to_dict(build_summary(results, _config("alpha")))
+    (model,) = value["models"]
+    task = model["tasks"]["detection"]
+    assert task["sample_count"] == 600
+    assert task["metrics"]["map50"] == 42
+    assert task["run_count"] == 1
+    assert task["provenance"]["protocol"] == "detection-v2"
+    assert value["protocol"]["repeats_by_task"]["detection"] == 1
+    legacy = build_summary(results, _config("alpha"), detection_version="v1")
+    assert legacy.models[0].tasks["detection"].sample_count != 600
+
+
+def test_standard_run_dispatches_to_v2(monkeypatch) -> None:
+    calls = []
+    monkeypatch.setattr(
+        "vlm_exam.detection_v2_workflow.run_detection", lambda *args: calls.append(args)
+    )
+    from click.testing import CliRunner
+
+    from vlm_exam.cli import main
+
+    result = CliRunner().invoke(
+        main,
+        [
+            "run",
+            "--task",
+            "detection",
+            "--models",
+            "alpha",
+            "--effort",
+            "low",
+            "--concurrency",
+            "30",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert calls[0][:3] == ("alpha", "low", Path("data/detection/v2"))
+    assert calls[0][4] == 30

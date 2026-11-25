@@ -1,0 +1,126 @@
+{
+  "requested": 13,
+  "attempts_per_request": 1,
+  "promoted": [
+    {
+      "model": "gemini-3.5-flash",
+      "arm": "maximum",
+      "case": "OLD011-003",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "7a5f775b841956eab696e66bffc2bf2f8f0b9bebed3870b1ef7d0183a687959e",
+      "new_configuration": "3db297608b1861a26fbf2d27825b10a35e4373b227a589fee5df37c71d30c9d1"
+    },
+    {
+      "model": "gemini-3.5-flash",
+      "arm": "minimum",
+      "case": "S211-007",
+      "old_status": "invalid_json",
+      "new_status": "returned",
+      "old_configuration": "7a5f775b841956eab696e66bffc2bf2f8f0b9bebed3870b1ef7d0183a687959e",
+      "new_configuration": "3db297608b1861a26fbf2d27825b10a35e4373b227a589fee5df37c71d30c9d1"
+    },
+    {
+      "model": "gemini-3.7-flash",
+      "arm": "maximum",
+      "case": "S113-001",
+      "old_status": "truncated",
+      "new_status": "returned",
+      "old_configuration": "359af5b4a1a516176d817bf9b5687a2d6341d1afc4398911ab463723d94e3e5b",
+      "new_configuration": "a9dbecdbc11734459251c62561142b9feec03cd16920f414c92ff55761641bc2"
+    },
+    {
+      "model": "mistral-large-4",
+      "arm": "maximum",
+      "case": "S179-024",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "cb9bcde172b6e5a17791a192445e70ff7dd1707c649e0b3c11ff784b0a9ee321",
+      "new_configuration": "b0e4fa649bf609829d68e7d33728b60f1c9e1686a5237045529b1c9b101b426a"
+    },
+    {
+      "model": "qwen-3.6-27b",
+      "arm": "maximum",
+      "case": "S023-001",
+      "old_status": "invalid_json",
+      "new_status": "returned",
+      "old_configuration": "ce2d2bd14fdc706bfc44f1d5db04f44a1cb950de8ec09f213378c6c2f38203d8",
+      "new_configuration": "6397bbd2899514a93288c8e69120a66a6a055e9fdccd0dfdbda00f09ef728fc3"
+    },
+    {
+      "model": "qwen-3.7-plus",
+      "arm": "maximum",
+      "case": "S094-009",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "9cf0d216b1a1032df4ae2c0fa5797ab2949d718259fc3733709d5aa5794ba1c5",
+      "new_configuration": "b2e93821121261ede4d71daac64273f3523084d1a8893a295d7e685674708de2"
+    },
+    {
+      "model": "qwen-3.7-plus",
+      "arm": "maximum",
+      "case": "S095-020",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "9cf0d216b1a1032df4ae2c0fa5797ab2949d718259fc3733709d5aa5794ba1c5",
+      "new_configuration": "b2e93821121261ede4d71daac64273f3523084d1a8893a295d7e685674708de2"
+    },
+    {
+      "model": "qwen-3.8-27b",
+      "arm": "minimum",
+      "case": "S062-color-006",
+      "old_status": "invalid_json",
+      "new_status": "returned",
+      "old_configuration": "fab94d6f2f64a7e09524f9528747829fc6635012bf4ae569a5625003ca08ee2e",
+      "new_configuration": "7fdd7a63b654c367e576c6512001b08f9dbf21a66e2700c8fbc892635d4bc7dd"
+    },
+    {
+      "model": "qwen-3.8-flash",
+      "arm": "maximum",
+      "case": "S090-003",
+      "old_status": "empty",
+      "new_status": "returned",
+      "old_configuration": "6a72ecc4a1fdb919eb25d4ed37c0ca8a9796c8369f8622d805eaf7cee64d7b4e",
+      "new_configuration": "7d574224259865c5e3b908a1fd6dee3027e291e83be887ecc56e105cdf203228"
+    },
+    {
+      "model": "qwen-3.8-flash",
+      "arm": "maximum",
+      "case": "S090-004",
+      "old_status": "invalid_json",
+      "new_status": "returned",
+      "old_configuration": "6a72ecc4a1fdb919eb25d4ed37c0ca8a9796c8369f8622d805eaf7cee64d7b4e",
+      "new_configuration": "7d574224259865c5e3b908a1fd6dee3027e291e83be887ecc56e105cdf203228"
+    },
+    {
+      "model": "qwen-3.8-flash",
+      "arm": "maximum",
+      "case": "S178-002",
+      "old_status": "invalid_json",
+      "new_status": "returned",
+      "old_configuration": "86ef2a9c29662292eb093efda2959599058d377ceb01bd7c3d99debc6dc3a684",
+      "new_configuration": "77f75b338d2d4fa16eb22e4815b1cd5f5ef730555f135a13702927d8d9fa1965"
+    },
+    {
+      "model": "qwen-3.8-flash",
+      "arm": "minimum",
+      "case": "S031-002",
+      "old_status": "invalid_json",
+      "new_status": "returned",
+      "old_configuration": "6a72ecc4a1fdb919eb25d4ed37c0ca8a9796c8369f8622d805eaf7cee64d7b4e",
+      "new_configuration": "7d574224259865c5e3b908a1fd6dee3027e291e83be887ecc56e105cdf203228"
+    },
+    {
+      "model": "qwen-3.8-flash",
+      "arm": "minimum",
+      "case": "S109-005",
+      "old_status": "invalid_json",
+      "new_status": "returned",
+      "old_configuration": "6a72ecc4a1fdb919eb25d4ed37c0ca8a9796c8369f8622d805eaf7cee64d7b4e",
+      "new_configuration": "7d574224259865c5e3b908a1fd6dee3027e291e83be887ecc56e105cdf203228"
+    }
+  ],
+  "not_promoted": [],
+  "historical_successes_unchanged": true,
+  "superseded_archive": "results/detection/v2/diagnostics/token-128k-before-9e5ea1086c336080071175a1aff56c6f091c3370748d26223d531a320eaf098e.jsonl.gz"
+}
