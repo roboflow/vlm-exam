@@ -500,7 +500,12 @@ results. V1 results do not enter the current detection leaderboard.
 
 V2 contains 600 images across 120 subsets and results for 56 models. The public
 `low`/`high` options select pinned native profiles; Gemini 4 uses native low/high,
-not xhigh. Missing images download automatically using `ROBOFLOW_API_KEY` into
+not xhigh. This is an intentional stability exception: higher-effort trials
+produced too many failed or unusable responses to complete the benchmarks
+reliably, so low/high was approved for the Gemini 4 comparison. These results
+should not be described as absolute maximum effort.
+
+Missing images download automatically using `ROBOFLOW_API_KEY` into
 `data/detection/v2`, with hashes verified against the approved manifest.
 
 ```bash

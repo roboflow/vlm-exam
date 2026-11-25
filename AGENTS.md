@@ -65,7 +65,9 @@ source of QA defaults and the explicit v1 contract. Current runs use:
 - OCR, extraction, counting, identification and reasoning: three repeats at
   Low and High, unchanged. Report means across repeats; token/cost/time totals
   describe one mean full run, not three times the cost.
-- Detection v2: one run per recorded native minimum/maximum configuration.
+- Detection v2: one run per recorded native configuration. Minimum/maximum
+  is the general policy; Gemini 4 uses the approved low/high stability exception
+  documented below.
   `low`/`high` CLI aliases select those native profiles. Enabled-only models
   remain neutral single-arm measurements; never duplicate them into two lanes.
 - Text: one run at Low and High, under the frozen mixed-text release policy.
@@ -427,7 +429,8 @@ PNGs or recomputing inference.
 ## Detection versions
 
 - Standard `run --task detection`, `benchmark`, `summary` and `leaderboard` use
-  **v2**. `low` and `high` select the recorded native minimum and maximum settings;
+  **v2**. `low` and `high` select the recorded native settings (including the Gemini 4
+  low/high stability exception);
   they do not override a model's native effort values. V2 has one run per arm.
 - Use `--detection-version v1` explicitly to run or summarize the historical
   pipeline. Historical flat files and `results/detection/v1/*.jsonl` are preserved
@@ -536,6 +539,16 @@ The four Gemini 4 release entries use the approved first-pass low/high runs with
 128000 output tokens. High here is native `high`, not `xhigh` or an assertion of
 the model's absolute maximum. The release lanes retain their historical
 minimum/maximum names for API compatibility; inspect pinned native profiles.
+
+This is an intentional stability exception, not a claim that `high` is the
+highest supported effort. Trials at higher supported efforts produced so many
+failed or unusable responses that the benchmarks could not be completed reliably.
+The user therefore approved low/high for the four-model Gemini 4 comparison.
+Preserve this rationale when describing results; do not label these runs as
+absolute maximum effort, silently substitute higher-effort results, or erase
+the failed-run provenance. Any future higher-effort evaluation is a separate
+explicitly configured experiment.
+
 Do not substitute later retry-round responses. `gemini4_refresh.json` records
 source hashes and identity normalization; superseded archives remain diagnostics.
 Carbon High has seven explicitly accepted 504 failures. Its run entry lists their
