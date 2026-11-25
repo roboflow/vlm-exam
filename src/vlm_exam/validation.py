@@ -19,7 +19,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from vlm_exam.config import BenchmarkConfig
-from vlm_exam.protocol import PROTOCOL, BenchmarkProtocol, run_command
+from vlm_exam.protocol import ACTIVE_PROTOCOL, PROTOCOL, BenchmarkProtocol, run_command
 from vlm_exam.rescore import JUDGE_TASK_NAMES
 from vlm_exam.results import RunResult, is_failed_sample, load_results, result_paths
 
@@ -312,12 +312,14 @@ def validate_results(
     if detection_version not in {"v1", "v2"}:
         raise ValueError("Unknown detection version")
     if detection_version == "v2":
+        if protocol is PROTOCOL:
+            protocol = ACTIVE_PROTOCOL
         protocol = replace(
             protocol, tasks=tuple(t for t in protocol.tasks if t != "detection")
         )
     loaded_runs = _load_runs(results_directory)
     if detection_version == "v2":
-        loaded_runs = [r for r in loaded_runs if r.run.task != "detection"]
+        loaded_runs = [r for r in loaded_runs if r.run.task in protocol.tasks]
     full_sample_counts = _full_sample_counts(loaded_runs)
 
     by_configuration: dict[tuple[str, str, str], list[_LoadedRun]] = {}
@@ -340,7 +342,7 @@ def validate_results(
                 )
             )
             continue
-        if run.task == "text":
+        if run.task == "text" and detection_version == "v1":
             continue
         if run.task not in protocol.tasks:
             orphans.append(

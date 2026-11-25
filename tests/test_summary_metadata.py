@@ -163,8 +163,8 @@ def test_per_task_settings_and_historical_are_isolated():
         == 128
     )
     assert tasks["detection"]["metrics"]["f1"] == 75
-    assert combined["schema_version"] == 2
-    assert combined["tasks"][0]["benchmark_id"] == "detection-v2"
+    assert combined["schema_version"] == 3
+    assert combined["tasks"][0]["benchmark_id"] == "RF-ODv2"
     json.dumps(combined, allow_nan=False)
 
 
@@ -184,7 +184,7 @@ def test_text_composition_and_detection_aggregation():
         ]
         == "pooled_dataset_ap"
     )
-    assert task_metadata("ocr", detection_v2=True) == {}
+    assert task_metadata("ocr", detection_v2=True) == {"benchmark_id": "RF-OCRv1"}
 
 
 def test_historical_snapshot_filters_and_detects_modified_archives(tmp_path):

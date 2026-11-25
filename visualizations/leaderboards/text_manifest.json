@@ -2,11 +2,11 @@
   "schema_version": 1,
   "summary_sha256": "efe40c7f745a086bf8b65bfc9deca5a3d7c2ac349525ca17823e1b45e88b03bf",
   "display_sha256": "2cb38da30a1ea86f820859d35d102d7c2f011775837b18c9e46cec75ee8c4419",
-  "renderer_sha256": "52c877b6a33dffb63421a67f5cd37e6620e2093cfc13db9e77ceb5a1e2fac38e",
+  "renderer_sha256": "5b7d23f4731b212cc7dbf4e03b506f7057273f89fdfc519073dda8ada5395e50",
   "charts": [
     {
       "file": "text_localization_recognition_high.png",
-      "sha256": "acd2f67bad59cb46f862961432253c54f2c7d79dd0de8118ae0d9e99c253049e",
+      "sha256": "a63bcc529624591a1ffa82fab4d4fd91e1ed68a262c112920e4e49640f247e7f",
       "size": [
         2100,
         14340
@@ -14,7 +14,7 @@
     },
     {
       "file": "text_localization_recognition_low.png",
-      "sha256": "fb07c3b1638a5584afe2ef789b8c26eac9b9d5734d9b5b2dd76fde160c1ab259",
+      "sha256": "92a0ebd89bcc52994321be0197834bc1fba510a8fc2e1fc5be8e65d03cea2ca6",
       "size": [
         2100,
         14820
@@ -22,7 +22,7 @@
     },
     {
       "file": "text_single_string_high.png",
-      "sha256": "534c91450d64600a64d6d4b8c2e9e58239043845bf82e8b7c833a729d0ac0189",
+      "sha256": "de912f289fad4bd6bd6ea67b8e2ef7ff8f93ed3c39ee57bef55549c3f49cac66",
       "size": [
         2100,
         14340
@@ -30,7 +30,7 @@
     },
     {
       "file": "text_single_string_low.png",
-      "sha256": "59a0d02910442462708c64e267e105cd974f6460651b13fba2523c8a0911eee2",
+      "sha256": "f2992d2ff9730a4548aac5fff4ee36d0abecac552ad88e20d70d4ea524f50e0e",
       "size": [
         2100,
         14820
@@ -38,7 +38,7 @@
     },
     {
       "file": "text_structured_high.png",
-      "sha256": "3e2e6a764be3988285ed4dcd69d38c46eb563d4970ede553b876f88d39c89066",
+      "sha256": "3d7d532cc6c4af80f0a5ccda758cfd23b3b114ec441237b18cf7254c0dff86e1",
       "size": [
         2100,
         14340
@@ -46,7 +46,7 @@
     },
     {
       "file": "text_structured_low.png",
-      "sha256": "5310c8daa0758d27ac82eaa6ecfcc83a0778bbbe67d03a47d3d6d29e9317c5c5",
+      "sha256": "0d24142b1cd43eb8bd8731d6d99b73dc65793d4796ade4131e8b7188a9e8b611",
       "size": [
         2100,
         14820
@@ -54,7 +54,7 @@
     },
     {
       "file": "text_transcription_high.png",
-      "sha256": "bef04a23db753637948675a921e87b98b0ed9455de79e7df3a9dc82a0fe820ab",
+      "sha256": "7e1f35bf432466286d334010281521c05da705c6c0ea13db2c59d3052e00185f",
       "size": [
         2100,
         14340
@@ -62,7 +62,7 @@
     },
     {
       "file": "text_transcription_low.png",
-      "sha256": "fff87ad5164da59560394520a89736975bdcd61289b8bf06158230ad3ce911fd",
+      "sha256": "e3d2909a8a0712374864878fab6ed663f45bd43f9c6f303a6d669ec5d64b9b29",
       "size": [
         2100,
         14820

@@ -44,7 +44,17 @@ class BenchmarkProtocol:
 
 
 PROTOCOL = BenchmarkProtocol()
-"""The protocol every committed model is measured against."""
+"""Historical six-task protocol, retained for explicit archival runs."""
+
+ACTIVE_PROTOCOL = BenchmarkProtocol(tasks=("detection", "text"), repeats=1)
+"""Current RF-ODv2 and RF-OCRv2 protocol."""
+
+BENCHMARK_NAMES = {
+    "detection": "RF-ODv2",
+    "text": "RF-OCRv2",
+    "ocr": "RF-OCRv1",
+}
+"""Public benchmark names; internal task and archive identities stay stable."""
 
 TASK_CONCURRENCY: dict[str, int] = {
     "detection": 6,

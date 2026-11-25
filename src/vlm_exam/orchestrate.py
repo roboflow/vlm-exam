@@ -22,7 +22,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from vlm_exam.protocol import PROTOCOL, BenchmarkProtocol, run_command
+from vlm_exam.protocol import ACTIVE_PROTOCOL, PROTOCOL, BenchmarkProtocol, run_command
 
 STAGGER_SECONDS = 2.0
 """Delay between process launches so result timestamps never collide."""
@@ -57,7 +57,7 @@ class JobOutcome:
 def plan_jobs(
     models: list[str],
     *,
-    protocol: BenchmarkProtocol = PROTOCOL,
+    protocol: BenchmarkProtocol = ACTIVE_PROTOCOL,
     tasks: tuple[str, ...] | None = None,
     efforts: tuple[str, ...] | None = None,
     repeats: int | None = None,
@@ -68,6 +68,7 @@ def plan_jobs(
     max_samples: int | None = None,
     config_path: Path | None = None,
     detection_version: str = "v2",
+    detection_arms: dict[str, tuple[str, ...]] | None = None,
 ) -> list[Job]:
     """Expand models into one job per ``(model, task, effort, repeat)``.
 
@@ -83,6 +84,8 @@ def plan_jobs(
         output_directory: Where result files are written.
         log_directory: Where per-job logs are written.
         config_path: Optional model configuration forwarded to each run.
+        detection_arms: Reviewed native arms for default scheduling, per model.
+        detection_version: Detection version to run.
         max_samples: Optional sample cap forwarded to ``vlm-exam run``
             (smoke tests only; never for committed runs).
 
@@ -91,20 +94,34 @@ def plan_jobs(
     """
     tasks = tasks or protocol.tasks
     efforts = efforts or protocol.efforts
-    repeats = protocol.repeats if repeats is None else repeats
     jobs: list[Job] = []
     for effort in efforts:
         for task in tasks:
             for model in models:
+                native_effort = effort
+                if task == "detection" and detection_arms and model in detection_arms:
+                    arms = detection_arms[model]
+                    if arms == ("enabled",):
+                        if effort != efforts[0]:
+                            continue
+                        native_effort = "enabled"
                 task_repeats = (
-                    1 if task == "detection" and detection_version == "v2" else repeats
+                    1
+                    if task == "detection" and detection_version == "v2"
+                    else repeats
+                    if repeats is not None
+                    else 1
+                    if task == "text"
+                    else PROTOCOL.repeats
+                    if task in PROTOCOL.tasks
+                    else protocol.repeats
                 )
                 for offset in range(task_repeats):
                     repeat = first_repeat + offset
                     command = run_command(
                         task,
                         model,
-                        effort,
+                        native_effort,
                         root=dataset_root,
                         output_directory=output_directory,
                     )
@@ -122,11 +139,11 @@ def plan_jobs(
                         Job(
                             model=model,
                             task=task,
-                            effort=effort,
+                            effort=native_effort,
                             repeat=repeat,
                             command=tuple(command),
                             log_path=log_directory
-                            / f"{task}_{model}_{effort}_r{repeat}.log",
+                            / f"{task}_{model}_{native_effort}_r{repeat}.log",
                         )
                     )
     return jobs

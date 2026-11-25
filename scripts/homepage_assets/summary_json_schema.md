@@ -1,4 +1,27 @@
-# Benchmark summary JSON schema
+# Benchmark summary JSON schema (version 3)
+
+## Current and historical selection
+
+`schema_version` is **3**. Current `tasks` and `models[].tasks` contain only
+`detection` (**RF-ODv2**) and `text` (**RF-OCRv2**). `overview_tasks` is
+`["detection", "text"]`. `protocol.repeats` is 1, as are both entries in
+`repeats_by_task`; ordinary two-arm completion requires four runs.
+
+`historical.detection.v1` contains **RF-ODv1**, with the frozen snapshot scores
+and archive verification preserved. `historical.ocr.v1` contains **RF-OCRv1**,
+aggregated from its unchanged raw runs. Each view provides `benchmark_id`,
+`name`, `status: "archived"`, `efforts`, `protocol`, `tasks`, and `models`.
+Archived model entries have identity, effort and task results, without active
+overview totals or completion claims. Model/effort filters apply to both views.
+Extraction, Counting, Identification and Reasoning are absent from this payload.
+
+Public `benchmark_id` values are RF-ODv2, RF-OCRv2, RF-ODv1 and RF-OCRv1.
+Internal task keys and raw archive identities are unchanged. Low/High remain
+categories; use recorded `configuration_details.variants[].reasoning` for native
+API parameters. Unknown historical settings remain unknown, not reconstructed
+from the current registry. Frontends consuming schema 2 must migrate to these
+selections and render historical views separately.
+
 
 The website pulls a single file, `benchmark_summary.json`, to render every
 leaderboard and model/task view. This document describes its shape so the
@@ -38,7 +61,7 @@ Describes a task and the metrics reported for it.
 
 | Field | Type | Description |
 |---|---|---|
-| `key` | string | Stable task id: `ocr`, `extraction`, `counting`, `identification`, `reasoning`, `detection`. |
+| `key` | string | Stable task id: `detection`, `text` (current); `ocr`, `detection` (historical). |
 | `name` | string | Display name, e.g. `OCR`, `Data Extraction`, `Detection`. |
 | `primary_metric` | string | The metric key to sort/headline by for this task. |
 | `metrics` | Metric[] | All metrics reported for the task. |
@@ -54,8 +77,9 @@ Describes a task and the metrics reported for it.
 Metric keys by task:
 
 - `ocr` -> `similarity` (primary)
-- `extraction`, `counting`, `identification`, `reasoning` -> `accuracy` (primary)
-- `detection` -> `map50` (primary), `map75`, `map50_95`
+- `text` -> `overall` (primary), `single_string`, `transcription`, `structured`, `localization_recognition`
+- `detection` v2 -> `map50` (primary), `f1`, `precision`, `recall`
+- historical `detection` v1 -> `map50` (primary), `map75`, `map50_95`
 
 ## Model
 
@@ -162,9 +186,9 @@ summary was built without `--dataset-directory`).
 }
 ```
 
-## Schema version 2 additions
+## Versioned views and configuration metadata
 
-`schema_version` is `2`. Existing fields retain their types. Root `tasks` and
+`schema_version` is `3`. Metric fields retain their types. Root `tasks` and
 `models` describe current leaderboards. `historical.detection.v1` has its own
 `tasks`, `models`, `efforts`, scoring source and historical protocol. Historical
 model rows have only `tasks.detection`; they have no current `overall` or overall
@@ -173,7 +197,7 @@ Model IDs are scoped to a view; include benchmark identity in cross-view UI keys
 
 `overview_tasks` lists the tasks included in current efficiency totals and
 completion requirements. It does not define a cross-task quality average.
-Text replaces OCR/extraction in this list; those old task results remain separate.
+Only RF-ODv2 and RF-OCRv2 contribute; archived results are excluded.
 
 Task definitions expose `benchmark_id` for detection and mixed text, and
 `aggregation` describes score composition. Text `subtasks` maps the four IDs
@@ -209,4 +233,4 @@ The existing `provenance.configurations` remains an array of hash strings.
 
 Frontend access: `model.tasks[taskKey].primary_metric`, `.metrics.f1` for V2
 detection F1, and `.configuration_details`. Historical view selection is
-`payload.historical.detection.v1`; current selection is `payload`.
+`payload.historical.detection.v1` or `payload.historical.ocr.v1`; current selection is `payload`.

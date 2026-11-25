@@ -59,21 +59,16 @@ avoid a loop"). Never narrate what the code does.
 
 ## Benchmark protocol
 
-Detection v2 is the default. The historical six-task `PROTOCOL` remains the
-source of QA defaults and the explicit v1 contract. Current runs use:
+The active `ACTIVE_PROTOCOL` is RF-ODv2 (`detection`) and RF-OCRv2 (`text`),
+one run per Low/High configuration. The historical six-task `PROTOCOL` retains
+its three-repeat contract for explicitly selected historical tasks.
 
-- OCR, extraction, counting, identification and reasoning: three repeats at
-  Low and High, unchanged. Report means across repeats; token/cost/time totals
-  describe one mean full run, not three times the cost.
-- Detection v2: one run per recorded native configuration. Minimum/maximum
-  is the general policy; Gemini 4 uses the approved low/high stability exception
-  documented below.
-  `low`/`high` CLI aliases select those native profiles. Enabled-only models
-  remain neutral single-arm measurements; never duplicate them into two lanes.
-- Text: one run at Low and High, under the frozen mixed-text release policy.
-- The website overview uses Text, counting, identification, reasoning and
-  Detection v2. Its per-task repeat requirements are 1, 3, 3, 3 and 1 respectively.
-  Historical detection v1 remains available only with `--detection-version v1`.
+Low/High settings are unchanged: detection uses pinned native minimum/maximum
+profiles (including the Gemini 4 stability exception); OCRv2 uses the existing
+provider adapters. Never infer historical request settings from current config.
+
+RF-ODv1 and RF-OCRv1 are archived website views. Extraction, Counting,
+Identification and Reasoning remain runnable but are not active or web-exported.
 
 ### Rules for `results/`
 
@@ -109,21 +104,12 @@ vlm-exam validate
 vlm-exam summary --check
 ```
 
-`benchmark` schedules three QA repeats and one v2 detection run per arm, with
-per-job logs. Text has its own documented launcher. `--tasks`, `--efforts`, and
-QA repeat options narrow the schedule. V2 uses native pinned profiles; ambiguous
-profiles require an explicit `--configuration` or reviewed registry settings.
-New models put their native request settings in the model's `detection_v2` entry
-in `configs/models.yaml`; standalone `--profile` remains an optional override.
-Do not pass custom `--config` to a v2 inference run and assume it changes the
-request profile. `--max-samples` never publishes.
-
-Default validation checks QA repeat coverage separately from the complete v2
-release inventory, hashes, case identities, profiles and response coverage.
-`validate --detection-version v1` verifies the archived six-task protocol.
-`--format github` emits annotations and a step summary. CI also checks both
-summary artifacts, Ruff and pytest. Do not silence a failing validation check;
-fix the artifact or obtain authorization for an explicit policy change.
+`benchmark` schedules only detection and text by default. Explicit `--tasks`
+selects older tasks; QA and detection v1 default to three repeats. Detection v2
+uses one run per arm. A custom `--config` is forwarded to all selected tasks.
+Default validation checks active OCRv2 coverage and detection v2 release integrity.
+`validate --detection-version v1` retains historical six-task coverage. CI checks
+both summary artifacts, Ruff and pytest. Do not silence integrity failures.
 
 ## Scoring: strict and judge are two independent metrics
 
@@ -183,20 +169,12 @@ fix the artifact or obtain authorization for an explicit policy change.
 
 ## Web summary
 
-- `overview_tasks` is `["text", "counting", "identification", "reasoning",
-  "detection"]`. Text replaces OCR and Data Extraction in the overview; keep
-  their individual task results available. Overall token, cost and elapsed-time
-  totals include only the five selected tasks, averaging repeats within each
-  task before summing. Recompute per-sample averages from the selected totals.
-- The web protocol and every model's run status use the same five tasks across
-  Low and High: Text and Detection v2 require one run per effort; counting,
-  identification and reasoning require three, for 22 runs per complete model. `protocol.repeats` remains the default of 3;
-  `protocol.repeats_by_task` explicitly records the per-task requirements.
-  Status describes run inventory; response coverage and accepted gaps remain
-  explicit in the task metrics and coverage fields. Keep legacy status for
-  legacy models with missing runs. Missing Text runs cannot be filled by OCR
-  or Extraction runs. This publication selection does not change the historical
-  QA task definitions or authorize additional runs.
+- `overview_tasks` is `["detection", "text"]`. Current task results, overall
+  token/cost/time totals and completeness include only RF-ODv2 and RF-OCRv2.
+  Each requires one run at Low and High (four runs for two-arm models).
+- Schema version 3 exports RF-ODv1 under `historical.detection.v1` and RF-OCRv1
+  under `historical.ocr.v1`. All other tasks remain in the codebase only.
+  Never fill missing v2 results from v1. Preserve raw archives byte-for-byte.
 - Omit per-subset detail and response-level provenance from the web JSON.
   Detection retains compact protocol/dataset/profile provenance so its version
   cannot be confused with v1. Retain full detail in raw/internal results. Preserve task metrics,
@@ -400,7 +378,7 @@ per-metric coverage. Keep source checksums and subset metadata in internal
 summaries and raw results, outside the web payload. Missing responses
 omit the affected ranking metrics; coverage retains observed scores and bounds.
 `run_count` records repeats; do not add another text protocol block. Preserve
-the five-task overview and its explicitly selected efficiency pool.
+the two-task active overview and its explicitly selected efficiency pool.
 
 ### Rendering and checks
 
@@ -680,10 +658,10 @@ detection_v2:
 This is a schema example, not a claim that every OpenAI model has these effort
 endpoints. OpenRouter profiles also require the explicit routing block.
 
-### Combined website export (schema version 2)
+### Combined website export (schema version 3)
 
 `vlm-exam summary` generates current results at the existing root and the
-archived detection view under `historical.detection.v1`. Regenerate and commit
+archived views under `historical.detection.v1` and `historical.ocr.v1`. Regenerate and commit
 `web/benchmark_summary.json` in every PR; `summary --check` covers both views.
 Do not mix historical scores into current totals or rankings. The frozen V1
 website snapshot at `datasets/detection/v1/web_snapshot.json` preserves the

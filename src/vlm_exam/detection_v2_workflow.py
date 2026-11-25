@@ -306,9 +306,18 @@ def with_detection_results(
     for model in indexed.values():
         counts = []
         for task, required in protocol.repeats_by_task.items():
-            for arm in protocol.efforts:
+            arms = protocol.efforts
+            if task == "detection":
+                recorded = {
+                    r["effort"]
+                    for r in data["models"]
+                    if canonical_model_id(r["model"]) == model.key
+                }
+                if recorded == {"enabled"}:
+                    arms = ("enabled",)
+            for arm in arms:
                 if task == "detection":
-                    native = {"low": "minimum", "high": "maximum"}[arm]
+                    native = {"low": "minimum", "high": "maximum"}.get(arm, arm)
                     lane = next(
                         (
                             r
@@ -337,7 +346,7 @@ def with_detection_results(
                     model.protocol.name,
                     status,
                     sum(count for count, _ in counts),
-                    protocol.runs_per_model,
+                    sum(required for _, required in counts),
                 ),
             )
         )
@@ -378,7 +387,7 @@ def detection_charts(root: Path, output: Path, models: set[str] | None = None) -
         if not scores:
             continue
         figure = plot_accuracy_chart(
-            scores, display, f"Detection v2 mAP@50 · {arm.title()}"
+            scores, display, f"RF-ODv2 mAP@50 · {effort.title()}"
         )
         save_leaderboard_chart(figure, output / f"detection_map50_{effort}.png")
         plt.close(figure)
@@ -390,7 +399,7 @@ def detection_report(root: Path) -> None:
     if not source.exists():
         return
     data = json.loads(source.read_text())
-    click.echo("\nDetection v2 — subset-macro mAP@50; micro F1@50")
+    click.echo("\nRF-ODv2 — subset-macro mAP@50; micro F1@50")
     click.echo(f"{'Model':<30} {'Effort':<9} {'mAP@50':>8} {'F1@50':>8} {'Missing':>8}")
     for row in data["models"]:
 

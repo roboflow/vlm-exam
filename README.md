@@ -3,12 +3,16 @@
 Benchmark suite for Vision Language Models. Compare accuracy, cost, and
 speed across frontier VLMs on standardized visual tasks.
 
-## Supported tasks
+## Active benchmarks
 
-- **VQA / OCR** -- visual question answering and optical character recognition
-- **Object Detection** -- bounding box prediction evaluated with COCO-style mAP
+- **RF-ODv2** (`detection`): object detection, one run per native configuration.
+- **RF-OCRv2** (`text`): mixed OCR, one run at Low and High.
 
-## Leaderboard
+RF-ODv1 and RF-OCRv1 are historical benchmarks published separately in the web
+JSON. Extraction, Counting, Identification and Reasoning remain runnable and
+retain their raw results, but are no longer active or exported to the website.
+
+## Historical QA leaderboards
 
 The `results/` directory holds the raw benchmark outputs (one JSONL file per
 run) and is the single source of truth for the numbers below. Regenerate the
@@ -126,50 +130,42 @@ vlm-exam rescore results/reasoning_gpt-5.5_low_20260725_101010.jsonl
 
 ### Benchmark a model end to end
 
-Every model is benchmarked under one protocol: six tasks, two effort
-levels (`low` and `high`), three runs each, 36 result files in total. The
-leaderboards, reports, and web summary report the mean over the runs of
-each configuration. Repeats are just result files: every file in
-`results/` with the same `(task, model, effort)` counts as one run, so
-there is nothing to register.
-
-`vlm-exam benchmark` launches the whole protocol for a model as parallel
-processes, one per run, each with a task-sized `--concurrency` and its own
-log under `logs/`:
+The default protocol is RF-ODv2 and RF-OCRv2 at Low and High, with one run
+per configuration (four jobs for a model with two detection arms):
 
 ```bash
-vlm-exam benchmark --models claude-fable-5-1
+vlm-exam benchmark --models MODEL
 ```
 
-Narrow it with `--tasks`, `--efforts`, `--repeats`, and `--first-repeat`
-(for example, `--tasks detection --efforts high --repeats 2 --first-repeat 2`
-adds two missing detection repeats), and cap simultaneous processes with
-`--max-parallel`. A single configuration can also be repeated by hand;
-`--repeats` runs it back to back and `--concurrency` evaluates samples in
-parallel within a run:
+Use `--tasks`, `--efforts`, and `--max-parallel` to select work. Logs are written
+under `logs/`. Historical tasks require explicit selection and default to three
+repeats; selecting detection v1 changes only the detection task:
 
 ```bash
-vlm-exam run \
-    --task reasoning \
-    --models claude-fable-5-1 \
-    --effort low \
-    --dataset-directory data/reasoning/train \
-    --repeats 3 \
-    --concurrency 4
+vlm-exam benchmark --models MODEL --tasks counting,ocr
+vlm-exam benchmark --models MODEL --tasks detection --detection-version v1
+vlm-exam leaderboard --tasks counting,ocr
+vlm-exam report --tasks reasoning
 ```
 
-Repeats may also be launched as separate processes writing to the same
-directory; filenames are made unique on collision. `--resume-file <file>`
-re-runs only the failed samples of a run, writes the merged complete file,
-and deletes the source so the partial run is not counted as a repeat.
+`text` remains the internal/CLI identity of RF-OCRv2; `ocr` means RF-OCRv1.
+`text-benchmark` remains available as an OCRv2-only launcher. `--repeats` can
+explicitly select repeats for non-v2-detection tasks; detection v2 always uses
+one run per arm.
+
+Low/High are categories, not identical API parameters across benchmarks.
+Detection maps them to reviewed minimum/maximum profiles; Gemini 4 retains its
+approved native low/high stability exception. OCRv2 uses the existing provider
+adapters. Recorded native parameters remain in `configuration_details` in the
+JSON; unknown historical settings remain unknown. This change does not rerun
+inference or modify any historical scores or request settings.
 
 ### Validate the results directory
 
-`vlm-exam validate` checks `results/` against the protocol and exits 1 on
-violations. It prints a coverage table for every model in `models.yaml`,
-then each problem with the command that fixes it: missing or surplus runs,
-missing effort levels, partial runs, missing strict/judge verdicts, failed
-samples, and files for unknown models.
+`vlm-exam validate` checks active OCRv2 coverage and the pinned detection v2
+release. Missing archived tasks do not affect current completion. Use
+`validate --detection-version v1` for historical six-task coverage. Frozen
+release integrity checks remain enforced.
 
 ```bash
 vlm-exam validate
@@ -256,145 +252,26 @@ vlm-exam leaderboard \
 
 ### Compile a summary for the web
 
-Compiles every run in `results/` into a single JSON payload for the
-benchmark website, averaging the repeats of each `(task, effort, model)`
-configuration. It carries per-task metadata and, for each model, its
-per-task quality plus token spend, cost, and inference speed of one run.
-Each entry is one `(model, effort)`
-pair with a unique `id`, so the same model appears once per effort; the
-top-level `efforts` array lists every effort present. Pass
-`--dataset-directory` to include detection mAP (otherwise detection quality
-metrics are omitted while its efficiency metrics are kept). Filter with
-`--group <name>` or `--models`, and restrict to a single effort with
-`--effort` (defaults to all efforts). The frontend supplies its own lab
-logos and live pricing, so those are intentionally left out. The output is
-deterministic: `generated_at` is derived from the newest included run, so
-regenerating without new results produces a byte-identical file.
+`vlm-exam summary` generates `web/benchmark_summary.json` (schema version 3).
+The current `tasks`, `models[].tasks`, overview totals and completion status
+contain only RF-ODv2 (`detection`) and RF-OCRv2 (`text`). Both require one run
+per Low/High arm. Historical results never fill missing current coverage.
+
+The payload also contains `historical.detection.v1` (RF-ODv1) and
+`historical.ocr.v1` (RF-OCRv1), with archived metrics, repeat counts and recorded
+configuration details. Other tasks are excluded from the payload, but their
+raw results and explicit execution/reporting paths remain in the repository.
 
 ```bash
-vlm-exam summary \
-    --results-directory results \
-    --dataset-directory data/detection/train \
-    --output-file web/benchmark_summary.json
+vlm-exam summary
+vlm-exam summary --check
 ```
 
-`vlm-exam summary --check` rebuilds the payload without writing and exits 1
-if the committed file is out of date (detection mAP fields are excluded from
-the comparison when no `--dataset-directory` is given).
-
-The output has this shape (abbreviated):
-
-```json
-{
-  "generated_at": "2026-07-10T08:11:31Z",
-  "efforts": ["low"],
-  "scoring": {
-    "judge_model": "gemini-3.5-flash",
-    "judge_metric": "accuracy_judge",
-    "strict_metric": "accuracy_strict"
-  },
-  "protocol": {
-    "repeats": 3,
-    "efforts": ["low", "high"],
-    "tasks": ["ocr", "extraction", "counting", "identification", "reasoning", "detection"],
-    "runs_per_model": 36
-  },
-  "tasks": [
-    {
-      "key": "ocr",
-      "name": "OCR",
-      "primary_metric": "similarity",
-      "metrics": [
-        { "key": "similarity", "label": "Mean Similarity", "unit": "percent" }
-      ]
-    },
-    {
-      "key": "detection",
-      "name": "Detection",
-      "primary_metric": "map50",
-      "metrics": [
-        { "key": "map50", "label": "mAP@50", "unit": "percent" },
-        { "key": "map75", "label": "mAP@75", "unit": "percent" },
-        { "key": "map50_95", "label": "mAP@50:95", "unit": "percent" }
-      ]
-    }
-  ],
-  "models": [
-    {
-      "id": "gpt-5.6-sol:low",
-      "key": "gpt-5.6-sol",
-      "name": "GPT-5.6 Sol",
-      "lab": "openai",
-      "effort": "low",
-      "tasks": {
-        "ocr": {
-          "primary_metric": { "name": "similarity", "value": 90.73 },
-          "metrics": { "similarity": 90.73 },
-          "metric_runs": { "similarity": [90.1, 91.4, 90.69] },
-          "run_count": 3,
-          "timestamps": ["2026-07-10T06:02:10Z", "2026-07-10T06:48:57Z", "2026-07-10T07:33:33Z"],
-          "sample_count": 37,
-          "evaluated_sample_count": null,
-          "failed_sample_count": 0,
-          "tokens": { "input": 46626, "output": 31917, "total": 78543, "average_per_sample": 2122.8 },
-          "cost": { "total_usd": 1.19064, "average_per_sample_usd": 0.032179 },
-          "speed": { "total_seconds": 496.636, "average_seconds_per_sample": 13.423 },
-          "timestamp": "2026-07-10T07:33:33Z"
-        },
-        "detection": {
-          "primary_metric": { "name": "map50", "value": 46.23 },
-          "metrics": { "map50": 46.23, "map75": 20.85, "map50_95": 23.26 },
-          "metric_runs": { "map50": [46.23], "map75": [20.85], "map50_95": [23.26] },
-          "run_count": 1,
-          "timestamps": ["2026-07-09T21:50:44Z"],
-          "sample_count": 250,
-          "evaluated_sample_count": 250,
-          "failed_sample_count": 0,
-          "tokens": { "input": 629173, "output": 180400, "total": 809573, "average_per_sample": 3238.3 },
-          "cost": { "total_usd": 8.557865, "average_per_sample_usd": 0.034231 },
-          "speed": { "total_seconds": 3632.994, "average_seconds_per_sample": 14.532 },
-          "timestamp": "2026-07-09T21:50:44Z"
-        }
-      },
-      "overall": {
-        "task_count": 6,
-        "sample_count": 513,
-        "tokens": { "input": 976102, "output": 237183, "total": 1213285, "average_per_sample": 2365.1 },
-        "cost": { "total_usd": 11.996, "average_per_sample_usd": 0.023384 },
-        "speed": { "total_seconds": 5094.531, "average_seconds_per_sample": 9.931 }
-      },
-      "protocol": {
-        "name": "legacy",
-        "status": "legacy",
-        "runs_present": 7,
-        "runs_required": 36
-      }
-    }
-  ]
-}
-```
-
-All quality metrics are percentages (0-100). QA tasks report
-`accuracy_judge` (primary) and `accuracy_strict`, OCR reports `similarity`,
-and detection reports `map50` (primary), `map75`, and `map50_95`. `metrics`
-holds the mean over the configuration's runs, `metric_runs` the per-run
-values behind each mean (oldest first, matching `timestamps`), and
-`run_count` how many runs were averaged. The top-level `protocol` block
-states what a complete model has (`repeats` runs of every task in `tasks`
-at every effort in `efforts`, `runs_per_model` files in total), and each
-model entry's `protocol` block reports where that model stands across all
-efforts: `name` is `full` or `legacy` (the `benchmark_protocol` field in
-`models.yaml`), `status` is `complete`, `incomplete`, or `legacy`, and
-`runs_present`/`runs_required` count result files. Tokens, cost, and speed
-describe one run (the mean over repeats); `failed_sample_count` is summed
-over repeats. No-data contract: a task absent from a model's `tasks`
-means the model was not benchmarked on it; `primary_metric: null` with
-empty `metrics` means quality could not be computed (e.g. detection without
-`--dataset-directory`) while efficiency numbers remain valid.
-`evaluated_sample_count` is detection-only (null elsewhere): the number of
-images the mAP was actually computed on, which should equal `sample_count`.
-The `cost` numbers are estimates from token usage and the config's static
-pricing; the site should recompute cost from its own live pricing feed.
+Generation is offline and deterministic. Detection scores come from the pinned
+release summary; historical detection retains its hash-verified snapshot.
+Filter by `--models`, `--group`, or `--effort`. The frontend must read the two
+historical sections separately and use `benchmark_id`/`name` for public names.
+See [the JSON contract](scripts/homepage_assets/summary_json_schema.md).
 
 ### Python
 

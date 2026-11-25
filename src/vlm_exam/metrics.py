@@ -342,6 +342,7 @@ def aggregate_efficiency_by_model(
     effort: str = "low",
     *,
     models: set[str] | None = None,
+    tasks: tuple[str, ...] = ("detection", "text"),
 ) -> list[ModelEfficiency]:
     """Average per-sample and per-run efficiency over every repeat.
 
@@ -350,22 +351,23 @@ def aggregate_efficiency_by_model(
         config: Benchmark config with per-model pricing.
         effort: Effort level to aggregate (default ``"low"``).
         models: Optional set of model keys to include.
+        tasks: Selected tasks; defaults to the two active benchmarks.
 
     Returns:
         Efficiency rows sorted by model identifier.
     """
     if (
         results_directory.resolve().parent / "datasets/detection/v2/summary.json"
-    ).exists():
+    ).exists() and set(tasks) <= {"detection", "text"}:
         from vlm_exam.summary import _overall, build_summary
 
         summary = build_summary(results_directory, config, effort, models=models)
         rows = []
         for model in summary.models:
-            tasks = {k: v for k, v in model.tasks.items() if k in BENCHMARK_TASK_NAMES}
-            if not tasks:
+            selected = {k: v for k, v in model.tasks.items() if k in tasks}
+            if not selected:
                 continue
-            total = _overall(tasks)
+            total = _overall(selected)
             rows.append(
                 ModelEfficiency(
                     model=model.key,
@@ -380,9 +382,7 @@ def aggregate_efficiency_by_model(
             )
         return sorted(rows, key=lambda row: row.model)
     runs = load_results_directory(results_directory)
-    groups = group_runs(
-        runs, config, models=models, effort=effort, tasks=BENCHMARK_TASK_NAMES
-    )
+    groups = group_runs(runs, config, models=models, effort=effort, tasks=tasks)
 
     samples_by_model: dict[str, list[SampleResult]] = {}
     tasks_by_model: dict[str, set[str]] = {}

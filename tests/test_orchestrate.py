@@ -26,7 +26,7 @@ from vlm_exam.orchestrate import (
     plan_jobs,
     run_jobs,
 )
-from vlm_exam.protocol import PROTOCOL, TASK_CONCURRENCY, run_command
+from vlm_exam.protocol import TASK_CONCURRENCY, run_command
 
 
 class TestRunCommand:
@@ -51,11 +51,13 @@ class TestPlanJobs:
     def test_full_protocol_for_one_model(self) -> None:
         jobs = plan_jobs(["alpha"])
 
-        assert len(jobs) == PROTOCOL.required_runs - 4
-        assert [job.effort for job in jobs[:16]] == ["low"] * 16
-        assert [job.effort for job in jobs[16:]] == ["high"] * 16
-        assert jobs[0].log_path == Path("logs/ocr_alpha_low_r1.log")
-        assert jobs[2].repeat == 3
+        assert [(j.task, j.effort, j.repeat) for j in jobs] == [
+            ("detection", "low", 1),
+            ("text", "low", 1),
+            ("detection", "high", 1),
+            ("text", "high", 1),
+        ]
+        assert jobs[0].log_path == Path("logs/detection_alpha_low_r1.log")
         assert "--max-samples" not in jobs[0].command
 
     def test_filters_and_first_repeat(self, tmp_path: Path) -> None:
@@ -251,3 +253,27 @@ def test_text_benchmark_defaults_to_one_run_per_effort_in_shared_results(
     for job in captured:
         index = job.command.index("--output-directory")
         assert job.command[index + 1] == "results"
+
+
+def test_historical_tasks_are_explicit_and_keep_three_repeats() -> None:
+    jobs = plan_jobs(
+        ["alpha"], tasks=("counting", "ocr", "detection"), detection_version="v1"
+    )
+    assert len(jobs) == 18
+    assert {j.repeat for j in jobs} == {1, 2, 3}
+    assert len(plan_jobs(["alpha"], detection_version="v1")) == 8
+    assert {j.task for j in plan_jobs(["alpha"], detection_version="v1")} == {
+        "detection",
+        "text",
+    }
+
+
+def test_enabled_only_detection_is_scheduled_once_with_two_ocr_runs() -> None:
+    jobs = plan_jobs(["alpha"], detection_arms={"alpha": ("enabled",)})
+    assert [(j.task, j.effort) for j in jobs] == [
+        ("detection", "enabled"),
+        ("text", "low"),
+        ("text", "high"),
+    ]
+    command = jobs[0].command
+    assert command[command.index("--effort") + 1] == "enabled"

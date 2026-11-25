@@ -359,7 +359,7 @@ def register_text_render_commands(main: click.Group) -> None:
                     figure = plot_accuracy_chart(
                         scores,
                         config,
-                        f"{label} — {effort.title()} Effort"
+                        f"RF-OCRv2 · {label} — {effort.title()} Effort"
                         + (" — Preliminary" if preliminary else ""),
                         spread=spread,
                         run_counts=counts,

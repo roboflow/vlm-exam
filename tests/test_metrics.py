@@ -221,7 +221,9 @@ class TestAggregateEfficiencyByModel:
             tmp_path / "counting_beta_low_20260707_000000.jsonl",
         )
 
-        alpha, beta = aggregate_efficiency_by_model(tmp_path, config)
+        alpha, beta = aggregate_efficiency_by_model(
+            tmp_path, config, tasks=("counting",)
+        )
 
         assert alpha.sample_count == beta.sample_count == 1
         assert alpha.total_cost == pytest.approx(beta.total_cost)
@@ -243,6 +245,7 @@ class TestAggregateEfficiencyByModel:
             tmp_path,
             config,
             models={"alpha"},
+            tasks=("counting",),
         )
         assert [row.model for row in rows] == ["alpha"]
 

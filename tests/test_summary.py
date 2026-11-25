@@ -126,9 +126,9 @@ class TestBuildSummary:
         summary = build_summary(tmp_path, config, effort="low", detection_version="v1")
 
         by_key = {model.key: model for model in summary.models}
-        assert by_key["alpha"].protocol.status == "incomplete"
-        assert by_key["alpha"].protocol.runs_present == 24
-        assert by_key["alpha"].protocol.runs_required == 26
+        assert by_key["alpha"].protocol.status == "complete"
+        assert by_key["alpha"].protocol.runs_present == 36
+        assert by_key["alpha"].protocol.runs_required == 36
         assert by_key["old"].protocol.status == "legacy"
         assert by_key["old"].protocol.runs_present == 1
         assert by_key["old"].protocol.name == "legacy"
@@ -138,7 +138,7 @@ class TestBuildSummary:
         _save(_run("alpha", "counting", effort="low"), tmp_path)
         _save(_run("alpha", "counting", effort="high"), tmp_path)
 
-        summary = build_summary(tmp_path, config)
+        summary = build_summary(tmp_path, config, detection_version="v1")
 
         assert [(model.id, model.effort) for model in summary.models] == [
             ("alpha:low", "low"),
@@ -151,7 +151,7 @@ class TestBuildSummary:
         _save(_run("alpha", "counting", effort="low"), tmp_path)
         _save(_run("alpha", "counting", effort="high"), tmp_path)
 
-        summary = build_summary(tmp_path, config, effort="high")
+        summary = build_summary(tmp_path, config, effort="high", detection_version="v1")
 
         assert [model.id for model in summary.models] == ["alpha:high"]
         assert summary.efforts == ("high",)
@@ -180,7 +180,7 @@ class TestBuildSummary:
         _save(first, tmp_path)
         _save(second, tmp_path)
 
-        summary = build_summary(tmp_path, config)
+        summary = build_summary(tmp_path, config, detection_version="v1")
 
         counting = summary.models[0].tasks["counting"]
         assert counting.run_count == 3
@@ -215,7 +215,7 @@ class TestBuildSummary:
         )
         _save(_run("alpha", "counting", samples=[failed]), tmp_path)
 
-        summary = build_summary(tmp_path, config)
+        summary = build_summary(tmp_path, config, detection_version="v1")
 
         assert summary.models[0].tasks["counting"].failed_sample_count == 1
         assert "--resume-file" in capsys.readouterr().out
@@ -229,7 +229,7 @@ class TestBuildSummary:
         ]
         _save(_run("alpha", "reasoning", samples=samples), tmp_path)
 
-        summary = build_summary(tmp_path, config)
+        summary = build_summary(tmp_path, config, detection_version="v1")
 
         result = summary.models[0].tasks["reasoning"]
         assert result.metrics == {
@@ -247,7 +247,7 @@ class TestBuildSummary:
         _save(_run("alpha", "reasoning", samples=[legacy]), tmp_path)
 
         with pytest.raises(ValueError, match="vlm-exam rescore"):
-            build_summary(tmp_path, config)
+            build_summary(tmp_path, config, detection_version="v1")
 
     def test_ocr_reports_only_similarity(self, tmp_path: Path) -> None:
         config = _config("alpha")
@@ -257,7 +257,7 @@ class TestBuildSummary:
         ]
         _save(_run("alpha", "ocr", samples=samples), tmp_path)
 
-        summary = build_summary(tmp_path, config)
+        summary = build_summary(tmp_path, config, detection_version="v1")
 
         result = summary.models[0].tasks["ocr"]
         assert result.metrics == {"similarity": pytest.approx(75.0)}
@@ -283,7 +283,7 @@ class TestBuildSummary:
         _save(_run("alpha", "counting"), tmp_path)
         _save(_run("alpha", "vqa"), tmp_path)
 
-        summary = build_summary(tmp_path, config)
+        summary = build_summary(tmp_path, config, detection_version="v1")
 
         assert [task.key for task in summary.tasks] == ["counting"]
         assert list(summary.models[0].tasks) == ["counting"]
@@ -294,8 +294,8 @@ class TestBuildSummary:
         _save(_run("alpha", "counting", timestamp="20260701_120000"), tmp_path)
         _save(_run("alpha", "ocr", timestamp="20260703_060000"), tmp_path)
 
-        first = build_summary(tmp_path, config)
-        second = build_summary(tmp_path, config)
+        first = build_summary(tmp_path, config, detection_version="v1")
+        second = build_summary(tmp_path, config, detection_version="v1")
 
         assert first.generated_at == "2026-07-03T06:00:00Z"
         assert summary_to_dict(first) == summary_to_dict(second)
@@ -303,7 +303,7 @@ class TestBuildSummary:
     def test_empty_results_directory(self, tmp_path: Path) -> None:
         config = _config("alpha")
 
-        summary = build_summary(tmp_path, config)
+        summary = build_summary(tmp_path, config, detection_version="v1")
 
         assert summary.generated_at is None
         assert summary.efforts == ()
@@ -339,7 +339,9 @@ class TestSummaryToDict:
             tmp_path,
         )
 
-        payload = summary_to_dict(build_summary(tmp_path, config))
+        payload = summary_to_dict(
+            build_summary(tmp_path, config, detection_version="v1")
+        )
 
         assert list(payload) == [
             "schema_version",
@@ -362,7 +364,8 @@ class TestSummaryToDict:
         assert payload["protocol"] == {
             "repeats": 3,
             "repeats_by_task": {
-                "text": 1,
+                "ocr": 3,
+                "extraction": 3,
                 "counting": 3,
                 "identification": 3,
                 "reasoning": 3,
@@ -370,13 +373,14 @@ class TestSummaryToDict:
             },
             "efforts": ["low", "high"],
             "tasks": [
-                "text",
+                "ocr",
+                "extraction",
                 "counting",
                 "identification",
                 "reasoning",
                 "detection",
             ],
-            "runs_per_model": 26,
+            "runs_per_model": 36,
         }
 
         (task,) = payload["tasks"]
@@ -420,7 +424,7 @@ class TestSummaryToDict:
             "name": "full",
             "status": "incomplete",
             "runs_present": 1,
-            "runs_required": 26,
+            "runs_required": 36,
         }
 
 
@@ -548,17 +552,10 @@ def test_text_extends_existing_web_contract_and_contributes_to_overview(
     model = payload["models"][0]
     assert len(payload["models"]) == 1
     assert model["id"] == "alpha:low"
-    assert payload["overview_tasks"] == [
-        "text",
-        "counting",
-        "identification",
-        "reasoning",
-        "detection",
-    ]
-    assert model["overall"]["sample_count"] == 5
-    assert model["overall"]["tokens"]["total"] == 750
-    assert model["tasks"]["counting"]["primary_metric"]["value"] == 100
-    assert set(model["tasks"]) == {"counting", "text"}
+    assert payload["overview_tasks"] == ["detection", "text"]
+    assert model["overall"]["sample_count"] == 4
+    assert model["overall"]["tokens"]["total"] == 600
+    assert set(model["tasks"]) == {"text"}
     text = model["tasks"]["text"]
     assert text["primary_metric"] is None
     assert text["metrics"] == {
@@ -598,7 +595,7 @@ def test_text_extends_existing_web_contract_and_contributes_to_overview(
         "structured",
         "localization_recognition",
     ]
-    assert len(payload["tasks"]) == 2
+    assert len(payload["tasks"]) == 1
 
 
 def test_text_overall_weights_pairs_instead_of_categories(
@@ -799,88 +796,25 @@ def test_shared_leaderboard_dispatches_text_to_existing_renderer(
     assert len(received) == 1
 
 
-def test_five_task_overview_counts_mixed_repeats_and_excludes_retired_tasks(
-    text_release: Path,
-) -> None:
-    from copy import deepcopy
-
-    from vlm_exam.results import load_results
-    from vlm_exam.text_release import load_text_release_policy
-
-    policy = load_text_release_policy()
-    policy["efforts"] = ["low", "high"]
-    policy["configurations"]["alpha/low"]["allowed_failures"] = []
-    policy["configurations"]["alpha/high"] = deepcopy(
-        policy["configurations"]["alpha/low"]
-    )
-    run = load_results(text_release / "text_alpha_low.jsonl")
-    run.samples[2].predicted = "valid response"
-    run.samples[2].metadata["score"] = 0.75
-    run.samples[2].elapsed_seconds = 1.0
-    save_results(run, text_release / "text_alpha_low.jsonl")
-    run.effort = "high"
-    save_results(run, text_release / "text_alpha_high.jsonl")
+def test_active_overview_excludes_archived_tasks(text_release: Path) -> None:
     for task in BENCHMARK_TASK_NAMES:
-        for effort in ("low", "high"):
-            for repeat in range(3):
-                _save(
-                    _run(
-                        "alpha",
-                        task,
-                        effort=effort,
-                        timestamp=f"2026070{repeat + 1}_000000",
-                    ),
-                    text_release,
-                )
-    config = _config("alpha")
-    payload = summary_to_dict(
-        build_summary(text_release, config, detection_version="v1")
-    )
-    assert payload["protocol"]["runs_per_model"] == 26
-    for model in payload["models"]:
-        assert model["protocol"] == {
-            "name": "full",
-            "status": "complete",
-            "runs_present": 26,
-            "runs_required": 26,
-        }
-        assert set(model["tasks"]) == {*BENCHMARK_TASK_NAMES, "text"}
-        overall = model["overall"]
-        assert overall["task_count"] == 5
-        assert overall["sample_count"] == 8
-        assert overall["tokens"] == {
-            "input": 800,
-            "output": 400,
-            "total": 1200,
-            "average_per_sample": 150.0,
-        }
-        assert overall["cost"] == {
-            "total_usd": 0.0016,
-            "average_per_sample_usd": 0.0002,
-        }
-        assert overall["speed"] == {
-            "total_seconds": 8.0,
-            "average_seconds_per_sample": 1.0,
-        }
-    for task in ("ocr", "extraction"):
+        _save(_run("alpha", task), text_release)
+    payload = summary_to_dict(build_summary(text_release, _config("alpha")))
+    assert payload["protocol"]["runs_per_model"] == 4
+    assert payload["protocol"]["repeats_by_task"] == {"detection": 1, "text": 1}
+    model = payload["models"][0]
+    assert set(model["tasks"]) == {"text"}
+    assert model["overall"]["sample_count"] == 4
+    assert model["protocol"]["runs_present"] == 1
+    assert model["protocol"]["status"] == "incomplete"
+    historical = payload["historical"]["ocr"]["v1"]
+    assert historical["benchmark_id"] == "RF-OCRv1"
+    assert historical["models"][0]["tasks"]["ocr"]["run_count"] == 1
+    for task in BENCHMARK_TASK_NAMES:
         for path in text_release.glob(f"{task}_*.jsonl"):
             path.unlink()
-    without_retired = summary_to_dict(
-        build_summary(text_release, config, detection_version="v1")
-    )
-    assert [(m["overall"], m["protocol"]) for m in without_retired["models"]] == [
-        (m["overall"], m["protocol"]) for m in payload["models"]
-    ]
-    filtered = summary_to_dict(
-        build_summary(text_release, config, effort="low", detection_version="v1")
-    )
-    assert filtered["models"][0]["protocol"]["runs_present"] == 26
-    next(text_release.glob("counting_alpha_high_*.jsonl")).unlink()
-    missing = summary_to_dict(
-        build_summary(text_release, config, detection_version="v1")
-    )
-    assert all(m["protocol"]["status"] == "incomplete" for m in missing["models"])
-    assert all(m["protocol"]["runs_present"] == 25 for m in missing["models"])
+    without_archives = summary_to_dict(build_summary(text_release, _config("alpha")))
+    assert without_archives["models"] == payload["models"]
 
 
 def _release(root: Path) -> None:
@@ -994,3 +928,43 @@ def test_standard_run_dispatches_to_v2(monkeypatch) -> None:
     assert result.exit_code == 0, result.output
     assert calls[0][:3] == ("alpha", "low", Path("data/detection/v2"))
     assert calls[0][4] == 30
+
+
+def test_current_validation_requires_ocr_v2_not_archival_tasks(
+    text_release: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from vlm_exam.validation import validate_results
+
+    monkeypatch.setattr("vlm_exam.detection_v2.validate_release", lambda root: [])
+    report = validate_results(text_release, _config("alpha"), detection_version="v2")
+    assert report.coverage[0].runs_required == 2
+    assert report.coverage[0].runs_present == 1
+    assert {p.task for p in report.coverage[0].problems} <= {"text"}
+    assert any(p.task == "text" and p.effort == "high" for p in report.errors)
+
+
+def test_historical_ocr_filters_and_preserves_scores(tmp_path: Path) -> None:
+    for model in ("alpha", "beta"):
+        for effort in ("low", "high"):
+            _save(
+                _run(
+                    model,
+                    "ocr",
+                    effort=effort,
+                    samples=[_sample(metadata={"score": 0.75})],
+                ),
+                tmp_path,
+            )
+    payload = summary_to_dict(
+        build_summary(
+            tmp_path, _config("alpha", "beta"), effort="high", models={"beta"}
+        )
+    )
+    assert payload["models"] == []
+    archive = payload["historical"]["ocr"]["v1"]
+    assert archive["efforts"] == ["high"]
+    assert len(archive["models"]) == 1
+    row = archive["models"][0]
+    assert row["key"] == "beta"
+    assert row["tasks"]["ocr"]["metrics"] == {"similarity": 75.0}
+    assert row["tasks"]["ocr"]["configuration_details"]["status"] == "unknown"

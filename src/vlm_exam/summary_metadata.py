@@ -128,7 +128,7 @@ def task_metadata(key: str, *, detection_v2: bool) -> dict[str, Any]:
             "localization_recognition": "Text Localization and Recognition",
         }
         return {
-            "benchmark_id": "text-mixed",
+            "benchmark_id": "RF-OCRv2",
             "subtasks": [
                 {"key": k, "name": name, "metric": k} for k, name in subtasks.items()
             ],
@@ -142,7 +142,7 @@ def task_metadata(key: str, *, detection_v2: bool) -> dict[str, Any]:
         }
     if key == "detection":
         return {
-            "benchmark_id": "detection-v2" if detection_v2 else "detection-v1",
+            "benchmark_id": "RF-ODv2" if detection_v2 else "RF-ODv1",
             "aggregation": {
                 "map50": {
                     "within_run": "mean_subset_ap"
@@ -158,6 +158,8 @@ def task_metadata(key: str, *, detection_v2: bool) -> dict[str, Any]:
                 ),
             },
         }
+    if key == "ocr":
+        return {"benchmark_id": "RF-OCRv1"}
     return {}
 
 
@@ -177,6 +179,9 @@ def historical_detection(
     if actual != snapshot["result_sha256"]:
         raise ValueError("Historical detection snapshot is stale: V1 archives changed")
     view = snapshot["view"]
+    view.update(benchmark_id="RF-ODv1", name="RF-ODv1")
+    for task in view["tasks"]:
+        task.update(name="RF-ODv1", benchmark_id="RF-ODv1")
     view["models"] = [
         m
         for m in view["models"]

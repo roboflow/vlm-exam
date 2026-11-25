@@ -34,7 +34,7 @@ from vlm_exam.metrics import (
     run_strict_accuracy,
     sample_cost,
 )
-from vlm_exam.protocol import PROTOCOL
+from vlm_exam.protocol import ACTIVE_PROTOCOL, BENCHMARK_NAMES, PROTOCOL
 from vlm_exam.results import (
     RunResult,
     SampleResult,
@@ -54,7 +54,7 @@ if TYPE_CHECKING:
 _EFFORT_ORDER = {"low": 0, "medium": 1, "high": 2}
 
 
-OVERVIEW_TASKS = ("text", "counting", "identification", "reasoning", "detection")
+OVERVIEW_TASKS = ACTIVE_PROTOCOL.tasks
 """Tasks contributing to the website overview and its completion requirements."""
 
 
@@ -260,7 +260,7 @@ class ProtocolSummary:
     repeats: int
     efforts: tuple[str, ...]
     tasks: tuple[str, ...]
-    detection_repeats: int = 3
+    detection_repeats: int = 1
 
     @property
     def runs_per_model(self) -> int:
@@ -299,7 +299,7 @@ class BenchmarkSummary:
         strict_metric=_STRICT_ACCURACY_METRIC,
     )
     protocol: ProtocolSummary = ProtocolSummary(
-        repeats=PROTOCOL.repeats,
+        repeats=ACTIVE_PROTOCOL.repeats,
         efforts=PROTOCOL.efforts,
         tasks=OVERVIEW_TASKS,
     )
@@ -533,8 +533,14 @@ def _model_protocol(
     model_key: str,
     model_config: ModelConfig,
     all_groups: RunGroups,
+    *,
+    historical: bool = False,
 ) -> ModelProtocolSummary:
-    protocol = ProtocolSummary(PROTOCOL.repeats, PROTOCOL.efforts, OVERVIEW_TASKS)
+    protocol = ProtocolSummary(
+        ACTIVE_PROTOCOL.repeats, ACTIVE_PROTOCOL.efforts, OVERVIEW_TASKS
+    )
+    if historical:
+        protocol = ProtocolSummary(3, PROTOCOL.efforts, PROTOCOL.tasks, 3)
     configurations = [
         (all_groups.get((task, effort, model_key), ()), required)
         for task, required in protocol.repeats_by_task.items()
@@ -629,6 +635,8 @@ def build_summary(
         if task not in BENCHMARK_TASK_NAMES:
             skipped_tasks.add(task)
             continue
+        if detection_version == "v2" and task != "ocr":
+            continue
         _warn_on_failed_samples(group)
         runs_by_model_effort.setdefault((model, run_effort), {})[task] = group
 
@@ -677,7 +685,12 @@ def build_summary(
                     effort=run_effort,
                     tasks=ordered_tasks,
                     overall=_overall(ordered_tasks),
-                    protocol=_model_protocol(model_key, model_config, all_groups),
+                    protocol=_model_protocol(
+                        model_key,
+                        model_config,
+                        all_groups,
+                        historical=detection_version == "v1",
+                    ),
                 )
             )
 
@@ -724,11 +737,19 @@ def build_summary(
                     {
                         task: result
                         for task, result in model.tasks.items()
-                        if task in OVERVIEW_TASKS
+                        if task
+                        in (
+                            PROTOCOL.tasks
+                            if detection_version == "v1"
+                            else OVERVIEW_TASKS
+                        )
                     }
                 ),
                 protocol=_model_protocol(
-                    model.key, config.models[model.key], all_groups
+                    model.key,
+                    config.models[model.key],
+                    all_groups,
+                    historical=detection_version == "v1",
                 ),
             )
             for model in summary.models
@@ -736,13 +757,70 @@ def build_summary(
     )
 
     if detection_version == "v2":
+        archived_ocr = {
+            "benchmark_id": "RF-OCRv1",
+            "name": "RF-OCRv1",
+            "status": "archived",
+            "efforts": sorted({m.effort for m in summary.models if "ocr" in m.tasks}),
+            "protocol": {
+                "tasks": ["ocr"],
+                "repeats": PROTOCOL.repeats,
+                "efforts": list(PROTOCOL.efforts),
+            },
+            "tasks": [
+                {
+                    "key": "ocr",
+                    "name": "RF-OCRv1",
+                    "primary_metric": "similarity",
+                    "metrics": [
+                        {
+                            "key": "similarity",
+                            "label": "Mean Similarity",
+                            "unit": "percent",
+                        }
+                    ],
+                    **task_metadata("ocr", detection_v2=False),
+                }
+            ],
+            "models": [
+                {
+                    "id": m.id,
+                    "key": m.key,
+                    "name": m.name,
+                    "lab": m.lab,
+                    "effort": m.effort,
+                    "tasks": {"ocr": _task_result_dict(m.tasks["ocr"])},
+                }
+                for m in summary.models
+                if "ocr" in m.tasks
+            ],
+        }
+        summary = replace(
+            summary,
+            tasks=[t for t in summary.tasks if t.key in OVERVIEW_TASKS],
+            models=[
+                replace(
+                    m, tasks={k: v for k, v in m.tasks.items() if k in OVERVIEW_TASKS}
+                )
+                for m in summary.models
+                if any(k in OVERVIEW_TASKS for k in m.tasks)
+            ],
+        )
         from vlm_exam.detection_v2_workflow import with_detection_results
 
         summary = with_detection_results(
             summary, results_directory, config, effort, models, all_groups
         )
         summary = replace(
-            summary, historical=historical_detection(results_directory, effort, models)
+            summary,
+            historical={
+                **historical_detection(results_directory, effort, models),
+                "ocr": {"v1": archived_ocr},
+            },
+        )
+    if detection_version == "v1":
+        summary = replace(
+            summary, protocol=ProtocolSummary(3, PROTOCOL.efforts, PROTOCOL.tasks, 3)
         )
     return summary
 
@@ -1073,10 +1151,10 @@ def summary_to_dict(summary: BenchmarkSummary) -> dict[str, Any]:
         A dictionary suitable for :func:`json.dump`.
     """
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "historical": summary.historical,
         "generated_at": summary.generated_at,
-        "overview_tasks": list(OVERVIEW_TASKS),
+        "overview_tasks": list(summary.protocol.tasks),
         "efforts": list(summary.efforts),
         "scoring": {
             "judge_model": summary.scoring.judge_model,
@@ -1093,7 +1171,12 @@ def summary_to_dict(summary: BenchmarkSummary) -> dict[str, Any]:
         "tasks": [
             {
                 "key": task.key,
-                "name": task.name,
+                "name": (
+                    "RF-ODv1"
+                    if task.key == "detection"
+                    and summary.protocol.detection_repeats != 1
+                    else BENCHMARK_NAMES.get(task.key, task.name)
+                ),
                 "primary_metric": task.primary_metric,
                 **task_metadata(
                     task.key, detection_v2=summary.protocol.detection_repeats == 1

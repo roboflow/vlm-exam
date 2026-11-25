@@ -477,7 +477,7 @@ def _unique_result_path(
 @click.option(
     "--tasks",
     default=None,
-    help="Comma-separated tasks (default: every protocol task).",
+    help="Comma-separated tasks (default: detection,text; older tasks are opt-in).",
 )
 @click.option(
     "--efforts",
@@ -488,7 +488,7 @@ def _unique_result_path(
     "--repeats",
     default=None,
     type=click.IntRange(min=1),
-    help="Runs per configuration (default: the protocol's repeats).",
+    help="Repeats (default: one for active tasks, three for historical tasks).",
 )
 @click.option(
     "--first-repeat",
@@ -567,8 +567,37 @@ def benchmark(
 
     config = load_config(Path(config_path) if config_path else None)
     model_ids = parse_model_filter(models, config)
+    detection_arms = None
+    if (
+        detection_version == "v2"
+        and efforts is None
+        and (tasks is None or "detection" in (_split_option(tasks) or ()))
+    ):
+        from vlm_exam.detection_v2 import load_release
+        from vlm_exam.detection_v2_identity import release_model_id
+
+        policy, _ = load_release(Path.cwd())
+        detection_arms = {}
+        for model in model_ids:
+            profile = config.models[model].detection_v2
+            arms = (
+                profile.get("arms", ["minimum", "maximum"])
+                if profile is not None
+                else sorted(
+                    {
+                        r["effort"]
+                        for r in policy["runs"]
+                        if r["model"] == release_model_id(policy, model)
+                    }
+                )
+            )
+            if arms:
+                detection_arms[model] = tuple(
+                    {"minimum": "low", "maximum": "high"}.get(arm, arm) for arm in arms
+                )
     jobs = plan_jobs(
         model_ids,
+        detection_arms=detection_arms,
         config_path=Path(config_path) if config_path else None,
         detection_version=detection_version,
         tasks=_split_option(tasks),
@@ -599,8 +628,7 @@ def benchmark(
     click.echo(format_outcomes(outcomes))
     click.echo("")
     click.echo(
-        "Next: vlm-exam validate, then vlm-exam summary --dataset-directory "
-        f"{Path(dataset_root) / 'detection' / 'train'} and vlm-exam leaderboard."
+        "Next: vlm-exam validate, then vlm-exam summary and vlm-exam leaderboard."
     )
     if any(not outcome.ok for outcome in outcomes):
         raise SystemExit(1)
@@ -677,7 +705,10 @@ def validate(
         detection_version=detection_version,
     )
     if detection_version == "v2":
-        click.echo("QA repeat coverage below excludes historical detection v1.")
+        click.echo(
+            "RF-OCRv2 coverage below; historical tasks do not affect "
+            "current completion."
+        )
         v2_issues = [
             problem for problem in report.errors if problem.kind == "detection-v2"
         ]
@@ -820,16 +851,30 @@ def rescore(
     type=click.Path(exists=True),
     help="Path to custom models.yaml config.",
 )
+@click.option(
+    "--tasks", default="detection,text", help="Comma-separated tasks to report."
+)
+@click.option("--detection-version", type=click.Choice(["v1", "v2"]), default="v2")
 def report(
     results_directory: str,
     config_path: str | None,
+    tasks: str,
+    detection_version: str,
 ) -> None:
     """Generate summary tables from saved results."""
     config = load_config(Path(config_path) if config_path else None)
     from vlm_exam.detection_v2_workflow import detection_report
 
-    detection_report(Path(results_directory).resolve().parent)
-    runs = load_results_directory(Path(results_directory))
+    selected = set(tasks.split(","))
+    if "detection" in selected and detection_version == "v2":
+        detection_report(Path(results_directory).resolve().parent)
+    runs = [
+        r
+        for r in load_results_directory(
+            Path(results_directory), include_detection_v1=detection_version == "v1"
+        )
+        if r.task in selected
+    ]
 
     if not runs:
         click.echo(f"No usable .jsonl files found in {results_directory}")
@@ -1118,6 +1163,9 @@ def summary(
     default=None,
     help="Named leaderboard model group (e.g. alternative). Overrides --models.",
 )
+@click.option(
+    "--tasks", default="detection,text", help="Comma-separated tasks to aggregate."
+)
 def efficiency_report(
     results_directory: str,
     effort: str,
@@ -1125,8 +1173,9 @@ def efficiency_report(
     config_path: str | None,
     models: str | None,
     group: str | None,
+    tasks: str,
 ) -> None:
-    """Print pooled per-model efficiency metrics and save chart PNGs."""
+    """Print selected benchmark efficiency metrics and save chart PNGs."""
     import matplotlib
 
     matplotlib.use("Agg")
@@ -1142,6 +1191,7 @@ def efficiency_report(
         config,
         effort,
         models=model_filter,
+        tasks=tuple(tasks.split(",")),
     )
 
     if not rows:
@@ -1393,6 +1443,9 @@ def detection_report(
     default="v2",
     show_default=True,
 )
+@click.option(
+    "--tasks", default="detection,text", help="Comma-separated tasks to render."
+)
 def leaderboard(
     results_directory: str,
     dataset_directory: str | None,
@@ -1401,8 +1454,9 @@ def leaderboard(
     models: str | None,
     group: str | None,
     detection_version: str,
+    tasks: str,
 ) -> None:
-    """Generate leaderboard charts for all locally saved runs."""
+    """Generate charts for selected benchmarks (active benchmarks by default)."""
     import matplotlib
 
     matplotlib.use("Agg")
@@ -1417,8 +1471,10 @@ def leaderboard(
     runs = load_results_directory(
         results_path, include_detection_v1=detection_version == "v1"
     )
+    runs = [r for r in runs if r.task in tasks.split(",")]
     if (
         detection_version == "v2"
+        and "detection" in tasks.split(",")
         and (
             results_path.resolve().parent / "datasets/detection/v2/summary.json"
         ).exists()
