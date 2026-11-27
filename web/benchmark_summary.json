@@ -8211,7 +8211,6 @@
     "detection"
   ],
   "efforts": [
-    "enabled",
     "high",
     "low"
   ],
@@ -45802,163 +45801,30 @@
               }
             ]
           }
-        },
-        "text": {
-          "primary_metric": {
-            "name": "overall",
-            "value": 60.34
-          },
-          "metrics": {
-            "overall": 60.34,
-            "single_string": 50.87,
-            "transcription": 82.33,
-            "structured": 73.49,
-            "localization_recognition": 38.73
-          },
-          "metric_runs": {
-            "overall": [
-              60.34
-            ],
-            "single_string": [
-              50.87
-            ],
-            "transcription": [
-              82.33
-            ],
-            "structured": [
-              73.49
-            ],
-            "localization_recognition": [
-              38.73
-            ]
-          },
-          "run_count": 1,
-          "timestamps": [
-            "2026-10-06T06:53:28Z"
-          ],
-          "sample_count": 600,
-          "evaluated_sample_count": 600,
-          "failed_sample_count": 0,
-          "tokens": {
-            "input": 941806,
-            "output": 188958,
-            "total": 1130764,
-            "average_per_sample": 1884.6
-          },
-          "cost": {
-            "total_usd": 0.736041,
-            "average_per_sample_usd": 0.001227
-          },
-          "speed": {
-            "total_seconds": 3507.733,
-            "average_seconds_per_sample": 5.846
-          },
-          "timestamp": "2026-10-06T06:53:28Z",
-          "configuration_details": {
-            "status": "unknown",
-            "record_count": 600,
-            "variants": [
-              {
-                "id": "27ee7fc5f7f164d880016018966bc7320df12a6b7186406fc88ea0139ad65d26",
-                "record_count": 600,
-                "provider": null,
-                "model_id": null,
-                "max_output_tokens": {
-                  "status": "unknown",
-                  "value": null
-                },
-                "reasoning": {
-                  "kind": "unknown",
-                  "value": null,
-                  "api_parameters": {}
-                },
-                "evidence": "identity_only"
-              }
-            ]
-          },
-          "coverage": [
-            {
-              "sample_count": 600,
-              "evaluated_sample_count": 600,
-              "failed_sample_count": 0,
-              "score": 60.341,
-              "observed_score": 60.341,
-              "score_bounds": [
-                60.341,
-                60.341
-              ],
-              "by_metric": {
-                "single_string": {
-                  "sample_count": 230,
-                  "evaluated_sample_count": 230,
-                  "failed_sample_count": 0,
-                  "score": 50.869565217391305,
-                  "observed_score": 50.869565217391305,
-                  "score_bounds": [
-                    50.869565217391305,
-                    50.869565217391305
-                  ]
-                },
-                "transcription": {
-                  "sample_count": 50,
-                  "evaluated_sample_count": 50,
-                  "failed_sample_count": 0,
-                  "score": 82.3266,
-                  "observed_score": 82.3266,
-                  "score_bounds": [
-                    82.3266,
-                    82.3266
-                  ]
-                },
-                "structured": {
-                  "sample_count": 230,
-                  "evaluated_sample_count": 230,
-                  "failed_sample_count": 0,
-                  "score": 73.49047826086957,
-                  "observed_score": 73.49047826086957,
-                  "score_bounds": [
-                    73.49047826086957,
-                    73.49047826086957
-                  ]
-                },
-                "localization_recognition": {
-                  "sample_count": 90,
-                  "evaluated_sample_count": 90,
-                  "failed_sample_count": 0,
-                  "score": 38.727333333333334,
-                  "observed_score": 38.727333333333334,
-                  "score_bounds": [
-                    38.727333333333334,
-                    38.727333333333334
-                  ]
-                }
-              }
-            }
-          ]
         }
       },
       "overall": {
-        "task_count": 4,
-        "sample_count": 857,
+        "task_count": 3,
+        "sample_count": 257,
         "tokens": {
-          "input": 1211875,
-          "output": 189710,
-          "total": 1401585,
-          "average_per_sample": 1635.5
+          "input": 270069,
+          "output": 752,
+          "total": 270821,
+          "average_per_sample": 1053.8
         },
         "cost": {
-          "total_usd": 0.818866,
-          "average_per_sample_usd": 0.000956
+          "total_usd": 0.082825,
+          "average_per_sample_usd": 0.000322
         },
         "speed": {
-          "total_seconds": 4041.23,
-          "average_seconds_per_sample": 4.716
+          "total_seconds": 533.497,
+          "average_seconds_per_sample": 2.076
         }
       },
       "protocol": {
         "name": "legacy",
         "status": "legacy",
-        "runs_present": 6,
+        "runs_present": 4,
         "runs_required": 22
       }
     },
@@ -46030,163 +45896,30 @@
               }
             ]
           }
-        },
-        "text": {
-          "primary_metric": {
-            "name": "overall",
-            "value": 61.7
-          },
-          "metrics": {
-            "overall": 61.7,
-            "single_string": 50.43,
-            "transcription": 86.14,
-            "structured": 76.03,
-            "localization_recognition": 40.29
-          },
-          "metric_runs": {
-            "overall": [
-              61.7
-            ],
-            "single_string": [
-              50.43
-            ],
-            "transcription": [
-              86.14
-            ],
-            "structured": [
-              76.03
-            ],
-            "localization_recognition": [
-              40.29
-            ]
-          },
-          "run_count": 1,
-          "timestamps": [
-            "2026-10-06T06:53:28Z"
-          ],
-          "sample_count": 600,
-          "evaluated_sample_count": 600,
-          "failed_sample_count": 0,
-          "tokens": {
-            "input": 940606,
-            "output": 2426063,
-            "total": 3366669,
-            "average_per_sample": 5611.1
-          },
-          "cost": {
-            "total_usd": 6.104733,
-            "average_per_sample_usd": 0.010175
-          },
-          "speed": {
-            "total_seconds": 29308.119,
-            "average_seconds_per_sample": 48.847
-          },
-          "timestamp": "2026-10-06T06:53:28Z",
-          "configuration_details": {
-            "status": "unknown",
-            "record_count": 600,
-            "variants": [
-              {
-                "id": "27ee7fc5f7f164d880016018966bc7320df12a6b7186406fc88ea0139ad65d26",
-                "record_count": 600,
-                "provider": null,
-                "model_id": null,
-                "max_output_tokens": {
-                  "status": "unknown",
-                  "value": null
-                },
-                "reasoning": {
-                  "kind": "unknown",
-                  "value": null,
-                  "api_parameters": {}
-                },
-                "evidence": "identity_only"
-              }
-            ]
-          },
-          "coverage": [
-            {
-              "sample_count": 600,
-              "evaluated_sample_count": 600,
-              "failed_sample_count": 0,
-              "score": 61.70081666666666,
-              "observed_score": 61.70081666666666,
-              "score_bounds": [
-                61.70081666666666,
-                61.70081666666666
-              ],
-              "by_metric": {
-                "single_string": {
-                  "sample_count": 230,
-                  "evaluated_sample_count": 230,
-                  "failed_sample_count": 0,
-                  "score": 50.43478260869565,
-                  "observed_score": 50.43478260869565,
-                  "score_bounds": [
-                    50.43478260869565,
-                    50.43478260869565
-                  ]
-                },
-                "transcription": {
-                  "sample_count": 50,
-                  "evaluated_sample_count": 50,
-                  "failed_sample_count": 0,
-                  "score": 86.1416,
-                  "observed_score": 86.1416,
-                  "score_bounds": [
-                    86.1416,
-                    86.1416
-                  ]
-                },
-                "structured": {
-                  "sample_count": 230,
-                  "evaluated_sample_count": 230,
-                  "failed_sample_count": 0,
-                  "score": 76.03117391304347,
-                  "observed_score": 76.03117391304347,
-                  "score_bounds": [
-                    76.03117391304347,
-                    76.03117391304347
-                  ]
-                },
-                "localization_recognition": {
-                  "sample_count": 90,
-                  "evaluated_sample_count": 90,
-                  "failed_sample_count": 0,
-                  "score": 40.291555555555554,
-                  "observed_score": 40.291555555555554,
-                  "score_bounds": [
-                    40.291555555555554,
-                    40.291555555555554
-                  ]
-                }
-              }
-            }
-          ]
         }
       },
       "overall": {
-        "task_count": 2,
-        "sample_count": 751,
+        "task_count": 1,
+        "sample_count": 151,
         "tokens": {
-          "input": 1096965,
-          "output": 3037042,
-          "total": 4134007,
-          "average_per_sample": 5504.7
+          "input": 156359,
+          "output": 610979,
+          "total": 767338,
+          "average_per_sample": 5081.7
         },
         "cost": {
-          "total_usd": 7.61799,
-          "average_per_sample_usd": 0.010144
+          "total_usd": 1.513257,
+          "average_per_sample_usd": 0.010022
         },
         "speed": {
-          "total_seconds": 38767.042,
-          "average_seconds_per_sample": 51.621
+          "total_seconds": 9458.923,
+          "average_seconds_per_sample": 62.642
         }
       },
       "protocol": {
         "name": "legacy",
         "status": "legacy",
-        "runs_present": 6,
+        "runs_present": 4,
         "runs_required": 22
       }
     },
@@ -48210,163 +47943,30 @@
               }
             ]
           }
-        },
-        "text": {
-          "primary_metric": {
-            "name": "overall",
-            "value": 51.54
-          },
-          "metrics": {
-            "overall": 51.54,
-            "single_string": 43.04,
-            "transcription": 77.99,
-            "structured": 67.54,
-            "localization_recognition": 17.67
-          },
-          "metric_runs": {
-            "overall": [
-              51.54
-            ],
-            "single_string": [
-              43.04
-            ],
-            "transcription": [
-              77.99
-            ],
-            "structured": [
-              67.54
-            ],
-            "localization_recognition": [
-              17.67
-            ]
-          },
-          "run_count": 1,
-          "timestamps": [
-            "2026-10-06T06:53:28Z"
-          ],
-          "sample_count": 600,
-          "evaluated_sample_count": 600,
-          "failed_sample_count": 0,
-          "tokens": {
-            "input": 1515260,
-            "output": 126880,
-            "total": 1642140,
-            "average_per_sample": 2736.9
-          },
-          "cost": {
-            "total_usd": 2.325832,
-            "average_per_sample_usd": 0.003876
-          },
-          "speed": {
-            "total_seconds": 3332.11,
-            "average_seconds_per_sample": 5.554
-          },
-          "timestamp": "2026-10-06T06:53:28Z",
-          "configuration_details": {
-            "status": "unknown",
-            "record_count": 600,
-            "variants": [
-              {
-                "id": "66b3cee6ad5a43987778867258611d0762ae88b5c9ab0fc6678badba7e6eb6ab",
-                "record_count": 600,
-                "provider": null,
-                "model_id": null,
-                "max_output_tokens": {
-                  "status": "unknown",
-                  "value": null
-                },
-                "reasoning": {
-                  "kind": "unknown",
-                  "value": null,
-                  "api_parameters": {}
-                },
-                "evidence": "identity_only"
-              }
-            ]
-          },
-          "coverage": [
-            {
-              "sample_count": 600,
-              "evaluated_sample_count": 600,
-              "failed_sample_count": 0,
-              "score": 51.541333333333334,
-              "observed_score": 51.541333333333334,
-              "score_bounds": [
-                51.541333333333334,
-                51.541333333333334
-              ],
-              "by_metric": {
-                "single_string": {
-                  "sample_count": 230,
-                  "evaluated_sample_count": 230,
-                  "failed_sample_count": 0,
-                  "score": 43.04347826086956,
-                  "observed_score": 43.04347826086956,
-                  "score_bounds": [
-                    43.04347826086956,
-                    43.04347826086956
-                  ]
-                },
-                "transcription": {
-                  "sample_count": 50,
-                  "evaluated_sample_count": 50,
-                  "failed_sample_count": 0,
-                  "score": 77.9922,
-                  "observed_score": 77.9922,
-                  "score_bounds": [
-                    77.9922,
-                    77.9922
-                  ]
-                },
-                "structured": {
-                  "sample_count": 230,
-                  "evaluated_sample_count": 230,
-                  "failed_sample_count": 0,
-                  "score": 67.54252173913044,
-                  "observed_score": 67.54252173913044,
-                  "score_bounds": [
-                    67.54252173913044,
-                    67.54252173913044
-                  ]
-                },
-                "localization_recognition": {
-                  "sample_count": 90,
-                  "evaluated_sample_count": 90,
-                  "failed_sample_count": 0,
-                  "score": 17.671222222222223,
-                  "observed_score": 17.671222222222223,
-                  "score_bounds": [
-                    17.671222222222223,
-                    17.671222222222223
-                  ]
-                }
-              }
-            }
-          ]
         }
       },
       "overall": {
-        "task_count": 4,
-        "sample_count": 857,
+        "task_count": 3,
+        "sample_count": 257,
         "tokens": {
-          "input": 1870291,
-          "output": 127560,
-          "total": 1997851,
-          "average_per_sample": 2331.2
+          "input": 355031,
+          "output": 680,
+          "total": 355711,
+          "average_per_sample": 1384.1
         },
         "cost": {
-          "total_usd": 2.754589,
-          "average_per_sample_usd": 0.003214
+          "total_usd": 0.428757,
+          "average_per_sample_usd": 0.001668
         },
         "speed": {
-          "total_seconds": 4369.977,
-          "average_seconds_per_sample": 5.099
+          "total_seconds": 1037.867,
+          "average_seconds_per_sample": 4.038
         }
       },
       "protocol": {
         "name": "legacy",
         "status": "legacy",
-        "runs_present": 6,
+        "runs_present": 4,
         "runs_required": 22
       }
     },
@@ -48438,163 +48038,30 @@
               }
             ]
           }
-        },
-        "text": {
-          "primary_metric": {
-            "name": "overall",
-            "value": 55.96
-          },
-          "metrics": {
-            "overall": 55.96,
-            "single_string": 44.35,
-            "transcription": 77.83,
-            "structured": 69.57,
-            "localization_recognition": 38.71
-          },
-          "metric_runs": {
-            "overall": [
-              55.96
-            ],
-            "single_string": [
-              44.35
-            ],
-            "transcription": [
-              77.83
-            ],
-            "structured": [
-              69.57
-            ],
-            "localization_recognition": [
-              38.71
-            ]
-          },
-          "run_count": 1,
-          "timestamps": [
-            "2026-10-06T06:53:28Z"
-          ],
-          "sample_count": 600,
-          "evaluated_sample_count": 600,
-          "failed_sample_count": 0,
-          "tokens": {
-            "input": 1517632,
-            "output": 750590,
-            "total": 2268222,
-            "average_per_sample": 3780.4
-          },
-          "cost": {
-            "total_usd": 4.823518,
-            "average_per_sample_usd": 0.008039
-          },
-          "speed": {
-            "total_seconds": 11341.638,
-            "average_seconds_per_sample": 18.903
-          },
-          "timestamp": "2026-10-06T06:53:28Z",
-          "configuration_details": {
-            "status": "unknown",
-            "record_count": 600,
-            "variants": [
-              {
-                "id": "66b3cee6ad5a43987778867258611d0762ae88b5c9ab0fc6678badba7e6eb6ab",
-                "record_count": 600,
-                "provider": null,
-                "model_id": null,
-                "max_output_tokens": {
-                  "status": "unknown",
-                  "value": null
-                },
-                "reasoning": {
-                  "kind": "unknown",
-                  "value": null,
-                  "api_parameters": {}
-                },
-                "evidence": "identity_only"
-              }
-            ]
-          },
-          "coverage": [
-            {
-              "sample_count": 600,
-              "evaluated_sample_count": 600,
-              "failed_sample_count": 0,
-              "score": 55.960433333333334,
-              "observed_score": 55.960433333333334,
-              "score_bounds": [
-                55.960433333333334,
-                55.960433333333334
-              ],
-              "by_metric": {
-                "single_string": {
-                  "sample_count": 230,
-                  "evaluated_sample_count": 230,
-                  "failed_sample_count": 0,
-                  "score": 44.34782608695652,
-                  "observed_score": 44.34782608695652,
-                  "score_bounds": [
-                    44.34782608695652,
-                    44.34782608695652
-                  ]
-                },
-                "transcription": {
-                  "sample_count": 50,
-                  "evaluated_sample_count": 50,
-                  "failed_sample_count": 0,
-                  "score": 77.829,
-                  "observed_score": 77.829,
-                  "score_bounds": [
-                    77.829,
-                    77.829
-                  ]
-                },
-                "structured": {
-                  "sample_count": 230,
-                  "evaluated_sample_count": 230,
-                  "failed_sample_count": 0,
-                  "score": 69.56973913043478,
-                  "observed_score": 69.56973913043478,
-                  "score_bounds": [
-                    69.56973913043478,
-                    69.56973913043478
-                  ]
-                },
-                "localization_recognition": {
-                  "sample_count": 90,
-                  "evaluated_sample_count": 90,
-                  "failed_sample_count": 0,
-                  "score": 38.708555555555556,
-                  "observed_score": 38.708555555555556,
-                  "score_bounds": [
-                    38.708555555555556,
-                    38.708555555555556
-                  ]
-                }
-              }
-            }
-          ]
         }
       },
       "overall": {
-        "task_count": 2,
-        "sample_count": 751,
+        "task_count": 1,
+        "sample_count": 151,
         "tokens": {
-          "input": 1725640,
-          "output": 949405,
-          "total": 2675045,
-          "average_per_sample": 3562.0
+          "input": 208008,
+          "output": 198815,
+          "total": 406823,
+          "average_per_sample": 2694.2
         },
         "cost": {
-          "total_usd": 5.868388,
-          "average_per_sample_usd": 0.007814
+          "total_usd": 1.04487,
+          "average_per_sample_usd": 0.00692
         },
         "speed": {
-          "total_seconds": 15723.782,
-          "average_seconds_per_sample": 20.937
+          "total_seconds": 4382.145,
+          "average_seconds_per_sample": 29.021
         }
       },
       "protocol": {
         "name": "legacy",
         "status": "legacy",
-        "runs_present": 6,
+        "runs_present": 4,
         "runs_required": 22
       }
     },
@@ -72337,269 +71804,6 @@
         "name": "full",
         "status": "complete",
         "runs_present": 22,
-        "runs_required": 22
-      }
-    },
-    {
-      "id": "glm-5v-turbo:enabled",
-      "key": "glm-5v-turbo",
-      "name": "GLM 5V Turbo",
-      "lab": "zai",
-      "effort": "enabled",
-      "tasks": {
-        "detection": {
-          "primary_metric": {
-            "name": "map50",
-            "value": 27.73
-          },
-          "metrics": {
-            "map50": 27.73,
-            "f1": 25.11,
-            "precision": 36.28,
-            "recall": 19.2
-          },
-          "metric_runs": {
-            "map50": [
-              27.73
-            ],
-            "f1": [
-              25.11
-            ],
-            "precision": [
-              36.28
-            ],
-            "recall": [
-              19.2
-            ]
-          },
-          "run_count": 1,
-          "timestamps": [],
-          "sample_count": 600,
-          "evaluated_sample_count": 600,
-          "failed_sample_count": 115,
-          "tokens": {
-            "input": 1835561,
-            "output": 1106205,
-            "total": 2941766,
-            "average_per_sample": 4902.9
-          },
-          "cost": {
-            "total_usd": 6.627493,
-            "average_per_sample_usd": 0.011046
-          },
-          "speed": {
-            "total_seconds": 62943.339,
-            "average_seconds_per_sample": 104.906
-          },
-          "timestamp": null,
-          "provenance": {
-            "protocol": "detection-v2",
-            "dataset_sha256": "366cb4e49552a6fa9640bbe1c94737e5c7c586d2f9b43ce78a6c35d8c8060c83",
-            "native_effort": "enabled",
-            "configurations": [
-              "b669fc1c754f24aaa4c5154bb2b0eca83d8df7f4960be1b0aedb3eeb7916c312"
-            ],
-            "complete": true,
-            "accepted_failure_count": 0
-          },
-          "configuration_details": {
-            "status": "uniform",
-            "record_count": 600,
-            "variants": [
-              {
-                "id": "b669fc1c754f24aaa4c5154bb2b0eca83d8df7f4960be1b0aedb3eeb7916c312",
-                "record_count": 600,
-                "provider": "openrouter",
-                "model_id": "z-ai/glm-5v-turbo",
-                "max_output_tokens": {
-                  "status": "explicit",
-                  "value": 131072
-                },
-                "reasoning": {
-                  "kind": "enabled",
-                  "value": true,
-                  "api_parameters": {
-                    "reasoning.enabled": true
-                  }
-                },
-                "evidence": "recorded_request_profile",
-                "routing": {
-                  "requested_provider_ids": [
-                    "z-ai"
-                  ],
-                  "allow_fallbacks": false
-                }
-              }
-            ]
-          }
-        }
-      },
-      "overall": {
-        "task_count": 1,
-        "sample_count": 600,
-        "tokens": {
-          "input": 1835561,
-          "output": 1106205,
-          "total": 2941766,
-          "average_per_sample": 4902.9
-        },
-        "cost": {
-          "total_usd": 6.627493,
-          "average_per_sample_usd": 0.011046
-        },
-        "speed": {
-          "total_seconds": 62943.339,
-          "average_seconds_per_sample": 104.906
-        }
-      },
-      "protocol": {
-        "name": "detection-v2",
-        "status": "incomplete",
-        "runs_present": 6,
-        "runs_required": 22
-      }
-    },
-    {
-      "id": "qwen-3.5-27b:enabled",
-      "key": "qwen-3.5-27b",
-      "name": "Qwen3.5-27B",
-      "lab": "qwen",
-      "effort": "enabled",
-      "tasks": {
-        "detection": {
-          "primary_metric": {
-            "name": "map50",
-            "value": 32.13
-          },
-          "metrics": {
-            "map50": 32.13,
-            "f1": 33.1,
-            "precision": 45.74,
-            "recall": 25.94
-          },
-          "metric_runs": {
-            "map50": [
-              32.13
-            ],
-            "f1": [
-              33.1
-            ],
-            "precision": [
-              45.74
-            ],
-            "recall": [
-              25.94
-            ]
-          },
-          "run_count": 1,
-          "timestamps": [],
-          "sample_count": 600,
-          "evaluated_sample_count": 600,
-          "failed_sample_count": 50,
-          "tokens": {
-            "input": 1040723,
-            "output": 2713731,
-            "total": 3754454,
-            "average_per_sample": 6257.4
-          },
-          "cost": {
-            "total_usd": 6.825171,
-            "average_per_sample_usd": 0.011375
-          },
-          "speed": {
-            "total_seconds": 55873.577,
-            "average_seconds_per_sample": 93.123
-          },
-          "timestamp": null,
-          "provenance": {
-            "protocol": "detection-v2",
-            "dataset_sha256": "366cb4e49552a6fa9640bbe1c94737e5c7c586d2f9b43ce78a6c35d8c8060c83",
-            "native_effort": "enabled",
-            "configurations": [
-              "b48dcf398fd1369de106298d2b51fd3fcf4bb6eb7f2e580bbe07525ac2d7fad6",
-              "efe8b55406ddcc3aaef532561d4d9052fd407af5b26a864bb5a5421c3494c053"
-            ],
-            "complete": true,
-            "accepted_failure_count": 0
-          },
-          "configuration_details": {
-            "status": "mixed",
-            "record_count": 600,
-            "variants": [
-              {
-                "id": "b48dcf398fd1369de106298d2b51fd3fcf4bb6eb7f2e580bbe07525ac2d7fad6",
-                "record_count": 1,
-                "provider": "openrouter",
-                "model_id": "qwen/qwen3.5-27b",
-                "max_output_tokens": {
-                  "status": "explicit",
-                  "value": 128000
-                },
-                "reasoning": {
-                  "kind": "enabled",
-                  "value": true,
-                  "api_parameters": {
-                    "reasoning.enabled": true
-                  }
-                },
-                "evidence": "recorded_request_profile",
-                "routing": {
-                  "requested_provider_ids": [
-                    "alibaba"
-                  ],
-                  "allow_fallbacks": false
-                }
-              },
-              {
-                "id": "efe8b55406ddcc3aaef532561d4d9052fd407af5b26a864bb5a5421c3494c053",
-                "record_count": 599,
-                "provider": "openrouter",
-                "model_id": "qwen/qwen3.5-27b",
-                "max_output_tokens": {
-                  "status": "explicit",
-                  "value": 65536
-                },
-                "reasoning": {
-                  "kind": "enabled",
-                  "value": true,
-                  "api_parameters": {
-                    "reasoning.enabled": true
-                  }
-                },
-                "evidence": "recorded_request_profile",
-                "routing": {
-                  "requested_provider_ids": [
-                    "alibaba"
-                  ],
-                  "allow_fallbacks": false
-                }
-              }
-            ]
-          }
-        }
-      },
-      "overall": {
-        "task_count": 1,
-        "sample_count": 600,
-        "tokens": {
-          "input": 1040723,
-          "output": 2713731,
-          "total": 3754454,
-          "average_per_sample": 6257.4
-        },
-        "cost": {
-          "total_usd": 6.825171,
-          "average_per_sample_usd": 0.011375
-        },
-        "speed": {
-          "total_seconds": 55873.577,
-          "average_seconds_per_sample": 93.123
-        }
-      },
-      "protocol": {
-        "name": "detection-v2",
-        "status": "incomplete",
-        "runs_present": 6,
         "runs_required": 22
       }
     }

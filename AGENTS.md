@@ -711,3 +711,13 @@ spellings must select the same profiles and charts; coverage uses the public
 identity. Never rewrite historical raw records or upstream wire IDs to rename a
 model. Reject conflicting alias inventories rather than silently overwriting a
 summary entry. Incoming publication aliases retain `submitted_model_key`.
+
+### Withdrawn V2 results (November 27, 2026)
+
+GLM 5V Turbo (`glm-5v-turbo`) and Qwen3.5-27B (`qwen-3.5-27b`) are
+withdrawn from the detection V2 and mixed-text/OCR V2 release inventories.
+Their recorded enabled-only detection settings do not establish distinct native
+Low/High reasoning levels. Do not restore these results or reinterpret their
+historical effort labels without explicit approval. Historical V1/QA results,
+provider adapters and audit diagnostics remain available; the removed V2 primary
+runs remain recoverable in Git history.
