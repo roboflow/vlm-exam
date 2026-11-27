@@ -1030,29 +1030,6 @@
       "rank": 3
     },
     {
-      "model": "glm-5v-turbo",
-      "effort": "enabled",
-      "images": 600,
-      "run_count": 1,
-      "complete": true,
-      "accepted_failure_count": 0,
-      "response_counts": {
-        "returned": 485,
-        "invalid_json": 115
-      },
-      "metrics": {
-        "map50": 0.2773244858040319,
-        "map50_missing_as_empty": 0.2773244858040319,
-        "map50_capped100": 0.27617250762899254,
-        "f1": 0.2511286225141988,
-        "precision": 0.36276938899537187,
-        "recall": 0.19203167532788915,
-        "seconds_per_image": 104.90556581656138,
-        "input_tokens": 1835561,
-        "output_tokens": 1106205
-      }
-    },
-    {
       "model": "gpt-5.4-mini",
       "effort": "maximum",
       "images": 600,
@@ -2252,30 +2229,6 @@
         "output_tokens": 714323
       },
       "rank": 24
-    },
-    {
-      "model": "qwen-3.5-27b",
-      "effort": "enabled",
-      "images": 600,
-      "run_count": 1,
-      "complete": true,
-      "accepted_failure_count": 0,
-      "response_counts": {
-        "returned": 550,
-        "invalid_json": 49,
-        "empty": 1
-      },
-      "metrics": {
-        "map50": 0.32130862775666175,
-        "map50_missing_as_empty": 0.32130862775666175,
-        "map50_capped100": 0.3165694156778045,
-        "f1": 0.3310381857806134,
-        "precision": 0.4574458798882682,
-        "recall": 0.2593664934422173,
-        "seconds_per_image": 93.12262784202893,
-        "input_tokens": 1040723,
-        "output_tokens": 2713731
-      }
     },
     {
       "model": "qwen-3.6-27b",

@@ -10,7 +10,7 @@
     "minimum",
     "maximum"
   ],
-  "models": 56,
+  "models": 54,
   "runs": [
     {
       "model": "claude-fable-5",
@@ -648,20 +648,6 @@
       },
       "configurations": [
         "5f637c34674023b24a9a5fffedae7fe17412349b356723eddb48875605d3364b"
-      ]
-    },
-    {
-      "model": "glm-5v-turbo",
-      "effort": "enabled",
-      "path": "results/detection/v2/glm-5v-turbo__enabled.jsonl.gz",
-      "sha256": "feb1909bf63657940bbce00a6f4bcb33265f334a924567863c766bd99c5b306e",
-      "samples": 600,
-      "status_counts": {
-        "returned": 485,
-        "invalid_json": 115
-      },
-      "configurations": [
-        "b669fc1c754f24aaa4c5154bb2b0eca83d8df7f4960be1b0aedb3eeb7916c312"
       ]
     },
     {
@@ -1380,22 +1366,6 @@
       },
       "configurations": [
         "95b51033765518039d9bbd5fd6b138224b9ce5d9f45a7472eb24307a91d54671"
-      ]
-    },
-    {
-      "model": "qwen-3.5-27b",
-      "effort": "enabled",
-      "path": "results/detection/v2/qwen-3.5-27b__enabled.jsonl.gz",
-      "sha256": "0f48b8a459e06ad798dc8b5039e0088cf58d7b151cafa42a19373808ee2c1a20",
-      "samples": 600,
-      "status_counts": {
-        "returned": 550,
-        "invalid_json": 49,
-        "empty": 1
-      },
-      "configurations": [
-        "b48dcf398fd1369de106298d2b51fd3fcf4bb6eb7f2e580bbe07525ac2d7fad6",
-        "efe8b55406ddcc3aaef532561d4d9052fd407af5b26a864bb5a5421c3494c053"
       ]
     },
     {
